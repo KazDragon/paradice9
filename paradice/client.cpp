@@ -1,130 +1,96 @@
+// ==========================================================================
+// Paradice Client
+//
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+//
+// Permission to reproduce, distribute, perform, display, and to prepare
+// derivitive works from this file under the following conditions:
+//
+// 1. Any copy, reproduction or derivitive work of any part of this file 
+//    contains this copyright notice and licence in its entirety.
+//
+// 2. The rights granted to you under this license automatically terminate
+//    should you attempt to assert any patent claims against the licensor 
+//    or contributors, which in any way restrict the ability of any party 
+//    from using this software or portions thereof in any form under the
+//    terms of this license.
+//
+// Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+// ==========================================================================
 #include "client.hpp"
-#include "socket.hpp"
-#include <boost/bind.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include "connection.hpp"
+#include <boost/foreach.hpp>
 #include <deque>
+#include <string>
+#include <vector>
 
-using namespace odin;
-using namespace odin::io;
 using namespace boost;
 using namespace std;
 
 namespace paradice {
 
+vector< shared_ptr<client> > clients;
+    
 struct client::impl
 {
-    void schedule_next_read()
-    {
-        BOOST_AUTO(available, socket_->available());
-        
-        if (available.is_initialized())
-        {
-            socket_->async_read(
-                input_datastream<u8>::size_type(available.get())
-              , bind(&impl::data_read, this, _1));
-        }
-        else
-        {
-            socket_->async_read(
-                input_datastream<u8>::size_type(1)
-              , bind(&impl::data_read, this, _1));
-        }
-    }
-    
-    void data_read(runtime_array<u8> const &data)
-    {
-        copy(data.begin(), data.end(), back_inserter(read_buffer_));
-        schedule_next_read();
-        lex_input();
-    }
+    shared_ptr<socket>     socket_;
+    shared_ptr<connection> connection_;
+    client::level          level_;
 
-    void lex_input()
-    {
-        deque<u8>::iterator line_end = 
-            find(read_buffer_.begin(), read_buffer_.end(), u8('\n'));
-        
-        if (line_end != read_buffer_.end())
-        {
-            // Convert to string
-            string text;
+    string                 name_;
+    string                 title_;
 
-            // Parse backspaces
-            for (deque<u8>::iterator pos = read_buffer_.begin();
-                 pos != line_end;
-                 ++pos)
-            {
-                if (*pos == '\b')
-                {
-                    if (!text.empty())
-                    {
-                        text.erase(text.end() - 1, text.end());
-                    }
-                }
-                else
-                {
-                    text += *pos;
-                }
-            }
-
-            // Trim extra space from the beginning and end.
-            boost::algorithm::trim(text);
-
-            // Finally, trim the associated text out of the input buffer.
-            read_buffer_.erase(read_buffer_.begin(), ++line_end);
-
-            // Announce to the listener.
-            if (on_data_)
-            {
-                on_data_(text);
-            }
-        }
-    }
-    
-    void write(string const &text)
-    {
-        copy(text.begin(), text.end(), back_inserter(write_buffer_));
-        socket_->get_io_service().post(bind(&impl::do_write, this));
-    }
-    
-    void do_write()
-    {
-        if (!write_buffer_.empty())
-        {
-            runtime_array<u8> output(write_buffer_.size());
-            copy(write_buffer_.begin(), write_buffer_.end(), output.begin());
-            
-            socket_->async_write(output, NULL);
-            
-            write_buffer_.clear();
-        }
-    }
-    
-    shared_ptr<socket>      socket_;
-    function<void (string)> on_data_;
-    
-    deque<u8>               read_buffer_;
-    vector<u8>              write_buffer_;
-
-    string                  name_;
-    string                  title_;
+    string                 last_command_;
+    deque<string>          backtrace_;
 };
 
-client::client(
-    shared_ptr<socket>      client_socket
-  , function<void (string)> data_callback)
+client::client()
     : pimpl_(new impl)
 {
-    pimpl_->socket_  = client_socket;
-    pimpl_->on_data_ = data_callback;
-    
-    pimpl_->schedule_next_read();
+    pimpl_->level_  = level_intro_screen;
 }
     
 client::~client()
 {
 }
-    
+
+void client::set_socket(shared_ptr<socket> const &new_socket)
+{
+    pimpl_->socket_ = new_socket;
+}
+
+void client::set_connection(shared_ptr<connection> const &new_connection)
+{
+    pimpl_->connection_ = new_connection;
+}
+
+shared_ptr<socket> client::get_socket()
+{
+    return pimpl_->socket_;
+}
+
+shared_ptr<connection> client::get_connection()
+{
+    return pimpl_->connection_;
+}
+
+client::level client::get_level() const
+{
+    return pimpl_->level_;
+}
+
+void client::set_level(level new_level)
+{
+    pimpl_->level_ = new_level;
+}
+
 void client::set_name(string const &name)
 {
     pimpl_->name_ = name;
@@ -145,9 +111,36 @@ string client::get_title() const
     return pimpl_->title_;
 }
 
-void client::write(string const &text)
+void client::set_last_command(string const &cmd)
 {
-    pimpl_->write(text);
+    pimpl_->last_command_ = cmd;
+}
+
+string client::get_last_command() const
+{
+    return pimpl_->last_command_;
+}
+
+void client::add_backtrace(string const &text)
+{
+    pimpl_->backtrace_.push_back(text);
+
+    if (pimpl_->backtrace_.size() > 10)
+    {
+        pimpl_->backtrace_.pop_front();
+    }
+}
+
+string client::get_backtrace() const
+{
+    string text;
+
+    BOOST_FOREACH(string trace, pimpl_->backtrace_)
+    {
+        text += trace + "\r\n";
+    }
+
+    return text;
 }
 
 }

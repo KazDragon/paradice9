@@ -1,6 +1,6 @@
 #include "communication.hpp"
-#include "connection.hpp"
 #include "client.hpp"
+#include "connection.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
 
@@ -11,35 +11,35 @@ namespace paradice {
     
 void message_to_all(string const &text)
 {
-    BOOST_FOREACH(shared_ptr<connection> cur_conn, connections)
+    BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
-        cur_conn->get_client()->write(text);
-        cur_conn->add_backtrace(
+        cur_client->get_connection()->write(text);
+        cur_client->add_backtrace(
             boost::algorithm::trim_copy(text));
     }
 }
 
 void message_to_player(
-    string const           &text
-  , shared_ptr<connection> &conn)
+    string const       &text
+  , shared_ptr<client> &conn)
 {
-    conn->get_client()->write(text);
+    conn->get_connection()->write(text);
     conn->add_backtrace(
         boost::algorithm::trim_copy(text));
 }
 
 void message_to_room(
-    string const                 &text, 
-    shared_ptr<connection> const &conn)
+    string const             &text, 
+    shared_ptr<client> const &conn)
 {
-    BOOST_FOREACH(shared_ptr<connection> cur_conn, connections)
+    BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
-        if (cur_conn != conn)
+        if (cur_client != conn)
         {
-            if (cur_conn->get_level() == connection::level_in_game)
+            if (cur_client->get_level() == client::level_in_game)
             {
-                cur_conn->get_client()->write(text);
-                cur_conn->add_backtrace(
+                cur_client->get_connection()->write(text);
+                cur_client->add_backtrace(
                     boost::algorithm::trim_copy(text));
             }
         }
@@ -48,30 +48,30 @@ void message_to_room(
 
 void send_to_all(string const &text)
 {
-    BOOST_FOREACH(shared_ptr<connection> cur_conn, connections)
+    BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
-        cur_conn->get_client()->write(text);
+        cur_client->get_connection()->write(text);
     }
 }
 
 void send_to_player(
-    string const           &text
-  , shared_ptr<connection> &conn)
+    string const       &text
+  , shared_ptr<client> &conn)
 {
-    conn->get_client()->write(text);
+    conn->get_connection()->write(text);
 }
 
 void send_to_room(
-    string const                 &text, 
-    shared_ptr<connection> const &conn)
+    string const             &text, 
+    shared_ptr<client> const &conn)
 {
-    BOOST_FOREACH(shared_ptr<connection> cur_conn, connections)
+    BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
-        if (cur_conn != conn)
+        if (cur_client != conn)
         {
-            if (cur_conn->get_level() == connection::level_in_game)
+            if (cur_client->get_level() == client::level_in_game)
             {
-                cur_conn->get_client()->write(text);
+                cur_client->get_connection()->write(text);
             }
         }
     }

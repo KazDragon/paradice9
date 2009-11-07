@@ -86,25 +86,25 @@ static bool is_acceptible_name(string const &name)
 }
 
 static void do_say(
-    string const                     &message, 
-    shared_ptr<paradice::connection> &conn)
+    string const                 &message, 
+    shared_ptr<paradice::client> &client)
 {
     paradice::message_to_player(str(
         format("\r\nYou say, \"%s\"\r\n")
             % message)
-      , conn);
+      , client);
 
 
     paradice::message_to_room(str(
         format("\r\n%s says, \"%s\"\r\n")
-            % conn->get_client()->get_name()
+            % client->get_name()
             % message)
-      , conn);
+      , client);
 }
 
 static void do_sayto(
-    string const                     &message, 
-    shared_ptr<paradice::connection> &conn)
+    string const                 &message, 
+    shared_ptr<paradice::client> &client)
 {
     pair<string, string> arg = tokenise(message);
 
@@ -115,50 +115,50 @@ static void do_sayto(
             "\r\n     or"
             "\r\n Usage: > [player] [message]"
             "\r\n"
-          , conn);
+          , client);
 
         return;
     }
 
-    BOOST_FOREACH(shared_ptr<paradice::connection> cur_conn, paradice::connections)
+    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, paradice::clients)
     {
-        if(::is_iequal(cur_conn->get_client()->get_name(), arg.first))
+        if(::is_iequal(cur_client->get_name(), arg.first))
         {
             paradice::message_to_player(str(
                 format("\r\nYou say to %s, \"%s\"\r\n")
-                    % cur_conn->get_client()->get_name()
+                    % cur_client->get_name()
                     % arg.second)
-              , conn);
+              , cur_client);
 
             paradice::message_to_player(str(
                 format("\r\n%s says to you, \"%s\"\r\n")
-                    % conn->get_client()->get_name()
+                    % cur_client->get_name()
                     % arg.second)
-              , cur_conn);
+              , cur_client);
 
             return;
         }
     }
 
     paradice::send_to_player(
-        "\r\nCouldn't find anyone by that name to talk to.\r\n", conn);
+        "\r\nCouldn't find anyone by that name to talk to.\r\n", client);
 }
 
 static void do_who(
-    string const                           &/*unused*/, 
-    shared_ptr<paradice::connection> const &conn)
+    string const                 &/*unused*/, 
+    shared_ptr<paradice::client> &client)
 {
     string text =
         "\x1B[s" // save cursor position
         "\x1B[H" // home
         " +=== CURRENTLY PLAYING ======================================================+\r\n";
 
-    BOOST_FOREACH(shared_ptr<paradice::connection> cur_conn, paradice::connections)
+    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, paradice::clients)
     {
         string address = str(
             format(" | %s %s") 
-                % cur_conn->get_client()->get_name()
-                % cur_conn->get_client()->get_title());
+                % cur_client->get_name()
+                % cur_client->get_title());
 
         size_t width_remaining = 78 - address.size();
 
@@ -172,9 +172,9 @@ static void do_who(
         text += address;
     }
 
-    if (paradice::connections.size() <= 6)
+    if (paradice::clients.size() <= 6)
     {
-        for (unsigned int i = 0; i < (6 - paradice::connections.size()); ++i)
+        for (unsigned int i = 0; i < (6 - paradice::clients.size()); ++i)
         {
             text += "\x1B[2K |                                                                            |\r\n";
         }
@@ -183,43 +183,43 @@ static void do_who(
     text += " +============================================================================+\r\n";
     text += "\x1B[u"; // unsave
 
-    conn->get_client()->write(text);
+    client->get_connection()->write(text);
 }
 
 static void do_title(
-    string const                     &title, 
-    shared_ptr<paradice::connection> &conn)
+    string const                 &title, 
+    shared_ptr<paradice::client> &client)
 {
-    conn->get_client()->set_title(boost::algorithm::trim_copy(title));
+    client->set_title(boost::algorithm::trim_copy(title));
 
     paradice::message_to_player(str(
         format("\r\nYou are now %s %s.\r\n")
-            % conn->get_client()->get_name()
-            % conn->get_client()->get_title())
-      , conn);
+            % client->get_name()
+            % client->get_title())
+      , client);
     
     paradice::message_to_room(str(
         format("\r\n%s is now %s %s.\r\n")
-            % conn->get_client()->get_name()
-            % conn->get_client()->get_name()
-            % conn->get_client()->get_title())
-      , conn);
+            % client->get_name()
+            % client->get_name()
+            % client->get_title())
+      , client);
 
-    BOOST_FOREACH(shared_ptr<paradice::connection> connection, paradice::connections)
+    BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
     {
         do_who("", connection);
     }
 }
 
 static void do_rename(
-    string const                           &text,
-    shared_ptr<paradice::connection> const &conn)
+    string const                 &text,
+    shared_ptr<paradice::client> &client)
 {
     pair<string, string> name = tokenise(text);
     
     if (!is_acceptible_name(name.first))
     {
-        conn->get_client()->write(
+        client->get_connection()->write(
             "Your name must be at least three characters long and be composed"
             "of only alphabetical characters.\r\n");
     }
@@ -227,10 +227,10 @@ static void do_rename(
     {
         name.first[0] = toupper(name.first[0]);
         
-        string old_name = conn->get_client()->get_name();
-        conn->get_client()->set_name(name.first);
+        string old_name = client->get_name();
+        client->set_name(name.first);
         
-        conn->get_client()->write(str(
+        client->get_connection()->write(str(
             format("\r\nOk, your name is now %s.\r\n")
                 % name.first));
         
@@ -238,18 +238,18 @@ static void do_rename(
             format("\r\n%s is now known as %s.\r\n")
                 % old_name
                 % name.first)
-          , conn);
+          , client);
 
-        BOOST_FOREACH(shared_ptr<paradice::connection> connection, paradice::connections)
+        BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
         {
-            do_who("", connection);
+            do_who("", curr_client);
         }
     }
 }
 
 static void do_roll(
-    string const                     &text, 
-    shared_ptr<paradice::connection> &conn)
+    string const                 &text, 
+    shared_ptr<paradice::client> &client)
 {
     static string const usage_message =
         "\r\n Usage:   roll [number of dice] [number of sides] [opt:bonuses...]"
@@ -260,7 +260,7 @@ static void do_roll(
 
     if (roll.first.empty() || roll.second.empty())
     {
-        conn->get_client()->write(usage_message);
+        client->get_connection()->write(usage_message);
         return;
     }
 
@@ -280,7 +280,7 @@ static void do_roll(
 
     if (rolls == 0 || sides == 0 || rolls > 100)
     {
-        conn->get_client()->write(usage_message);
+        client->get_connection()->write(usage_message);
         return;
     }
 
@@ -307,35 +307,35 @@ static void do_roll(
             % bonus_score
             % total
             % roll_description)
-      , conn);
+      , client);
 
     paradice::message_to_room(
         str(format("\r\n%s rolls %dd%d%s%d and scores %d [%s]\r\n")
-            % conn->get_client()->get_name()
+            % client->get_name()
             % rolls
             % sides
             % (bonus_score >= 0 ? "+" : "")
             % bonus_score
             % total
             % roll_description)
-      , conn);
+      , client);
 }
 
 static void do_backtrace(
-    string const                     &/*unused*/, 
-    shared_ptr<paradice::connection> &conn)
+    string const                 &/*unused*/, 
+    shared_ptr<paradice::client> &client)
 {
     paradice::send_to_player(
         "\r\n==== Backtrace: ==============================================================\r\n"
-      + conn->get_backtrace()
-      , conn);
+      + client->get_backtrace()
+      , client);
 }
 
 static void do_quit(
-    string const                           &/*unused*/, 
-    shared_ptr<paradice::connection> const &conn)
+    string const                       &/*unused*/, 
+    shared_ptr<paradice::client> const &client)
 {
-    shared_ptr<paradice::socket> socket = conn->get_socket();
+    shared_ptr<paradice::socket> socket = client->get_socket();
 
     if (socket)
     {
@@ -345,8 +345,8 @@ static void do_quit(
 
 static struct command
 {
-    string                                                         command_;
-    function<void (std::string, shared_ptr<paradice::connection>)> function_;
+    string                                                     command_;
+    function<void (std::string, shared_ptr<paradice::client>)> function_;
 } const command_list[] =
 {
     { "!",          NULL                            }
@@ -367,15 +367,15 @@ static struct command
 };
 
 void on_name_entered(
-    shared_ptr<paradice::connection> &conn
-  , string const                     &input)
+    shared_ptr<paradice::client> &client
+  , string const                 &input)
 {
     pair<string, string> arg = tokenise(input);
     string name = arg.first;
 
     if (!is_acceptible_name(name))
     {
-        conn->get_client()->write(
+        client->get_connection()->write(
             "Your name must be at least three characters long and be composed"
             "of only alphabetical characters.\r\n"
             "Enter a name by which you wish to be known: "); 
@@ -385,7 +385,7 @@ void on_name_entered(
         // Ensure correct capitalisation
         name[0] = toupper(name[0]);
 
-        conn->get_client()->set_name(name);
+        client->set_name(name);
 
         string text = 
             "\x1B[2J"     // Erase screen
@@ -393,36 +393,36 @@ void on_name_entered(
             "\x1B[24;0f"  // force to end.
             ;
 
-        conn->get_client()->write(text);
+        client->get_connection()->write(text);
 
         paradice::message_to_room(
             "\r\n#SERVER: " 
-          + conn->get_client()->get_name() 
+          + client->get_name() 
           + " has entered Paradice.\r\n",
-            conn);
+            client);
 
-        conn->set_level(paradice::connection::level_in_game);
+        client->set_level(paradice::client::level_in_game);
 
-        BOOST_FOREACH(shared_ptr<paradice::connection> connection, paradice::connections)
+        BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
         {
-            do_who("", connection);
+            do_who("", curr_client);
         }
     }
 }
 
 void on_data(
-    weak_ptr<paradice::connection> &weak_connection
-  , std::string const              &input)
+    weak_ptr<paradice::client> &weak_client
+  , std::string const          &input)
 {
-    shared_ptr<paradice::connection> conn = weak_connection.lock();
+    shared_ptr<paradice::client> client = weak_client.lock();
 
-    if (conn)
+    if (client)
     {
-        if (conn->get_level() == paradice::connection::level_intro_screen)
+        if (client->get_level() == paradice::client::level_intro_screen)
         {
-            on_name_entered(conn, input);
+            on_name_entered(client, input);
         }
-        else // conn->get_level() == paradice::connection::level_in_game
+        else // client->get_level() == paradice::client::level_in_game
         {
             pair<string, string> arg = tokenise(input);
 
@@ -436,7 +436,7 @@ void on_data(
 
             if (arg.first == "!")
             {
-                on_data(weak_connection, conn->get_last_command());
+                on_data(weak_client, client->get_last_command());
                 return;
             }
 
@@ -445,8 +445,8 @@ void on_data(
             {
                 if (cur_command.command_ == arg.first)
                 {
-                    cur_command.function_(arg.second, conn);
-                    conn->set_last_command(input);
+                    cur_command.function_(arg.second, client);
+                    client->set_last_command(input);
                     return;
                 }
             }
@@ -461,50 +461,51 @@ void on_data(
 
             text += "\r\n";
 
-            paradice::send_to_player(text, conn);
+            paradice::send_to_player(text, client);
         }
     }
 }
 
-void on_socket_death(weak_ptr<paradice::connection> &weak_connection)
+void on_socket_death(weak_ptr<paradice::client> &weak_client)
 {
-    shared_ptr<paradice::connection> conn = weak_connection.lock();
+    shared_ptr<paradice::client> client = weak_client.lock();
 
-    if (conn)
+    if (client)
     {
         paradice::message_to_room(
             "\r\n#SERVER: " 
-          + conn->get_client()->get_name()
+          + client->get_name()
           + " has left Paradice.\r\n",
-            conn);
+            client);
 
-        paradice::connections.erase(find(
-            paradice::connections.begin()
-          , paradice::connections.end(), 
-            conn));
+        paradice::clients.erase(find(
+            paradice::clients.begin()
+          , paradice::clients.end(), 
+            client));
 
-        BOOST_FOREACH(shared_ptr<paradice::connection> connection, paradice::connections)
+        BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
         {
-            do_who("", connection);
+            do_who("", curr_client);
         }
     }
 }
 
 void on_accept(shared_ptr<paradice::socket> const &socket)
 {
-    shared_ptr<paradice::connection> connection(new paradice::connection);
-    
+    shared_ptr<paradice::client> client(new paradice::client);
+
     socket->on_death(
-        bind(&on_socket_death, weak_ptr<paradice::connection>(connection)));
+        bind(&on_socket_death, weak_ptr<paradice::client>(client)));
+
+    client->set_socket(socket);
+    client->set_connection(shared_ptr<paradice::connection>(
+        new paradice::connection(
+            socket
+            , bind(&on_data, weak_ptr<paradice::client>(client), _1))));
     
-    connection->set_socket(socket);
-    connection->set_client(shared_ptr<paradice::client>(new paradice::client(
-        socket
-      , bind(&on_data, weak_ptr<paradice::connection>(connection), _1))));
+    paradice::clients.push_back(client);
     
-    paradice::connections.push_back(connection);
-    
-    connection->get_client()->write(intro);
+    client->get_connection()->write(intro);
 }
 
 int main(int argc, char *argv[])

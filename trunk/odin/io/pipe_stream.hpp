@@ -30,143 +30,114 @@
 
 namespace odin { namespace io {
 
-// PIPE_STREAM ==============================================================
-//  FUNCTION : A datastream which simply passes the data on to a containing
-//             datastream.  This could, for example, be used to explicitly
-//             denote the top of a protocol stack.
-//
-//  CONCEPTS : ReadValue  - the type of data that is read from the stream.
-//             WriteValue - the type of data that is written to the stream.
-//
-//  USAGE    : Construct, passing in a shared_ptr<> to a datastream.  use
-//             as a normal stream. 
-// ==========================================================================
+//* =========================================================================
+/// \brief A datastream that passes data onto a containing datastream.
+/// \param ReadValue the type of data that is read from the stream.
+/// \param WriteValue the type of data that is written to the stream.
+//* =========================================================================
 template <class ReadValue, class WriteValue>
 class pipe_stream : public odin::io::datastream<ReadValue, WriteValue>
 {
-
-private :
-    typedef boost::shared_ptr<
-        odin::io::datastream<ReadValue, WriteValue>
-    > stream_ptr;
-
 public :
-    /*
-    pipe_stream()
-        : stream_(stream_ptr(new sink_stream<element_t>))
-    {
-    }
-    */
-    
-    explicit pipe_stream(stream_ptr const &stream)
-        : stream_(stream)
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    explicit pipe_stream(
+        boost::shared_ptr<
+            odin::io::datastream<ReadValue, WriteValue>
+        > const &underlying_stream)
+        : underlying_stream_(underlying_stream)
     {
     }
 
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
     virtual ~pipe_stream() {}
 
 public :
-    // Returns the number of objects that are available to be read without
-    // blocking, or no value if this is unknown and a call to read() might
-    // block.  The value 0 must only be returned in the case that there is
-    // no more data to be read, and the stream is dead.  This operation must 
-    // not block.
-    virtual boost::optional
-    <
-        typename odin::runtime_array<ReadValue>::size_type
-    > available() const
+    //* =====================================================================
+    /// \brief Returns the number of objects that are available to be read.
+    /// \return the number of objects that are available to be read without 
+    /// blocking, or no value if this is unknown and a call to read() might
+    /// block.  The value 0 must only be returned in the case that there is 
+    /// no more data to be read, and the stream is dead.  
+    /// \warning This operation MUST NOT block.
+    //* =====================================================================
+    virtual boost::optional<input_size_type> available() const
     {
-        return boost::optional<
-            typename odin::runtime_array<ReadValue>::size_type
-        >();
+        return underlying_stream_->available();
     }
 
-    // Reads up to size items from the stream and returns them in a runtime
-    // array.  This may block, unless a previous call to Available() since the
-    // last Read() yielded a positive value, which was less than or equal to
-    // size, in which case it must not block.
-    virtual odin::runtime_array<ReadValue> read(
-        typename odin::runtime_array<ReadValue>::size_type size)
+    //* =====================================================================
+    /// \brief Performs a synchronous read on the stream.
+    /// \return an array of values read frmo the stream.
+    /// Reads up to size items from the stream and returns them in a
+    /// runtime_array.  This may block, unless a previous call to available()
+    /// since the last read() yielded a positive value, which was less than or 
+    /// equal to size, in which case it MUST NOT block.
+    //* =====================================================================
+    virtual odin::runtime_array<input_value_type> read(input_size_type size)
     {
-        return stream_->read(size);
+        return underlying_stream_->read(size);
     }
 
-    // Sends a request to read size elements from the stream.  Returns
-    // immediately.  Calls callback upon completion of the read operation,
-    // passing an array of the values read as a value.
-    // Note: AsyncRead MAY NOT return the read values synchronously, since this
-    // invalidates a set of operations.
+    //* =====================================================================
+    /// \brief Schedules an asynchronous read on the stream.
+    /// 
+    /// Sends a request to read size elements from the stream.  Returns
+    /// immediately.  Calls callback upon completion of the read operation,
+    /// passing an array of the values read as a value.
+    /// \warning async_read MUST NOT return the read values synchronously, 
+    /// since this invalidates a set of operations.
+    //* =====================================================================
     virtual void async_read(
-        typename odin::runtime_array<ReadValue>::size_type            size,
-        boost::function<void (odin::runtime_array<ReadValue>)> const& callback)
+        input_size_type            size
+      , input_callback_type const &callback)
     {
+        underlying_stream_->async_read(size, callback);
     }
 
-    // Write an array of WriteValues to the stream.  Returns the
-    // actual number of objects written.
-    virtual typename odin::runtime_array<WriteValue>::size_type write(
-        odin::runtime_array<WriteValue> const& values)
+    //* =====================================================================
+    /// \brief Perform a synchronous write to the stream.
+    /// \return the number of objects written to the stream.
+    /// Write an array of WriteValues to the stream.  
+    //* =====================================================================
+    virtual output_size_type write(
+        odin::runtime_array<output_value_type> const &values)
     {
-        return stream_->write(values);
+        return underlying_stream_->write(values);
     }
 
-    // Writes an array of WriteValues to the stream.  Returns immediately.
-    // Calls callback upon completion of the write operation, passing
-    // the amount of data written as a value.
-    // Note: async_write MAY NOT return the amount of data written 
-    // synchronously, since this invalidates a set of operations.
+    //* =====================================================================
+    /// \brief Schedules an asynchronous write to the stream.
+    /// 
+    /// Writes an array of WriteValues to the stream.  Returns immediately.
+    /// Calls callback upon completion of the write operation, passing
+    /// the amount of data written as a value.
+    /// \warning async_write MAY NOT return the amount of data written 
+    /// synchronously, since this invalidates a set of operations.
+    //* =====================================================================
     virtual void async_write(
-        odin::runtime_array<WriteValue>                                             const& values,
-        boost::function<void (typename odin::runtime_array<WriteValue>::size_type)> const& callback)
+        odin::runtime_array<output_value_type> const &values
+      , output_callback_type const                   &callback)
     {
+        underlying_stream_->async_write(values, callback);
     }
 
-    // Returns true if the underlying stream is alive, false otherwise.
+    //* =====================================================================
+    /// \brief Check to see if the underlying stream is still alive.
+    /// \return true if the underlying stream is alive, false otherwise.
+    //* =====================================================================
     virtual bool is_alive() const
     {
-        return stream_->is_alive();
+        return underlying_stream_->is_alive();
     }
-
-    /*
-    // Write an array of WriteValues to the stream.  Returns the
-    // actual number of objects written.
-    virtual typename odin::runtime_array<WriteValue>::size_type write(
-        odin::runtime_array<WriteValue> const& values) = 0;
-    virtual unsigned int write(
-        element_t const *data
-      , unsigned int        length)
-    {
-        return stream_->write(data, length);
-    }
-
-    virtual unsigned int read(element_t *data, unsigned int length)
-    {
-        return stream_->read(data, length);
-    }
-
-    virtual void close()
-    {
-        stream_->close();
-    }
-
-    virtual int available() const
-    {
-        return stream_->available();
-    }
-
-    virtual bool is_alive() const
-    {
-        return stream_->is_alive();
-    }
-    
-    virtual locked lock()
-    {
-        return stream_->lock();
-    }
-    */
     
 private :
-    stream_ptr stream_;
+    boost::shared_ptr<
+        odin::io::datastream<ReadValue, WriteValue>
+    > underlying_stream_;
 };
 
 }}

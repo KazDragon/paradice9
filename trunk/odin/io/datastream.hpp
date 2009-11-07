@@ -39,7 +39,7 @@ struct datastream
     : odin::io::input_datastream<ReadValue>
     , odin::io::output_datastream<WriteValue>
 {
-    // Some helpful typedefs to allow base classes to reduce ambiguity.
+    // Some helpful typedefs to allow derived classes to reduce ambiguity.
     typedef typename odin::io::input_datastream<ReadValue>::value_type      input_value_type;
     typedef typename odin::io::input_datastream<ReadValue>::size_type       input_size_type;
     typedef typename odin::io::input_datastream<ReadValue>::callback_type   input_callback_type;

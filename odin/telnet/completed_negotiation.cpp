@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "completed_negotiation.hpp"
+#include "initiated_negotiation.hpp"
 #include <cassert>
 #include <memory>
 
@@ -63,6 +64,32 @@ completed_negotiation::completed_negotiation(
     pimpl->local_request_    = local_request;
     pimpl->remote_request_   = remote_request;
     
+    pimpl_ = pimpl.release();
+}
+
+// ===========================================================================
+// COMPLETED_NEGOTIATION::CONSTRUCTOR
+// ===========================================================================
+completed_negotiation::completed_negotiation(
+    initiated_negotiation const &negotiation
+  , negotiation_request request)
+{
+    std::auto_ptr<impl> pimpl(new impl);
+
+    pimpl->initiated_by_  = negotiation.get_initiator();
+    pimpl->type_          = negotiation.get_type();
+    
+    if (pimpl->initiated_by_ == local)
+    {
+        pimpl->local_request_  = negotiation.get_request();
+        pimpl->remote_request_ = request;
+    }
+    else
+    {
+        pimpl->local_request_  = request;
+        pimpl->remote_request_ = negotiation.get_request();
+    }
+
     pimpl_ = pimpl.release();
 }
 
@@ -125,6 +152,19 @@ int completed_negotiation::get_local_request() const
 int completed_negotiation::get_remote_request() const
 {
     return pimpl_->remote_request_;
+}
+
+// ===========================================================================
+// COMPLETED_NEGOTIATION::OPERATOR==
+// ===========================================================================
+bool operator==(
+    completed_negotiation const &lhs
+  , completed_negotiation const &rhs)
+{
+    return lhs.get_initiator()      == rhs.get_initiator()
+        && lhs.get_type()           == rhs.get_type()
+        && lhs.get_local_request()  == rhs.get_local_request()
+        && lhs.get_remote_request() == rhs.get_remote_request();
 }
 
 }}

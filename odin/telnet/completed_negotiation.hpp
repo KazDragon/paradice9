@@ -40,6 +40,8 @@ enum initiator
   , remote
 };
 
+class initiated_negotiation;
+
 // COMPLETED_NEGOTIATION =====================================================
 //  FUNCTION : Models a WILL/WONT/DO/DONT client-server negotiation over the
 //             Telnet Protocol
@@ -74,9 +76,15 @@ class completed_negotiation
           , negotiation_request remote_request);
 
         // May throw std::bad_alloc
+        // Strongly exception safe.
+        completed_negotiation(
+            initiated_negotiation const &negotiation
+          , negotiation_request          request);
+
+        // May throw std::bad_alloc
         // Strongly exception safe.                         
         completed_negotiation(completed_negotiation const &other);
-    
+
     // =======================================================================
     // OPERATORS
     // =======================================================================
@@ -115,6 +123,10 @@ class completed_negotiation
         struct impl;
         impl *pimpl_;
 };
+
+bool operator==(
+    completed_negotiation const &lhs
+  , completed_negotiation const &rhs);
 
 }}
 

@@ -3,6 +3,7 @@
 #include "paradice/client.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/communication.hpp"
+#include "paradice/dice_roll_parser.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -252,45 +253,26 @@ static void do_roll(
     shared_ptr<paradice::client> &client)
 {
     static string const usage_message =
-        "\r\n Usage:   roll [number of dice] [number of sides] [opt:bonuses...]"
-        "\r\n Example: roll 2 6 +3 -20"
-        "\r\n";
+        "\r\n Usage:   roll <dice>d<sides>[<bonuses...>]"
+        "\r\n Example: roll 2d6+3-20"
+        "\r\n\r\n";
 
-    pair<string, string> roll = tokenise(text);
+    BOOST_AUTO(rolls, paradice::parse_dice_roll(text));
 
-    if (roll.first.empty() || roll.second.empty())
+    if (!rolls)
     {
         client->get_connection()->write(usage_message);
         return;
     }
 
-    int bonus_score = 0;
+    BOOST_AUTO(dice_roll, rolls.get());
 
-    pair<string, string> bonus = tokenise(roll.second);
-    bonus = tokenise(bonus.second);
-
-    while (bonus.first != "")
-    {
-        bonus_score += atoi(bonus.first.c_str());
-        bonus = tokenise(bonus.second);
-    }
-    
-    int rolls = atoi(roll.first.c_str());
-    int sides = atoi(roll.second.c_str());
-
-    if (rolls == 0 || sides == 0 || rolls > 100)
-    {
-        client->get_connection()->write(usage_message);
-        return;
-    }
-
-    int total = bonus_score;
-
+    odin::s32 total = dice_roll.bonus_;
     string roll_description;
 
-    for (int current_roll = 0; current_roll < rolls; ++current_roll)
+    for (odin::u32 current_roll = 0; current_roll < dice_roll.amount_; ++current_roll)
     {
-        int score = (rand() % sides) + 1;
+        odin::s32 score = (rand() % dice_roll.sides_) + 1;
 
         roll_description += str(format("%s%d") 
             % (roll_description.empty() ? "" : ", ")
@@ -301,10 +283,10 @@ static void do_roll(
 
     paradice::message_to_player(
         str(format("\r\nYou roll %dd%d%s%d and score %d [%s]\r\n") 
-            % rolls
-            % sides
-            % (bonus_score >= 0 ? "+" : "")
-            % bonus_score
+            % dice_roll.amount_
+            % dice_roll.sides_
+            % (dice_roll.bonus_ >= 0 ? "+" : "")
+            % dice_roll.bonus_
             % total
             % roll_description)
       , client);
@@ -312,10 +294,10 @@ static void do_roll(
     paradice::message_to_room(
         str(format("\r\n%s rolls %dd%d%s%d and scores %d [%s]\r\n")
             % client->get_name()
-            % rolls
-            % sides
-            % (bonus_score >= 0 ? "+" : "")
-            % bonus_score
+            % dice_roll.amount_
+            % dice_roll.sides_
+            % (dice_roll.bonus_ >= 0 ? "+" : "")
+            % dice_roll.bonus_
             % total
             % roll_description)
       , client);

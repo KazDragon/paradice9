@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Paradice"
-	ProjectGUID="{DA91447D-3067-40A9-989C-35D513205B20}"
-	RootNamespace="Paradice"
+	Name="test"
+	ProjectGUID="{98C89A5E-7333-419E-8620-031795EFAF1C}"
+	RootNamespace="test"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;.."
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,10 +60,18 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="cppunitd.lib"
+				LinkIncremental="2"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -75,14 +83,18 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="$(TargetPath)"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -106,7 +118,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories=".;.."
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -123,10 +135,20 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="cppunit.lib"
+				LinkIncremental="1"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -138,7 +160,11 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="$(TargetPath)"
 			/>
 		</Configuration>
 	</Configurations>
@@ -151,27 +177,27 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\client.cpp"
+				RelativePath=".\completed_negotiation_test.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\communication.cpp"
+				RelativePath=".\dice_parser_fixture.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\connection.cpp"
+				RelativePath=".\initiated_negotiation_test.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dice_roll_parser.cpp"
+				RelativePath=".\paradice_test.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\server.cpp"
+				RelativePath=".\router_test.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\socket.cpp"
+				RelativePath=".\small_buffer_test.cpp"
 				>
 			</File>
 		</Filter>
@@ -181,31 +207,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\client.hpp"
+				RelativePath=".\completed_negotiation_test.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\communication.hpp"
+				RelativePath=".\dice_parser_fixture.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\connection.hpp"
+				RelativePath=".\fake_allocator.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dice_roll_parser.hpp"
+				RelativePath=".\initiated_negotiation_test.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\information.hpp"
+				RelativePath=".\router_test.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\server.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\socket.hpp"
+				RelativePath=".\small_buffer_test.hpp"
 				>
 			</File>
 		</Filter>

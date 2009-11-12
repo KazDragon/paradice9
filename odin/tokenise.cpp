@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Communication
+// Odin Tokenise
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,38 +24,21 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_COMMUNICATION_HPP_
-#define PARADICE_COMMUNICATION_HPP_
+#include "tokenise.hpp"
+#include <boost/typeof/typeof.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
-#include <boost/shared_ptr.hpp>
-#include <string>
+using namespace std;
 
-namespace paradice {
+namespace odin {
 
-class client;
+pair<string, string> tokenise(string const &text)
+{
+    BOOST_AUTO(space_pos, find(text.begin(), text.end(), ' '));
 
-// These messages all get backtraced.
-void message_to_all(std::string const &text);
-
-void message_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void message_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
-// Sending doesn't backtrace
-void send_to_all(std::string const &text);
-
-void send_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void send_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
+    return make_pair(
+        boost::algorithm::trim_copy(string(text.begin(), space_pos))
+      , boost::algorithm::trim_copy(string(space_pos, text.end())));
 }
 
-#endif
+}

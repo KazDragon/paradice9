@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "odin/telnet/stream.hpp"
+#include "boost/asio/io_service.hpp"
 
 using namespace boost;
 
@@ -34,7 +35,8 @@ namespace odin { namespace telnet {
 // CONSTRUCTOR 
 // ==========================================================================
 stream::stream(
-    shared_ptr<odin::io::byte_stream> const &underlying_stream)
+    shared_ptr<odin::io::byte_stream> const &underlying_stream
+  , boost::asio::io_service                 &io_service)
 {
 }
 

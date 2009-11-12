@@ -33,6 +33,12 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 
+namespace boost { namespace asio {
+
+class io_service;
+
+}}
+
 namespace odin { namespace telnet {
 
 class initiated_negotiation;
@@ -92,7 +98,8 @@ public :
     /// \brief Constructor
     //* =====================================================================
     explicit stream(
-        boost::shared_ptr<odin::io::byte_stream> const &underlying_stream);
+        boost::shared_ptr<odin::io::byte_stream> const &underlying_stream
+      , boost::asio::io_service                        &io_service);
 
     //* =====================================================================
     /// \brief Destructor

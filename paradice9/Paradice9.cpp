@@ -3,7 +3,9 @@
 #include "paradice/client.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/communication.hpp"
+#include "paradice/configuration.hpp"
 #include "paradice/dice_roll_parser.hpp"
+#include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -58,15 +60,6 @@ static string const intro =
 "                                                                       \r\n"
 "Enter a name by which you wish to be known: ";
 
-pair<string, string> tokenise(string const &text)
-{
-    BOOST_AUTO(space_pos, find(text.begin(), text.end(), ' '));
-
-    return make_pair(
-        boost::algorithm::trim_copy(string(text.begin(), space_pos))
-      , boost::algorithm::trim_copy(string(space_pos, text.end())));
-}
-
 static bool is_acceptible_name(string const &name)
 {
     if (name.length() < 3)
@@ -107,7 +100,7 @@ static void do_sayto(
     string const                 &message, 
     shared_ptr<paradice::client> &client)
 {
-    pair<string, string> arg = tokenise(message);
+    pair<string, string> arg = odin::tokenise(message);
 
     if (arg.first == "")
     {
@@ -143,6 +136,26 @@ static void do_sayto(
 
     paradice::send_to_player(
         "\r\nCouldn't find anyone by that name to talk to.\r\n", client);
+}
+
+static void do_emote(
+    string const                 &message
+  , shared_ptr<paradice::client> &client)
+{
+    if (message.empty())
+    {
+        static string const usage_message =
+            "\r\n USAGE:   emote <some action>"
+            "\r\n EXAMPLE: emote bounces off the walls."
+            "\r\n\r\n";
+
+        paradice::send_to_player(usage_message, client);
+    }
+
+    paradice::message_to_all(str(
+        format("\r\n%s %s\r\n")
+            % client->get_name()
+            % message));
 }
 
 static void do_who(
@@ -216,7 +229,7 @@ static void do_rename(
     string const                 &text,
     shared_ptr<paradice::client> &client)
 {
-    pair<string, string> name = tokenise(text);
+    pair<string, string> name = odin::tokenise(text);
     
     if (!is_acceptible_name(name.first))
     {
@@ -338,7 +351,10 @@ static struct command
   , { ">",          bind(&do_sayto,         _1, _2) }
   , { "sayto",      bind(&do_sayto,         _1, _2) }
 
-//, { "who",        bind(&do_who,           _1, _2) }
+  , { ":",          bind(&do_emote,         _1, _2) }
+  , { "emote",      bind(&do_emote,         _1, _2) }
+
+  , { "set",        bind(&paradice::do_set, _1, _2) }
   , { "backtrace",  bind(&do_backtrace,     _1, _2) }
   , { "title",      bind(&do_title,         _1, _2) }
   , { "rename",     bind(&do_rename,        _1, _2) }
@@ -352,7 +368,7 @@ void on_name_entered(
     shared_ptr<paradice::client> &client
   , string const                 &input)
 {
-    pair<string, string> arg = tokenise(input);
+    pair<string, string> arg = odin::tokenise(input);
     string name = arg.first;
 
     if (!is_acceptible_name(name))
@@ -394,6 +410,54 @@ void on_name_entered(
 
 void on_data(
     weak_ptr<paradice::client> &weak_client
+  , std::string const          &input);
+
+void on_command(
+    shared_ptr<paradice::client> &client
+  , std::string const            &input)
+{
+    pair<string, string> arg = odin::tokenise(input);
+
+    // Transform the command to lower case.
+    for (string::iterator ch = arg.first.begin();
+         ch != arg.first.end();
+         ++ch)
+    {
+        *ch = tolower(*ch);
+    }
+
+    if (arg.first == "!")
+    {
+        on_data(weak_ptr<paradice::client>(client), client->get_last_command());
+        return;
+    }
+
+    // Search through the list for commands
+    BOOST_FOREACH(command const &cur_command, command_list)
+    {
+        if (cur_command.command_ == arg.first)
+        {
+            cur_command.function_(arg.second, client);
+            client->set_last_command(input);
+            return;
+        }
+    }
+
+    string text = 
+        "\r\nDidn't understand that.  Available commands are:\r\n";
+
+    BOOST_FOREACH(command const &cur_command, command_list)
+    {
+        text += cur_command.command_ + " ";
+    }
+
+    text += "\r\n";
+
+    paradice::send_to_player(text, client);
+}
+
+void on_data(
+    weak_ptr<paradice::client> &weak_client
   , std::string const          &input)
 {
     shared_ptr<paradice::client> client = weak_client.lock();
@@ -406,44 +470,33 @@ void on_data(
         }
         else // client->get_level() == paradice::client::level_in_game
         {
-            pair<string, string> arg = tokenise(input);
-
-            // Transform the command to lower case.
-            for (string::iterator ch = arg.first.begin();
-                 ch != arg.first.end();
-                 ++ch)
+            if (input.empty())
             {
-                *ch = tolower(*ch);
-            }
-
-            if (arg.first == "!")
-            {
-                on_data(weak_client, client->get_last_command());
                 return;
             }
 
-            // Search through the list for commands
-            BOOST_FOREACH(command const &cur_command, command_list)
+            if (client->get_command_mode() == paradice::client::command_mode_mud)
             {
-                if (cur_command.command_ == arg.first)
+                on_command(client, input);
+            }
+            else
+            {
+                if (input[0] == '/')
                 {
-                    cur_command.function_(arg.second, client);
-                    client->set_last_command(input);
-                    return;
+                    if (input.size() >= 2 && input[1] == '!')
+                    {
+                        on_data(weak_client, "/" + client->get_last_command());
+                    }
+                    else
+                    {
+                        on_command(client, input.substr(1));
+                    }
+                }
+                else
+                {
+                    on_command(client, "say " + input);
                 }
             }
-
-            string text = 
-                "\r\nDidn't understand that.  Available commands are:\r\n";
-
-            BOOST_FOREACH(command const &cur_command, command_list)
-            {
-                text += cur_command.command_ + " ";
-            }
-
-            text += "\r\n";
-
-            paradice::send_to_player(text, client);
         }
     }
 }

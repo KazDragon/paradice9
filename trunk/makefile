@@ -33,9 +33,10 @@ PARADICE9_NAMES   = Paradice9
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)
 
 TEST_L_DIRS       = -L.
-TEST_LIBS         = -lodin -lparadice -lcppunit
+TEST_LIBS         = -lodin -lparadice -lcppunit -lboost_system-gcc34-mt \
+                    -lws2_32 -lwsock32
 TEST_L_FLAGS      = --enable-auto-import
-TEST_FIXTURES     = dice_parser
+TEST_FIXTURES     = dice_parser telnet_stream
 TEST_NAMES        = paradice_test $(TEST_FIXTURES:%=%_fixture)
 TEST_O_FILES      = $(TEST_NAMES:%=test/%.o)
 TEST_EXE          = paradice_test.exe

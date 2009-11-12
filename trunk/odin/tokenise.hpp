@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Communication
+// Odin Tokenise
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,37 +24,15 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_COMMUNICATION_HPP_
-#define PARADICE_COMMUNICATION_HPP_
+#ifndef ODIN_TOKENISE_HPP_
+#define ODIN_TOKENISE_HPP_
 
-#include <boost/shared_ptr.hpp>
+#include <utility>
 #include <string>
 
-namespace paradice {
+namespace odin {
 
-class client;
-
-// These messages all get backtraced.
-void message_to_all(std::string const &text);
-
-void message_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void message_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
-// Sending doesn't backtrace
-void send_to_all(std::string const &text);
-
-void send_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void send_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
+std::pair<std::string, std::string> tokenise(std::string const &text);
 
 }
 

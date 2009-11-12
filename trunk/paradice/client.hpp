@@ -43,6 +43,12 @@ public :
         level_intro_screen
       , level_in_game
     };
+
+    enum command_mode
+    {
+        command_mode_mud
+      , command_mode_mmo
+    };
     
     client();
     ~client();
@@ -64,6 +70,9 @@ public :
 
     void set_last_command(std::string const &cmd);
     std::string get_last_command() const;
+
+    void set_command_mode(command_mode mode);
+    command_mode get_command_mode() const;
 
     void add_backtrace(std::string const &text);
     std::string get_backtrace() const;

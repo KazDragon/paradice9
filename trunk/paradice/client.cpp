@@ -43,6 +43,7 @@ struct client::impl
     shared_ptr<socket>     socket_;
     shared_ptr<connection> connection_;
     client::level          level_;
+    client::command_mode   command_mode_;
 
     string                 name_;
     string                 title_;
@@ -54,7 +55,8 @@ struct client::impl
 client::client()
     : pimpl_(new impl)
 {
-    pimpl_->level_  = level_intro_screen;
+    pimpl_->level_        = level_intro_screen;
+    pimpl_->command_mode_ = command_mode_mud;
 }
     
 client::~client()
@@ -119,6 +121,16 @@ void client::set_last_command(string const &cmd)
 string client::get_last_command() const
 {
     return pimpl_->last_command_;
+}
+
+void client::set_command_mode(command_mode mode)
+{
+    pimpl_->command_mode_ = mode;
+}
+
+client::command_mode client::get_command_mode() const
+{
+    return pimpl_->command_mode_;
 }
 
 void client::add_backtrace(string const &text)

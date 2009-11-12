@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\configuration.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\connection.cpp"
 				>
 			</File>
@@ -189,15 +193,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\configuration.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\connection.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\dice_roll_parser.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\information.hpp"
 				>
 			</File>
 			<File

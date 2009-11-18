@@ -42,8 +42,6 @@ using namespace std;
 using namespace boost;
 using namespace boost::spirit;
 using namespace boost::spirit::qi;
-using namespace boost::spirit::ascii;
-using namespace boost::spirit::arg_names;
 using namespace boost::phoenix;
 
 namespace paradice {
@@ -54,11 +52,10 @@ namespace paradice {
 //* =========================================================================
 template <class Iterator>
 struct dice_roll_grammar
-    : grammar
+    : boost::spirit::qi::grammar
       <
           Iterator
         , dice_roll()
-        , space_type
       >
 {
     dice_roll_grammar()
@@ -73,14 +70,14 @@ struct dice_roll_grammar
             
         dice_roll_ 
            %= uint_
-           >> no_case['d']
+           >> boost::spirit::qi::ascii::no_case['d']
            >> uint_
            >> bonuses_
             ;
     }
 
-    rule<Iterator, odin::s32(), space_type>    bonuses_;
-    rule<Iterator, dice_roll(), space_type>    dice_roll_;
+    boost::spirit::qi::rule<Iterator, odin::s32()> bonuses_;
+    boost::spirit::qi::rule<Iterator, dice_roll()> dice_roll_;
 };
 
 //* =========================================================================
@@ -90,10 +87,11 @@ struct dice_roll_grammar
 /// "<amount>d<sides>[<bonuses...>]", converts it to a dice_roll structure.
 /// For example, "2d6+3-4" will convert to a dice_roll of { 2, 6, -1 };
 //* =========================================================================
-boost::optional<dice_roll> parse_dice_roll(string const &roll)
+boost::optional<dice_roll> parse_dice_roll(std::string const &roll)
 {
-    dice_roll_grammar<string::const_iterator> roll_grammar;
-    dice_roll                                 result;
+    dice_roll_grammar<std::string::const_iterator>  roll_grammar;
+    dice_roll                                       result;
+    dice_roll                                      &ref_result = result;
     
     std::string::const_iterator begin = roll.begin();
     std::string::const_iterator end   = roll.end();
@@ -102,8 +100,8 @@ boost::optional<dice_roll> parse_dice_roll(string const &roll)
         begin
       , end
       , roll_grammar
-      , boost::ref(result)
-      , space))
+      , boost::spirit::qi::space
+      , ref_result))
     {
         return boost::optional<dice_roll>(result);
     }

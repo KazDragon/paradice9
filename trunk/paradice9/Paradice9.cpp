@@ -428,7 +428,8 @@ void on_command(
 
     if (arg.first == "!")
     {
-        on_data(weak_ptr<paradice::client>(client), client->get_last_command());
+        weak_ptr<paradice::client> weak_client(client);
+        on_data(weak_client, client->get_last_command());
         return;
     }
 

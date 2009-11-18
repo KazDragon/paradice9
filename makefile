@@ -14,18 +14,18 @@ NOLINK       = -c
 LIB_O_FILES  = server.o
 MAIN_O_FILES = main.o
 L_DIRS       = -L.
-LIBS         = -lodin -lparadice -lboost_system-gcc34-mt \
-               -lboost_program_options-gcc34-mt -lws2_32 -lwsock32
+LIBS         = -lodin -lparadice -lboost_program_options -lboost_system
 E_NAME       = paradice.exe
 
 ODIN_NAMES        = telnet/completed_negotiation \
                     telnet/initiated_negotiation \
-                    telnet/stream
+                    telnet/stream \
+                    tokenise
 ODIN_O_FILES      = $(ODIN_NAMES:%=odin/%.o)
 ODIN_LIB          = libodin.a
 
 PARADICE_NAMES    = server socket client connection communication \
-                    dice_roll_parser
+                    configuration dice_roll_parser
 PARADICE_O_FILES  = $(PARADICE_NAMES:%=paradice/%.o)
 PARADICE_LIB      = libparadice.a
 
@@ -33,8 +33,7 @@ PARADICE9_NAMES   = Paradice9
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)
 
 TEST_L_DIRS       = -L.
-TEST_LIBS         = -lodin -lparadice -lcppunit -lboost_system-gcc34-mt \
-                    -lws2_32 -lwsock32
+TEST_LIBS         = -lodin -lparadice -lcppunit -lboost_system
 TEST_L_FLAGS      = --enable-auto-import
 TEST_FIXTURES     = dice_parser telnet_stream
 TEST_NAMES        = paradice_test $(TEST_FIXTURES:%=%_fixture)
@@ -56,7 +55,7 @@ libparadice.a: $(PARADICE_O_FILES)
 
 $(TEST_EXE): $(TEST_O_FILES) $(ODIN_LIB) $(PARADICE_LIB)    
 	$(CC) $(NAME_IS) $@ $(TEST_O_FILES) $(TEST_L_DIRS) $(TEST_LIBS)
-	$@    
+	./$@    
     
 %.o: %.cpp
 	$(CC) $(NAME_IS) $@ $(NOLINK) $(C_FLAGS) $(I_DIRS) $<

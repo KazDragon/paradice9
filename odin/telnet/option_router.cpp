@@ -234,6 +234,7 @@ option_router::option_router(boost::shared_ptr<stream> stream)
     pimpl_->stream_ = stream;
     
     // set up call-backs
+    /*
     stream->on_negotiation_initiated(
         boost::bind(&impl::on_negotiation_initiated, pimpl_, _1));
         
@@ -242,6 +243,7 @@ option_router::option_router(boost::shared_ptr<stream> stream)
         
     stream->on_subnegotiation(
         boost::bind(&impl::on_subnegotiation, pimpl_, _1, _2));
+    */
 }
 
 // ==========================================================================

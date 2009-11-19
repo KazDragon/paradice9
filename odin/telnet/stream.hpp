@@ -54,7 +54,7 @@ class completed_negotiation;
 /// yield no bytes of actual data.
 //* =========================================================================
 class stream 
-    : public  odin::io::char_stream
+    : public  odin::io::byte_stream
     , private boost::noncopyable
 {
 public :
@@ -69,21 +69,12 @@ public :
 
     //* =====================================================================
     /// \brief The callback type used to register for notification of when
-    /// a Telnet negotiation has been requested by the remote end point.
+    /// a Telnet negotiation has been made by the remote end point.
     //* =====================================================================
     typedef boost::function
     <
-        void (initiated_negotiation)
-    > initiated_negotiation_callback;
-    
-    //* =====================================================================
-    /// \brief The callback type used to register for notification of when
-    /// a Telnet negotiation that we requested has been answered.
-    //* =====================================================================
-    typedef boost::function
-    <
-        void (completed_negotiation)
-    > completed_negotiation_callback;
+        void (negotiation_request, negotiation_type)
+    > negotiation_callback;
     
     //* =====================================================================
     /// \brief The callback type used to register for notification of when
@@ -184,22 +175,6 @@ public :
       , subnegotiation_type    const &subnegotiation);
     
     //* =====================================================================
-    /// \brief Obtain any prior negotiation that has WILL or WONT as a local
-    /// request type.  If no such negotiation has been made, WONT is 
-    /// presumed.
-    /// \return either WILL or WONT.
-    //* =====================================================================
-    negotiation_request get_local_negotiation(negotiation_type) const;
-    
-    //* =====================================================================
-    /// \brief Obtain any prior negotiation that has WILL or WONT as a remote
-    /// request type.  If no such negotiation has been made, WONT is 
-    /// presumed.
-    /// \return either WILL or WONT.
-    //* =====================================================================
-    negotiation_request get_remote_negotiation(negotiation_type) const;
-
-    //* =====================================================================
     /// \brief Register for notification of incoming Telnet commands.
     //* =====================================================================
     void on_command(command_callback const &callback);
@@ -207,26 +182,16 @@ public :
     //* =====================================================================
     /// \brief Register for notification of incoming negotiation requests.
     //* =====================================================================
-    void on_negotiation_initiated(
-        initiated_negotiation_callback const &callback);
+    void on_negotiation(negotiation_callback const &callback);
 
-    //* =====================================================================
-    /// \brief Register for notification of incoming completed negotiations.
-    //* =====================================================================
-    void on_negotiation_completed(
-        completed_negotiation_callback const &callback);
-    
     //* =====================================================================
     /// \brief Register for notification of incoming subnegotiations.
     //* =====================================================================
     void on_subnegotiation(subnegotiation_callback const &callback);
     
 private :
-    stream(stream const &);
-    stream &operator=(stream const &);
-
-    struct impl;
-    impl *pimpl_;
+    class impl;
+    boost::shared_ptr<impl> pimpl_;
 };
 
 }}

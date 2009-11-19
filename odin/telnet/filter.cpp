@@ -26,178 +26,193 @@
 // ==========================================================================
 #include "odin/telnet/filter.hpp"
 #include "odin/state_machine.hpp"
+#include <boost/bind.hpp>
+#include <algorithm>
 #include <vector>
+
+using namespace std;
+using namespace boost;
 
 namespace odin { namespace telnet { 
 
-enum state_t
+enum states
 {
     normal
   , iac
-  , option
-  , sub_type
-  , sub_main
-  , sub_may_end
+  , wwdd
+  , sb
+  , sb_main
+  , sb_end
 };
 
-struct filter::impl : public odin::state_machine<impl, state_t, unsigned char>
+class filter::impl
+    : public odin::state_machine<states, odin::u8>
 {
-    typedef odin::state_machine<impl, state_t, unsigned char> parent_t;
-
-    enum { consumed = -1 };
+    typedef odin::state_machine<states, odin::u8> parent_type;
     
+public :
     impl()
-        : parent_t(normal)
-        , last_parsed_(consumed)
+        : parent_type(normal)
+        , filtered_(true)
     {
-        state[normal].transition[IAC]           = &impl::normal_iac;
-        state[normal].undefined_transition      = &impl::normal_char;
+        state[normal].transition[IAC]       = bind(&impl::normal_iac,   this);
+        state[normal].undefined_transition  = bind(&impl::normal_undef, this, _1);
+
+        state[iac].transition[IAC]          = bind(&impl::iac_iac, this);
+        state[iac].transition[WILL]         = bind(&impl::iac_will, this);
+        state[iac].transition[WONT]         = bind(&impl::iac_wont, this);        
+        state[iac].transition[DO]           = bind(&impl::iac_do, this);        
+        state[iac].transition[DONT]         = bind(&impl::iac_dont, this);
+        state[iac].transition[SB]           = bind(&impl::iac_sb, this);        
+        state[iac].undefined_transition     = bind(&impl::iac_undef, this, _1);
         
-        state[iac].transition[IAC]              = &impl::iac_iac;
-        state[iac].transition[WILL]             = &impl::iac_will;
-        state[iac].transition[WONT]             = &impl::iac_wont;
-        state[iac].transition[DO]               = &impl::iac_do;
-        state[iac].transition[DONT]             = &impl::iac_dont;
-        state[iac].transition[SB]               = &impl::iac_sb;
-        state[iac].undefined_transition         = &impl::command_received;
+        state[wwdd].undefined_transition    = bind(&impl::wwdd_undef, this, _1);
         
-        state[option].undefined_transition      = &impl::option_received;
+        state[sb].undefined_transition      = bind(&impl::sb_undef, this, _1);
+
+        state[sb_main].transition[IAC]      = bind(&impl::sb_main_iac, this);
+        state[sb_main].undefined_transition = bind(&impl::sb_main_undef, this, _1);
         
-        state[sub_type].undefined_transition    = &impl::sb_type;
-        
-        state[sub_main].transition[IAC]         = &impl::sb_iac;
-        state[sub_main].undefined_transition    = &impl::sb;
-        
-        state[sub_may_end].transition[SE]       = &impl::sbme_se;
-        state[sub_may_end].transition[IAC]      = &impl::sbme_iac;
-        state[sub_may_end].undefined_transition = &impl::sbme_unk;
+        state[sb_end].transition[SE]        = bind(&impl::sb_end_se, this);
+        state[sb_end].undefined_transition  = bind(&impl::sb_end_undef, this, _1);
     }
     
-    bool do_parse(char ch)
+    bool was_filtered() const
     {
-        state_transition((unsigned char)(ch));
-        return last_parsed_ != impl::consumed;
+        return filtered_;
     }
     
-    int                        last_parsed_;
-    subnegotiation_type        subnegotiation_type_;
-    std::vector<unsigned char> subnegotiation_;
-    command                    option_type_;
-
-    filter::command_callback        command_callback_;
-    filter::negotiation_callback    negotiation_callback_;
-    filter::subnegotiation_callback subnegotiation_callback_;
-
+    filter::command_callback        on_command_;
+    filter::negotiation_callback    on_negotiation_;
+    filter::subnegotiation_callback on_subnegotiation_;
+    
+private :
     void normal_iac()
     {
-        last_parsed_ = consumed;
+        filtered_ = true;
         set_state(iac);
     }
     
-    void normal_char(unsigned char ch)
+    void normal_undef(odin::u8 /*value*/)
     {
-        last_parsed_ = ch;
+        filtered_ = false;
     }
     
     void iac_iac()
     {
-        last_parsed_ = IAC;
+        filtered_ = false;
         set_state(normal);
     }
     
     void iac_will()
     {
-        option_type_ = WILL;
-        set_state(option);
+        filtered_ = true;
+        request_  = WILL;
+        set_state(wwdd);
     }
     
     void iac_wont()
     {
-        option_type_ = WONT;
-        set_state(option);
+        filtered_ = true;
+        request_  = WONT;
+        set_state(wwdd);
     }
-    
+
     void iac_do()
     {
-        option_type_ = DO;
-        set_state(option);
+        filtered_ = true;
+        request_  = DO;
+        set_state(wwdd);
     }
     
     void iac_dont()
     {
-        option_type_ = DONT;
-        set_state(option);
+        filtered_ = true;
+        request_  = DONT;
+        set_state(wwdd);
     }
     
     void iac_sb()
     {
+        filtered_ = true;
+        set_state(sb);
+    }
+
+    void iac_undef(odin::u8 value)
+    {
+        filtered_ = true;
+        set_state(normal);
+        
+        if (on_command_)
+        {
+            on_command_(odin::telnet::command(value));
+        }
+    }
+    
+    void wwdd_undef(odin::u8 value)
+    {
+        filtered_ = true;
+        set_state(normal);
+        
+        if (on_negotiation_)
+        {
+            on_negotiation_(request_, value);
+        }
+    }
+    
+    void sb_undef(odin::u8 value)
+    {
+        filtered_ = true;
+        subnegotiation_id_ = value;
         subnegotiation_.clear();
-        set_state(sub_type);
+        set_state(sb_main);
+    }
+
+    void sb_main_iac()
+    {
+        filtered_ = true;
+        set_state(sb_end);
     }
     
-    void command_received(unsigned char ch)
+    void sb_main_undef(odin::u8 value)
     {
-        if(command_callback_ != NULL)
-        {
-            command_callback_(command(ch));
-        }
-        
+        filtered_ = true;
+        subnegotiation_.push_back(value);
+        set_state(sb_main);
+    }
+
+    void sb_end_se()
+    {
+        filtered_ = true;
         set_state(normal);
-    }
-    
-    void option_received(unsigned char ch)
-    {
-        if(negotiation_callback_ != NULL)
-        {
-            negotiation_callback_(ch, option_type_);
-        }
         
-        set_state(normal);
-    }
-    
-    void sb_type(unsigned char ch)
-    {
-        subnegotiation_type_ = ch;
-        set_state(sub_main);
-    }
-    
-    void sb_iac()
-    {
-        set_state(sub_may_end);
-    }
-    
-    void sb(unsigned char ch)
-    {
-        subnegotiation_.push_back(ch);
-    }
-    
-    void sbme_se()
-    {
-        if(subnegotiation_callback_ != NULL)
+        if (on_subnegotiation_)
         {
-            subnegotiation_callback_(subnegotiation_type_
-                                   , &*subnegotiation_.begin()
-                                   , subnegotiation_.size());
+            subnegotiation_type subnegotiation(subnegotiation_.size());
+            copy(
+                subnegotiation_.begin()
+              , subnegotiation_.end()
+              , subnegotiation.begin());
+            
+            on_subnegotiation_(subnegotiation_id_, subnegotiation);
         }
-        
-        set_state(normal);
     }
     
-    void sbme_iac()
+    void sb_end_undef(odin::u8 value)
     {
-        subnegotiation_.push_back(IAC);
-        set_state(option);
+        filtered_ = true;
+        subnegotiation_.push_back(value);
+        set_state(sb_main);
     }
     
-    void sbme_unk(unsigned char ch)
-    {
-        // Erroneous input; ignore it.
-        set_state(sub_main);
-    }
+    bool                   filtered_;
+    negotiation_request    request_;
+    subnegotiation_id_type subnegotiation_id_;
+    vector<odin::u8>       subnegotiation_;
 };
 
 // ==========================================================================
-// FILTER::CONSTRUCTOR
+// CONSTRUCTOR
 // ==========================================================================
 filter::filter()
     : pimpl_(new impl)
@@ -205,46 +220,44 @@ filter::filter()
 }
 
 // ==========================================================================
-// FILTER::DESTRUCTOR
+// DESTRUCTOR
 // ==========================================================================
 filter::~filter()
 {
-    delete pimpl_;
 }
 
 // ==========================================================================
-// FILTER::DO_PARSE
-// ==========================================================================
-bool filter::do_parse(argument_type ch)
-{
-    return pimpl_->do_parse(ch);
-}
-
-// ==========================================================================
-// FILTER::ON_COMMAND
+// ON_COMMAND
 // ==========================================================================
 void filter::on_command(command_callback const &callback)
 {
-    pimpl_->command_callback_ = callback;
+    pimpl_->on_command_ = callback;
 }
 
 // ==========================================================================
-// FILTER::ON_OPTION
+// ON_NEGOTIATION
 // ==========================================================================
 void filter::on_negotiation(negotiation_callback const &callback)
 {
-    pimpl_->negotiation_callback_ = callback;
+    pimpl_->on_negotiation_ = callback;
 }
 
 // ==========================================================================
-// FILTER::ON_SUBNEGOTIATION
+// ON_SUBNEGOTIATION
 // ==========================================================================
 void filter::on_subnegotiation(subnegotiation_callback const &callback)
 {
-    pimpl_->subnegotiation_callback_ = callback;
+    pimpl_->on_subnegotiation_ = callback;
+}
+
+// ==========================================================================
+// DO_FILTER
+// ==========================================================================
+bool filter::do_filter(argument_type ch)
+{
+    (*pimpl_)(ch);
+    
+    return !pimpl_->was_filtered();
 }
 
 }}
-
-
-

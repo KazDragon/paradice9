@@ -122,11 +122,11 @@ static void do_sayto(
                 format("\r\nYou say to %s, \"%s\"\r\n")
                     % cur_client->get_name()
                     % arg.second)
-              , cur_client);
+              , client);
 
             paradice::message_to_player(str(
                 format("\r\n%s says to you, \"%s\"\r\n")
-                    % cur_client->get_name()
+                    % client->get_name()
                     % arg.second)
               , cur_client);
 
@@ -162,6 +162,11 @@ static void do_who(
     string const                 &/*unused*/, 
     shared_ptr<paradice::client> &client)
 {
+    if (client->get_level() != paradice::client::level_in_game)
+    {
+        return;
+    }
+
     string text =
         "\x1B[s" // save cursor position
         "\x1B[H" // home
@@ -508,11 +513,14 @@ void on_socket_death(weak_ptr<paradice::client> &weak_client)
 
     if (client)
     {
-        paradice::message_to_room(
-            "\r\n#SERVER: " 
-          + client->get_name()
-          + " has left Paradice.\r\n",
-            client);
+        if (client->get_name() != "")
+        {
+            paradice::message_to_room(
+                "\r\n#SERVER: " 
+              + client->get_name()
+              + " has left Paradice.\r\n",
+                client);
+        }
 
         paradice::clients.erase(find(
             paradice::clients.begin()

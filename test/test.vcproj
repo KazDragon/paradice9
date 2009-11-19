@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\telnet_filter_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_stream_fixture.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			</File>
 			<File
 				RelativePath=".\small_buffer_test.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_filter_fixture.hpp"
 				>
 			</File>
 			<File

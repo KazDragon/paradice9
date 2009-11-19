@@ -28,6 +28,7 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/home/support/char_encoding/ascii.hpp>
 #include <numeric>
 #include <vector>
 
@@ -100,7 +101,7 @@ boost::optional<dice_roll> parse_dice_roll(std::string const &roll)
         begin
       , end
       , roll_grammar
-      , boost::spirit::qi::space
+      , boost::spirit::ascii::space
       , ref_result))
     {
         return boost::optional<dice_roll>(result);

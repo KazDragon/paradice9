@@ -239,6 +239,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\telnet\filter.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet\initiated_negotiation.hpp"
 				>
 			</File>
@@ -272,6 +276,10 @@
 			</File>
 			<File
 				RelativePath=".\telnet\completed_negotiation.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\filter.cpp"
 				>
 			</File>
 			<File

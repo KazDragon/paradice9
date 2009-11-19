@@ -25,7 +25,6 @@
 #ifndef ODIN_FILTER_HPP_
 #define ODIN_FILTER_HPP_
 
-#include "odin/interface.hpp"
 #include <boost/call_traits.hpp>
 #include <boost/optional.hpp>
 #include <functional>

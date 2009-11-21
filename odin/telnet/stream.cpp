@@ -57,6 +57,8 @@ public :
       , boost::asio::io_service       &io_service)
       : underlying_stream_(underlying_stream)
       , io_service_(io_service)
+      , async_read_request_fired_(false)
+      , async_write_request_fired_(false)
     {
     }
  
@@ -145,12 +147,91 @@ public :
         stream::input_size_type            size
       , stream::input_callback_type const &callback)
     {
-        read_request request = { size, callback };
+        read_request request(size, callback);
         read_requests_.push_back(request);
         
-        post_schedule_read_request();
+        io_service_.post(bind(
+            &impl::check_async_read_requests
+          , shared_from_this()));
     }
     
+    //* =====================================================================
+    /// \brief Perform a synchronous write to the stream.
+    /// \return the number of objects written to the stream.
+    /// Write an array of WriteValues to the stream.  
+    //* =====================================================================
+    stream::output_size_type write(
+        odin::runtime_array<stream::output_value_type> const &values)
+    {
+        underlying_stream_->write(duplicate_iacs(values));
+
+        return values.size();
+    }
+
+    //* =====================================================================
+    /// \brief Schedules an asynchronous write to the stream.
+    /// 
+    /// Writes an array of WriteValues to the stream.  Returns immediately.
+    /// Calls callback upon completion of the write operation, passing
+    /// the amount of data written as a value.
+    /// \warning async_write MAY NOT return the amount of data written 
+    /// synchronously, since this invalidates a set of operations.
+    //* =====================================================================
+    void async_write(
+        odin::runtime_array<stream::output_value_type> const &values
+      , stream::output_callback_type const                   &callback)
+    {
+        write_request request(values, callback);
+        write_requests_.push_back(request);
+
+        io_service_.post(bind(
+            &impl::check_async_write_requests
+          , shared_from_this()));
+    }
+
+    //* =====================================================================
+    /// \brief Send a Telnet command to the datastream.
+    //* =====================================================================
+    void send_command(command cmd)
+    {
+        stream::output_value_type data[] = { IAC, cmd };
+        underlying_stream_->write(data);
+    }
+
+    //* =====================================================================
+    /// \brief Initiate or complete a Telnet negotiation.
+    //* =====================================================================
+    void send_negotiation(negotiation_request request, negotiation_type type)
+    {
+        stream::output_value_type data[] = { IAC, request, type };
+        underlying_stream_->write(data);
+    }
+
+    //* =====================================================================
+    /// \brief Send a Telnet subnegotiation to the datastream.
+    //* =====================================================================
+    void send_subnegotiation(
+        subnegotiation_id_type const &id
+      , subnegotiation_type    const &subnegotiation)
+    {
+        // The subnegotiation itself must have its IACs duplicated so that
+        // we don't accidentally end the sequence early or something.
+        odin::runtime_array<odin::u8> array = duplicate_iacs(subnegotiation);
+
+        // The full sequence is IAC SB <id> <subnegotiation> IAC SE.
+        odin::runtime_array<odin::u8> sequence(array.size() + 5);
+        sequence[0] = IAC;
+        sequence[1] = SB;
+        sequence[2] = id;
+
+        copy(array.begin(), array.end(), sequence.begin() + 3);
+
+        sequence[sequence.size() - 2] = IAC;
+        sequence[sequence.size() - 1] = SE;
+
+        underlying_stream_->write(sequence);
+    }
+
     //* =====================================================================
     /// \brief Registers a callback to be made when telnet commands are
     /// filtered out during reading.
@@ -226,71 +307,194 @@ private :
         
         return amount;
     }
-
+        
     //* =====================================================================
-    /// \brief Helper function to schedule an asynchronous read request.
+    /// \brief Called when data is received from the underlying stream.
     //* =====================================================================
-    void post_schedule_read_request()
+    void read_complete(
+        runtime_array<byte_stream::input_value_type> const &values)
     {
+        copy(values.begin(), values.end(), back_inserter(input_buffer_));
+        async_read_request_fired_ = false;
+        
         io_service_.post(bind(
-            &impl::schedule_read_request
+            &impl::check_async_read_requests
           , shared_from_this()));
     }
         
     //* =====================================================================
-    /// \brief Schedules a read request, if necessary.
-    //* =====================================================================
-    void schedule_read_request()
-    {
-        if (read_requests_.empty())
-        {
-            return;
-        }
-        
-        if (!read_requests_[0].handling_)
-        {
-            underlying_stream_->async_read(
-                read_requests_[0].size_
-              , bind(&impl::data_received, shared_from_this(), _1));
-                
-            read_requests_[0].handling_ = true;
-        }
-    }
-    
-    //* =====================================================================
     /// \brief Called when data is received from the underlying stream.
     //* =====================================================================
-    void data_received(
-        runtime_array<byte_stream::input_value_type> const &values)
+    void write_complete(stream::output_size_type const &amount)
     {
+        write_request &request = write_requests_[0];
+
+        if (request.callback_)
+        {
+            request.callback_(request.values_.size());
+        }
+
+        write_requests_.pop_front();
+        async_write_request_fired_ = false;
+
+        io_service_.post(bind(
+            &impl::check_async_write_requests
+          , shared_from_this()));
+    }
+
+    //* =====================================================================
+    /// \brief Checks whether the top async read request can be fulfilled.
+    //* =====================================================================
+    void check_async_read_requests()
+    {
+        // If there are no read requests, then we have nothing to do.
         if (read_requests_.empty())
         {
             return;
         }
         
-        if (read_requests_[0].callback_)
+        // Fulfill the top request as much as possible.
+        BOOST_AUTO(input_buffer_pos, input_buffer_.begin());
+        read_request &request = read_requests_[0];
+        
+        while (input_buffer_pos   != input_buffer_.end()
+            && request.fulfilled_ != request.values_.size())
         {
-            read_requests_[0].callback_(values);
+            BOOST_AUTO(value, filter_(*input_buffer_pos++));
+            
+            if (value)
+            {
+                request.values_[request.fulfilled_++] = *value;
+            }
         }
         
-        read_requests_.pop_front();
+        // Erase any data used to fulfill the top request. 
+        input_buffer_.erase(
+            input_buffer_.begin()
+          , input_buffer_pos);
         
-        post_schedule_read_request();
+        // If the request was fulfilled, perform the necessary callback.
+        if (request.fulfilled_ == request.values_.size())
+        {
+            if (request.callback_)
+            {
+                request.callback_(request.values_);
+            }
+            
+            read_requests_.pop_front();
+
+            // It may be possible to fulfill more requests from the data in
+            // the input buffer.  Schedule another check.
+            io_service_.post(
+                bind(&impl::check_async_read_requests, shared_from_this()));
+        }
+        else
+        {
+            // Otherwise, schedule an asynchronous operation which will read
+            // the smallest amount of data necessary to fulfill the request.
+            BOOST_AUTO(amount, request.values_.size() - request.fulfilled_);
+
+            underlying_stream_->async_read(
+                amount
+              , bind(&impl::read_complete, shared_from_this(), _1));
+            
+            async_read_request_fired_ = true;
+        }
     }
-        
+
+    //* =====================================================================
+    /// \brief Checks whether the top async write request can be fulfilled.
+    //* =====================================================================
+    void check_async_write_requests()
+    {
+        if (write_requests_.empty() || async_write_request_fired_)
+        {
+            return;
+        }
+
+        write_request &request = write_requests_[0];
+
+        underlying_stream_->async_write(
+            duplicate_iacs(request.values_)
+          , bind(&impl::write_complete, shared_from_this(), _1));
+
+        async_write_request_fired_ = true;
+    }
+
+    //* =====================================================================
+    /// \brief Returns an array of values identical to the one passed, except
+    /// that any IAC values have been duplicated.
+    //* =====================================================================
+    odin::runtime_array<odin::u8> duplicate_iacs(
+        odin::runtime_array<odin::u8> const &array)
+    {
+        odin::runtime_array<odin::u8>::size_type number_of_iacs = 0;
+
+        BOOST_FOREACH(odin::u8 value, array)
+        {
+            if (value == IAC)
+            {
+                ++number_of_iacs;
+            }
+        }
+
+        odin::runtime_array<odin::u8> duplicate_array(
+            array.size() + number_of_iacs);
+
+        odin::runtime_array<odin::u8>::size_type pos = 0;
+
+        BOOST_FOREACH(odin::u8 value, array)
+        {
+            duplicate_array[pos++] = value;
+
+            if (value == IAC)
+            {
+                duplicate_array[pos++] = value;
+            }
+        }
+
+        return duplicate_array;
+    }
+
     struct read_request
     {
-        stream::input_size_type     size_;
-        stream::input_callback_type callback_;
-        bool                        handling_;
+        read_request(
+            stream::input_size_type            size
+          , stream::input_callback_type const &callback)
+          : values_(size)
+          , callback_(callback)
+          , fulfilled_(0)
+        {
+        }
+
+        odin::runtime_array<stream::input_value_type> values_;
+        stream::input_callback_type                   callback_;
+        stream::input_size_type                       fulfilled_;
     };
     
+    struct write_request
+    {
+        write_request(
+            odin::runtime_array<stream::output_value_type> const &values
+          , stream::output_callback_type const                   &callback)
+          : values_(values)
+          , callback_(callback)
+        {
+        }
+
+        odin::runtime_array<stream::input_value_type> values_;
+        stream::output_callback_type                  callback_;
+    };
+
     shared_ptr<odin::io::byte_stream>       underlying_stream_;
     boost::asio::io_service                &io_service_;
     deque<read_request>                     read_requests_;
+    deque<write_request>                    write_requests_;
     
     mutable deque<odin::u8>                 input_buffer_;
     odin::telnet::filter                    filter_;
+    bool                                    async_read_request_fired_;
+    bool                                    async_write_request_fired_;
 };
 
 // ==========================================================================
@@ -342,7 +546,7 @@ void stream::async_read(
 stream::output_size_type stream::write(
     odin::runtime_array<output_value_type> const& values)
 {
-    return stream::output_size_type();
+    return pimpl_->write(values);
 }
 
 // ==========================================================================
@@ -352,6 +556,7 @@ void stream::async_write(
     odin::runtime_array<output_value_type> const &values
   , output_callback_type const                   &callback)
 {
+    pimpl_->async_write(values, callback);
 }
 
 // ==========================================================================
@@ -367,15 +572,17 @@ bool stream::is_alive() const
 // ==========================================================================
 void stream::send_command(command cmd)
 {
+    pimpl_->send_command(cmd);
 }
 
 // ==========================================================================
 // SEND_NEGOTIATION
 // ==========================================================================
 void stream::send_negotiation(
-    negotiation_type    type
-  , negotiation_request request)
+    negotiation_request request
+  , negotiation_type    type)
 {
+    pimpl_->send_negotiation(request, type);
 }
 
 // ==========================================================================
@@ -385,6 +592,7 @@ void stream::send_subnegotiation(
     subnegotiation_id_type const &id
   , subnegotiation_type    const &subnegotiation)
 {
+    pimpl_->send_subnegotiation(id, subnegotiation);
 }
 
 // ==========================================================================

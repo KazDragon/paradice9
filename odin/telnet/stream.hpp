@@ -165,7 +165,7 @@ public :
     //* =====================================================================
     /// \brief Initiate or complete a Telnet negotiation.
     //* =====================================================================
-    void send_negotiation(negotiation_type type, negotiation_request request);
+    void send_negotiation(negotiation_request request, negotiation_type type);
     
     //* =====================================================================
     /// \brief Send a Telnet subnegotiation to the datastream.

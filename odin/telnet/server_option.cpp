@@ -72,7 +72,7 @@ void server_option::activate()
     if(!pimpl_->active_ && !pimpl_->activate_sent_)
     {
         pimpl_->stream_->send_negotiation(
-            get_negotiation_type(), odin::telnet::WILL);
+            odin::telnet::WILL, get_negotiation_type());
         pimpl_->activate_sent_ = true;
     }
 }
@@ -85,7 +85,7 @@ void server_option::deactivate()
     if(pimpl_->active_ && !pimpl_->deactivate_sent_)
     {
         pimpl_->stream_->send_negotiation(
-            get_negotiation_type(), odin::telnet::WONT);
+            odin::telnet::WONT, get_negotiation_type());
         pimpl_->deactivate_sent_ = true;
         pimpl_->active_          = false;
     }
@@ -131,12 +131,12 @@ void server_option::on_activate_requested()
     if(pimpl_->activatable_)
     {
         pimpl_->stream_->send_negotiation(
-            get_negotiation_type(), odin::telnet::WILL);
+            odin::telnet::WILL, get_negotiation_type());
     }
     else
     {
         pimpl_->stream_->send_negotiation(
-            get_negotiation_type(), odin::telnet::WONT);
+            odin::telnet::WONT, get_negotiation_type());
     }
 }
     
@@ -187,7 +187,7 @@ void server_option::on_deactivated()
 void server_option::on_deactivate_requested()
 {
     pimpl_->stream_->send_negotiation(
-        get_negotiation_type(), odin::telnet::WONT);
+        odin::telnet::WONT, get_negotiation_type());
 }
     
 // ==============================================================================

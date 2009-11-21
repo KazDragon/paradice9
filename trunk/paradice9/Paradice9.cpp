@@ -285,6 +285,12 @@ static void do_roll(
 
     BOOST_AUTO(dice_roll, rolls.get());
 
+    if (dice_roll.sides_ == 0)
+    {
+        client->get_connection()->write(usage_message);
+        return;
+    }
+
     odin::s32 total = dice_roll.bonus_;
     string roll_description;
 

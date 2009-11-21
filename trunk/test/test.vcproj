@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\runtime_array_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\small_buffer_test.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			</File>
 			<File
 				RelativePath=".\router_test.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\runtime_array_fixture.hpp"
 				>
 			</File>
 			<File

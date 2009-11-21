@@ -66,7 +66,7 @@ struct option_router::impl
                 }
                 else
                 {
-                    stream_->send_negotiation(type, odin::telnet::DONT);
+                    stream_->send_negotiation(odin::telnet::DONT, type);
                 }
                 
                 break;
@@ -78,7 +78,7 @@ struct option_router::impl
                 }
                 else
                 {
-                    stream_->send_negotiation(type, odin::telnet::DONT);
+                    stream_->send_negotiation(odin::telnet::DONT, type);
                 }
                 
                 break;
@@ -90,7 +90,7 @@ struct option_router::impl
                 }
                 else
                 {
-                    stream_->send_negotiation(type, odin::telnet::WONT);
+                    stream_->send_negotiation(odin::telnet::WONT, type);
                 }
                 
                 break;
@@ -102,7 +102,7 @@ struct option_router::impl
                 }
                 else
                 {
-                    stream_->send_negotiation(type, odin::telnet::WONT);
+                    stream_->send_negotiation(odin::telnet::WONT, type);
                 }
                 
                 break;

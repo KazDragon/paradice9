@@ -27,6 +27,20 @@ public :
         CPPUNIT_TEST(test_sync_read_subnegotiation_normal);
         CPPUNIT_TEST(test_async_read_normal_iac);
         CPPUNIT_TEST(test_async_read_normal_iac_iac);
+        CPPUNIT_TEST(test_async_read_normal_iac_iac_normal);
+        CPPUNIT_TEST(test_async_read_command);
+        CPPUNIT_TEST(test_async_read_command_normal);
+        CPPUNIT_TEST(test_async_read_negotiation);
+        CPPUNIT_TEST(test_async_read_negotiation_normal);
+        CPPUNIT_TEST(test_async_read_subnegotiation);
+        CPPUNIT_TEST(test_async_read_subnegotiation_normal);
+        CPPUNIT_TEST(test_sync_write_normal);
+        CPPUNIT_TEST(test_sync_write_normal_iac);
+        CPPUNIT_TEST(test_async_write_normal);
+        CPPUNIT_TEST(test_async_write_normal_iac);
+        CPPUNIT_TEST(test_send_command);
+        CPPUNIT_TEST(test_send_negotiation);
+        CPPUNIT_TEST(test_send_subnegotiation);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -52,4 +66,18 @@ private :
     void test_sync_read_subnegotiation_normal();
     void test_async_read_normal_iac();
     void test_async_read_normal_iac_iac();
+    void test_async_read_normal_iac_iac_normal();
+    void test_async_read_command();
+    void test_async_read_command_normal();
+    void test_async_read_negotiation();
+    void test_async_read_negotiation_normal();
+    void test_async_read_subnegotiation();
+    void test_async_read_subnegotiation_normal();
+    void test_sync_write_normal();
+    void test_sync_write_normal_iac();
+    void test_async_write_normal();
+    void test_async_write_normal_iac();
+    void test_send_command();
+    void test_send_negotiation();
+    void test_send_subnegotiation();
 };

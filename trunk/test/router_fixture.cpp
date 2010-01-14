@@ -1,4 +1,4 @@
-#include "router_test.hpp"
+#include "router_fixture.hpp"
 #include "odin/router.hpp"
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>

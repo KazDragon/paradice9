@@ -1,9 +1,9 @@
-#include "initiated_negotiation_test.hpp"
+#include "initiated_negotiation_fixture.hpp"
 #include "odin/telnet/initiated_negotiation.hpp"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(telnet_initiated_negotiation_test);
+CPPUNIT_TEST_SUITE_REGISTRATION(telnet_initiated_negotiation_fixture);
 
-void telnet_initiated_negotiation_test::test_initiator()
+void telnet_initiated_negotiation_fixture::test_initiator()
 {
     CPPUNIT_ASSERT(
         odin::telnet::initiated_negotiation(
@@ -18,7 +18,7 @@ void telnet_initiated_negotiation_test::test_initiator()
           , odin::telnet::WILL).get_initiator() == odin::telnet::remote);
 }
 
-void telnet_initiated_negotiation_test::test_request()
+void telnet_initiated_negotiation_fixture::test_request()
 {
     CPPUNIT_ASSERT(
         odin::telnet::initiated_negotiation(
@@ -45,21 +45,21 @@ void telnet_initiated_negotiation_test::test_request()
           , odin::telnet::DONT).get_request() == odin::telnet::DONT);
 }
 
-void telnet_initiated_negotiation_test::test_type()
+void telnet_initiated_negotiation_fixture::test_type()
 {
-    for (odin::telnet::negotiation_type type = 0;
-         type < odin::telnet::negotiation_type(-1);
+    for (odin::telnet::option_id_type type = 0;
+         type < odin::telnet::option_id_type(-1);
          ++type)
     {
         CPPUNIT_ASSERT(
             odin::telnet::initiated_negotiation(
                 odin::telnet::local
               , type
-              , odin::telnet::WILL).get_type() == type);
+              , odin::telnet::WILL).get_option_id() == type);
     }
 }
 
-void telnet_initiated_negotiation_test::test_equality()
+void telnet_initiated_negotiation_fixture::test_equality()
 {
     CPPUNIT_ASSERT(
         odin::telnet::initiated_negotiation(
@@ -102,7 +102,7 @@ void telnet_initiated_negotiation_test::test_equality()
           , odin::telnet::WONT)));
 }
 
-void telnet_initiated_negotiation_test::test_assign()
+void telnet_initiated_negotiation_fixture::test_assign()
 {
     odin::telnet::initiated_negotiation negotiation1(
         odin::telnet::local
@@ -119,7 +119,7 @@ void telnet_initiated_negotiation_test::test_assign()
     CPPUNIT_ASSERT(negotiation1 == negotiation2);
 }
 
-void telnet_initiated_negotiation_test::test_copy()
+void telnet_initiated_negotiation_fixture::test_copy()
 {
     odin::telnet::initiated_negotiation negotiation1(
         odin::telnet::local

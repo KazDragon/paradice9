@@ -1,5 +1,6 @@
 #include "telnet_filter_fixture.hpp"
 #include "odin/telnet/filter.hpp"
+#include "odin/telnet/protocol.hpp"
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -95,17 +96,17 @@ void telnet_filter_fixture::test_filter_iac_will()
     // question.  We'll use ECHO as our test ID.
     odin::telnet::filter filter;
     
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
+    odin::telnet::negotiation_request_type request = 
+        odin::telnet::negotiation_request_type(0);
         
-    odin::telnet::negotiation_type type = odin::telnet::negotiation_type(0);
+    odin::telnet::option_id_type option_id = odin::telnet::option_id_type(0);
 
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)
     > negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
       
     filter.on_negotiation(negotiation_handler);
@@ -124,7 +125,7 @@ void telnet_filter_fixture::test_filter_iac_will()
     CPPUNIT_ASSERT_EQUAL(odin::u8('X'), result.get());
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
 }
 
 void telnet_filter_fixture::test_filter_iac_wont()
@@ -134,17 +135,17 @@ void telnet_filter_fixture::test_filter_iac_wont()
     // question.  We'll use ECHO as our test ID.
     odin::telnet::filter filter;
     
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
+    odin::telnet::negotiation_request_type request = 
+        odin::telnet::negotiation_request_type(0);
         
-    odin::telnet::negotiation_type type = odin::telnet::negotiation_type(0);
+    odin::telnet::option_id_type option_id = odin::telnet::option_id_type(0);
 
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)
     > negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
 
     filter.on_negotiation(negotiation_handler);
@@ -163,7 +164,7 @@ void telnet_filter_fixture::test_filter_iac_wont()
     CPPUNIT_ASSERT_EQUAL(odin::u8('X'), result.get());
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::WONT, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
 }
 
 void telnet_filter_fixture::test_filter_iac_do()
@@ -173,17 +174,17 @@ void telnet_filter_fixture::test_filter_iac_do()
     // question.  We'll use ECHO as our test ID.
     odin::telnet::filter filter;
     
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
+    odin::telnet::negotiation_request_type request = 
+        odin::telnet::negotiation_request_type(0);
         
-    odin::telnet::negotiation_type type = odin::telnet::negotiation_type(0);
+    odin::telnet::option_id_type option_id = odin::telnet::option_id_type(0);
 
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)
     > negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
     
     filter.on_negotiation(negotiation_handler);
@@ -201,8 +202,8 @@ void telnet_filter_fixture::test_filter_iac_do()
     CPPUNIT_ASSERT_EQUAL(true, result.is_initialized());
     CPPUNIT_ASSERT_EQUAL(odin::u8('X'), result.get());
     
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::DO, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::DO,   request);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
 }
 
 void telnet_filter_fixture::test_filter_iac_dont()
@@ -212,17 +213,17 @@ void telnet_filter_fixture::test_filter_iac_dont()
     // question.  We'll use ECHO as our test ID.
     odin::telnet::filter filter;
     
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
+    odin::telnet::negotiation_request_type request = 
+        odin::telnet::negotiation_request_type(0);
         
-    odin::telnet::negotiation_type type = odin::telnet::negotiation_type(0);
+    odin::telnet::option_id_type option_id = odin::telnet::option_id_type(0);
 
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)
     > negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
     
     filter.on_negotiation(negotiation_handler);
@@ -241,7 +242,7 @@ void telnet_filter_fixture::test_filter_iac_dont()
     CPPUNIT_ASSERT_EQUAL(odin::u8('X'), result.get());
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::DONT, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
 }
 
 void telnet_filter_fixture::test_filter_iac_sb_empty()
@@ -250,14 +251,14 @@ void telnet_filter_fixture::test_filter_iac_sb_empty()
     // This test case tests the case where the subnegotiation is empty.
     odin::telnet::filter filter;
     
-    odin::telnet::subnegotiation_id_type subnegotiation_id = 0;
-    odin::telnet::subnegotiation_type    subnegotiation;
+    odin::telnet::option_id_type      option_id = 0;
+    odin::telnet::subnegotiation_type subnegotiation;
 
     function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)
     > subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
+        bll::var(option_id) = bll::_1
       , bll::var(subnegotiation)    = bll::_2
     );
     
@@ -282,7 +283,7 @@ void telnet_filter_fixture::test_filter_iac_sb_empty()
     CPPUNIT_ASSERT_EQUAL(true, result.is_initialized());
     CPPUNIT_ASSERT_EQUAL(odin::u8('Z'), result.get());
     
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, subnegotiation_id);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
     CPPUNIT_ASSERT_EQUAL(
         odin::telnet::subnegotiation_type::size_type(0)
       , subnegotiation.size());
@@ -294,14 +295,14 @@ void telnet_filter_fixture::test_filter_iac_sb_full()
     // This test case tests the case where the subnegotiation has data.
     odin::telnet::filter filter;
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id = 0;
-    odin::telnet::subnegotiation_type    subnegotiation;
+    odin::telnet::option_id_type      option_id = 0;
+    odin::telnet::subnegotiation_type subnegotiation;
 
     function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)
     > subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
+        bll::var(option_id) = bll::_1
       , bll::var(subnegotiation)    = bll::_2
     );
     
@@ -329,7 +330,7 @@ void telnet_filter_fixture::test_filter_iac_sb_full()
     CPPUNIT_ASSERT_EQUAL(true, result.is_initialized());
     CPPUNIT_ASSERT_EQUAL(odin::u8('Z'), result.get());
 
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, subnegotiation_id);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
     CPPUNIT_ASSERT_EQUAL(
         odin::telnet::subnegotiation_type::size_type(1)
       , subnegotiation.size());
@@ -343,14 +344,14 @@ void telnet_filter_fixture::test_filter_iac_sb_iac()
     // part of the data.  This must be escaped out.
     odin::telnet::filter filter;
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id = 0;
-    odin::telnet::subnegotiation_type    subnegotiation;
+    odin::telnet::option_id_type      option_id = 0;
+    odin::telnet::subnegotiation_type subnegotiation;
 
     function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)
     > subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
+        bll::var(option_id) = bll::_1
       , bll::var(subnegotiation)    = bll::_2
     );
     
@@ -381,7 +382,7 @@ void telnet_filter_fixture::test_filter_iac_sb_iac()
     CPPUNIT_ASSERT_EQUAL(true, result.is_initialized());
     CPPUNIT_ASSERT_EQUAL(odin::u8('Z'), result.get());
 
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, subnegotiation_id);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
     CPPUNIT_ASSERT_EQUAL(
         odin::telnet::subnegotiation_type::size_type(1)
       , subnegotiation.size());
@@ -397,14 +398,14 @@ void telnet_filter_fixture::test_filter_iac_sb_char()
     // and add the following character as part of the subnegotiation.
     odin::telnet::filter filter;
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id = 0;
-    odin::telnet::subnegotiation_type    subnegotiation;
+    odin::telnet::option_id_type      option_id = 0;
+    odin::telnet::subnegotiation_type subnegotiation;
 
     function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)
     > subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
+        bll::var(option_id) = bll::_1
       , bll::var(subnegotiation)    = bll::_2
     );
     
@@ -435,7 +436,7 @@ void telnet_filter_fixture::test_filter_iac_sb_char()
     CPPUNIT_ASSERT_EQUAL(true, result.is_initialized());
     CPPUNIT_ASSERT_EQUAL(odin::u8('Z'), result.get());
 
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, subnegotiation_id);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
     CPPUNIT_ASSERT_EQUAL(
         odin::telnet::subnegotiation_type::size_type(1)
       , subnegotiation.size());

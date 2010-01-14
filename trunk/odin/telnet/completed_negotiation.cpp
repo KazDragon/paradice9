@@ -36,20 +36,20 @@ namespace odin { namespace telnet {
 // ===========================================================================
 struct completed_negotiation::impl
 {
-    initiator           initiated_by_;
-    negotiation_type    type_;
-    negotiation_request local_request_;
-    negotiation_request remote_request_;
+    initiator                initiated_by_;
+    option_id_type           option_id_;
+    negotiation_request_type local_request_;
+    negotiation_request_type remote_request_;
 };
         
 // ===========================================================================
 // COMPLETED_NEGOTIATION::CONSTRUCTOR
 // ===========================================================================
 completed_negotiation::completed_negotiation(
-    initiator           initiated_by
-  , negotiation_type    type
-  , negotiation_request local_request
-  , negotiation_request remote_request)
+    initiator                initiated_by
+  , option_id_type           option_id
+  , negotiation_request_type local_request
+  , negotiation_request_type remote_request)
 {
     assert(initiated_by == local || initiated_by == remote);
     assert(local_request == WILL || local_request == WONT
@@ -60,7 +60,7 @@ completed_negotiation::completed_negotiation(
     std::auto_ptr<impl> pimpl(new impl);
     
     pimpl->initiated_by_     = initiated_by;
-    pimpl->type_             = type;
+    pimpl->option_id_        = option_id;
     pimpl->local_request_    = local_request;
     pimpl->remote_request_   = remote_request;
     
@@ -72,12 +72,12 @@ completed_negotiation::completed_negotiation(
 // ===========================================================================
 completed_negotiation::completed_negotiation(
     initiated_negotiation const &negotiation
-  , negotiation_request request)
+  , negotiation_request_type     request)
 {
     std::auto_ptr<impl> pimpl(new impl);
 
     pimpl->initiated_by_  = negotiation.get_initiator();
-    pimpl->type_          = negotiation.get_type();
+    pimpl->option_id_     = negotiation.get_option_id();
     
     if (pimpl->initiated_by_ == local)
     {
@@ -131,11 +131,11 @@ initiator completed_negotiation::get_initiator() const
 }
     
 // ===========================================================================
-// COMPLETED_NEGOTIATION::GET_TYPE
+// COMPLETED_NEGOTIATION::GET_OPTION_ID
 // ===========================================================================
-negotiation_type completed_negotiation::get_type() const
+option_id_type completed_negotiation::get_option_id() const
 {
-    return pimpl_->type_;
+    return pimpl_->option_id_;
 }
     
 // ===========================================================================
@@ -162,7 +162,7 @@ bool operator==(
   , completed_negotiation const &rhs)
 {
     return lhs.get_initiator()      == rhs.get_initiator()
-        && lhs.get_type()           == rhs.get_type()
+        && lhs.get_option_id()      == rhs.get_option_id()
         && lhs.get_local_request()  == rhs.get_local_request()
         && lhs.get_remote_request() == rhs.get_remote_request();
 }

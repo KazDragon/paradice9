@@ -46,9 +46,9 @@ class initiated_negotiation
         // May throw std::bad_alloc.
         // Strongly exception safe.
         initiated_negotiation(
-            initiator           initiated_by
-          , negotiation_type    type
-          , negotiation_request request);
+            initiator                initiated_by
+          , option_id_type           type
+          , negotiation_request_type request);
           
         
         // May throw std::bad_alloc.
@@ -76,11 +76,11 @@ class initiated_negotiation
         
         // Returns the WILL/WONT/DO/DONT request type.
         // Nothrow guarantee.
-        negotiation_request get_request() const;
+        negotiation_request_type get_request() const;
         
         // Returns the type of the request (ECHO, STATUS, etc.)
         // Nothrow guarantee.
-        negotiation_type get_type() const;
+        option_id_type get_option_id() const;
         
     // =======================================================================
     // PRIVATE IMPLEMENTATION

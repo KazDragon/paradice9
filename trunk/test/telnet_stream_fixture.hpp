@@ -16,6 +16,8 @@ public :
         CPPUNIT_TEST(test_available_normal_iac_iac_normal);
         CPPUNIT_TEST(test_available_negotiation);
         CPPUNIT_TEST(test_available_negotiation_normal);
+        CPPUNIT_TEST(test_available_during_async_read);
+        CPPUNIT_TEST(test_available_during_async_callback);
         CPPUNIT_TEST(test_sync_read_normal_iac);
         CPPUNIT_TEST(test_sync_read_normal_iac_iac);
         CPPUNIT_TEST(test_sync_read_normal_iac_iac_normal);
@@ -55,6 +57,8 @@ private :
     void test_available_normal_iac_iac_normal();
     void test_available_negotiation();
     void test_available_negotiation_normal();
+    void test_available_during_async_read();
+    void test_available_during_async_callback();
     void test_sync_read_normal_iac();
     void test_sync_read_normal_iac_iac();
     void test_sync_read_normal_iac_iac_normal();

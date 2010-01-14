@@ -68,8 +68,17 @@ public :
     //* =====================================================================
     optional<stream::input_size_type> available() const
     {
-        // First, we query the underlying stream for any data it has available.
-        // These we add to our own input buffer.
+        // If there are any asynchronous read requests currently underway,
+        // then there is no way to say with any precision what may happen
+        // on a synchronour read.  Exit now.
+        if (unfulfilled_read_request())
+        {
+            return optional<stream::input_size_type>();
+        }
+
+        // Since there are no waiting asynchronous read requests, we may act
+        // synchronously.  We begin by querying the underlying stream for any
+        // data it has available. We then add these to our own input buffer.
         BOOST_AUTO(underlying_available, underlying_stream_->available());
         
         if (underlying_available.is_initialized())
@@ -201,9 +210,11 @@ public :
     //* =====================================================================
     /// \brief Initiate or complete a Telnet negotiation.
     //* =====================================================================
-    void send_negotiation(negotiation_request request, negotiation_type type)
+    void send_negotiation(
+        negotiation_request_type request
+      , option_id_type           option_id)
     {
-        stream::output_value_type data[] = { IAC, request, type };
+        stream::output_value_type data[] = { IAC, request, option_id };
         underlying_stream_->write(data);
     }
 
@@ -211,8 +222,8 @@ public :
     /// \brief Send a Telnet subnegotiation to the datastream.
     //* =====================================================================
     void send_subnegotiation(
-        subnegotiation_id_type const &id
-      , subnegotiation_type    const &subnegotiation)
+        option_id_type             id
+      , subnegotiation_type const &subnegotiation)
     {
         // The subnegotiation itself must have its IACs duplicated so that
         // we don't accidentally end the sequence early or something.
@@ -260,6 +271,26 @@ public :
     }
         
 private :    
+    //* =====================================================================
+    /// \brief Returns true if there are any unfulfilled asynchronous read
+    /// requests.
+    //* =====================================================================
+    bool unfulfilled_read_request() const
+    {
+        bool result = false;
+        
+        BOOST_FOREACH(read_request const &request, read_requests_)
+        {
+            if (request.fulfilled_ != request.values_.size())
+            {
+                result = true;
+                break;
+            }
+        }
+        
+        return result;
+    }
+    
     //* =====================================================================
     /// \brief Returns the amount of data readable without encountering
     /// telnet protocol bytes, except for those that would begin at the
@@ -382,7 +413,7 @@ private :
             }
             
             read_requests_.pop_front();
-
+            
             // It may be possible to fulfill more requests from the data in
             // the input buffer.  Schedule another check.
             io_service_.post(
@@ -579,18 +610,18 @@ void stream::send_command(command cmd)
 // SEND_NEGOTIATION
 // ==========================================================================
 void stream::send_negotiation(
-    negotiation_request request
-  , negotiation_type    type)
+    negotiation_request_type request
+  , option_id_type           option_id)
 {
-    pimpl_->send_negotiation(request, type);
+    pimpl_->send_negotiation(request, option_id);
 }
 
 // ==========================================================================
 // SEND_SUBNEGOTIATION
 // ==========================================================================
 void stream::send_subnegotiation(
-    subnegotiation_id_type const &id
-  , subnegotiation_type    const &subnegotiation)
+    option_id_type             id
+  , subnegotiation_type const &subnegotiation)
 {
     pimpl_->send_subnegotiation(id, subnegotiation);
 }

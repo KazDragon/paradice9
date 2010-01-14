@@ -27,7 +27,6 @@
 #ifndef ODIN_TELNET_SERVER_OPTION_HPP_
 #define ODIN_TELNET_SERVER_OPTION_HPP_
 
-#include "odin/telnet/option.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/protocol.hpp"
 #include <boost/shared_ptr.hpp>
@@ -63,7 +62,7 @@ namespace odin { namespace telnet {
 //             that non-compliant clients may respond with WILL, and caters for
 //             that.  
 // ==============================================================================
-class server_option : public option
+class server_option
 {
     // ==========================================================================
     // CONSTRUCTOR
@@ -174,11 +173,11 @@ class server_option : public option
             subnegotiation_type const &subnegotiation) = 0;
 
         // ======================================================================
-        // OPTION::GET_NEGOTIATION_TYPE
+        // OPTION::GET_OPTION_ID
         //  FUNCTION : Returns the negotiation type of this option (for example,
         //             odin::telnet::NAWS, or odin::telnet::RTCE).
         // ======================================================================
-        virtual negotiation_type get_negotiation_type() const = 0;
+        virtual option_id_type get_option_id() const = 0;
 
         // ======================================================================
         // OPTION::ON_STATE_CHANGE

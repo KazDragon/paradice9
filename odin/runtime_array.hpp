@@ -327,6 +327,19 @@ std::ostream& operator<<(
     return out;
 }
 
+//* =========================================================================
+/// \fn make_runtime_array<ValueType, Size>
+/// \param ValueType the type of the runtime_array.
+/// \param Size the size of the array
+/// \brief A helper function to create a runtime_array<> from a statically-
+/// initialised array.
+//* =========================================================================
+template <class ValueType, size_t Size>
+runtime_array<ValueType> make_runtime_array(ValueType (&array)[Size])
+{
+    return runtime_array<ValueType>(array);
+}
+
 }
 
 #endif

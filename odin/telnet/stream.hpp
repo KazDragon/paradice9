@@ -73,7 +73,7 @@ public :
     //* =====================================================================
     typedef boost::function
     <
-        void (negotiation_request, negotiation_type)
+        void (negotiation_request_type, option_id_type)
     > negotiation_callback;
     
     //* =====================================================================
@@ -82,7 +82,7 @@ public :
     //* =====================================================================
     typedef ::boost::function
     <
-        void (subnegotiation_id_type, subnegotiation_type)
+        void (option_id_type, subnegotiation_type)
     > subnegotiation_callback;
 
     //* =====================================================================
@@ -165,14 +165,16 @@ public :
     //* =====================================================================
     /// \brief Initiate or complete a Telnet negotiation.
     //* =====================================================================
-    void send_negotiation(negotiation_request request, negotiation_type type);
+    void send_negotiation(
+        negotiation_request_type request
+      , option_id_type           type);
     
     //* =====================================================================
     /// \brief Send a Telnet subnegotiation to the datastream.
     //* =====================================================================
     void send_subnegotiation(
-        subnegotiation_id_type const &id
-      , subnegotiation_type    const &subnegotiation);
+        option_id_type             id
+      , subnegotiation_type const &subnegotiation);
     
     //* =====================================================================
     /// \brief Register for notification of incoming Telnet commands.

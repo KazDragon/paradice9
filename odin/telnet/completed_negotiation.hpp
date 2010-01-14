@@ -70,16 +70,16 @@ class completed_negotiation
         // Anything else is undefined.
         // Strongly exception safe.
         completed_negotiation(
-            initiator           initiated_by
-          , negotiation_type    type
-          , negotiation_request local_request
-          , negotiation_request remote_request);
+            initiator                initiated_by
+          , option_id_type           type
+          , negotiation_request_type local_request
+          , negotiation_request_type remote_request);
 
         // May throw std::bad_alloc
         // Strongly exception safe.
         completed_negotiation(
             initiated_negotiation const &negotiation
-          , negotiation_request          request);
+          , negotiation_request_type     request);
 
         // May throw std::bad_alloc
         // Strongly exception safe.                         
@@ -103,7 +103,7 @@ class completed_negotiation
         
         // Returns the 
         // Never throws.
-        negotiation_type get_type() const;
+        option_id_type get_option_id() const;
         
         // Returns WILL, WONT, DO, DONT.
         // Never throws.

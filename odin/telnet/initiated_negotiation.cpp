@@ -33,22 +33,22 @@ namespace odin { namespace telnet {
 // ===========================================================================
 struct initiated_negotiation::impl
 {
-    initiator           initiated_by_;
-    negotiation_type    type_;
-    negotiation_request request_;
+    initiator                initiated_by_;
+    option_id_type           option_id_;
+    negotiation_request_type request_;
 };
         
 // ===========================================================================
 // INITIATED_NEGOTIATION::CONSTRUCTOR
 // ===========================================================================
 initiated_negotiation::initiated_negotiation(
-    initiator           initiated_by
-  , negotiation_type    type
-  , negotiation_request request)
+    initiator                initiated_by
+  , option_id_type           option_id
+  , negotiation_request_type request)
 {
     std::auto_ptr<impl> pimpl(new impl);
     pimpl->initiated_by_ = initiated_by;
-    pimpl->type_         = type;
+    pimpl->option_id_    = option_id;
     pimpl->request_      = request;
     pimpl_ = pimpl.release();
 }
@@ -79,7 +79,7 @@ initiated_negotiation &initiated_negotiation::operator=(
 bool initiated_negotiation::operator==(initiated_negotiation const &other)
 {
     return pimpl_->initiated_by_ == other.pimpl_->initiated_by_
-        && pimpl_->type_         == other.pimpl_->type_
+        && pimpl_->option_id_    == other.pimpl_->option_id_
         && pimpl_->request_      == other.pimpl_->request_;
 }
     
@@ -94,7 +94,7 @@ initiator initiated_negotiation::get_initiator() const
 // ===========================================================================
 // INITIATED_NEGOTIATION::GET_REQUEST
 // ===========================================================================
-negotiation_request initiated_negotiation::get_request() const
+negotiation_request_type initiated_negotiation::get_request() const
 {
     return pimpl_->request_;
 }
@@ -102,9 +102,9 @@ negotiation_request initiated_negotiation::get_request() const
 // ===========================================================================
 // INITIATED_NEGOTIATION::GET_TYPE
 // ===========================================================================
-negotiation_type initiated_negotiation::get_type() const
+option_id_type initiated_negotiation::get_option_id() const
 {
-    return pimpl_->type_;
+    return pimpl_->option_id_;
 }
           
 }}

@@ -1,10 +1,10 @@
-#include "completed_negotiation_test.hpp"
+#include "completed_negotiation_fixture.hpp"
 #include "odin/telnet/completed_negotiation.hpp"
 #include "odin/telnet/initiated_negotiation.hpp"
 
-CPPUNIT_TEST_SUITE_REGISTRATION(telnet_completed_negotiation_test);
+CPPUNIT_TEST_SUITE_REGISTRATION(telnet_completed_negotiation_fixture);
 
-void telnet_completed_negotiation_test::test_initiator()
+void telnet_completed_negotiation_fixture::test_initiator()
 {
     CPPUNIT_ASSERT(
         odin::telnet::completed_negotiation(
@@ -21,7 +21,7 @@ void telnet_completed_negotiation_test::test_initiator()
           , odin::telnet::DO).get_initiator() == odin::telnet::remote);
 }
 
-void telnet_completed_negotiation_test::test_local_request()
+void telnet_completed_negotiation_fixture::test_local_request()
 {
     CPPUNIT_ASSERT(
         odin::telnet::completed_negotiation(
@@ -52,7 +52,7 @@ void telnet_completed_negotiation_test::test_local_request()
           , odin::telnet::WONT).get_local_request() == odin::telnet::DONT);
 }
 
-void telnet_completed_negotiation_test::test_remote_request()
+void telnet_completed_negotiation_fixture::test_remote_request()
 {
     CPPUNIT_ASSERT(
         odin::telnet::completed_negotiation(
@@ -83,10 +83,10 @@ void telnet_completed_negotiation_test::test_remote_request()
           , odin::telnet::WONT).get_remote_request() == odin::telnet::WONT);
 }
 
-void telnet_completed_negotiation_test::test_type()
+void telnet_completed_negotiation_fixture::test_type()
 {
-    for (odin::telnet::negotiation_type type = 0;
-         type < odin::telnet::negotiation_type(-1);
+    for (odin::telnet::option_id_type type = 0;
+         type < odin::telnet::option_id_type(-1);
          ++type)
     {
         CPPUNIT_ASSERT(
@@ -94,11 +94,11 @@ void telnet_completed_negotiation_test::test_type()
                 odin::telnet::local
               , type
               , odin::telnet::WILL
-              , odin::telnet::DO).get_type() == type);
+              , odin::telnet::DO).get_option_id() == type);
     }
 }
 
-void telnet_completed_negotiation_test::test_equality()
+void telnet_completed_negotiation_fixture::test_equality()
 {
     CPPUNIT_ASSERT(
         odin::telnet::completed_negotiation(
@@ -161,7 +161,7 @@ void telnet_completed_negotiation_test::test_equality()
           , odin::telnet::DO)));
 }
 
-void telnet_completed_negotiation_test::test_assign()
+void telnet_completed_negotiation_fixture::test_assign()
 {
     odin::telnet::completed_negotiation negotiation1(
         odin::telnet::local
@@ -180,7 +180,7 @@ void telnet_completed_negotiation_test::test_assign()
     CPPUNIT_ASSERT(negotiation1 == negotiation2);
 }
 
-void telnet_completed_negotiation_test::test_copy()
+void telnet_completed_negotiation_fixture::test_copy()
 {
     odin::telnet::completed_negotiation negotiation1(
         odin::telnet::local
@@ -193,7 +193,7 @@ void telnet_completed_negotiation_test::test_copy()
     CPPUNIT_ASSERT(negotiation1 == negotiation2);
 }
 
-void telnet_completed_negotiation_test::test_complete()
+void telnet_completed_negotiation_fixture::test_complete()
 {
     odin::telnet::initiated_negotiation initiated_negotiation(
         odin::telnet::local

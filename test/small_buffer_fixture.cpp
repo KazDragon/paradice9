@@ -1,4 +1,4 @@
-#include "small_buffer_test.hpp"
+#include "small_buffer_fixture.hpp"
 #include "odin/small_buffer.hpp"
 #include "fake_allocator.hpp"
 #include <boost/iterator/counting_iterator.hpp>

@@ -27,72 +27,62 @@
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/protocol.hpp"
 
+using namespace boost;
+
 namespace odin { namespace telnet { namespace options {
 
-
 // ==========================================================================
-// NAWS_CLIENT::IMPLEMENTATION STRUCTURE
+// NAWS_CLIENT::IMPL
 // ==========================================================================
 struct naws_client::impl
 {
-    naws_client::fn fn_;
+    naws_client::callback_type on_size_;
 };
-
+    
 // ==========================================================================
-// NAWS_CLIENT::CONSTRUCTOR
+// CONSTRUCTOR
 // ==========================================================================
-naws_client::naws_client(boost::shared_ptr<odin::telnet::stream> stream)
-    : client_option(stream)
-    , pimpl_(new impl)
+naws_client::naws_client(
+    shared_ptr<odin::telnet::stream> const &stream
+  , shared_ptr<odin::telnet::router> const &router)
+    : odin::telnet::client_option(stream, router, odin::telnet::NAWS)
+    , pimpl_(new impl) 
 {
 }
-            
+
 // ==========================================================================
-// NAWS_CLIENT::DESTRUCTOR
+// DESTRUCTOR
 // ==========================================================================
 naws_client::~naws_client()
 {
-    delete pimpl_;
 }
 
 // ==========================================================================
-// NAWS_CLIENT::GET_NEGOTIATION_TYPE
+// ON_SIZE
 // ==========================================================================
-odin::telnet::negotiation_type naws_client::get_negotiation_type() const
+void naws_client::on_size(callback_type const &callback)
 {
-    return odin::telnet::NAWS;
+    pimpl_->on_size_ = callback;
 }
 
 // ==========================================================================
-// NAWS_CLIENT::ON_SUBNEGOTIATION
+// ON_SUBNEGOTIATION
 // ==========================================================================
-void naws_client::on_subnegotiation(
-    subnegotiation_type const &subnegotiation)
+void naws_client::on_subnegotiation(subnegotiation_type const &subnegotiation)
 {
-    if(subnegotiation.size() == 4)
+    if (pimpl_->on_size_ && subnegotiation.size() == 4)
     {
-        if(pimpl_->fn_)
-        {
-            unsigned short width = 
-                (unsigned short)(subnegotiation[0]) << 8
-              | (unsigned short)(subnegotiation[1]);
-            
-            unsigned short height =
-                (unsigned short)(subnegotiation[2]) << 8
-              | (unsigned short)(subnegotiation[3]);
-              
-            pimpl_->fn_(width, height);
-        }
+        odin::u16 width = 
+            odin::u16(subnegotiation[0] << 8)
+          | odin::u16(subnegotiation[1] << 0);
+          
+        odin::u16 height =
+            odin::u16(subnegotiation[2] << 8)
+          | odin::u16(subnegotiation[3] << 0);
+          
+        pimpl_->on_size_(width, height);
     }
 }
 
-// ==========================================================================
-// NAWS_CLIENT::ON_SIZE_SET
-// ==========================================================================
-void naws_client::on_size_set(fn f)
-{
-    pimpl_->fn_ = f;
-}
-            
 }}}
 

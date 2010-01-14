@@ -42,7 +42,7 @@ namespace small_buffer_detail
     // small buffer optimization is not really applied, but it makes client
     // code that is attempting to use it simpler.
     template <class ValueType, odin::u32 StaticDataSize, bool IsPodType>
-    struct small_bufferUnion
+    struct small_buffer_union
         // Implements get_static_buffer()
         // Implements get_dynamic_buffer()
     ;
@@ -352,7 +352,7 @@ public :
     }
 
 private :
-    typedef small_buffer_detail::small_bufferUnion
+    typedef small_buffer_detail::small_buffer_union
     <
         ValueType, 
         StaticDataSize, 
@@ -392,17 +392,6 @@ private :
     //* =====================================================================
     //  \brief Selects the appropriate union member and returns it.
     //* =====================================================================
-    /* METHOD **************************************************************************************
-    ************************************************************************************************
-    **
-    ** DESCRIPTION:
-    **  Selects the appropriate union member and returns it.
-    **
-    ** PARAMETERS:  None.
-    **
-    ** RETURNS:     See above.
-    **
-    ***********************************************************************************************/
     ValueType const *SelectArray() const
     {
         return size_ > StaticDataSize 
@@ -463,7 +452,7 @@ namespace small_buffer_detail
     // See the forward-declaration of this class at the top of the file for
     // more information.
     template <class ValueType, odin::u32 StaticDataSize>
-    struct small_bufferUnion<ValueType, StaticDataSize, true>
+    struct small_buffer_union<ValueType, StaticDataSize, true>
     {
         ValueType* get_static_buffer()
         {
@@ -493,9 +482,9 @@ namespace small_buffer_detail
     };
 
     template <class ValueType, odin::u32 StaticDataSize>
-    struct small_bufferUnion<ValueType, StaticDataSize, false>
+    struct small_buffer_union<ValueType, StaticDataSize, false>
     {
-        small_bufferUnion()
+        small_buffer_union()
             : m_poDynamicBuffer(NULL)
         {
         }

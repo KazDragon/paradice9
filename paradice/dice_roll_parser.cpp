@@ -71,7 +71,7 @@ struct dice_roll_grammar
             
         dice_roll_ 
            %= uint_
-           >> boost::spirit::qi::ascii::no_case['d']
+           >> boost::spirit::ascii::no_case['d']
            >> uint_
            >> bonuses_
             ;

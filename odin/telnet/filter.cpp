@@ -162,8 +162,8 @@ private :
     
     void sb_undef(odin::u8 value)
     {
-        filtered_ = true;
-        subnegotiation_id_ = value;
+        filtered_  = true;
+        option_id_ = value;
         subnegotiation_.clear();
         set_state(sb_main);
     }
@@ -194,7 +194,7 @@ private :
               , subnegotiation_.end()
               , subnegotiation.begin());
             
-            on_subnegotiation_(subnegotiation_id_, subnegotiation);
+            on_subnegotiation_(option_id_, subnegotiation);
         }
     }
     
@@ -205,10 +205,10 @@ private :
         set_state(sb_main);
     }
     
-    bool                   filtered_;
-    negotiation_request    request_;
-    subnegotiation_id_type subnegotiation_id_;
-    vector<odin::u8>       subnegotiation_;
+    bool                     filtered_;
+    negotiation_request_type request_;
+    option_id_type           option_id_;
+    vector<odin::u8>         subnegotiation_;
 };
 
 // ==========================================================================

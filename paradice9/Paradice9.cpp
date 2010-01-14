@@ -167,11 +167,36 @@ static void do_who(
         return;
     }
 
+    pair<u16, u16> window_size = client->get_connection()->get_window_size();
+    
+    string currently_playing =
+        " +=== CURRENTLY PLAYING ";
+        
+    // If the window has extra space, pad out with ...=====+        
+    if (window_size.first > currently_playing.size())
+    {
+        // Get the width remaining in the row.
+        u16 remaining = window_size.first - currently_playing.size();
+        
+        // Subtract two - we want the final + to be two columns before the end.
+        remaining -= 2;
+        
+        currently_playing += string(remaining, '=');
+        currently_playing += "+";
+    }
+    // Otherwise, just balance it and let their rubbish screen size suffer.
+    else
+    {
+        currently_playing += "===+";
+    }
+    
+        
     string text =
         "\x1B[s" // save cursor position
         "\x1B[H" // home
-        " +=== CURRENTLY PLAYING ======================================================+\r\n";
-
+      + currently_playing
+      + "\r\n";
+        
     BOOST_FOREACH(shared_ptr<paradice::client> cur_client, paradice::clients)
     {
         string address = str(
@@ -179,13 +204,9 @@ static void do_who(
                 % cur_client->get_name()
                 % cur_client->get_title());
 
-        size_t width_remaining = 78 - address.size();
+        size_t width_remaining = (window_size.first - 2) - address.size();
 
-        for (; width_remaining != 0; --width_remaining)
-        {
-            address += " ";
-        }
-
+        address += string(width_remaining, ' ');
         address += "|\r\n";
 
         text += address;
@@ -195,11 +216,15 @@ static void do_who(
     {
         for (unsigned int i = 0; i < (6 - paradice::clients.size()); ++i)
         {
-            text += "\x1B[2K |                                                                            |\r\n";
+            text += "\x1B[2K |"
+                  + string(window_size.first - 4, ' ')
+                  + "|\r\n";
         }
     }
   
-    text += " +============================================================================+\r\n";
+    text += " +"
+          + string(window_size.first - 4, '=')
+          + "+\r\n";
     text += "\x1B[u"; // unsave
 
     client->get_connection()->write(text);
@@ -396,11 +421,15 @@ void on_name_entered(
 
         client->set_name(name);
 
-        string text = 
-            "\x1B[2J"     // Erase screen
-            "\x1B[9;24r"  // Set scrolling region
-            "\x1B[24;0f"  // force to end.
-            ;
+        pair<u16, u16> window_size = 
+            client->get_connection()->get_window_size();
+            
+        string text = str(format(
+            "\x1B[2J"      // Erase screen
+            "\x1B[9;%dr"   // Set scrolling region
+            "\x1B[%d;0f") // Force to end.
+            % window_size.second
+            % window_size.second);
 
         client->get_connection()->write(text);
 

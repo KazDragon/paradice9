@@ -55,8 +55,11 @@ struct input_datastream
     /// \brief Returns the number of objects that are available to be read.
     /// \return the number of objects that are available to be read without 
     /// blocking, or no value if this is unknown and a call to read() might
-    /// block.  The value 0 must only be returned in the case that there is 
-    /// no more data to be read, and the stream is dead.  
+    /// block.  Note: if a stream is serving any asynchronous read requests,
+    /// it must return at most the amount already buffered by the stream,
+    /// otherwise that it might block. The value 0 must only be returned
+    /// in the case that there is no more data to be read, and the stream is 
+    /// dead. 
     /// \warning This operation MUST NOT block.
     //* =====================================================================
     virtual boost::optional<size_type> available() const = 0;

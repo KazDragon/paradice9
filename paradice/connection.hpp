@@ -27,9 +27,11 @@
 #ifndef PARADICE_CONNECTION_HPP_
 #define PARADICE_CONNECTION_HPP_
 
+#include "odin/types.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <string>
+#include <utility>
 
 namespace paradice {
 
@@ -46,6 +48,10 @@ public :
     
     void write(std::string const &text);
 
+    std::pair<odin::u16, odin::u16> get_window_size() const;
+    void on_window_size_changed(boost::function<
+        void (odin::u16 width, odin::u16 height)> const &callback);
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

@@ -228,6 +228,91 @@ void telnet_stream_fixture::test_available_negotiation_normal()
     CPPUNIT_ASSERT_EQUAL(array.size() - 3, available.get());
 }
 
+void telnet_stream_fixture::test_available_during_async_read()
+{
+    // The method available() usually makes a synchronous read on the 
+    // underlying stream in order to buffer up data and give a decent
+    // response.  However, if there is currently an asynchronous read
+    // ongoing, then this may cause data to be read out of sequence.  
+    // Therefore, we test that available() returns uninitialised (for
+    // "may block" and that no data is buffered (by checking the side-
+    // effect that data will appear in order).
+    boost::asio::io_service     io_service;
+    shared_ptr<fake_bytestream> fake_stream(
+        new fake_bytestream(io_service));
+    odin::telnet::stream        stream(fake_stream, io_service);
+    
+    odin::u8 partial_data0[] = { 'a' };
+    fake_stream->write_data_to_read(partial_data0);
+    
+    odin::u32                     called = 0;
+    odin::runtime_array<odin::u8> result_array;
+    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
+        ++bll::var(called)
+      , bll::var(result_array) = bll::_1
+    );
+    
+    stream.async_read(2, callback);
+    io_service.run();
+    
+    BOOST_AUTO(available, stream.available());
+    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
+    
+    odin::u8 partial_data1[] = { 'b' };
+    
+    fake_stream->write_data_to_read(partial_data1);
+    io_service.reset();
+    io_service.run();
+    
+    odin::u8 expected_data[] = { 'a', 'b' };
+    odin::runtime_array<odin::u8> expected_array(expected_data);
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), called);
+    CPPUNIT_ASSERT_EQUAL(expected_array, result_array); 
+}
+
+void telnet_stream_fixture::test_available_during_async_callback()
+{
+    // The method available() usually makes a synchronous read on the
+    // underlying stream in order to buffer up data and give a decent
+    // response.  This is suspended while an asynchronous read is active.
+    // However, on the callback from an asynchronous read, it may well be
+    // that a call to available() is performed in order to determine how
+    // much the next asynchronous read should attempt to read.  The call
+    // to available() must be allowed to be performed here.
+    boost::asio::io_service     io_service;
+    shared_ptr<fake_bytestream> fake_stream(
+        new fake_bytestream(io_service));
+    odin::telnet::stream        stream(fake_stream, io_service);
+    
+    odin::u8 data[] = { 'a', 'b', 'c', 'd' };
+    odin::runtime_array<odin::u8> array(data);
+    
+    fake_stream->write_data_to_read(data);
+    
+    odin::u32                                                 called = 0;
+    odin::runtime_array<odin::u8>                             result_array;
+    boost::optional<odin::runtime_array<odin::u8>::size_type> available;
+    
+    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
+        ++bll::var(called)
+      , bll::var(result_array) = bll::_1
+      , bll::var(available)    = bll::bind(
+            &odin::telnet::stream::available, &stream)
+    );
+    
+    stream.async_read(1, callback);
+    io_service.run();
+    
+    odin::u8 expected_data[] = { 'a' };
+    odin::runtime_array<odin::u8> expected_array(expected_data);
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), called);
+    CPPUNIT_ASSERT_EQUAL(expected_array, result_array);
+    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
+    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
+}
+
 void telnet_stream_fixture::test_sync_read_normal_iac()
 {
     // If the stream ends in an IAC byte, then that must not be included
@@ -407,15 +492,15 @@ void telnet_stream_fixture::test_sync_read_negotiation()
     
     fake_stream->write_data_to_read(array);
     
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
-    odin::telnet::negotiation_type    type    = 0;
+    odin::telnet::negotiation_request_type request   = 
+        odin::telnet::negotiation_request_type(0);
+    odin::telnet::option_id_type           option_id = 0;
     
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)> negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)> negotiation_handler = (
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
         
     stream.on_negotiation(negotiation_handler);
@@ -428,7 +513,7 @@ void telnet_stream_fixture::test_sync_read_negotiation()
       , blocking_error);
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
 }
 
 void telnet_stream_fixture::test_sync_read_negotiation_normal()
@@ -448,15 +533,15 @@ void telnet_stream_fixture::test_sync_read_negotiation_normal()
 
     fake_stream->write_data_to_read(array);
     
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
-    odin::telnet::negotiation_type    type    = 0;
+    odin::telnet::negotiation_request_type request   = 
+        odin::telnet::negotiation_request_type(0);
+    odin::telnet::option_id_type           option_id = 0;
     
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)> negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)> negotiation_handler = (
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
         
     stream.on_negotiation(negotiation_handler);
@@ -472,7 +557,7 @@ void telnet_stream_fixture::test_sync_read_negotiation_normal()
       , blocking_error);
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
 }
 
 void telnet_stream_fixture::test_sync_read_subnegotiation()
@@ -495,14 +580,14 @@ void telnet_stream_fixture::test_sync_read_subnegotiation()
     fake_stream->write_data_to_read(array);
 
     odin::u8 expected_data[] = { 'x', 'y' };
-    odin::telnet::subnegotiation_id_type expected_id(odin::telnet::ECHO);
+    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
     odin::telnet::subnegotiation_type    expected_array(expected_data);
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id(0);
+    odin::telnet::option_id_type subnegotiation_id(0);
     odin::telnet::subnegotiation_type    subnegotiation;
 
     boost::function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
         bll::var(subnegotiation_id) = bll::_1
       , bll::var(subnegotiation) = bll::_2
@@ -542,15 +627,15 @@ void telnet_stream_fixture::test_sync_read_subnegotiation_normal()
     fake_stream->write_data_to_read(array);
 
     odin::u8 expected_subnegotiation_data[] = { 'x', 'y' };
-    odin::telnet::subnegotiation_id_type expected_id(odin::telnet::ECHO);
+    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
     odin::telnet::subnegotiation_type    expected_subnegotiation_array(
         expected_subnegotiation_data);
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id(0);
+    odin::telnet::option_id_type subnegotiation_id(0);
     odin::telnet::subnegotiation_type    subnegotiation;
 
     boost::function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
         bll::var(subnegotiation_id) = bll::_1
       , bll::var(subnegotiation) = bll::_2
@@ -634,6 +719,7 @@ void telnet_stream_fixture::test_async_read_normal_iac_iac()
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -675,6 +761,7 @@ void telnet_stream_fixture::test_async_read_normal_iac_iac_normal()
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -718,6 +805,7 @@ void telnet_stream_fixture::test_async_read_command()
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -764,6 +852,7 @@ void telnet_stream_fixture::test_async_read_command_normal()
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -789,15 +878,15 @@ void telnet_stream_fixture::test_async_read_negotiation()
         bll::var(actual_array) = bll::_1
     );
 
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
-    odin::telnet::negotiation_type    type    = 0;
+    odin::telnet::negotiation_request_type request   = 
+        odin::telnet::negotiation_request_type(0);
+    odin::telnet::option_id_type           option_id = 0;
     
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)> negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)> negotiation_handler = (
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
         
     stream.on_negotiation(negotiation_handler);
@@ -808,12 +897,13 @@ void telnet_stream_fixture::test_async_read_negotiation()
     
     CPPUNIT_ASSERT_EQUAL(true, actual_array.empty());
     CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
         
     stream.async_read(
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -843,15 +933,15 @@ void telnet_stream_fixture::test_async_read_negotiation_normal()
         bll::var(actual_array) = bll::_1
     );
 
-    odin::telnet::negotiation_request request = 
-        odin::telnet::negotiation_request(0);
-    odin::telnet::negotiation_type    type    = 0;
+    odin::telnet::negotiation_request_type request   = 
+        odin::telnet::negotiation_request_type(0);
+    odin::telnet::option_id_type           option_id = 0;
     
     function<void (
-        odin::telnet::negotiation_request
-      , odin::telnet::negotiation_type)> negotiation_handler = (
-        bll::var(request) = bll::_1
-      , bll::var(type)    = bll::_2
+        odin::telnet::negotiation_request_type
+      , odin::telnet::option_id_type)> negotiation_handler = (
+        bll::var(request)   = bll::_1
+      , bll::var(option_id) = bll::_2
     );
         
     stream.on_negotiation(negotiation_handler);
@@ -861,12 +951,13 @@ void telnet_stream_fixture::test_async_read_negotiation_normal()
     
     CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
     CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, type);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
         
     stream.async_read(
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -890,14 +981,14 @@ void telnet_stream_fixture::test_async_read_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
     
     odin::u8 expected_data[] = { 'x', 'y' };
-    odin::telnet::subnegotiation_id_type expected_id(odin::telnet::ECHO);
+    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
     odin::telnet::subnegotiation_type    expected_array(expected_data);
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id(0);
+    odin::telnet::option_id_type subnegotiation_id(0);
     odin::telnet::subnegotiation_type    subnegotiation;
 
     boost::function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
         bll::var(subnegotiation_id) = bll::_1
       , bll::var(subnegotiation) = bll::_2
@@ -921,6 +1012,7 @@ void telnet_stream_fixture::test_async_read_subnegotiation()
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -945,15 +1037,15 @@ void telnet_stream_fixture::test_async_read_subnegotiation_normal()
     fake_stream->write_data_to_read(array);
 
     odin::u8 expected_subnegotiation_data[] = { 'x', 'y' };
-    odin::telnet::subnegotiation_id_type expected_id(odin::telnet::ECHO);
+    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
     odin::telnet::subnegotiation_type    expected_subnegotiation_array(
         expected_subnegotiation_data);
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id(0);
+    odin::telnet::option_id_type subnegotiation_id(0);
     odin::telnet::subnegotiation_type    subnegotiation;
 
     boost::function<void (
-        odin::telnet::subnegotiation_id_type
+        odin::telnet::option_id_type
       , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
         bll::var(subnegotiation_id) = bll::_1
       , bll::var(subnegotiation) = bll::_2
@@ -978,6 +1070,7 @@ void telnet_stream_fixture::test_async_read_subnegotiation_normal()
         odin::telnet::stream::input_size_type(1)
       , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
 
+    io_service.reset();
     io_service.run();    
 }
 
@@ -1108,7 +1201,7 @@ void telnet_stream_fixture::test_send_subnegotiation()
         new fake_bytestream(io_service));
     odin::telnet::stream        stream(fake_stream, io_service);
 
-    odin::telnet::subnegotiation_id_type subnegotiation_id = 
+    odin::telnet::option_id_type subnegotiation_id = 
         odin::telnet::ECHO;
 
     odin::u8 subnegotiation_data[] = {

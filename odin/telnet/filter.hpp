@@ -79,12 +79,12 @@ public :
     
     typedef boost::function
     <
-        void (negotiation_request, negotiation_type)
+        void (negotiation_request_type, option_id_type)
     > negotiation_callback;
     
     typedef boost::function
     <
-        void (subnegotiation_id_type, subnegotiation_type)
+        void (option_id_type, subnegotiation_type)
     > subnegotiation_callback;
     
     //* =====================================================================

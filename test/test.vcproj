@@ -177,7 +177,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\completed_negotiation_test.cpp"
+				RelativePath=".\completed_negotiation_fixture.cpp"
 				>
 			</File>
 			<File
@@ -185,7 +185,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\initiated_negotiation_test.cpp"
+				RelativePath=".\initiated_negotiation_fixture.cpp"
 				>
 			</File>
 			<File
@@ -193,7 +193,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\router_test.cpp"
+				RelativePath=".\router_fixture.cpp"
 				>
 			</File>
 			<File
@@ -201,11 +201,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\small_buffer_test.cpp"
+				RelativePath=".\small_buffer_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_client_option_fixture.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\telnet_filter_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_router_fixture.cpp"
 				>
 			</File>
 			<File
@@ -219,7 +227,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\completed_negotiation_test.hpp"
+				RelativePath=".\completed_negotiation_fixture.hpp"
 				>
 			</File>
 			<File
@@ -235,11 +243,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\initiated_negotiation_test.hpp"
+				RelativePath=".\initiated_negotiation_fixture.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\router_test.hpp"
+				RelativePath=".\router_fixture.hpp"
 				>
 			</File>
 			<File
@@ -247,11 +255,27 @@
 				>
 			</File>
 			<File
-				RelativePath=".\small_buffer_test.hpp"
+				RelativePath=".\small_buffer_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_client_option_fixture.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\telnet_filter_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_naws_client_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_naws_client_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_router_fixture.hpp"
 				>
 			</File>
 			<File

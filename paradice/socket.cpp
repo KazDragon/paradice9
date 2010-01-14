@@ -196,7 +196,7 @@ optional<socket::input_size_type> socket::available() const
     {
         return optional<input_size_type>(0);
     }
-    else
+    else if (pimpl_->read_requests_.empty())
     {
         asio::socket_base::bytes_readable command(true);
         pimpl_->socket_->io_control(command);
@@ -205,6 +205,10 @@ optional<socket::input_size_type> socket::available() const
         return bytes_readable == 0
              ? optional<input_size_type>()
              : optional<input_size_type>(bytes_readable);
+    }
+    else
+    {
+        return optional<input_size_type>();
     }
 }
 

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Client
+// Paradice Who
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,72 +24,21 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_CLIENT_HPP_
-#define PARADICE_CLIENT_HPP_
+#ifndef PARADICE_WHO_HPP_
+#define PARADICE_WHO_HPP_
 
-#include "odin/types.hpp"
 #include <boost/shared_ptr.hpp>
-#include <vector>
+#include <string>
 
 namespace paradice {
 
-class socket;
-class connection;
+class client;
 
-class client
-{
-public :
-    enum level
-    {
-        level_intro_screen
-      , level_in_game
-    };
+void do_who(
+    std::string const                   &text, 
+    boost::shared_ptr<paradice::client> &client);
 
-    enum command_mode
-    {
-        command_mode_mud
-      , command_mode_mmo
-    };
-    
-    client();
-    ~client();
-
-    void set_socket(boost::shared_ptr<socket> const &new_socket);
-    void set_connection(boost::shared_ptr<connection> const &new_connection);
-    
-    boost::shared_ptr<socket>     get_socket();
-    boost::shared_ptr<connection> get_connection();
-    
-    level get_level() const;
-    void set_level(level new_level);
-    
-    void set_name(std::string const &name);
-    std::string get_name() const;
-    
-    void set_title(std::string const &title);
-    std::string get_title() const;
-    
-    void set_prefix(std::string const &prefix);
-    std::string get_prefix() const;
-
-    void set_who_page(odin::u16 page);
-    odin::u16 get_who_page() const;
-    
-    void set_last_command(std::string const &cmd);
-    std::string get_last_command() const;
-
-    void set_command_mode(command_mode mode);
-    command_mode get_command_mode() const;
-
-    void add_backtrace(std::string const &text);
-    std::string get_backtrace() const;
-
-private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
-};
-
-extern std::vector< boost::shared_ptr<client> > clients;
+std::string get_player_address(boost::shared_ptr<paradice::client> &client);
 
 }
 

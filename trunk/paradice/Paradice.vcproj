@@ -178,6 +178,10 @@
 				RelativePath=".\socket.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\who.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -210,6 +214,10 @@
 			</File>
 			<File
 				RelativePath=".\socket.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\who.hpp"
 				>
 			</File>
 		</Filter>

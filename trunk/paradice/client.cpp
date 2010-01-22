@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 
+using namespace odin;
 using namespace boost;
 using namespace std;
 
@@ -45,6 +46,8 @@ struct client::impl
     client::level          level_;
     client::command_mode   command_mode_;
 
+    u16                    who_page_;
+    string                 prefix_;
     string                 name_;
     string                 title_;
 
@@ -57,6 +60,7 @@ client::client()
 {
     pimpl_->level_        = level_intro_screen;
     pimpl_->command_mode_ = command_mode_mud;
+    pimpl_->who_page_     = 0;
 }
     
 client::~client()
@@ -113,6 +117,26 @@ string client::get_title() const
     return pimpl_->title_;
 }
 
+void client::set_prefix(string const &prefix)
+{
+    pimpl_->prefix_ = prefix;
+}
+
+string client::get_prefix() const
+{
+    return pimpl_->prefix_;
+}
+
+void client::set_who_page(u16 page)
+{
+    pimpl_->who_page_ = page;
+}
+
+u16 client::get_who_page() const
+{
+    return pimpl_->who_page_;
+}
+
 void client::set_last_command(string const &cmd)
 {
     pimpl_->last_command_ = cmd;
@@ -137,7 +161,7 @@ void client::add_backtrace(string const &text)
 {
     pimpl_->backtrace_.push_back(text);
 
-    if (pimpl_->backtrace_.size() > 10)
+    if (pimpl_->backtrace_.size() > 40)
     {
         pimpl_->backtrace_.pop_front();
     }

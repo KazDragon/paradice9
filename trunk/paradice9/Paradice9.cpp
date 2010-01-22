@@ -5,6 +5,7 @@
 #include "paradice/communication.hpp"
 #include "paradice/configuration.hpp"
 #include "paradice/dice_roll_parser.hpp"
+#include "paradice/who.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/asio/io_service.hpp>
@@ -158,78 +159,6 @@ static void do_emote(
             % message));
 }
 
-static void do_who(
-    string const                 &/*unused*/, 
-    shared_ptr<paradice::client> &client)
-{
-    if (client->get_level() != paradice::client::level_in_game)
-    {
-        return;
-    }
-
-    pair<u16, u16> window_size = client->get_connection()->get_window_size();
-    
-    string currently_playing =
-        " +=== CURRENTLY PLAYING ";
-        
-    // If the window has extra space, pad out with ...=====+        
-    if (window_size.first > currently_playing.size())
-    {
-        // Get the width remaining in the row.
-        u16 remaining = window_size.first - currently_playing.size();
-        
-        // Subtract two - we want the final + to be two columns before the end.
-        remaining -= 2;
-        
-        currently_playing += string(remaining, '=');
-        currently_playing += "+";
-    }
-    // Otherwise, just balance it and let their rubbish screen size suffer.
-    else
-    {
-        currently_playing += "===+";
-    }
-    
-        
-    string text =
-        "\x1B[s" // save cursor position
-        "\x1B[H" // home
-      + currently_playing
-      + "\r\n";
-        
-    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, paradice::clients)
-    {
-        string address = str(
-            format(" | %s %s") 
-                % cur_client->get_name()
-                % cur_client->get_title());
-
-        size_t width_remaining = (window_size.first - 2) - address.size();
-
-        address += string(width_remaining, ' ');
-        address += "|\r\n";
-
-        text += address;
-    }
-
-    if (paradice::clients.size() <= 6)
-    {
-        for (unsigned int i = 0; i < (6 - paradice::clients.size()); ++i)
-        {
-            text += "\x1B[2K |"
-                  + string(window_size.first - 4, ' ')
-                  + "|\r\n";
-        }
-    }
-  
-    text += " +"
-          + string(window_size.first - 4, '=')
-          + "+\r\n";
-    text += "\x1B[u"; // unsave
-
-    client->get_connection()->write(text);
-}
-
 static void do_title(
     string const                 &title, 
     shared_ptr<paradice::client> &client)
@@ -237,16 +166,14 @@ static void do_title(
     client->set_title(boost::algorithm::trim_copy(title));
 
     paradice::message_to_player(str(
-        format("\r\nYou are now %s %s.\r\n")
-            % client->get_name()
-            % client->get_title())
+        format("\r\nYou are now %s.\r\n")
+            % get_player_address(client))
       , client);
     
     paradice::message_to_room(str(
-        format("\r\n%s is now %s %s.\r\n")
+        format("\r\n%s is now %s.\r\n")
             % client->get_name()
-            % client->get_name()
-            % client->get_title())
+            % get_player_address(client))
       , client);
 
     BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
@@ -290,6 +217,30 @@ static void do_rename(
         }
     }
 }
+
+static void do_prefix(
+    string const                 &text,
+    shared_ptr<paradice::client> &client)
+{
+    client->set_prefix(boost::algorithm::trim_copy(text));
+
+    paradice::message_to_player(str(
+        format("\r\nYou are now %s.\r\n")
+            % get_player_address(client))
+      , client);
+    
+    paradice::message_to_room(str(
+        format("\r\n%s is now %s.\r\n")
+            % client->get_name()
+            % get_player_address(client))
+      , client);
+
+    BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
+    {
+        do_who("", connection);
+    }
+}
+  
 
 static void do_roll(
     string const                 &text, 
@@ -394,6 +345,7 @@ static struct command
   , { "backtrace",  bind(&do_backtrace,     _1, _2) }
   , { "title",      bind(&do_title,         _1, _2) }
   , { "rename",     bind(&do_rename,        _1, _2) }
+  , { "prefix",     bind(&do_prefix,        _1, _2) }
 
   , { "roll",       bind(&do_roll,          _1, _2) }
 
@@ -569,6 +521,32 @@ void on_socket_death(weak_ptr<paradice::client> &weak_client)
     }
 }
 
+static void on_window_size_changed(
+    weak_ptr<paradice::client> weak_client
+  , u16 width
+  , u16 height)
+{
+    shared_ptr<paradice::client> client(weak_client.lock());
+    
+    if (client)
+    {
+        if (client->get_level() == paradice::client::level_in_game)
+        {
+            string text = str(format(
+                "\x1B[2J"      // Erase screen
+                "\x1B[9;%dr"   // Set scrolling region
+                "\x1B[%d;0f")  // Force to end.
+              % height
+              % height);
+            
+            client->get_connection()->write(text);
+
+            do_who("", client);
+            do_backtrace("", client);
+        }
+    }
+}
+
 void on_accept(shared_ptr<paradice::socket> const &socket)
 {
     shared_ptr<paradice::client> client(new paradice::client);
@@ -585,6 +563,12 @@ void on_accept(shared_ptr<paradice::socket> const &socket)
     paradice::clients.push_back(client);
     
     client->get_connection()->write(intro);
+    
+    client->get_connection()->on_window_size_changed(
+        bind(&on_window_size_changed, 
+            weak_ptr<paradice::client>(client),
+            _1,
+            _2));
 }
 
 int main(int argc, char *argv[])

@@ -27,16 +27,11 @@
 #ifndef PARADICE_CONFIGURATION_HPP_
 #define PARADICE_CONFIGURATION_HPP_
 
-#include <boost/shared_ptr.hpp>
-#include <string>
+#include "command.hpp"
 
 namespace paradice {
 
-class client;
-
-void do_set(
-    std::string const                   &text, 
-    boost::shared_ptr<paradice::client> &client);
+PARADICE_COMMAND_DECL(set);    
 
 }
 

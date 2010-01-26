@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Communication
+// Paradice Utility
 //
-// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,44 +24,18 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_COMMUNICATION_HPP_
-#define PARADICE_COMMUNICATION_HPP_
+#ifndef PARADICE_UTILITY_HPP_
+#define PARADICE_UTILITY_HPP_
 
-#include "command.hpp"
-#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace paradice {
 
-class client;
-
-// These messages all get backtraced.
-void message_to_all(std::string const &text);
-
-void message_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void message_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
-// Sending doesn't backtrace
-void send_to_all(std::string const &text);
-
-void send_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void send_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
-
-PARADICE_COMMAND_DECL(say);
-PARADICE_COMMAND_DECL(sayto);
-PARADICE_COMMAND_DECL(emote);
-PARADICE_COMMAND_DECL(backtrace);
+//* =========================================================================
+/// \brief Returns true if lhs is case-insensitively equal to rhs, false
+/// otherwise.
+//* =========================================================================
+bool is_iequal(std::string const &lhs, std::string const &rhs);
 
 }
 

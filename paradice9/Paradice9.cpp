@@ -26,27 +26,6 @@ namespace po = program_options;
 
 asio::io_service io_service;
 
-bool is_iequal(std::string const &lhs, std::string const &rhs)
-{
-    if (lhs.size() != rhs.size())
-    {
-        return false;
-    }
-
-    string::const_iterator lch = lhs.begin();
-    string::const_iterator rch = rhs.begin();
-
-    while (lch != lhs.end())
-    {
-        if (toupper(*lch++) != toupper(*rch++))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 static string const intro =
 "             _                                                         \r\n"
 "    |/ _._  | \\.__. _  _ ._/ _                                        \r\n"
@@ -80,85 +59,6 @@ static bool is_acceptible_name(string const &name)
     return true;
 }
 
-static void do_say(
-    string const                 &message, 
-    shared_ptr<paradice::client> &client)
-{
-    paradice::message_to_player(str(
-        format("\r\nYou say, \"%s\"\r\n")
-            % message)
-      , client);
-
-
-    paradice::message_to_room(str(
-        format("\r\n%s says, \"%s\"\r\n")
-            % client->get_name()
-            % message)
-      , client);
-}
-
-static void do_sayto(
-    string const                 &message, 
-    shared_ptr<paradice::client> &client)
-{
-    pair<string, string> arg = odin::tokenise(message);
-
-    if (arg.first == "")
-    {
-        paradice::send_to_player(
-            "\r\n Usage: sayto [player] [message]"
-            "\r\n     or"
-            "\r\n Usage: > [player] [message]"
-            "\r\n"
-          , client);
-
-        return;
-    }
-
-    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, paradice::clients)
-    {
-        if(::is_iequal(cur_client->get_name(), arg.first))
-        {
-            paradice::message_to_player(str(
-                format("\r\nYou say to %s, \"%s\"\r\n")
-                    % cur_client->get_name()
-                    % arg.second)
-              , client);
-
-            paradice::message_to_player(str(
-                format("\r\n%s says to you, \"%s\"\r\n")
-                    % client->get_name()
-                    % arg.second)
-              , cur_client);
-
-            return;
-        }
-    }
-
-    paradice::send_to_player(
-        "\r\nCouldn't find anyone by that name to talk to.\r\n", client);
-}
-
-static void do_emote(
-    string const                 &message
-  , shared_ptr<paradice::client> &client)
-{
-    if (message.empty())
-    {
-        static string const usage_message =
-            "\r\n USAGE:   emote <some action>"
-            "\r\n EXAMPLE: emote bounces off the walls."
-            "\r\n\r\n";
-
-        paradice::send_to_player(usage_message, client);
-    }
-
-    paradice::message_to_all(str(
-        format("\r\n%s %s\r\n")
-            % client->get_name()
-            % message));
-}
-
 static void do_title(
     string const                 &title, 
     shared_ptr<paradice::client> &client)
@@ -178,7 +78,7 @@ static void do_title(
 
     BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
     {
-        do_who("", connection);
+        do_who("auto", connection);
     }
 }
 
@@ -213,7 +113,7 @@ static void do_rename(
 
         BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
         {
-            do_who("", curr_client);
+            do_who("auto", curr_client);
         }
     }
 }
@@ -237,7 +137,7 @@ static void do_prefix(
 
     BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
     {
-        do_who("", connection);
+        do_who("auto", connection);
     }
 }
   
@@ -303,16 +203,6 @@ static void do_roll(
       , client);
 }
 
-static void do_backtrace(
-    string const                 &/*unused*/, 
-    shared_ptr<paradice::client> &client)
-{
-    paradice::send_to_player(
-        "\r\n==== Backtrace: ==============================================================\r\n"
-      + client->get_backtrace()
-      , client);
-}
-
 static void do_quit(
     string const                       &/*unused*/, 
     shared_ptr<paradice::client> const &client)
@@ -331,25 +221,27 @@ static struct command
     function<void (std::string, shared_ptr<paradice::client>)> function_;
 } const command_list[] =
 {
-    { "!",          NULL                            }
-  , { ".",          bind(&do_say,           _1, _2) }
-  , { "say",        bind(&do_say,           _1, _2) }
+    { "!",          NULL                                  }
+  , { ".",          bind(&paradice::do_say,       _1, _2) }
+  , { "say",        bind(&paradice::do_say,       _1, _2) }
 
-  , { ">",          bind(&do_sayto,         _1, _2) }
-  , { "sayto",      bind(&do_sayto,         _1, _2) }
+  , { ">",          bind(&paradice::do_sayto,     _1, _2) }
+  , { "sayto",      bind(&paradice::do_sayto,     _1, _2) }
 
-  , { ":",          bind(&do_emote,         _1, _2) }
-  , { "emote",      bind(&do_emote,         _1, _2) }
+  , { ":",          bind(&paradice::do_emote,     _1, _2) }
+  , { "emote",      bind(&paradice::do_emote,     _1, _2) }
+  
+  , { "who",        bind(&paradice::do_who,       _1, _2) }
 
-  , { "set",        bind(&paradice::do_set, _1, _2) }
-  , { "backtrace",  bind(&do_backtrace,     _1, _2) }
-  , { "title",      bind(&do_title,         _1, _2) }
-  , { "rename",     bind(&do_rename,        _1, _2) }
-  , { "prefix",     bind(&do_prefix,        _1, _2) }
+  , { "set",        bind(&paradice::do_set,       _1, _2) }
+  , { "backtrace",  bind(&paradice::do_backtrace, _1, _2) }
+  , { "title",      bind(&do_title,               _1, _2) }
+  , { "rename",     bind(&do_rename,              _1, _2) }
+  , { "prefix",     bind(&do_prefix,              _1, _2) }
 
-  , { "roll",       bind(&do_roll,          _1, _2) }
+  , { "roll",       bind(&do_roll,                _1, _2) }
 
-  , { "quit",       bind(&do_quit,          _1, _2) }
+  , { "quit",       bind(&do_quit,                _1, _2) }
 };
 
 void on_name_entered(
@@ -395,7 +287,7 @@ void on_name_entered(
 
         BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
         {
-            do_who("", curr_client);
+            do_who("auto", curr_client);
         }
     }
 }
@@ -516,7 +408,7 @@ void on_socket_death(weak_ptr<paradice::client> &weak_client)
 
         BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
         {
-            do_who("", curr_client);
+            do_who("auto", curr_client);
         }
     }
 }
@@ -541,7 +433,7 @@ static void on_window_size_changed(
             
             client->get_connection()->write(text);
 
-            do_who("", client);
+            do_who("auto", client);
             do_backtrace("", client);
         }
     }

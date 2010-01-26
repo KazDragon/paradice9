@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\utility.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\who.cpp"
 				>
 			</File>
@@ -214,6 +218,10 @@
 			</File>
 			<File
 				RelativePath=".\socket.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\utility.hpp"
 				>
 			</File>
 			<File

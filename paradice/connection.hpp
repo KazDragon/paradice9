@@ -52,6 +52,8 @@ public :
     void on_window_size_changed(boost::function<
         void (odin::u16 width, odin::u16 height)> const &callback);
     
+    void keepalive();
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

@@ -178,4 +178,9 @@ void connection::on_window_size_changed(
     pimpl_->on_window_size_changed_ = callback;
 }
 
+void connection::keepalive()
+{
+    pimpl_->telnet_stream_->send_command(odin::telnet::NOP);
+}
+
 }

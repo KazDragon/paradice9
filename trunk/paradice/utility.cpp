@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Communication
+// Paradice Utility
 //
-// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,45 +24,34 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_COMMUNICATION_HPP_
-#define PARADICE_COMMUNICATION_HPP_
+#include "utility.hpp"
 
-#include "command.hpp"
-#include <boost/shared_ptr.hpp>
-#include <string>
+using namespace std;
 
 namespace paradice {
 
-class client;
+// ==========================================================================
+// IS_IEQUAL
+// ==========================================================================
+bool is_iequal(string const &lhs, string const &rhs)
+{
+    if (lhs.size() != rhs.size())
+    {
+        return false;
+    }
 
-// These messages all get backtraced.
-void message_to_all(std::string const &text);
+    string::const_iterator lch = lhs.begin();
+    string::const_iterator rch = rhs.begin();
 
-void message_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
+    while (lch != lhs.end())
+    {
+        if (toupper(*lch++) != toupper(*rch++))
+        {
+            return false;
+        }
+    }
 
-void message_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
-// Sending doesn't backtrace
-void send_to_all(std::string const &text);
-
-void send_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &conn);
-
-void send_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &conn);
-
-
-PARADICE_COMMAND_DECL(say);
-PARADICE_COMMAND_DECL(sayto);
-PARADICE_COMMAND_DECL(emote);
-PARADICE_COMMAND_DECL(backtrace);
-
+    return true;
 }
 
-#endif
+}

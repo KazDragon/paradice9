@@ -43,7 +43,7 @@ class server
 {
 public :
     server(boost::asio::io_service              &io_service
-         , boost::uint16_t                      port
+         , boost::uint16_t                       port
          , boost::function<
                void (boost::shared_ptr<socket>)
             > const                             &on_accept);

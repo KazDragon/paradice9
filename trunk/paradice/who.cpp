@@ -26,7 +26,10 @@
 // ==========================================================================
 #include "who.hpp"
 #include "client.hpp"
+#include "communication.hpp"
 #include "connection.hpp"
+#include "utility.hpp"
+#include "odin/tokenise.hpp"
 #include "odin/types.hpp"
 #include <boost/format.hpp>
 #include <boost/utility.hpp>
@@ -61,9 +64,15 @@ string get_player_address(shared_ptr<paradice::client> &client)
 }
     
 void do_who(
-    string const                 &/*text*/, 
+    string const                 &arguments, 
     shared_ptr<paradice::client> &client)
 {
+    string argument = tokenise(arguments).first;
+    
+    BOOST_STATIC_CONSTANT(string, usage_message =
+        "\r\n USAGE: who [next|prev|first|last]"
+        "\r\n\r\n");
+        
     BOOST_STATIC_CONSTANT(string, save_cursor_position    = "\x1B[s");
     BOOST_STATIC_CONSTANT(string, restore_cursor_position = "\x1B[u");
     BOOST_STATIC_CONSTANT(string, cursor_position_home    = "\x1B[H");
@@ -71,7 +80,7 @@ void do_who(
     BOOST_STATIC_CONSTANT(
         string, newline = erase_to_eol + "\r\n");
     BOOST_STATIC_CONSTANT(u16,    column_width            = 36);
-    BOOST_STATIC_CONSTANT(u16,    rows                    = 6);
+    BOOST_STATIC_CONSTANT(u16,    rows                    = 2);
     BOOST_STATIC_CONSTANT(u16,    left_border_width       = 2);
     BOOST_STATIC_CONSTANT(u16,    right_border_width      = 2);
     BOOST_STATIC_CONSTANT(
@@ -84,11 +93,7 @@ void do_who(
     }
 
     pair<u16, u16> window_size = client->get_connection()->get_window_size();
-
-    // We don't want to write in the final column of a row, because that will
-    // cause a newline and may mess up on some clients.  Hence, we pretend it
-    // is one smaller.
-    u16 const screen_width  = window_size.first - 1;
+    u16 const screen_width  = window_size.first;
     
     // Find the number of columns the client can currently support
     u16 columns = 0;
@@ -102,14 +107,7 @@ void do_who(
         while ((total_border_width 
              + ((columns + 1) * column_width)
              + (columns * column_seperator_width))
-            <= screen_width);
-    }
-    
-    // If the window's extends cannot support the who list, then stop right
-    // here.
-    if (columns == 0)
-    {
-        return;
+            < screen_width);
     }
     
     // Work out the list of names we will have to print.
@@ -121,18 +119,14 @@ void do_who(
       , back_inserter(names)
       , &get_player_address);
     
-    // Calculate the number of pages of Who List.
-    // There are 6 rows available per page, with 1 name available for each
-    // 38 characters of width, not including borders.
-    // By the calculation above, there will be at least one name available per
-    // row 
-
     // This is the number of names we can display per row.
     u16 const names_per_row = columns; 
     
     // The padding necessary per row to make the columns flush with the border.
     u16 const padding_per_row = 
-        ((screen_width - total_border_width) 
+        columns == 1 
+      ? (screen_width - total_border_width) - column_width
+      : ((screen_width - total_border_width) 
        - ((columns - 1) * column_seperator_width)) % column_width;
 
     // This is the number of names we can display per page.
@@ -142,7 +136,51 @@ void do_who(
     u16 const pages = u16(
         (names.size() / names_per_page)
       + ((names.size() % names_per_page) != 0 ? 1 : 0)); 
-        
+
+    u16 current_page = client->get_who_page();
+    
+    // Now that we have the window extents and the number of pages it can
+    // support, we can process the client's request.
+    if (is_iequal(argument, "next"))
+    {
+        if (current_page < (pages - 1))
+        {
+            client->set_who_page(++current_page);
+        }
+    }
+    else if (is_iequal(argument, "prev"))
+    {
+        if (current_page > 0)
+        {
+            client->set_who_page(--current_page);
+        }
+    }
+    else if (is_iequal(argument, "first"))
+    {
+        current_page = 0;
+        client->set_who_page(current_page);
+    }
+    else if (is_iequal(argument, "last"))
+    {
+        current_page = pages - 1;
+        client->set_who_page(current_page);
+    }
+    // If any of the above have been processed, then we update the who list
+    // immediately.  Otherwise, we verify that this was automated.
+    else if (!is_iequal(argument, "auto"))
+    {
+        send_to_player(usage_message, client);
+        return;
+    }
+
+    // If the window's extents cannot support the who list, then stop right
+    // here.
+    if (columns == 0)
+    {
+        return;
+    }
+    
+    
     // Create the top border of the group panel.
     string group_panel_top_border =
         "+==== CURRENTLY PLAYING ";
@@ -152,7 +190,7 @@ void do_who(
              (screen_width - group_panel_top_border.size())
            - right_border_width,
              '=')
-         + "=+"
+         + "+"
          + newline;
         
     string text =
@@ -160,7 +198,6 @@ void do_who(
       + cursor_position_home
       + group_panel_top_border;
         
-    u16 current_page             = client->get_who_page();
     u16 current_page_begin_index = current_page * names_per_page;
     u16 current_page_end_index   = (current_page + 1) * names_per_page;
     
@@ -209,7 +246,7 @@ void do_who(
         // Because we are displaying vertically and not horizontally, the
         // name being displayed here is a matrix rotation of the cell row/col.
         u16 current_name_index = 
-            (current_page * names_on_page)
+            (current_page * names_per_page)
           + (column * rows)
           + (row);
         
@@ -237,7 +274,7 @@ void do_who(
         // Add the right border if necessary
         if (((current_cell_index + 1) % names_per_row) == 0)
         {
-            cell_text += " |" + newline;
+            cell_text += "|" + newline;
         }
         else
         {
@@ -263,7 +300,7 @@ void do_who(
     text += "+="
           + string((screen_width - 6) - page_descriptor.size(), '=')
           + page_descriptor
-          + "===+"
+          + "==+"
           + newline
           + restore_cursor_position;
 

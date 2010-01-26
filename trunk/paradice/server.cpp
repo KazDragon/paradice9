@@ -1,8 +1,11 @@
 #include "server.hpp"
 #include "socket.hpp"
+#include "client.hpp"
+#include "connection.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 
 using namespace boost;
 
@@ -20,9 +23,11 @@ struct server::impl
           , asio::ip::tcp::endpoint(
                 asio::ip::tcp::v4()
               , port))
+        , keepalive_timer_(io_service)
         , on_accept_(on_accept)
     {
         schedule_accept();
+        schedule_keepalive_timer();
     }
        
     void handle_accept(
@@ -39,6 +44,17 @@ struct server::impl
         }
     }
 
+    void handle_keepalive_timer(
+        boost::system::error_code const &error)
+    {
+        BOOST_FOREACH(shared_ptr<client> cur_client, clients)
+        {
+            cur_client->get_connection()->keepalive();
+        }
+        
+        schedule_keepalive_timer();
+    }
+
     void schedule_accept()
     {
         shared_ptr<asio::ip::tcp::socket> new_socket(
@@ -52,9 +68,20 @@ struct server::impl
             , new_socket
             , asio::placeholders::error));
     }
+    
+    void schedule_keepalive_timer()
+    {
+        keepalive_timer_.expires_from_now(boost::posix_time::seconds(30));
+        keepalive_timer_.async_wait(
+            bind(
+                &impl::handle_keepalive_timer
+              , this
+              , asio::placeholders::error));
+    }
 
     asio::io_service                   &io_service_;
     asio::ip::tcp::acceptor             acceptor_;
+    asio::deadline_timer                keepalive_timer_;
     
     function<void (shared_ptr<socket>)> on_accept_;
 };

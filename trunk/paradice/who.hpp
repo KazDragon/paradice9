@@ -27,16 +27,11 @@
 #ifndef PARADICE_WHO_HPP_
 #define PARADICE_WHO_HPP_
 
-#include <boost/shared_ptr.hpp>
-#include <string>
+#include "command.hpp"
 
 namespace paradice {
 
-class client;
-
-void do_who(
-    std::string const                   &text, 
-    boost::shared_ptr<paradice::client> &client);
+PARADICE_COMMAND_DECL(who);
 
 std::string get_player_address(boost::shared_ptr<paradice::client> &client);
 

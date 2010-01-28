@@ -3,6 +3,8 @@
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/router.hpp"
 #include "odin/telnet/options/naws_client.hpp"
+#include "odin/telnet/options/suppress_goahead_client.hpp"
+//#include "odin/telnet/options/suppress_goahead_server.hpp"
 #include <boost/bind.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -124,6 +126,10 @@ struct connection::impl
     shared_ptr<odin::telnet::stream>               telnet_stream_;
     shared_ptr<odin::telnet::router>               telnet_router_;
     shared_ptr<odin::telnet::options::naws_client> telnet_naws_client_;
+    shared_ptr<odin::telnet::options::suppress_goahead_client> 
+                                                   telnet_suppress_goahead_client_;
+//    shared_ptr<odin::telnet::options::suppress_goahead_server> 
+//                                                   telnet_suppress_goahead_server_;
     function<void (string)>                        on_data_;
     
     deque<u8>                                      read_buffer_;
@@ -139,23 +145,8 @@ connection::connection(
   , function<void (string)> data_callback)
     : pimpl_(new impl)
 {
-    pimpl_->socket_  = connection_socket;
-    pimpl_->telnet_stream_ = shared_ptr<odin::telnet::stream>(
-        new odin::telnet::stream(
-            pimpl_->socket_
-          , pimpl_->socket_->get_io_service()));
-    pimpl_->telnet_router_ = shared_ptr<odin::telnet::router>(
-        new odin::telnet::router(pimpl_->telnet_stream_));
-    pimpl_->telnet_naws_client_ = 
-        shared_ptr<odin::telnet::options::naws_client>(
-            new odin::telnet::options::naws_client(
-                pimpl_->telnet_stream_, pimpl_->telnet_router_));
-    pimpl_->telnet_naws_client_->on_size(
-        bind(&impl::on_window_size_changed, pimpl_, _1, _2));
-    pimpl_->telnet_naws_client_->set_activatable(true);
-    pimpl_->telnet_naws_client_->activate();
+    reconnect(connection_socket);
     pimpl_->on_data_ = data_callback;
-    pimpl_->schedule_next_read();
 }
     
 connection::~connection()
@@ -181,6 +172,44 @@ void connection::on_window_size_changed(
 void connection::keepalive()
 {
     pimpl_->telnet_stream_->send_command(odin::telnet::NOP);
+}
+
+void connection::disconnect()
+{
+    pimpl_->socket_->kill();
+    pimpl_->socket_.reset();
+}
+
+void connection::reconnect(shared_ptr<socket> connection_socket)
+{
+    pimpl_->socket_  = connection_socket;
+    pimpl_->telnet_stream_ = shared_ptr<odin::telnet::stream>(
+        new odin::telnet::stream(
+            pimpl_->socket_
+          , pimpl_->socket_->get_io_service()));
+    pimpl_->telnet_router_ = shared_ptr<odin::telnet::router>(
+        new odin::telnet::router(pimpl_->telnet_stream_));
+    pimpl_->telnet_naws_client_ = 
+        shared_ptr<odin::telnet::options::naws_client>(
+            new odin::telnet::options::naws_client(
+                pimpl_->telnet_stream_, pimpl_->telnet_router_));
+    pimpl_->telnet_naws_client_->on_size(
+        bind(&impl::on_window_size_changed, pimpl_, _1, _2));
+    pimpl_->telnet_naws_client_->set_activatable(true);
+    pimpl_->telnet_naws_client_->activate();
+    pimpl_->telnet_suppress_goahead_client_ =
+        shared_ptr<odin::telnet::options::suppress_goahead_client>(
+            new odin::telnet::options::suppress_goahead_client(
+                pimpl_->telnet_stream_, pimpl_->telnet_router_));
+    pimpl_->telnet_suppress_goahead_client_->set_activatable(true);
+    pimpl_->telnet_suppress_goahead_client_->activate();
+//    pimpl_->telnet_suppress_goahead_server_ =
+//        shared_ptr<odin::telnet::options::suppress_goahead_server>(
+//            new odin::telnet::options::suppress_goahead_server(
+//                pimpl_->telnet_stream_, pimpl_->telnet_router_));
+//    pimpl_->telnet_suppress_goahead_server_->set_activatable(true);
+//    pimpl_->telnet_suppress_goahead_server_->activate();        
+    pimpl_->schedule_next_read();
 }
 
 }

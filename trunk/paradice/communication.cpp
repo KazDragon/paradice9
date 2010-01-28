@@ -1,3 +1,29 @@
+// ==========================================================================
+// Paradice Communication
+//
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+//
+// Permission to reproduce, distribute, perform, display, and to prepare
+// derivitive works from this file under the following conditions:
+//
+// 1. Any copy, reproduction or derivitive work of any part of this file 
+//    contains this copyright notice and licence in its entirety.
+//
+// 2. The rights granted to you under this license automatically terminate
+//    should you attempt to assert any patent claims against the licensor 
+//    or contributors, which in any way restrict the ability of any party 
+//    from using this software or portions thereof in any form under the
+//    terms of this license.
+//
+// Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+// ==========================================================================
 #include "communication.hpp"
 #include "client.hpp"
 #include "connection.hpp"
@@ -14,6 +40,9 @@ using namespace odin;
 
 namespace paradice {
     
+// ==========================================================================
+// MESSAGE_TO_ALL
+// ==========================================================================
 void message_to_all(string const &text)
 {
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
@@ -24,6 +53,9 @@ void message_to_all(string const &text)
     }
 }
 
+// ==========================================================================
+// MESSAGE_TO_PLAYER
+// ==========================================================================
 void message_to_player(
     string const       &text
   , shared_ptr<client> &conn)
@@ -33,6 +65,9 @@ void message_to_player(
         boost::algorithm::trim_copy(text));
 }
 
+// ==========================================================================
+// MESSAGE_TO_ROOM
+// ==========================================================================
 void message_to_room(
     string const             &text, 
     shared_ptr<client> const &conn)
@@ -51,6 +86,9 @@ void message_to_room(
     }
 }
 
+// ==========================================================================
+// SEND_TO_ALL
+// ==========================================================================
 void send_to_all(string const &text)
 {
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
@@ -59,6 +97,9 @@ void send_to_all(string const &text)
     }
 }
 
+// ==========================================================================
+// SEND_TO_PLAYER
+// ==========================================================================
 void send_to_player(
     string const       &text
   , shared_ptr<client> &conn)
@@ -66,6 +107,9 @@ void send_to_player(
     conn->get_connection()->write(text);
 }
 
+// ==========================================================================
+// SEND_TO_ROOM
+// ==========================================================================
 void send_to_room(
     string const             &text, 
     shared_ptr<client> const &conn)
@@ -82,28 +126,30 @@ void send_to_room(
     }
 }
 
-void do_say(
-    string const       &message, 
-    shared_ptr<client> &client)
+// ==========================================================================
+// PARADICE COMMAND: SAY
+// ==========================================================================
+PARADICE_COMMAND_IMPL(say)
 {
     message_to_player(str(
         format("\r\nYou say, \"%s\"\r\n")
-            % message)
-      , client);
+            % arguments)
+      , player);
 
 
     message_to_room(str(
         format("\r\n%s says, \"%s\"\r\n")
-            % client->get_name()
-            % message)
-      , client);
+            % player->get_name()
+            % arguments)
+      , player);
 }
 
-void do_sayto(
-    string const       &message, 
-    shared_ptr<client> &player)
+// ==========================================================================
+// PARADICE COMMAND: SAYTO
+// ==========================================================================
+PARADICE_COMMAND_IMPL(sayto)
 {
-    pair<string, string> arg = odin::tokenise(message);
+    pair<string, string> arg = odin::tokenise(arguments);
 
     if (arg.first == "")
     {
@@ -141,31 +187,33 @@ void do_sayto(
         "\r\nCouldn't find anyone by that name to talk to.\r\n", player);
 }
 
-void do_emote(
-    string const       &message
-  , shared_ptr<client> &client)
+// ==========================================================================
+// PARADICE COMMAND: EMOTE
+// ==========================================================================
+PARADICE_COMMAND_IMPL(emote)
 {
-    if (message.empty())
+    if (arguments.empty())
     {
         static string const usage_message =
             "\r\n USAGE:   emote <some action>"
             "\r\n EXAMPLE: emote bounces off the walls."
             "\r\n\r\n";
 
-        send_to_player(usage_message, client);
+        send_to_player(usage_message, player);
     }
 
     message_to_all(str(
         format("\r\n%s %s\r\n")
-            % client->get_name()
-            % message));
+            % player->get_name()
+            % arguments));
 }
 
-void do_backtrace(
-    string const                 &/*unused*/, 
-    shared_ptr<paradice::client> &client)
+// ==========================================================================
+// PARADICE COMMAND: BACKTRACE
+// ==========================================================================
+PARADICE_COMMAND_IMPL(backtrace)
 {
-    pair<u16, u16> window_size = client->get_connection()->get_window_size();
+    pair<u16, u16> window_size = player->get_connection()->get_window_size();
     u16 window_width = window_size.first;
     
     string backtrace = "=== Backtrace: ";
@@ -177,7 +225,7 @@ void do_backtrace(
     
     backtrace = "\r\n" + backtrace + "\r\n";
     
-    send_to_player(backtrace + client->get_backtrace(), client);
+    send_to_player(backtrace + player->get_backtrace(), player);
 }
 
 

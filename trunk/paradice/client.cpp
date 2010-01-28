@@ -41,7 +41,6 @@ vector< shared_ptr<client> > clients;
     
 struct client::impl
 {
-    shared_ptr<socket>     socket_;
     shared_ptr<connection> connection_;
     client::level          level_;
     client::command_mode   command_mode_;
@@ -67,19 +66,9 @@ client::~client()
 {
 }
 
-void client::set_socket(shared_ptr<socket> const &new_socket)
-{
-    pimpl_->socket_ = new_socket;
-}
-
 void client::set_connection(shared_ptr<connection> const &new_connection)
 {
     pimpl_->connection_ = new_connection;
-}
-
-shared_ptr<socket> client::get_socket()
-{
-    return pimpl_->socket_;
 }
 
 shared_ptr<connection> client::get_connection()

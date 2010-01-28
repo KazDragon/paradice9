@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #ifndef ODIN_TELNET_OPTIONS_SUPPRESS_GOAHEAD_CLIENT_HPP_
-#ifndef ODIN_TELNET_OPTIONS_SUPPRESS_GOAHEAD_CLIENT_HPP_
+#define ODIN_TELNET_OPTIONS_SUPPRESS_GOAHEAD_CLIENT_HPP_
 
 #include "odin/telnet/options/subnegotiationless_client.hpp"
 

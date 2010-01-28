@@ -32,8 +32,12 @@
 namespace paradice {
 
 PARADICE_COMMAND_DECL(who);
+PARADICE_COMMAND_DECL(title);
+PARADICE_COMMAND_DECL(prefix);
+PARADICE_COMMAND_DECL(rename);
 
 std::string get_player_address(boost::shared_ptr<paradice::client> &client);
+bool is_acceptible_name(std::string const &name);
 
 }
 

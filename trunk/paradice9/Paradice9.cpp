@@ -40,108 +40,6 @@ static string const intro =
 "                                                                       \r\n"
 "Enter a name by which you wish to be known: ";
 
-static bool is_acceptible_name(string const &name)
-{
-    if (name.length() < 3)
-    {
-        return false;
-    }
-    
-    BOOST_FOREACH(char ch, name)
-    {
-        if (!is_alpha()(ch))
-        {
-            return false;
-        }
-    }
-    
-    // Profanity filter HERE!
-    return true;
-}
-
-static void do_title(
-    string const                 &title, 
-    shared_ptr<paradice::client> &client)
-{
-    client->set_title(boost::algorithm::trim_copy(title));
-
-    paradice::message_to_player(str(
-        format("\r\nYou are now %s.\r\n")
-            % get_player_address(client))
-      , client);
-    
-    paradice::message_to_room(str(
-        format("\r\n%s is now %s.\r\n")
-            % client->get_name()
-            % get_player_address(client))
-      , client);
-
-    BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
-    {
-        do_who("auto", connection);
-    }
-}
-
-static void do_rename(
-    string const                 &text,
-    shared_ptr<paradice::client> &client)
-{
-    pair<string, string> name = odin::tokenise(text);
-    
-    if (!is_acceptible_name(name.first))
-    {
-        client->get_connection()->write(
-            "Your name must be at least three characters long and be composed"
-            "of only alphabetical characters.\r\n");
-    }
-    else
-    {
-        name.first[0] = toupper(name.first[0]);
-        
-        string old_name = client->get_name();
-        client->set_name(name.first);
-        
-        client->get_connection()->write(str(
-            format("\r\nOk, your name is now %s.\r\n")
-                % name.first));
-        
-        paradice::message_to_room(str(
-            format("\r\n%s is now known as %s.\r\n")
-                % old_name
-                % name.first)
-          , client);
-
-        BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
-        {
-            do_who("auto", curr_client);
-        }
-    }
-}
-
-static void do_prefix(
-    string const                 &text,
-    shared_ptr<paradice::client> &client)
-{
-    client->set_prefix(boost::algorithm::trim_copy(text));
-
-    paradice::message_to_player(str(
-        format("\r\nYou are now %s.\r\n")
-            % get_player_address(client))
-      , client);
-    
-    paradice::message_to_room(str(
-        format("\r\n%s is now %s.\r\n")
-            % client->get_name()
-            % get_player_address(client))
-      , client);
-
-    BOOST_FOREACH(shared_ptr<paradice::client> connection, paradice::clients)
-    {
-        do_who("auto", connection);
-    }
-}
-  
-
 static void do_roll(
     string const                 &text, 
     shared_ptr<paradice::client> &client)
@@ -207,12 +105,7 @@ static void do_quit(
     string const                       &/*unused*/, 
     shared_ptr<paradice::client> const &client)
 {
-    shared_ptr<paradice::socket> socket = client->get_socket();
-
-    if (socket)
-    {
-        socket->kill();
-    }
+    client->get_connection()->disconnect();
 }
 
 static struct command
@@ -235,9 +128,9 @@ static struct command
 
   , { "set",        bind(&paradice::do_set,       _1, _2) }
   , { "backtrace",  bind(&paradice::do_backtrace, _1, _2) }
-  , { "title",      bind(&do_title,               _1, _2) }
-  , { "rename",     bind(&do_rename,              _1, _2) }
-  , { "prefix",     bind(&do_prefix,              _1, _2) }
+  , { "title",      bind(&paradice::do_title,     _1, _2) }
+  , { "rename",     bind(&paradice::do_rename,    _1, _2) }
+  , { "prefix",     bind(&paradice::do_prefix,    _1, _2) }
 
   , { "roll",       bind(&do_roll,                _1, _2) }
 
@@ -251,7 +144,7 @@ void on_name_entered(
     pair<string, string> arg = odin::tokenise(input);
     string name = arg.first;
 
-    if (!is_acceptible_name(name))
+    if (!paradice::is_acceptible_name(name))
     {
         client->get_connection()->write(
             "Your name must be at least three characters long and be composed"
@@ -446,11 +339,10 @@ void on_accept(shared_ptr<paradice::socket> const &socket)
     socket->on_death(
         bind(&on_socket_death, weak_ptr<paradice::client>(client)));
 
-    client->set_socket(socket);
     client->set_connection(shared_ptr<paradice::connection>(
         new paradice::connection(
             socket
-            , bind(&on_data, weak_ptr<paradice::client>(client), _1))));
+          , bind(&on_data, weak_ptr<paradice::client>(client), _1))));
     
     paradice::clients.push_back(client);
     
@@ -465,7 +357,7 @@ void on_accept(shared_ptr<paradice::socket> const &socket)
 
 int main(int argc, char *argv[])
 {
-    srand((unsigned int)(time(NULL)));
+    srand(static_cast<unsigned int>(time(NULL)));
 
     unsigned int port = 4000;
     

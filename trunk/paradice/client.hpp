@@ -51,13 +51,21 @@ public :
       , command_mode_mmo
     };
     
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
     client();
+
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
     ~client();
 
-    void set_socket(boost::shared_ptr<socket> const &new_socket);
+    //* =====================================================================
+    /// \brief Sets the connection on which this client operates.
+    //* =====================================================================
     void set_connection(boost::shared_ptr<connection> const &new_connection);
     
-    boost::shared_ptr<socket>     get_socket();
     boost::shared_ptr<connection> get_connection();
     
     level get_level() const;

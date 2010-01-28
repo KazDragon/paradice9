@@ -27,16 +27,21 @@
 #include "configuration.hpp"
 #include "client.hpp"
 #include "communication.hpp"
+#include "who.hpp"
 #include "odin/tokenise.hpp"
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 using namespace std;
 using namespace boost;
 
 namespace paradice {
 
-void do_set(
-    string const       &text, 
-    shared_ptr<client> &client)
+// ==========================================================================
+// PARADICE COMMAND: SET
+// ==========================================================================
+PARADICE_COMMAND_IMPL(set)
 {
     static string const usage =
         "\r\n USAGE:   set <setting> [<argument>]"
@@ -44,11 +49,11 @@ void do_set(
         "\r\n     commandmode (mud|mmo)"
         "\r\n\r\n";
 
-    pair<string, string> token0 = odin::tokenise(text);
+    pair<string, string> token0 = odin::tokenise(arguments);
 
     if (token0.first.empty())
     {
-        send_to_player(usage, client);
+        send_to_player(usage, player);
         return;
     }
 
@@ -65,22 +70,22 @@ void do_set(
     
         if (token1.first.empty())
         {
-            send_to_player(commandmode_usage, client);
+            send_to_player(commandmode_usage, player);
             return;
         }
 
         // TODO: make case sensitive, tie settings to a map, etc.
         if (token1.first == "mud")
         {
-            client->set_command_mode(paradice::client::command_mode_mud);
+            player->set_command_mode(paradice::client::command_mode_mud);
         }
         else if (token1.first == "mmo")
         {
-            client->set_command_mode(paradice::client::command_mode_mmo);
+            player->set_command_mode(paradice::client::command_mode_mmo);
         }
         else
         {
-            send_to_player(commandmode_usage, client);
+            send_to_player(commandmode_usage, player);
         }
     }
 }

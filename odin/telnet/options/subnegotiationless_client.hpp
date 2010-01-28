@@ -29,42 +29,35 @@
 
 #include "odin/telnet/client_option.hpp"
 
+namespace odin { namespace telnet {
+    class router;
+    class stream;
+}}
+
 namespace odin { namespace telnet { namespace options {
 
-template <odin::telnet::negotiation_type NegotiationType>            
+template <option_id_type OptionId>    
 class subnegotiationless_client : public odin::telnet::client_option
 {
-    // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    public :
-        subnegotiationless_client(boost::shared_ptr<odin::telnet::stream> stream)
-            : client_option(stream)
-        {
-        }
-        
-    // ======================================================================
-    // CLIENT_OPTION PUBLIC INTERFACE
-    // ======================================================================
-    public :
-        // ==================================================================
-        // OPTION::ON_SUBNEGOTIATION
-        //  FUNCTION : Called when a subnegotiation for this option is 
-        //             received.
-        // ==================================================================
-        virtual void on_subnegotiation(ksubnegotiation data, unsigned int len)
-        {
-        }
-
-        // ==================================================================
-        // OPTION::GET_NEGOTIATION_TYPE
-        //  FUNCTION : Returns the negotiation type of this option (for 
-        //             example, odin::telnet::NAWS, or odin::telnet::RTCE).
-        // ==================================================================
-        virtual negotiation_type get_negotiation_type() const
-        {
-            return NegotiationType;
-        }
+//* =========================================================================
+/// \brief Constructor
+// ==========================================================================
+public :
+    subnegotiationless_client(
+        boost::shared_ptr<odin::telnet::stream> const &stream
+      , boost::shared_ptr<odin::telnet::router> const &router)
+        : odin::telnet::client_option(stream, router, OptionId)
+    {
+    }
+    
+private :    
+    //* =====================================================================
+    /// \brief Called when a subnegotiation for this option is received
+    /// while the option is active.
+    //* =====================================================================
+    virtual void on_subnegotiation(subnegotiation_type const &subnegotiation)
+    {
+    }
 };
              
 }}}

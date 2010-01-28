@@ -31,6 +31,8 @@
 #include "utility.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/utility.hpp>
 
@@ -40,7 +42,10 @@ using namespace odin;
 
 namespace paradice {
 
-string get_player_address(shared_ptr<paradice::client> &client)
+// ==========================================================================
+// GET_PLAYER_ADDRESS
+// ==========================================================================
+string get_player_address(shared_ptr<client> &client)
 {
     string prefix = client->get_prefix();
     string name   = client->get_name();
@@ -62,10 +67,34 @@ string get_player_address(shared_ptr<paradice::client> &client)
     
     return address;
 }
+ 
+// ==========================================================================
+// IS_ACCEPTIBLE_NAME
+// ==========================================================================
+bool is_acceptible_name(string const &name)
+{
+    if (name.length() < 3)
+    {
+        return false;
+    }
     
-void do_who(
-    string const                 &arguments, 
-    shared_ptr<paradice::client> &client)
+    BOOST_FOREACH(char ch, name)
+    {
+        if (!is_alpha()(ch))
+        {
+            return false;
+        }
+    }
+    
+    // Profanity filter HERE!
+    return true;
+}
+
+
+// ==========================================================================
+// PARADICE COMMAND: WHO
+// ==========================================================================
+PARADICE_COMMAND_IMPL(who)
 {
     string argument = tokenise(arguments).first;
     
@@ -80,19 +109,19 @@ void do_who(
     BOOST_STATIC_CONSTANT(
         string, newline = erase_to_eol + "\r\n");
     BOOST_STATIC_CONSTANT(u16,    column_width            = 36);
-    BOOST_STATIC_CONSTANT(u16,    rows                    = 2);
+    BOOST_STATIC_CONSTANT(u16,    rows                    = 4);
     BOOST_STATIC_CONSTANT(u16,    left_border_width       = 2);
     BOOST_STATIC_CONSTANT(u16,    right_border_width      = 2);
     BOOST_STATIC_CONSTANT(
         u16, total_border_width = left_border_width + right_border_width); 
     BOOST_STATIC_CONSTANT(u16,    column_seperator_width  = 3);
     
-    if (client->get_level() != paradice::client::level_in_game)
+    if (player->get_level() != client::level_in_game)
     {
         return;
     }
 
-    pair<u16, u16> window_size = client->get_connection()->get_window_size();
+    pair<u16, u16> window_size = player->get_connection()->get_window_size();
     u16 const screen_width  = window_size.first;
     
     // Find the number of columns the client can currently support
@@ -110,12 +139,19 @@ void do_who(
             < screen_width);
     }
     
+    // If the window's extents cannot support the who list, then stop right
+    // here.
+    if (columns == 0)
+    {
+        return;
+    }
+    
     // Work out the list of names we will have to print.
     vector<string> names;
     
     transform(
-        paradice::clients.begin()
-      , paradice::clients.end()
+        clients.begin()
+      , clients.end()
       , back_inserter(names)
       , &get_player_address);
     
@@ -123,11 +159,9 @@ void do_who(
     u16 const names_per_row = columns; 
     
     // The padding necessary per row to make the columns flush with the border.
-    u16 const padding_per_row = 
-        columns == 1 
-      ? (screen_width - total_border_width) - column_width
-      : ((screen_width - total_border_width) 
-       - ((columns - 1) * column_seperator_width)) % column_width;
+    u16 const padding_per_row =
+        ((screen_width - total_border_width) - (columns * column_width))
+      - ((columns - 1) * column_seperator_width);
 
     // This is the number of names we can display per page.
     u16 const names_per_page = rows * names_per_row;
@@ -137,7 +171,7 @@ void do_who(
         (names.size() / names_per_page)
       + ((names.size() % names_per_page) != 0 ? 1 : 0)); 
 
-    u16 current_page = client->get_who_page();
+    u16 current_page = player->get_who_page();
     
     // Now that we have the window extents and the number of pages it can
     // support, we can process the client's request.
@@ -145,42 +179,34 @@ void do_who(
     {
         if (current_page < (pages - 1))
         {
-            client->set_who_page(++current_page);
+            player->set_who_page(++current_page);
         }
     }
     else if (is_iequal(argument, "prev"))
     {
         if (current_page > 0)
         {
-            client->set_who_page(--current_page);
+            player->set_who_page(--current_page);
         }
     }
     else if (is_iequal(argument, "first"))
     {
         current_page = 0;
-        client->set_who_page(current_page);
+        player->set_who_page(current_page);
     }
     else if (is_iequal(argument, "last"))
     {
         current_page = pages - 1;
-        client->set_who_page(current_page);
+        player->set_who_page(current_page);
     }
     // If any of the above have been processed, then we update the who list
     // immediately.  Otherwise, we verify that this was automated.
     else if (!is_iequal(argument, "auto"))
     {
-        send_to_player(usage_message, client);
+        send_to_player(usage_message, player);
         return;
     }
 
-    // If the window's extents cannot support the who list, then stop right
-    // here.
-    if (columns == 0)
-    {
-        return;
-    }
-    
-    
     // Create the top border of the group panel.
     string group_panel_top_border =
         "+==== CURRENTLY PLAYING ";
@@ -304,7 +330,94 @@ void do_who(
           + newline
           + restore_cursor_position;
 
-    client->get_connection()->write(text);
+    player->get_connection()->write(text);
 }
+
+// ==========================================================================
+// PARADICE COMMAND: TITLE
+// ==========================================================================
+PARADICE_COMMAND_IMPL(title)
+{
+    player->set_title(boost::algorithm::trim_copy(arguments));
+
+    message_to_player(str(
+        format("\r\nYou are now %s.\r\n")
+            % get_player_address(player))
+      , player);
+    
+    message_to_room(str(
+        format("\r\n%s is now %s.\r\n")
+            % player->get_name()
+            % get_player_address(player))
+      , player);
+
+    BOOST_FOREACH(shared_ptr<client> current_player, clients)
+    {
+        INVOKE_PARADICE_COMMAND(who, "auto", current_player);
+    }
+}
+
+// ==========================================================================
+// PARADICE COMMAND: PREFIX
+// ==========================================================================
+PARADICE_COMMAND_IMPL(prefix)
+{
+    player->set_prefix(boost::algorithm::trim_copy(arguments));
+
+    message_to_player(str(
+        format("\r\nYou are now %s.\r\n")
+            % get_player_address(player))
+      , player);
+    
+    message_to_room(str(
+        format("\r\n%s is now %s.\r\n")
+            % player->get_name()
+            % get_player_address(player))
+      , player);
+
+    BOOST_FOREACH(shared_ptr<client> current_player, clients)
+    {
+        INVOKE_PARADICE_COMMAND(who, "auto", current_player);
+    }
+}
+
+// ==========================================================================
+// PARADICE COMMAND: RENAME
+// ==========================================================================
+PARADICE_COMMAND_IMPL(rename)
+{
+    string name = tokenise(arguments).first;
+    
+    if (!is_acceptible_name(name))
+    {
+        player->get_connection()->write(
+            "Your name must be at least three characters long and be composed"
+            "of only alphabetical characters.\r\n");
+    }
+    else
+    {
+        name[0] = toupper(name[0]);
+        
+        string old_name = player->get_name();
+        player->set_name(name);
+        
+        message_to_player(str(
+            format("\r\nYou are now %s.\r\n")
+                % get_player_address(player))
+          , player);
+        
+        message_to_room(str(
+            format("\r\n%s is now %s.\r\n")
+                % player->get_name()
+                % get_player_address(player))
+          , player);
+    
+        BOOST_FOREACH(shared_ptr<client> current_player, clients)
+        {
+            INVOKE_PARADICE_COMMAND(who, "auto", current_player);
+        }
+    }
+}
+
 
 }

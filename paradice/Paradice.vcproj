@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\command.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\communication.hpp"
 				>
 			</File>

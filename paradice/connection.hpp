@@ -54,6 +54,9 @@ public :
     
     void keepalive();
     
+    void disconnect();
+    void reconnect(boost::shared_ptr<socket> connection_socket);
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

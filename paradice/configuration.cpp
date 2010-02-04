@@ -27,6 +27,7 @@
 #include "configuration.hpp"
 #include "client.hpp"
 #include "communication.hpp"
+#include "connection.hpp"
 #include "who.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
@@ -53,7 +54,7 @@ PARADICE_COMMAND_IMPL(set)
 
     if (token0.first.empty())
     {
-        send_to_player(usage, player);
+        send_to_player(ctx, usage, player);
         return;
     }
 
@@ -70,7 +71,7 @@ PARADICE_COMMAND_IMPL(set)
     
         if (token1.first.empty())
         {
-            send_to_player(commandmode_usage, player);
+            send_to_player(ctx, commandmode_usage, player);
             return;
         }
 
@@ -85,9 +86,18 @@ PARADICE_COMMAND_IMPL(set)
         }
         else
         {
-            send_to_player(commandmode_usage, player);
+            send_to_player(ctx, commandmode_usage, player);
         }
     }
 }
+
+// ==========================================================================
+// PARADICE COMMAND: QUIT
+// ==========================================================================
+PARADICE_COMMAND_IMPL(quit)
+{
+    player->get_connection()->disconnect();
+}
+
 
 }

@@ -25,12 +25,17 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #ifndef ODIN_TELNET_OPTIONS_SUPPRESS_GOAHEAD_SERVER_HPP_
-#ifndef ODIN_TELNET_OPTIONS_SUPPRESS_GOAHEAD_SERVER_HPP_
+#define ODIN_TELNET_OPTIONS_SUPPRESS_GOAHEAD_SERVER_HPP_
 
 #include "odin/telnet/options/subnegotiationless_server.hpp"
 
 namespace odin { namespace telnet { namespace options {
 
+//* =========================================================================
+/// \class odin::telnet::options::suppress_goahead_server
+/// \brief A class that implements the Telnet Server side of the Suppress
+/// Goahead option (RFC 858/STD2 9)
+//* =========================================================================
 typedef subnegotiationless_server<odin::telnet::SUPPRESS_GOAHEAD>
     suppress_goahead_server;
             

@@ -39,7 +39,6 @@ class stream;
 //* =========================================================================
 /// \brief Encapsulates the client side of a telnet option (the side of the
 /// option that responds to "WILL" or "WONT", or broadcasts "DO" or "DONT".
-/// 
 //* =========================================================================
 
 // CLIENT_OPTION ================================================================
@@ -97,8 +96,8 @@ public :
     //* =====================================================================
     /// \brief Attempts to activate the option.
     ///
-    /// If the option is not already active, sends a WILL request.  
-    /// Upon a DO response, the option is activated. Upon a DONT response, 
+    /// If the option is not already active, sends a DO request.  
+    /// Upon a WILL response, the option is activated. Upon a WONT response, 
     /// the option remains inactive.  As soon as the negotiation is complete,
     /// any registered on_request_complete handler is fired.
     //* =====================================================================
@@ -107,10 +106,10 @@ public :
     //* =====================================================================
     /// \brief Attempts to deactivate the option.
     ///
-    /// If the option is not already deactivated, sends a WONT request.  
-    /// Upon a DONT response, the option is deactivated.  Although it is 
-    /// non-standard for the server to then respond with DO, this is handled
-    /// and the option remains active.  As soon as the negotiation is 
+    /// If the option is not already deactivated, sends a DONT request.  
+    /// Upon a WONT response, the option is deactivated.  Although it is 
+    /// non-standard for the server to then respond with WILL, this is 
+    /// handled and the option remains active.  As soon as the negotiation is 
     /// complete, any registered on_request_complete handler is fired.
     //* =====================================================================
     void deactivate();
@@ -118,9 +117,9 @@ public :
     //* =====================================================================
     /// \brief Returns whether the option is active.
     /// 
-    /// A client option is considered active if it has broadcast a WILL and 
-    /// been responded to with DO, or has been sent a DO and reacted with 
-    /// WILL.
+    /// A client option is considered active if it has broadcast a DO and 
+    /// been responded to with WILL, or has been sent a WILL and reacted with 
+    /// DO.
     //* =====================================================================
     bool is_active() const;
     
@@ -138,7 +137,7 @@ public :
     /// \brief Returns whether the option is currently negotiating
     /// activation.
     ///
-    /// A client option is negotiating activation if it has sent a WILL and  
+    /// A client option is negotiating activation if it has sent a DO and  
     /// is awaiting a response.
     //* =====================================================================
     bool is_negotiating_activation() const;
@@ -147,7 +146,7 @@ public :
     /// \brief Returns whether the option is currently negotiating
     /// deactivation.
     ///
-    /// A client option is negotiating deactivation if it has sent a WONT
+    /// A client option is negotiating deactivation if it has sent a DONT
     /// and is awaiting a response.
     //* =====================================================================
     bool is_negotiating_deactivation() const;

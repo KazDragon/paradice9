@@ -97,8 +97,6 @@ private :
     boost::shared_ptr<impl> pimpl_;
 };
 
-extern std::vector< boost::shared_ptr<client> > clients;
-
 }
 
 #endif

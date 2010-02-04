@@ -34,50 +34,59 @@
 namespace paradice {
 
 class client;
+class context;
 
 //* =========================================================================
 /// \brief Send a text message to all connected players that will appear in
 /// their backtrace logs.
 //* =========================================================================
-void message_to_all(std::string const &text);
+void message_to_all(
+    boost::shared_ptr<context> &ctx
+  , std::string const          &text);
 
 //* =========================================================================
 /// \brief Send a text message to a single player that will appear in their
 /// backtrace log.
 //* =========================================================================
 void message_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &player);
+    boost::shared_ptr<context> &ctx
+  , std::string const          &text
+  , boost::shared_ptr<client>  &player);
 
 //* =========================================================================
 /// \brief Send a text message to all players in the same room as player,
 /// but not to player, and will appear in their backtrace logs.
 //* =========================================================================
 void message_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &player);
+    boost::shared_ptr<context> &ctx
+  , std::string const          &text
+  , boost::shared_ptr<client>  &player);
 
 //* =========================================================================
 /// \brief Send a text message to all connected players that will not appear
 /// in their backtrace logs.
 //* =========================================================================
-void send_to_all(std::string const &text);
+void send_to_all(
+    boost::shared_ptr<context> &ctx
+  , std::string const          &text);
 
 //* =========================================================================
 /// \brief Send a text message to a single player that will not appear in
 /// their backtrace log.
 //* =========================================================================
 void send_to_player(
-    std::string const         &text
-  , boost::shared_ptr<client> &player);
+    boost::shared_ptr<context> &ctx
+  , std::string const          &text
+  , boost::shared_ptr<client>  &player);
 
 //* =========================================================================
 /// \brief Send a text message to all players in the same room as player,
 /// but not to player, and will not appear in their backtrace logs.
 //* =========================================================================
 void send_to_room(
-    std::string const               &text
-  , boost::shared_ptr<client> const &player);
+    boost::shared_ptr<context> &ctx
+  , std::string const          &text
+  , boost::shared_ptr<client>  &player);
 
 
 PARADICE_COMMAND_DECL(say);

@@ -1,7 +1,7 @@
 // ==========================================================================
 // Odin Subnegotiationless Server Telnet Option
 //
-// Copyright (C) 2003 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -29,42 +29,40 @@
 
 #include "odin/telnet/server_option.hpp"
 
+namespace odin { namespace telnet {
+    class router;
+    class stream;
+}}
+
 namespace odin { namespace telnet { namespace options {
 
-template <odin::telnet::negotiation_type NegotiationType>            
+//* =========================================================================
+/// \class odin::telnet::options::subnegotiationless_server<>
+/// \brief A template that implements a pattern to be followed by any
+/// Telnet Client side of the an option that has no subnegotiations.
+//* =========================================================================
+template <option_id_type OptionId>    
 class subnegotiationless_server : public odin::telnet::server_option
 {
-    // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    public :
-        subnegotiationless_server(boost::shared_ptr<odin::telnet::stream> stream)
-            : server_option(stream)
-        {
-        }
-        
-    // ======================================================================
-    // SERVER_OPTION PUBLIC INTERFACE
-    // ======================================================================
-    public :
-        // ==================================================================
-        // OPTION::ON_SUBNEGOTIATION
-        //  FUNCTION : Called when a subnegotiation for this option is 
-        //             received.
-        // ==================================================================
-        virtual void on_subnegotiation(ksubnegotiation data, unsigned int len)
-        {
-        }
-
-        // ==================================================================
-        // OPTION::GET_NEGOTIATION_TYPE
-        //  FUNCTION : Returns the negotiation type of this option (for 
-        //             example, odin::telnet::NAWS, or odin::telnet::RTCE).
-        // ==================================================================
-        virtual negotiation_type get_negotiation_type() const
-        {
-            return NegotiationType;
-        }
+//* =========================================================================
+/// \brief Constructor
+// ==========================================================================
+public :
+    subnegotiationless_server(
+        boost::shared_ptr<odin::telnet::stream> const &stream
+      , boost::shared_ptr<odin::telnet::router> const &router)
+        : odin::telnet::server_option(stream, router, OptionId)
+    {
+    }
+    
+private :    
+    //* =====================================================================
+    /// \brief Called when a subnegotiation for this option is received
+    /// while the option is active.
+    //* =====================================================================
+    virtual void on_subnegotiation(subnegotiation_type const &subnegotiation)
+    {
+    }
 };
              
 }}}

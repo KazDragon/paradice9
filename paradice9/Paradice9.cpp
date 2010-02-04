@@ -1,13 +1,39 @@
+// ==========================================================================
+// Paradice9 Executable Driver
+//
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+//
+// Permission to reproduce, distribute, perform, display, and to prepare
+// derivitive works from this file under the following conditions:
+//
+// 1. Any copy, reproduction or derivitive work of any part of this file 
+//    contains this copyright notice and licence in its entirety.
+//
+// 2. The rights granted to you under this license automatically terminate
+//    should you attempt to assert any patent claims against the licensor 
+//    or contributors, which in any way restrict the ability of any party 
+//    from using this software or portions thereof in any form under the
+//    terms of this license.
+//
+// Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+// ==========================================================================
+#include "context_impl.hpp"
 #include "paradice/server.hpp"
 #include "paradice/socket.hpp"
 #include "paradice/client.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/communication.hpp"
 #include "paradice/configuration.hpp"
-#include "paradice/dice_roll_parser.hpp"
+#include "paradice/rules.hpp"
 #include "paradice/who.hpp"
 #include "odin/tokenise.hpp"
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -15,7 +41,6 @@
 #include <boost/program_options.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <iostream>
-#include <vector>
 #include <cstdlib>
 
 using namespace std;
@@ -23,8 +48,6 @@ using namespace boost;
 using namespace odin;
 
 namespace po = program_options;
-
-asio::io_service io_service;
 
 static string const intro =
 "             _                                                         \r\n"
@@ -40,116 +63,63 @@ static string const intro =
 "                                                                       \r\n"
 "Enter a name by which you wish to be known: ";
 
-static void do_roll(
-    string const                 &text, 
-    shared_ptr<paradice::client> &client)
-{
-    static string const usage_message =
-        "\r\n Usage:   roll <dice>d<sides>[<bonuses...>]"
-        "\r\n Example: roll 2d6+3-20"
-        "\r\n\r\n";
-
-    BOOST_AUTO(rolls, paradice::parse_dice_roll(text));
-
-    if (!rolls)
-    {
-        client->get_connection()->write(usage_message);
-        return;
-    }
-
-    BOOST_AUTO(dice_roll, rolls.get());
-
-    if (dice_roll.sides_ == 0)
-    {
-        client->get_connection()->write(usage_message);
-        return;
-    }
-
-    odin::s32 total = dice_roll.bonus_;
-    string roll_description;
-
-    for (odin::u32 current_roll = 0; current_roll < dice_roll.amount_; ++current_roll)
-    {
-        odin::s32 score = (rand() % dice_roll.sides_) + 1;
-
-        roll_description += str(format("%s%d") 
-            % (roll_description.empty() ? "" : ", ")
-            % score);
-
-        total += score;
-    }
-
-    paradice::message_to_player(
-        str(format("\r\nYou roll %dd%d%s%d and score %d [%s]\r\n") 
-            % dice_roll.amount_
-            % dice_roll.sides_
-            % (dice_roll.bonus_ >= 0 ? "+" : "")
-            % dice_roll.bonus_
-            % total
-            % roll_description)
-      , client);
-
-    paradice::message_to_room(
-        str(format("\r\n%s rolls %dd%d%s%d and scores %d [%s]\r\n")
-            % client->get_name()
-            % dice_roll.amount_
-            % dice_roll.sides_
-            % (dice_roll.bonus_ >= 0 ? "+" : "")
-            % dice_roll.bonus_
-            % total
-            % roll_description)
-      , client);
-}
-
-static void do_quit(
-    string const                       &/*unused*/, 
-    shared_ptr<paradice::client> const &client)
-{
-    client->get_connection()->disconnect();
-}
+#define PARADICE_CMD_ENTRY_NOP(name) \
+    { name,        NULL                                   }
+    
+#define PARADICE_CMD_ENTRY(func) \
+    { #func,        bind(&paradice::do_##func, _1, _2, _3) }
+    
+#define PARADICE_CMD_ALIAS(func, alias) \
+    { alias,        bind(&paradice::do_##func, _1, _2, _3) }
+    
+typedef function<void (
+    shared_ptr<paradice::context> ctx
+  , std::string                   args
+  , shared_ptr<paradice::client>  player)> paradice_command;
 
 static struct command
 {
-    string                                                     command_;
-    function<void (std::string, shared_ptr<paradice::client>)> function_;
+    string           command_;
+    paradice_command function_;
 } const command_list[] =
 {
-    { "!",          NULL                                  }
-  , { ".",          bind(&paradice::do_say,       _1, _2) }
-  , { "say",        bind(&paradice::do_say,       _1, _2) }
+    PARADICE_CMD_ENTRY_NOP("!")
 
-  , { ">",          bind(&paradice::do_sayto,     _1, _2) }
-  , { "sayto",      bind(&paradice::do_sayto,     _1, _2) }
-
-  , { ":",          bind(&paradice::do_emote,     _1, _2) }
-  , { "emote",      bind(&paradice::do_emote,     _1, _2) }
+  , PARADICE_CMD_ENTRY(say)    
+  , PARADICE_CMD_ALIAS(say, ".")
   
-  , { "who",        bind(&paradice::do_who,       _1, _2) }
+  , PARADICE_CMD_ENTRY(sayto)
+  , PARADICE_CMD_ALIAS(sayto, ">")
+  
+  , PARADICE_CMD_ENTRY(emote)
+  , PARADICE_CMD_ALIAS(emote, ":")
 
-  , { "set",        bind(&paradice::do_set,       _1, _2) }
-  , { "backtrace",  bind(&paradice::do_backtrace, _1, _2) }
-  , { "title",      bind(&paradice::do_title,     _1, _2) }
-  , { "rename",     bind(&paradice::do_rename,    _1, _2) }
-  , { "prefix",     bind(&paradice::do_prefix,    _1, _2) }
-
-  , { "roll",       bind(&do_roll,                _1, _2) }
-
-  , { "quit",       bind(&do_quit,                _1, _2) }
+  , PARADICE_CMD_ENTRY(who)
+  
+  , PARADICE_CMD_ENTRY(set)
+  , PARADICE_CMD_ENTRY(backtrace)
+  , PARADICE_CMD_ENTRY(rename)
+  , PARADICE_CMD_ENTRY(prefix)
+  , PARADICE_CMD_ENTRY(roll)
+  
+  , PARADICE_CMD_ENTRY(quit)
 };
 
 void on_name_entered(
-    shared_ptr<paradice::client> &client
-  , string const                 &input)
+    shared_ptr<paradice::context> &ctx
+  , shared_ptr<paradice::client>  &client
+  , string const                  &input)
 {
-    pair<string, string> arg = odin::tokenise(input);
-    string name = arg.first;
+    BOOST_AUTO(name, odin::tokenise(input).first);
 
     if (!paradice::is_acceptible_name(name))
     {
-        client->get_connection()->write(
-            "Your name must be at least three characters long and be composed"
-            "of only alphabetical characters.\r\n"
-            "Enter a name by which you wish to be known: "); 
+        client->get_connection()->write(str(format(
+            "Your name must be between %d and %d characters long and comprise "
+            "only alphabetical characters.\r\n"
+            "Enter a name by which you wish to be known: ")
+                % paradice::minimum_name_size
+                % paradice::maximum_name_size));
     }
     else
     {
@@ -171,29 +141,35 @@ void on_name_entered(
         client->get_connection()->write(text);
 
         paradice::message_to_room(
-            "\r\n#SERVER: " 
+            ctx
+          , "\r\n#SERVER: " 
           + client->get_name() 
           + " has entered Paradice.\r\n",
             client);
 
         client->set_level(paradice::client::level_in_game);
 
-        BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
+        BOOST_FOREACH(
+            shared_ptr<paradice::client> curr_client
+          , ctx->get_clients())
         {
-            do_who("auto", curr_client);
+            INVOKE_PARADICE_COMMAND(who, ctx, "auto", curr_client);
         }
     }
 }
 
 void on_data(
-    weak_ptr<paradice::client> &weak_client
+    weak_ptr<paradice::context> &weak_context
+  , weak_ptr<paradice::client>  &weak_client
   , std::string const          &input);
 
 void on_command(
-    shared_ptr<paradice::client> &client
+    weak_ptr<paradice::context>  &weak_context
+  , shared_ptr<paradice::client> &client
   , std::string const            &input)
 {
-    pair<string, string> arg = odin::tokenise(input);
+    BOOST_AUTO(ctx, weak_context.lock());
+    BOOST_AUTO(arg, odin::tokenise(input));
 
     // Transform the command to lower case.
     for (string::iterator ch = arg.first.begin();
@@ -206,7 +182,7 @@ void on_command(
     if (arg.first == "!")
     {
         weak_ptr<paradice::client> weak_client(client);
-        on_data(weak_client, client->get_last_command());
+        on_data(weak_context, weak_client, client->get_last_command());
         return;
     }
 
@@ -215,7 +191,7 @@ void on_command(
     {
         if (cur_command.command_ == arg.first)
         {
-            cur_command.function_(arg.second, client);
+            cur_command.function_(ctx, arg.second, client);
             client->set_last_command(input);
             return;
         }
@@ -231,20 +207,22 @@ void on_command(
 
     text += "\r\n";
 
-    paradice::send_to_player(text, client);
+    paradice::send_to_player(ctx, text, client);
 }
 
 void on_data(
-    weak_ptr<paradice::client> &weak_client
-  , std::string const          &input)
+    weak_ptr<paradice::context> &weak_context
+  , weak_ptr<paradice::client>  &weak_client
+  , std::string const           &input)
 {
-    shared_ptr<paradice::client> client = weak_client.lock();
-
-    if (client)
+    BOOST_AUTO(ctx,    weak_context.lock());
+    BOOST_AUTO(client, weak_client.lock());
+    
+    if (ctx && client)
     {
         if (client->get_level() == paradice::client::level_intro_screen)
         {
-            on_name_entered(client, input);
+            on_name_entered(ctx, client, input);
         }
         else // client->get_level() == paradice::client::level_in_game
         {
@@ -255,7 +233,7 @@ void on_data(
 
             if (client->get_command_mode() == paradice::client::command_mode_mud)
             {
-                on_command(client, input);
+                on_command(weak_context, client, input);
             }
             else
             {
@@ -263,57 +241,64 @@ void on_data(
                 {
                     if (input.size() >= 2 && input[1] == '!')
                     {
-                        on_data(weak_client, "/" + client->get_last_command());
+                        on_data(
+                            weak_context
+                          , weak_client, "/" + client->get_last_command());
                     }
                     else
                     {
-                        on_command(client, input.substr(1));
+                        on_command(weak_context, client, input.substr(1));
                     }
                 }
                 else
                 {
-                    on_command(client, "say " + input);
+                    INVOKE_PARADICE_COMMAND(say, ctx, input, client);
                 }
             }
         }
     }
 }
 
-void on_socket_death(weak_ptr<paradice::client> &weak_client)
+void on_socket_death(
+    weak_ptr<paradice::context> &weak_context
+  , weak_ptr<paradice::client>  &weak_client)
 {
-    shared_ptr<paradice::client> client = weak_client.lock();
-
-    if (client)
+    BOOST_AUTO(ctx,    weak_context.lock());
+    BOOST_AUTO(client, weak_client.lock());
+    
+    if (ctx && client)
     {
         if (client->get_name() != "")
         {
             paradice::message_to_room(
-                "\r\n#SERVER: " 
+                ctx
+              , "\r\n#SERVER: " 
               + client->get_name()
               + " has left Paradice.\r\n",
                 client);
         }
 
-        paradice::clients.erase(find(
-            paradice::clients.begin()
-          , paradice::clients.end(), 
-            client));
+        ctx->remove_client(client);
 
-        BOOST_FOREACH(shared_ptr<paradice::client> curr_client, paradice::clients)
+        BOOST_FOREACH(
+            shared_ptr<paradice::client> curr_client
+          , ctx->get_clients())
         {
-            do_who("auto", curr_client);
+            INVOKE_PARADICE_COMMAND(who, ctx, "auto", curr_client);
         }
     }
 }
 
 static void on_window_size_changed(
-    weak_ptr<paradice::client> weak_client
-  , u16 width
-  , u16 height)
+    weak_ptr<paradice::context> weak_context
+  , weak_ptr<paradice::client>  weak_client
+  , u16                         width
+  , u16                         height)
 {
-    shared_ptr<paradice::client> client(weak_client.lock());
+    BOOST_AUTO(ctx,    weak_context.lock());
+    BOOST_AUTO(client, weak_client.lock());
     
-    if (client)
+    if (ctx && client)
     {
         if (client->get_level() == paradice::client::level_in_game)
         {
@@ -326,33 +311,43 @@ static void on_window_size_changed(
             
             client->get_connection()->write(text);
 
-            do_who("auto", client);
-            do_backtrace("", client);
+            INVOKE_PARADICE_COMMAND(who, ctx, "auto", client);
+            INVOKE_PARADICE_COMMAND(backtrace, ctx, "", client);
         }
     }
 }
 
-void on_accept(shared_ptr<paradice::socket> const &socket)
+void on_accept(
+    weak_ptr<paradice::context>        &weak_context
+  , shared_ptr<paradice::socket> const &socket)
 {
-    shared_ptr<paradice::client> client(new paradice::client);
+    shared_ptr<paradice::context> ctx(weak_context.lock());
+    shared_ptr<paradice::client>  client(new paradice::client);
 
-    socket->on_death(
-        bind(&on_socket_death, weak_ptr<paradice::client>(client)));
+    socket->on_death(bind(
+        &on_socket_death
+      , weak_context
+      , weak_ptr<paradice::client>(client)));
 
     client->set_connection(shared_ptr<paradice::connection>(
         new paradice::connection(
             socket
-          , bind(&on_data, weak_ptr<paradice::client>(client), _1))));
-    
-    paradice::clients.push_back(client);
+          , bind(
+               &on_data
+             , weak_context
+             , weak_ptr<paradice::client>(client)
+             , _1))));
+
+    ctx->add_client(client);    
     
     client->get_connection()->write(intro);
     
     client->get_connection()->on_window_size_changed(
         bind(&on_window_size_changed, 
-            weak_ptr<paradice::client>(client),
-            _1,
-            _2));
+            weak_context
+          , weak_ptr<paradice::client>(client)
+          , _1
+          , _2));
 }
 
 int main(int argc, char *argv[])
@@ -366,7 +361,7 @@ int main(int argc, char *argv[])
         ( "help,h", "show this help message" )
         ( "port,p", po::value<unsigned int>(&port), "port number" )
         ;
-        
+
     po::positional_options_description pos_description;
     pos_description.add("port", -1);
     
@@ -414,7 +409,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    paradice::server server(io_service, port, on_accept);
+    asio::io_service              io_service;
+    shared_ptr<paradice::context> ctx(new context_impl);
+    weak_ptr<paradice::context>   weak_context(ctx);
+    
+    paradice::server server(
+        io_service
+      , weak_context
+      , port
+      , bind(&on_accept, weak_context, _1));
+    
     io_service.run();
 
     return EXIT_SUCCESS;

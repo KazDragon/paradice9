@@ -27,30 +27,36 @@
 #ifndef PARADICE_COMMAND_HPP_
 #define PARADICE_COMMAND_HPP_
 
-#include "paradice/client.hpp"
 #include <boost/shared_ptr.hpp>
 #include <string>
+
+namespace paradice {
+    class client;
+    class context;
+}
 
 //* =========================================================================
 /// \brief Declare a Paradice command.
 //* =========================================================================
 #define PARADICE_COMMAND_DECL(cmd) \
     void do_##cmd ( \
-        std::string const         &arguments \
-      , boost::shared_ptr<client> &player)
+        boost::shared_ptr<context> &ctx \
+      , std::string const          &arguments \
+      , boost::shared_ptr<client>  &player)
 
 //* =========================================================================
 /// \brief Define and implement a Paradice command.
 //* =========================================================================
 #define PARADICE_COMMAND_IMPL(cmd) \
     void do_##cmd ( \
-        std::string const         &arguments \
-      , boost::shared_ptr<client> &player)
+        boost::shared_ptr<context> &ctx \
+      , std::string const          &arguments \
+      , boost::shared_ptr<client>  &player)
     
 //* =========================================================================
 /// \brief Invoke a Paradice command
 //* =========================================================================
-#define INVOKE_PARADICE_COMMAND(cmd, args, player) \
-    do_##cmd ( (args), (player) )
+#define INVOKE_PARADICE_COMMAND(cmd, ctx, args, player) \
+    do_##cmd ( (ctx), (args), (player) )
 
 #endif

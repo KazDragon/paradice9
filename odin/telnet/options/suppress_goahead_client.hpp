@@ -31,6 +31,11 @@
 
 namespace odin { namespace telnet { namespace options {
 
+//* =========================================================================
+/// \class odin::telnet::options::suppress_goahead_client
+/// \brief A class that implements the Telnet Client side of the Suppress
+/// Goahead option (RFC 858/STD2 9)
+//* =========================================================================
 typedef subnegotiationless_client<odin::telnet::SUPPRESS_GOAHEAD>
     suppress_goahead_client;
             

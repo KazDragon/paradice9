@@ -28,6 +28,7 @@
 #include "client.hpp"
 #include "communication.hpp"
 #include "connection.hpp"
+#include "context.hpp"
 #include "utility.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
@@ -147,7 +148,8 @@ PARADICE_COMMAND_IMPL(who)
     }
     
     // Work out the list of names we will have to print.
-    vector<string> names;
+    vector<string>                      names;
+    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
     
     transform(
         clients.begin()
@@ -203,7 +205,7 @@ PARADICE_COMMAND_IMPL(who)
     // immediately.  Otherwise, we verify that this was automated.
     else if (!is_iequal(argument, "auto"))
     {
-        send_to_player(usage_message, player);
+        send_to_player(ctx, usage_message, player);
         return;
     }
 
@@ -340,20 +342,20 @@ PARADICE_COMMAND_IMPL(title)
 {
     player->set_title(boost::algorithm::trim_copy(arguments));
 
-    message_to_player(str(
+    message_to_player(ctx, str(
         format("\r\nYou are now %s.\r\n")
             % get_player_address(player))
       , player);
     
-    message_to_room(str(
+    message_to_room(ctx, str(
         format("\r\n%s is now %s.\r\n")
             % player->get_name()
             % get_player_address(player))
       , player);
 
-    BOOST_FOREACH(shared_ptr<client> current_player, clients)
+    BOOST_FOREACH(shared_ptr<client> current_player, ctx->get_clients())
     {
-        INVOKE_PARADICE_COMMAND(who, "auto", current_player);
+        INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
     }
 }
 
@@ -364,20 +366,20 @@ PARADICE_COMMAND_IMPL(prefix)
 {
     player->set_prefix(boost::algorithm::trim_copy(arguments));
 
-    message_to_player(str(
+    message_to_player(ctx, str(
         format("\r\nYou are now %s.\r\n")
             % get_player_address(player))
       , player);
     
-    message_to_room(str(
+    message_to_room(ctx, str(
         format("\r\n%s is now %s.\r\n")
             % player->get_name()
             % get_player_address(player))
       , player);
 
-    BOOST_FOREACH(shared_ptr<client> current_player, clients)
+    BOOST_FOREACH(shared_ptr<client> current_player, ctx->get_clients())
     {
-        INVOKE_PARADICE_COMMAND(who, "auto", current_player);
+        INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
     }
 }
 
@@ -401,20 +403,20 @@ PARADICE_COMMAND_IMPL(rename)
         string old_name = player->get_name();
         player->set_name(name);
         
-        message_to_player(str(
+        message_to_player(ctx, str(
             format("\r\nYou are now %s.\r\n")
                 % get_player_address(player))
           , player);
         
-        message_to_room(str(
+        message_to_room(ctx, str(
             format("\r\n%s is now %s.\r\n")
                 % player->get_name()
                 % get_player_address(player))
           , player);
     
-        BOOST_FOREACH(shared_ptr<client> current_player, clients)
+        BOOST_FOREACH(shared_ptr<client> current_player, ctx->get_clients())
         {
-            INVOKE_PARADICE_COMMAND(who, "auto", current_player);
+            INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
         }
     }
 }

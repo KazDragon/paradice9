@@ -499,12 +499,12 @@ namespace small_buffer_detail
             return m_poDynamicBuffer;
         }
 
-        ValueType*& get_dynamic_buffer()
+        ValueType *&get_dynamic_buffer()
         {
             return m_poDynamicBuffer;
         }
 
-        ValueType const *const &get_dynamic_buffer() const
+        ValueType const *const get_dynamic_buffer() const
         {
             return m_poDynamicBuffer;
         }

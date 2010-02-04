@@ -295,7 +295,31 @@
 			Name="Telnet Option Header Files"
 			>
 			<File
+				RelativePath=".\telnet\options\echo_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\echo_server.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet\options\naws_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\subnegotiationless_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\subnegotiationless_server.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\suppress_goahead_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\suppress_goahead_server.hpp"
 				>
 			</File>
 		</Filter>

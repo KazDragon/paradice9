@@ -1,7 +1,7 @@
 // ==========================================================================
-// Odin Subnegotiationless Client Telnet Option
+// Paradice Context
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,48 +24,46 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef ODIN_TELNET_OPTIONS_SUBNEGOTIATIONLESS_CLIENT_HPP_
-#define ODIN_TELNET_OPTIONS_SUBNEGOTIATIONLESS_CLIENT_HPP_
+#ifndef PARADICE_CONTEXT_HPP_
+#define PARADICE_CONTEXT_HPP_
 
-#include "odin/telnet/client_option.hpp"
+#include "odin/runtime_array.hpp"
+#include <boost/shared_ptr.hpp>
 
-namespace odin { namespace telnet {
-    class router;
-    class stream;
-}}
+namespace paradice {
 
-namespace odin { namespace telnet { namespace options {
+class client;
 
 //* =========================================================================
-/// \class odin::telnet::options::subnegotiationless_client<>
-/// \brief A template that implements a pattern to be followed by any
-/// Telnet Client side of the an option that has no subnegotiations.
+/// \brief Describes the interface for a context in which a Paradice server
+/// can run.
 //* =========================================================================
-template <option_id_type OptionId>    
-class subnegotiationless_client : public odin::telnet::client_option
+class context
 {
-//* =========================================================================
-/// \brief Constructor
-// ==========================================================================
 public :
-    subnegotiationless_client(
-        boost::shared_ptr<odin::telnet::stream> const &stream
-      , boost::shared_ptr<odin::telnet::router> const &router)
-        : odin::telnet::client_option(stream, router, OptionId)
-    {
-    }
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~context() {}
     
-private :    
     //* =====================================================================
-    /// \brief Called when a subnegotiation for this option is received
-    /// while the option is active.
+    /// \brief Retrieves a list of clients currently connected to Paradice.
     //* =====================================================================
-    virtual void on_subnegotiation(subnegotiation_type const &subnegotiation)
-    {
-    }
+    virtual odin::runtime_array< boost::shared_ptr<client> > get_clients() = 0;
+
+    //* =====================================================================
+    /// \brief Adds a client to the list of clients currently connected
+    /// to Paradice.
+    //* =====================================================================
+    virtual void add_client(boost::shared_ptr<client> const &cli) = 0;
+
+    //* =====================================================================
+    /// \brief Removes a client from the list of clients currently
+    /// connected to Paradice.
+    //* =====================================================================
+    virtual void remove_client(boost::shared_ptr<client> const &cli) = 0;
 };
-             
-}}}
+
+}
 
 #endif
-

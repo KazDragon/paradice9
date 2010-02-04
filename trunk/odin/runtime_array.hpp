@@ -35,12 +35,12 @@ namespace runtime_array_detail
 }
 
 //* =========================================================================
-/// \brief A class template to handle arbitrarily-length arrays of types.
+/// \brief A class template to handle arbitrary-length arrays of types.
 /// \param T The type of element that the array contains.
 /// \param Storage An underlying type that contains the data.
-/// It must also model the STL Container concept.  By default, we use the
+/// It must model the STL Container concept.  By default, we use the
 /// odin::small_buffer<> Container, which implements the Small Buffer
-/// optimisation.
+/// optimisation for POD types.
 ///
 /// A class that is used to describe and manage an array of T.  It is a 
 /// model of the STL's Container concept.

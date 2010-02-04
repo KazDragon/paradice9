@@ -25,193 +25,239 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "odin/telnet/server_option.hpp"
+#include "odin/telnet/stream.hpp"
+#include "odin/telnet/router.hpp"
+#include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+
+using namespace boost;
 
 namespace odin { namespace telnet {
     
 // ==============================================================================
-// SERVER_OPTION::IMPLEMENTATION STRUCTURE
+// SERVER_OPTION IMPLEMENTATION STRUCTURE
 // ==============================================================================
 struct server_option::impl
+    : public enable_shared_from_this<impl>
 {
-    boost::shared_ptr<odin::telnet::stream> stream_;
+    shared_ptr<odin::telnet::stream>     stream_;
+    shared_ptr<odin::telnet::router>     router_;
+    option_id_type                       option_id_;
+    bool                                 active_;
+    bool                                 activate_sent_;
+    bool                                 activatable_;
+    bool                                 deactivate_sent_;
+    function<void ()>                    on_request_complete_;
+    function<void (subnegotiation_type)> on_subnegotiation_;
     
-    bool active_;
-    bool activate_sent_;
-    bool activatable_;
-    bool deactivate_sent_;
+    void on_will()
+    {
+        if (activate_sent_ || deactivate_sent_)
+        {
+            active_          = true;
+            activate_sent_   = false;
+            deactivate_sent_ = false;
+            
+            if (on_request_complete_)
+            {
+                on_request_complete_();
+            }
+        }
+        else
+        {
+            if (active_)
+            {
+                stream_->send_negotiation(WILL, option_id_);
+            }
+            else if (activatable_)
+            {
+                active_ = true;
+                
+                stream_->send_negotiation(WILL, option_id_);
+                
+                if (on_request_complete_)
+                {
+                    on_request_complete_();
+                }
+            }
+            else
+            {
+                stream_->send_negotiation(WONT, option_id_);
+            }
+        }
+    }
 
-    boost::function<void ()> on_state_change_;
+    void on_wont()
+    {
+        bool was_active          = active_;
+        bool activate_was_sent   = activate_sent_;
+        bool deactivate_was_sent = deactivate_sent_;
+        
+        active_          = false;
+        activate_sent_   = false;
+        deactivate_sent_ = false;
+        
+        if (!activate_was_sent && !deactivate_was_sent)
+        {
+            // Since we have neither sent an activate nor a deactivate,
+            // this is an unsolicited message.  Therefore, we must respond to
+            // it.
+            stream_->send_negotiation(WONT, option_id_);
+        }
+
+        // We must update the server only if this is a response to a request
+        // from the server, OR if this is an unsolicited message from the
+        // remote side that has resulted in a state change.
+        if (was_active || activate_was_sent || deactivate_was_sent)
+        {
+            if (on_request_complete_)
+            {
+                on_request_complete_();
+            }
+        }
+    }
+    
+    void on_subnegotiation(subnegotiation_type const &subnegotiation)
+    {
+        if (active_)
+        {
+            on_subnegotiation_(subnegotiation);
+        }
+    }
 };
     
 // ==========================================================================
-// SERVER_OPTION::CONSTRUCTOR
+// CONSTRUCTOR
 // ==========================================================================
-server_option::server_option(boost::shared_ptr<odin::telnet::stream> stream)
+server_option::server_option(
+    shared_ptr<odin::telnet::stream> stream
+  , shared_ptr<odin::telnet::router> router
+  , option_id_type                   option_id)
     : pimpl_(new impl)
 {
-    pimpl_->stream_          = stream;
-    pimpl_->active_          = false;
-    pimpl_->activate_sent_   = false;
-    pimpl_->activatable_     = false;
-    pimpl_->deactivate_sent_ = false;
+    pimpl_->stream_            = stream;
+    pimpl_->router_            = router;
+    pimpl_->option_id_         = option_id;
+    pimpl_->active_            = false;
+    pimpl_->activate_sent_     = false;
+    pimpl_->activatable_       = false;
+    pimpl_->deactivate_sent_   = false;
+    
+    pimpl_->on_subnegotiation_ = 
+        bind(&server_option::on_subnegotiation, this, _1);
+    
+    pimpl_->router_->register_negotiation(
+        DO
+      , get_option_id()
+      , bind(&impl::on_will, pimpl_->shared_from_this()));
+    
+    pimpl_->router_->register_negotiation(
+        DONT
+      , get_option_id()
+      , bind(&impl::on_wont, pimpl_->shared_from_this()));
+    
+    pimpl_->router_->register_subnegotiation(
+        get_option_id()
+      , bind(&impl::on_subnegotiation, pimpl_->shared_from_this(), _1));
 }
 
-// ==============================================================================
-// SERVER_OPTION::DESTRUCTOR
-// ==============================================================================
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
 server_option::~server_option()
 {
-    delete pimpl_;
+    pimpl_->router_->unregister_negotiation(DO, get_option_id());
+    pimpl_->router_->unregister_negotiation(DONT, get_option_id());
+    pimpl_->router_->unregister_subnegotiation(get_option_id());
 }
-    
-// ==============================================================================
-// SERVER_OPTION::ACTIVATE
-// ==============================================================================
+
+// ==========================================================================
+// GET_OPTION_ID
+// ==========================================================================
+option_id_type server_option::get_option_id() const
+{
+    return pimpl_->option_id_;
+}
+
+// ==========================================================================
+// ACTIVATE
+// ==========================================================================
 void server_option::activate()
 {
     if(!pimpl_->active_ && !pimpl_->activate_sent_)
     {
-        pimpl_->stream_->send_negotiation(
-            odin::telnet::WILL, get_option_id());
+        pimpl_->stream_->send_negotiation(WILL, get_option_id());
         pimpl_->activate_sent_ = true;
     }
 }
-        
-// ======================================================================
-// SERVER_OPTION::DEACTIVATE
-// ======================================================================
+
+// ==========================================================================
+// DEACTIVATE
+// ==========================================================================
 void server_option::deactivate()
 {
-    if(pimpl_->active_ && !pimpl_->deactivate_sent_)
+    if (pimpl_->active_)
     {
         pimpl_->stream_->send_negotiation(
             odin::telnet::WONT, get_option_id());
         pimpl_->deactivate_sent_ = true;
-        pimpl_->active_          = false;
+    }
+    else
+    {
+        if (pimpl_->on_request_complete_)
+        {
+            pimpl_->on_request_complete_();
+        }
     }
 }
-        
-// ==============================================================================
-// SERVER_OPTION::IS_ACTIVE
-// ==============================================================================
+
+// ==========================================================================
+// IS_ACTIVE
+// ==========================================================================
 bool server_option::is_active() const
 {
     return pimpl_->active_;
 }
 
-// ==============================================================================
-// SERVER_OPTION::IS_NEGOTIATING_ACTIVATION
-// ==============================================================================
+// ==========================================================================
+// SET_ACTIVATABLE
+// ==========================================================================
+void server_option::set_activatable(bool activatable)
+{
+    pimpl_->activatable_ = activatable;
+}
+
+// ==========================================================================
+// IS_ACTIVATABLE
+// ==========================================================================
+bool server_option::is_activatable() const
+{
+    return pimpl_->activatable_;
+}
+
+// ==========================================================================
+// IS_NEGOTIATING_ACTIVATION
+// ==========================================================================
 bool server_option::is_negotiating_activation() const
 {
     return pimpl_->activate_sent_;
 }
         
-// ==============================================================================
-// SERVER_OPTION::IS_NEGOTIATING_DEACTIVATION
-// ==============================================================================
+// ==========================================================================
+// IS_NEGOTIATING_DEACTIVATION
+// ==========================================================================
 bool server_option::is_negotiating_deactivation() const
 {
     return pimpl_->deactivate_sent_;
 }
 
-// ==============================================================================
-// SERVER_OPTION::SET_ACTIVATABLE
-// ==============================================================================
-void server_option::set_activatable(bool activatable)
-{
-    pimpl_->activatable_ = activatable;
-}
-        
-// ==============================================================================
-// SERVER_OPTION::ON_ACTIVATE_REQUESTED
-// ==============================================================================
-void server_option::on_activate_requested()
-{
-    if(pimpl_->activatable_)
-    {
-        pimpl_->stream_->send_negotiation(
-            odin::telnet::WILL, get_option_id());
-    }
-    else
-    {
-        pimpl_->stream_->send_negotiation(
-            odin::telnet::WONT, get_option_id());
-    }
-}
-    
-// ==============================================================================
-// SERVER_OPTION::ON_ACTIVATED
-// ==============================================================================
-void server_option::on_activated()
-{
-    pimpl_->active_        = true;
-    pimpl_->activate_sent_ = false;
-    
-    if(pimpl_->on_state_change_)
-    {
-        pimpl_->on_state_change_();
-    }
-}
-    
-// ==============================================================================
-// SERVER_OPTION::ON_ACTIVATE_DENIED
-// ==============================================================================
-void server_option::on_activate_denied()
-{
-    pimpl_->active_        = false;
-    pimpl_->activate_sent_ = false;
-    
-    if(pimpl_->on_state_change_)
-    {
-        pimpl_->on_state_change_();
-    }
-}
-    
-// ==============================================================================
-// SERVER_OPTION::ON_DEACTIVATED
-// ==============================================================================
-void server_option::on_deactivated()
-{
-    pimpl_->deactivate_sent_ = false;
-    
-    if(pimpl_->on_state_change_)
-    {
-        pimpl_->on_state_change_();
-    }
-}
-        
-// ==============================================================================
-// SERVER_OPTION::ON_DEACTIVATE_REQUESTED
-// ==============================================================================
-void server_option::on_deactivate_requested()
-{
-    pimpl_->stream_->send_negotiation(
-        odin::telnet::WONT, get_option_id());
-}
-    
-// ==============================================================================
-// SERVER_OPTION::ON_DEACTIVATE_DENIED
-// ==============================================================================
-void server_option::on_deactivate_denied()
-{
-    pimpl_->active_          = true;
-    pimpl_->deactivate_sent_ = false;
-    
-    if(pimpl_->on_state_change_)
-    {
-        pimpl_->on_state_change_();
-    }
-}
-
 // ==========================================================================
-// SERVER_OPTION::ON_STATE_CHANGE
+// ON_STATE_CHANGE
 // ==========================================================================
-void server_option::on_state_change(boost::function<void ()> fn)
+void server_option::on_request_complete(function<void ()> const &callback)
 {
-    pimpl_->on_state_change_ = fn;
+    pimpl_->on_request_complete_ = callback;
 }
-
 
 } }
 

@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rules.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\server.cpp"
 				>
 			</File>
@@ -213,7 +217,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\context.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dice_roll_parser.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\rules.hpp"
 				>
 			</File>
 			<File

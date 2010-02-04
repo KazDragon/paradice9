@@ -30,6 +30,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 namespace boost { namespace asio {
     class io_service;
@@ -37,12 +38,14 @@ namespace boost { namespace asio {
 
 namespace paradice {
     
+class context;    
 class socket;
 
 class server
 {
 public :
     server(boost::asio::io_service              &io_service
+         , boost::weak_ptr<context>             &context
          , boost::uint16_t                       port
          , boost::function<
                void (boost::shared_ptr<socket>)

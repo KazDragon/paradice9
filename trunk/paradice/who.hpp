@@ -28,9 +28,15 @@
 #define PARADICE_WHO_HPP_
 
 #include "command.hpp"
+#include "odin/types.hpp"
+#include <boost/utility.hpp>
+#include <string>
 
 namespace paradice {
 
+BOOST_STATIC_CONSTANT(odin::u16, minimum_name_size = 3);
+BOOST_STATIC_CONSTANT(odin::u16, maximum_name_size = 36);
+    
 PARADICE_COMMAND_DECL(who);
 PARADICE_COMMAND_DECL(title);
 PARADICE_COMMAND_DECL(prefix);

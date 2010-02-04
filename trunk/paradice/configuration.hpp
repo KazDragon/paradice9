@@ -32,6 +32,7 @@
 namespace paradice {
 
 PARADICE_COMMAND_DECL(set);   
+PARADICE_COMMAND_DECL(quit);
 
 }
 

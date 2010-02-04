@@ -1,5 +1,5 @@
 // ==========================================================================
-// Odin Subnegotiationless Client Telnet Option
+// Paradice Context Implementation
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,48 +24,49 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef ODIN_TELNET_OPTIONS_SUBNEGOTIATIONLESS_CLIENT_HPP_
-#define ODIN_TELNET_OPTIONS_SUBNEGOTIATIONLESS_CLIENT_HPP_
+#ifndef PARADICE9_CONTEXT_IMPL_HPP_
+#define PARADICE9_CONTEXT_IMPL_HPP_
 
-#include "odin/telnet/client_option.hpp"
-
-namespace odin { namespace telnet {
-    class router;
-    class stream;
-}}
-
-namespace odin { namespace telnet { namespace options {
+#include "paradice/context.hpp"
 
 //* =========================================================================
-/// \class odin::telnet::options::subnegotiationless_client<>
-/// \brief A template that implements a pattern to be followed by any
-/// Telnet Client side of the an option that has no subnegotiations.
+/// \brief Describes the context in which a Paradice server runs.
 //* =========================================================================
-template <option_id_type OptionId>    
-class subnegotiationless_client : public odin::telnet::client_option
+class context_impl : public paradice::context
 {
-//* =========================================================================
-/// \brief Constructor
-// ==========================================================================
 public :
-    subnegotiationless_client(
-        boost::shared_ptr<odin::telnet::stream> const &stream
-      , boost::shared_ptr<odin::telnet::router> const &router)
-        : odin::telnet::client_option(stream, router, OptionId)
-    {
-    }
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    context_impl();
     
-private :    
     //* =====================================================================
-    /// \brief Called when a subnegotiation for this option is received
-    /// while the option is active.
+    /// \brief Denstructor
     //* =====================================================================
-    virtual void on_subnegotiation(subnegotiation_type const &subnegotiation)
-    {
-    }
+    virtual ~context_impl();
+    
+    //* =====================================================================
+    /// \brief Retrieves a list of clients currently connected to Paradice.
+    //* =====================================================================
+    virtual odin::runtime_array< 
+        boost::shared_ptr<paradice::client> 
+    > get_clients();
+
+    //* =====================================================================
+    /// \brief Adds a client to the list of clients currently connected
+    /// to Paradice.
+    //* =====================================================================
+    virtual void add_client(boost::shared_ptr<paradice::client> const &cli);
+
+    //* =====================================================================
+    /// \brief Removes a client from the list of clients currently
+    /// connected to Paradice.
+    //* =====================================================================
+    virtual void remove_client(boost::shared_ptr<paradice::client> const &cli);
+    
+private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
 };
-             
-}}}
 
 #endif
-

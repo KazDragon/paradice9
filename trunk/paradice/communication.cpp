@@ -27,6 +27,7 @@
 #include "communication.hpp"
 #include "client.hpp"
 #include "connection.hpp"
+#include "context.hpp"
 #include "utility.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
@@ -43,8 +44,12 @@ namespace paradice {
 // ==========================================================================
 // MESSAGE_TO_ALL
 // ==========================================================================
-void message_to_all(string const &text)
+void message_to_all(
+    shared_ptr<context> &ctx
+  , string const        &text)
 {
+    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+    
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         cur_client->get_connection()->write(text);
@@ -57,8 +62,9 @@ void message_to_all(string const &text)
 // MESSAGE_TO_PLAYER
 // ==========================================================================
 void message_to_player(
-    string const       &text
-  , shared_ptr<client> &conn)
+    shared_ptr<context> &ctx
+  , string const        &text
+  , shared_ptr<client>  &conn)
 {
     conn->get_connection()->write(text);
     conn->add_backtrace(
@@ -69,9 +75,12 @@ void message_to_player(
 // MESSAGE_TO_ROOM
 // ==========================================================================
 void message_to_room(
-    string const             &text, 
-    shared_ptr<client> const &conn)
+    shared_ptr<context> &ctx
+  , string const        &text 
+  , shared_ptr<client>  &conn)
 {
+    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         if (cur_client != conn)
@@ -89,8 +98,12 @@ void message_to_room(
 // ==========================================================================
 // SEND_TO_ALL
 // ==========================================================================
-void send_to_all(string const &text)
+void send_to_all(
+    shared_ptr<context> &ctx
+  , string const        &text)
 {
+    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         cur_client->get_connection()->write(text);
@@ -101,8 +114,9 @@ void send_to_all(string const &text)
 // SEND_TO_PLAYER
 // ==========================================================================
 void send_to_player(
-    string const       &text
-  , shared_ptr<client> &conn)
+    shared_ptr<context> &ctx
+  , string const        &text
+  , shared_ptr<client>  &conn)
 {
     conn->get_connection()->write(text);
 }
@@ -111,9 +125,12 @@ void send_to_player(
 // SEND_TO_ROOM
 // ==========================================================================
 void send_to_room(
-    string const             &text, 
-    shared_ptr<client> const &conn)
+    shared_ptr<context> &ctx
+  , string const        &text, 
+    shared_ptr<client>  &conn)
 {
+    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         if (cur_client != conn)
@@ -131,13 +148,13 @@ void send_to_room(
 // ==========================================================================
 PARADICE_COMMAND_IMPL(say)
 {
-    message_to_player(str(
+    message_to_player(ctx, str(
         format("\r\nYou say, \"%s\"\r\n")
             % arguments)
       , player);
 
 
-    message_to_room(str(
+    message_to_room(ctx, str(
         format("\r\n%s says, \"%s\"\r\n")
             % player->get_name()
             % arguments)
@@ -154,7 +171,8 @@ PARADICE_COMMAND_IMPL(sayto)
     if (arg.first == "")
     {
         send_to_player(
-            "\r\n Usage: sayto [player] [message]"
+            ctx
+          , "\r\n Usage: sayto [player] [message]"
             "\r\n     or"
             "\r\n Usage: > [player] [message]"
             "\r\n"
@@ -163,17 +181,19 @@ PARADICE_COMMAND_IMPL(sayto)
         return;
     }
 
+    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         if(is_iequal(cur_client->get_name(), arg.first))
         {
-            message_to_player(str(
+            message_to_player(ctx, str(
                 format("\r\nYou say to %s, \"%s\"\r\n")
                     % cur_client->get_name()
                     % arg.second)
               , player);
 
-            message_to_player(str(
+            message_to_player(ctx, str(
                 format("\r\n%s says to you, \"%s\"\r\n")
                     % player->get_name()
                     % arg.second)
@@ -184,7 +204,7 @@ PARADICE_COMMAND_IMPL(sayto)
     }
 
     send_to_player(
-        "\r\nCouldn't find anyone by that name to talk to.\r\n", player);
+        ctx, "\r\nCouldn't find anyone by that name to talk to.\r\n", player);
 }
 
 // ==========================================================================
@@ -199,10 +219,10 @@ PARADICE_COMMAND_IMPL(emote)
             "\r\n EXAMPLE: emote bounces off the walls."
             "\r\n\r\n";
 
-        send_to_player(usage_message, player);
+        send_to_player(ctx, usage_message, player);
     }
 
-    message_to_all(str(
+    message_to_all(ctx, str(
         format("\r\n%s %s\r\n")
             % player->get_name()
             % arguments));
@@ -225,7 +245,7 @@ PARADICE_COMMAND_IMPL(backtrace)
     
     backtrace = "\r\n" + backtrace + "\r\n";
     
-    send_to_player(backtrace + player->get_backtrace(), player);
+    send_to_player(ctx, backtrace + player->get_backtrace(), player);
 }
 
 

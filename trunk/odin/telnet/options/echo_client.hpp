@@ -31,6 +31,11 @@
 
 namespace odin { namespace telnet { namespace options {
 
+//* =========================================================================
+/// \class odin::telnet::options::echo_client
+/// \brief A class that implements the Telnet Client side of the Echo option.
+/// (RFC 857/STD 28)
+//* =========================================================================
 typedef subnegotiationless_client<odin::telnet::ECHO> echo_client;
             
 }}}

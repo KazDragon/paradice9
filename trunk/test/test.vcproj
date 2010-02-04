@@ -213,7 +213,35 @@
 				>
 			</File>
 			<File
+				RelativePath=".\telnet_options_echo_client_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_naws_client_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_subnegotiationless_client_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_subnegotiationless_server_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_suppress_goahead_client_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_suppress_goahead_server_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_router_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_server_option_fixture.cpp"
 				>
 			</File>
 			<File
@@ -226,6 +254,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\buffered_datastream_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\buffered_datastream_fixture.hpp"
+				>
+			</File>
 			<File
 				RelativePath=".\completed_negotiation_fixture.hpp"
 				>
@@ -267,7 +303,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet_options_naws_client_fixture.cpp"
+				RelativePath=".\telnet_options_echo_client_fixture.hpp"
 				>
 			</File>
 			<File
@@ -275,7 +311,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\telnet_options_subnegotiationless_client_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_subnegotiationless_server_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_suppress_goahead_client_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_suppress_goahead_server_fixture.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_router_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_server_option_fixture.hpp"
 				>
 			</File>
 			<File

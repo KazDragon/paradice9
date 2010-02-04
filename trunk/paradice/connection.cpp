@@ -3,8 +3,6 @@
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/router.hpp"
 #include "odin/telnet/options/naws_client.hpp"
-#include "odin/telnet/options/suppress_goahead_client.hpp"
-#include "odin/telnet/options/suppress_goahead_server.hpp"
 #include <boost/bind.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -126,10 +124,6 @@ struct connection::impl
     shared_ptr<odin::telnet::stream>               telnet_stream_;
     shared_ptr<odin::telnet::router>               telnet_router_;
     shared_ptr<odin::telnet::options::naws_client> telnet_naws_client_;
-    shared_ptr<odin::telnet::options::suppress_goahead_client> 
-                                                   telnet_suppress_goahead_client_;
-    shared_ptr<odin::telnet::options::suppress_goahead_server> 
-                                                   telnet_suppress_goahead_server_;
     function<void (string)>                        on_data_;
     
     deque<u8>                                      read_buffer_;
@@ -197,18 +191,6 @@ void connection::reconnect(shared_ptr<socket> connection_socket)
         bind(&impl::on_window_size_changed, pimpl_, _1, _2));
     pimpl_->telnet_naws_client_->set_activatable(true);
     pimpl_->telnet_naws_client_->activate();
-    pimpl_->telnet_suppress_goahead_client_ =
-        shared_ptr<odin::telnet::options::suppress_goahead_client>(
-            new odin::telnet::options::suppress_goahead_client(
-                pimpl_->telnet_stream_, pimpl_->telnet_router_));
-    pimpl_->telnet_suppress_goahead_client_->set_activatable(true);
-    pimpl_->telnet_suppress_goahead_client_->activate();
-    pimpl_->telnet_suppress_goahead_server_ =
-        shared_ptr<odin::telnet::options::suppress_goahead_server>(
-            new odin::telnet::options::suppress_goahead_server(
-                pimpl_->telnet_stream_, pimpl_->telnet_router_));
-    pimpl_->telnet_suppress_goahead_server_->set_activatable(true);
-    pimpl_->telnet_suppress_goahead_server_->activate();        
     pimpl_->schedule_next_read();
 }
 

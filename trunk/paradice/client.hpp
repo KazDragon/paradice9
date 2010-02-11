@@ -39,12 +39,19 @@ class connection;
 class client
 {
 public :
+    //* =====================================================================
+    /// \brief Defines the stage at which a client is in the game, and thus
+    /// what actions can be applied to it.
+    //* =====================================================================
     enum level
     {
         level_intro_screen
       , level_in_game
     };
 
+    //* =====================================================================
+    /// \brief Defines the style of command that the client wishes to use.
+    //* =====================================================================
     enum command_mode
     {
         command_mode_mud
@@ -66,30 +73,89 @@ public :
     //* =====================================================================
     void set_connection(boost::shared_ptr<connection> const &new_connection);
     
+    //* =====================================================================
+    /// \brief Retrieves the connection on which this client operates.
+    //* =====================================================================
     boost::shared_ptr<connection> get_connection();
     
+    //* =====================================================================
+    /// \brief Returns the stage at which the client is in the game.
+    //* =====================================================================
     level get_level() const;
+
+    //* =====================================================================
+    /// \brief Sets the stage at which the client is in the game.
+    //* =====================================================================
     void set_level(level new_level);
     
+    //* =====================================================================
+    /// \brief Sets the name that the client goes by.
+    //* =====================================================================
     void set_name(std::string const &name);
+
+    //* =====================================================================
+    /// \brief Gets the name that the client goes by.
+    //* =====================================================================
     std::string get_name() const;
     
+    //* =====================================================================
+    /// \brief Sets the post-name text that the client uses as a title.
+    //* =====================================================================
     void set_title(std::string const &title);
+
+    //* =====================================================================
+    /// \brief Gets the post-name text that the client uses as a title.
+    //* =====================================================================
     std::string get_title() const;
     
+    //* =====================================================================
+    /// \brief Sets the pre-name text that the client uses as a prefix.
+    //* =====================================================================
     void set_prefix(std::string const &prefix);
+
+    //* =====================================================================
+    /// \brief Gets the pre-name text that the client uses as a prefix.
+    //* =====================================================================
     std::string get_prefix() const;
 
+    //* =====================================================================
+    /// \brief Sets the page of the who list that the client is viewing.
+    //* =====================================================================
     void set_who_page(odin::u16 page);
+
+    //* =====================================================================
+    /// \brief Gets the page of the who list that the client is viewing.
+    //* =====================================================================
     odin::u16 get_who_page() const;
     
+    //* =====================================================================
+    /// \brief Sets the command that the client last used.
+    //* =====================================================================
     void set_last_command(std::string const &cmd);
+
+    //* =====================================================================
+    /// \brief Gets the command that the client last used.
+    //* =====================================================================
     std::string get_last_command() const;
 
+    //* =====================================================================
+    /// \brief Sets the style of command that the client wishes to use.
+    //* =====================================================================
     void set_command_mode(command_mode mode);
+
+    //* =====================================================================
+    /// \brief Returns the style of command that the client is using.
+    //* =====================================================================
     command_mode get_command_mode() const;
 
+    //* =====================================================================
+    /// \brief Adds text to the backtrace (last n messages) of the client.
+    //* =====================================================================
     void add_backtrace(std::string const &text);
+
+    //* =====================================================================
+    /// \brief Retrieves the backtrace of the client.
+    //* =====================================================================
     std::string get_backtrace() const;
 
 private :

@@ -34,6 +34,7 @@
 
 BOOST_FUSION_ADAPT_STRUCT(
     paradice::dice_roll,
+    (odin::u32, repetitions_)
     (odin::u32, amount_)
     (odin::u32, sides_)
     (odin::s32, bonus_)
@@ -62,6 +63,11 @@ struct dice_roll_grammar
     dice_roll_grammar()
         : dice_roll_grammar::base_type(dice_roll_)
     {
+        repetitions_
+            = (uint_[_val = _1] >> lit("*")) 
+            | eps[_val = 1]
+            ;
+            
         bonuses_
             = eps[_val = 0]
            >> *( ( lit("+") >> int_[_val += _1] )
@@ -70,13 +76,15 @@ struct dice_roll_grammar
             ;
             
         dice_roll_ 
-           %= uint_
+            = repetitions_
+           >> uint_
            >> boost::spirit::ascii::no_case['d']
            >> uint_
            >> bonuses_
             ;
     }
 
+    boost::spirit::qi::rule<Iterator, odin::u32()> repetitions_;
     boost::spirit::qi::rule<Iterator, odin::s32()> bonuses_;
     boost::spirit::qi::rule<Iterator, dice_roll()> dice_roll_;
 };
@@ -85,8 +93,10 @@ struct dice_roll_grammar
 /// \brief Parses a string into a dice_roll.
 ///
 /// Takes a string and, if it conforms to the format 
-/// "<amount>d<sides>[<bonuses...>]", converts it to a dice_roll structure.
-/// For example, "2d6+3-4" will convert to a dice_roll of { 2, 6, -1 };
+/// "[<repetitions>*]<amount>d<sides>[<bonuses...>]", and converts it to a 
+/// dice_roll structure.
+/// For example, "2d6+3-4" will convert to a dice_roll of { 1, 2, 6, -1 };
+/// "3*2d20" will convert to a dice_roll of { 3, 2, 20, 0 };
 //* =========================================================================
 boost::optional<dice_roll> parse_dice_roll(std::string const &roll)
 {

@@ -38,9 +38,8 @@ class client;
 /// \brief Describes the interface for a context in which a Paradice server
 /// can run.
 //* =========================================================================
-class context
+struct context
 {
-public :
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================

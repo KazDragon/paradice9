@@ -32,6 +32,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace odin;
 
 namespace paradice {
 
@@ -41,8 +42,9 @@ namespace paradice {
 PARADICE_COMMAND_IMPL(roll)
 {
     static string const usage_message =
-        "\r\n Usage:   roll <dice>d<sides>[<bonuses...>]"
+        "\r\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>]"
         "\r\n Example: roll 2d6+3-20"
+        "\r\n Example: roll 20*2d6"
         "\r\n\r\n";
 
     BOOST_AUTO(rolls, parse_dice_roll(arguments));
@@ -55,47 +57,114 @@ PARADICE_COMMAND_IMPL(roll)
 
     BOOST_AUTO(dice_roll, rolls.get());
 
-    if (dice_roll.sides_ == 0)
+    if (dice_roll.repetitions_ == 0
+     || dice_roll.amount_      == 0)
     {
-        player->get_connection()->write(usage_message);
+        send_to_player(
+            ctx
+          , "You roll no dice and score nothing.\r\n"
+          , player);
+        
+        send_to_room(
+            ctx
+          , str(format(
+                "%s rolls no dice and scores nothing.\r\n")
+              % player->get_name())
+          , player);
+        
         return;
     }
 
-    odin::s32 total = dice_roll.bonus_;
-    string roll_description;
-
-    for (odin::u32 current_roll = 0; current_roll < dice_roll.amount_; ++current_roll)
+    if (dice_roll.sides_ == 0)
     {
-        odin::s32 score = (rand() % dice_roll.sides_) + 1;
+        send_to_player(
+            ctx
+          , "You fumble your roll and spill all your zero-sided dice on "
+            "the floor.\r\n"
+          , player);
+        
+        send_to_room(
+            ctx
+          , str(format(
+                "%s fumbles their roll and spills a pile of zero-"
+                "sided dice on the floor.\r\n")
+              % player->get_name())
+          , player);
+        
+        return;
+    }
+    
+    if (dice_roll.repetitions_ * dice_roll.amount_ > 200)
+    {
+        send_to_player(
+            ctx
+          , "You can only roll at most 200 dice at once.\r\n"
+          , player);
+        
+        return;
+    }
 
-        roll_description += str(format("%s%d") 
-            % (roll_description.empty() ? "" : ", ")
-            % score);
+    string total_description;
+    s32    total_score = 0;
+    
+    for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
+    {
+        string roll_description;
+        s32    total = dice_roll.bonus_;
 
-        total += score;
+        for (u32 current_roll = 0; 
+             current_roll < dice_roll.amount_; 
+             ++current_roll)
+        {
+            s32 score = (rand() % dice_roll.sides_) + 1;
+    
+            roll_description += str(format("%s%d") 
+                % (current_roll == 0 ? "" : ", ")
+                % score);
+    
+            total += score;
+        }
+        
+        total_description +=
+            str(format("%s%d [%s]")
+                % (repetition == 0 ? "" : ", ")
+                % total
+                % roll_description);
+            
+        total_score += total;
     }
 
     message_to_player(
         ctx
-      , str(format("\r\nYou roll %dd%d%s%d and score %d [%s]\r\n") 
+      , str(format("\r\nYou roll %dd%d%s%d %sand score %s%s\r\n")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
             % dice_roll.bonus_
-            % total
-            % roll_description)
+            % (dice_roll.repetitions_ == 1 
+                ? ""
+                : str(format("%d times ") % dice_roll.repetitions_))
+            % total_description
+            % (dice_roll.repetitions_ == 1
+                ? ""
+                : str(format(" for a grand total of %d") % total_score)))
       , player);
-
+          
     message_to_room(
         ctx
-      , str(format("\r\n%s rolls %dd%d%s%d and scores %d [%s]\r\n")
+      , str(format("\r\n%s rolls %dd%d%s%d %sand scores %s%s\r\n")
             % player->get_name()
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
             % dice_roll.bonus_
-            % total
-            % roll_description)
+            % (dice_roll.repetitions_ == 1 
+                ? ""
+                : str(format("%d times ") % dice_roll.repetitions_))
+            % total_description
+            % (dice_roll.repetitions_ == 1
+                ? ""
+                : str(format(" for a grand total of %d") % total_score)))
       , player);
 }
 

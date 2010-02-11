@@ -15,14 +15,23 @@ using namespace std;
 
 namespace paradice {
 
+// ==========================================================================
+// CONNECTION IMPLEMENTATION STRUCTURE
+// ==========================================================================
 struct connection::impl
 {
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
     impl()
         : window_width_(80)
         , window_height_(24)
     {
     }
         
+    // ======================================================================
+    // SCHEDULE_NEXT_READ
+    // ======================================================================
     void schedule_next_read()
     {
         BOOST_AUTO(available, telnet_stream_->available());
@@ -41,6 +50,9 @@ struct connection::impl
         }
     }
     
+    // ======================================================================
+    // DATA_READ
+    // ======================================================================
     void data_read(runtime_array<u8> const &data)
     {
         copy(data.begin(), data.end(), back_inserter(read_buffer_));
@@ -48,6 +60,9 @@ struct connection::impl
         lex_input();
     }
 
+    // ======================================================================
+    // LEX_INPUT
+    // ======================================================================
     void lex_input()
     {
         deque<u8>::iterator line_end = 
@@ -90,12 +105,18 @@ struct connection::impl
         }
     }
     
+    // ======================================================================
+    // WRITE
+    // ======================================================================
     void write(string const &text)
     {
         copy(text.begin(), text.end(), back_inserter(write_buffer_));
         socket_->get_io_service().post(bind(&impl::do_write, this));
     }
     
+    // ======================================================================
+    // DO_WRITE
+    // ======================================================================
     void do_write()
     {
         if (!write_buffer_.empty())
@@ -109,6 +130,9 @@ struct connection::impl
         }
     }
     
+    // ======================================================================
+    // ON_WINDOW_SIZE_CHANGED
+    // ======================================================================
     void on_window_size_changed(u16 width, u16 height)
     {
         window_width_  = width;
@@ -134,6 +158,9 @@ struct connection::impl
     function<void (u16, u16)>                      on_window_size_changed_;
 };
 
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
 connection::connection(
     shared_ptr<socket>      connection_socket
   , function<void (string)> data_callback)
@@ -143,37 +170,58 @@ connection::connection(
     pimpl_->on_data_ = data_callback;
 }
     
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
 connection::~connection()
 {
 }
     
+// ==========================================================================
+// WRITE
+// ==========================================================================
 void connection::write(string const &text)
 {
     pimpl_->write(text);
 }
 
+// ==========================================================================
+// GET_WINDOW_SIZE
+// ==========================================================================
 pair<u16, u16> connection::get_window_size() const
 {
     return make_pair(pimpl_->window_width_, pimpl_->window_height_);
 }
 
+// ==========================================================================
+// ON_WINDOW_SIZE_CHANGED
+// ==========================================================================
 void connection::on_window_size_changed(
     function<void (u16, u16)> const &callback)
 {
     pimpl_->on_window_size_changed_ = callback;
 }
 
+// ==========================================================================
+// KEEPALIVE
+// ==========================================================================
 void connection::keepalive()
 {
     pimpl_->telnet_stream_->send_command(odin::telnet::NOP);
 }
 
+// ==========================================================================
+// DISCONNECT
+// ==========================================================================
 void connection::disconnect()
 {
     pimpl_->socket_->kill();
     pimpl_->socket_.reset();
 }
 
+// ==========================================================================
+// RECONNECT
+// ==========================================================================
 void connection::reconnect(shared_ptr<socket> connection_socket)
 {
     pimpl_->socket_  = connection_socket;

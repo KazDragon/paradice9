@@ -37,24 +37,58 @@ namespace paradice {
 
 class socket;
 
+//* =========================================================================
+/// \brief An connection to a socket that abstracts away details about the
+/// protocols used.
+//* =========================================================================
 class connection
 {
 public :
+    //* =====================================================================
+    /// \brief Create a connection object that uses the passed socket as
+    /// a communications point, and calls the passed function whenever data
+    /// is received.
+    //* =====================================================================
     connection(
         boost::shared_ptr<socket>           connection_socket
       , boost::function<void (std::string)> data_callback);
     
+    //* =====================================================================
+    /// \brief Destructor.
+    //* =====================================================================
     ~connection();
     
+    //* =====================================================================
+    /// \brief Write some text to the connection.
+    //* =====================================================================
     void write(std::string const &text);
 
+    //* =====================================================================
+    /// \brief Returns the window size of the client that is connected.
+    //* =====================================================================
     std::pair<odin::u16, odin::u16> get_window_size() const;
+
+    //* =====================================================================
+    /// \brief Sets a callback function to be called if the window size
+    /// of the client changes.
+    //* =====================================================================
     void on_window_size_changed(boost::function<
         void (odin::u16 width, odin::u16 height)> const &callback);
     
+    //* =====================================================================
+    /// \brief Sends a pulse of no data.  Useful for keeping a connection
+    /// from dropping due to inactivity.
+    //* =====================================================================
     void keepalive();
     
+    //* =====================================================================
+    /// \brief Disconnects the socket.
+    //* =====================================================================
     void disconnect();
+
+    //* =====================================================================
+    /// \brief Reconnects a new socket to this connection.
+    //* =====================================================================
     void reconnect(boost::shared_ptr<socket> connection_socket);
     
 private :

@@ -1,7 +1,8 @@
 #include "telnet_options_subnegotiationless_server_fixture.hpp"
 #include "odin/telnet/options/subnegotiationless_server.hpp"
 #include "odin/telnet/stream.hpp"
-#include "odin/telnet/router.hpp"
+#include "odin/telnet/negotiation_router.hpp"
+#include "odin/telnet/subnegotiation_router.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "fake_datastream.hpp"
 
@@ -19,17 +20,24 @@ void telnet_options_subnegotiationless_server_fixture::test_constructor()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::subnegotiationless_server<
         odin::telnet::ECHO
-    > echo_server(telnet_stream, telnet_router);
+    > echo_server(
+        telnet_stream
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router);
     
     odin::telnet::options::subnegotiationless_server<
         odin::telnet::SUPPRESS_GOAHEAD
-    > suppress_ga_server(telnet_stream, telnet_router);
-    
+    > suppress_ga_server(        telnet_stream
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router);
+
     CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, echo_server.get_option_id());
     CPPUNIT_ASSERT_EQUAL(
         odin::telnet::SUPPRESS_GOAHEAD
@@ -43,12 +51,17 @@ void telnet_options_subnegotiationless_server_fixture::test_inheritance()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::subnegotiationless_server<
         odin::telnet::ECHO
-    > subnegotiationless_server(telnet_stream, telnet_router);
+    > subnegotiationless_server(
+        telnet_stream
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router);
     
     odin::telnet::server_option &option = subnegotiationless_server;
     (void)option;

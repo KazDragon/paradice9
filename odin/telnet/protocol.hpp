@@ -29,6 +29,7 @@
 
 #include "odin/runtime_array.hpp"
 #include "odin/types.hpp"
+#include <vector>
 
 namespace odin { namespace telnet {
 
@@ -69,9 +70,25 @@ enum command
   , IAC  = 255 // Interpret As Command
 };
 
-typedef odin::u8                      option_id_type;
-typedef command                       negotiation_request_type;
-typedef odin::runtime_array<odin::u8> subnegotiation_type;
+typedef odin::u8 option_id_type;
+typedef odin::u8 negotiation_request_type;
+typedef odin::u8 command_type;
+
+struct negotiation_type
+{
+    negotiation_request_type request_;
+    option_id_type           option_id_;
+};
+
+bool operator<(negotiation_type const &lhs, negotiation_type const &rhs);
+
+typedef std::vector<odin::u8> subnegotiation_content_type;
+
+struct subnegotiation_type
+{
+    option_id_type              option_id_;
+    subnegotiation_content_type content_;
+};
 
 // A fairly exhaustive list of telnet negotiations and subnegotiations follows:
 

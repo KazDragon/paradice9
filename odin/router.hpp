@@ -100,6 +100,17 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Unregisters a route for messages with a particular key. 
+    ///
+    /// Unregister a route that will no longer be taken by any message 
+    /// received that contains the specified key.
+    //* =====================================================================
+    void unregister_route(key_type const &key)
+    {
+        registered_functions_.erase(key);
+    }
+    
+    //* =====================================================================
     /// \brief Set a route for messages with an unregistered key.
     ///
     /// Register a route that will be taken by any message received that has 

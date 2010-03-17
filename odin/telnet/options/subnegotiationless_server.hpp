@@ -30,7 +30,8 @@
 #include "odin/telnet/server_option.hpp"
 
 namespace odin { namespace telnet {
-    class router;
+    class negotiation_router;
+    class subnegotiation_router;
     class stream;
 }}
 
@@ -39,7 +40,7 @@ namespace odin { namespace telnet { namespace options {
 //* =========================================================================
 /// \class odin::telnet::options::subnegotiationless_server<>
 /// \brief A template that implements a pattern to be followed by any
-/// Telnet Client side of the an option that has no subnegotiations.
+/// Telnet Server side of the an option that has no subnegotiations.
 //* =========================================================================
 template <option_id_type OptionId>    
 class subnegotiationless_server : public odin::telnet::server_option
@@ -49,9 +50,11 @@ class subnegotiationless_server : public odin::telnet::server_option
 // ==========================================================================
 public :
     subnegotiationless_server(
-        boost::shared_ptr<odin::telnet::stream> const &stream
-      , boost::shared_ptr<odin::telnet::router> const &router)
-        : odin::telnet::server_option(stream, router, OptionId)
+        boost::shared_ptr<odin::telnet::stream> const                &stream
+      , boost::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
+      , boost::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
+        : odin::telnet::server_option(
+            stream, negotiation_router, subnegotiation_router, OptionId)
     {
     }
     

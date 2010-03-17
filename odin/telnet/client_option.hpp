@@ -1,7 +1,7 @@
 // ==========================================================================
 // Odin Telnet Client-Option.
 //
-// Copyright (C) 2003 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -33,7 +33,8 @@
 
 namespace odin { namespace telnet {
 
-class router;    
+class negotiation_router;
+class subnegotiation_router;
 class stream;
 
 //* =========================================================================
@@ -79,9 +80,10 @@ public :
     /// example, odin::telnet::NAWS.
     //* =====================================================================
     client_option(
-        boost::shared_ptr<odin::telnet::stream> stream
-      , boost::shared_ptr<odin::telnet::router> router
-      , odin::telnet::option_id_type            option_id);
+        boost::shared_ptr<stream> const                &stream
+      , boost::shared_ptr<negotiation_router> const    &negotiation_router
+      , boost::shared_ptr<subnegotiation_router> const &subnegotiation_router
+      , option_id_type                                  option_id);
 
     //* =====================================================================
     /// \brief Destructor

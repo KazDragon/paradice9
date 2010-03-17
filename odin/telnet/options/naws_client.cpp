@@ -43,9 +43,14 @@ struct naws_client::impl
 // CONSTRUCTOR
 // ==========================================================================
 naws_client::naws_client(
-    shared_ptr<odin::telnet::stream> const &stream
-  , shared_ptr<odin::telnet::router> const &router)
-    : odin::telnet::client_option(stream, router, odin::telnet::NAWS)
+      boost::shared_ptr<odin::telnet::stream> const                &stream
+    , boost::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
+    , boost::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
+    : odin::telnet::client_option(
+        stream
+      , negotiation_router
+      , subnegotiation_router
+      , odin::telnet::NAWS)
     , pimpl_(new impl) 
 {
 }
@@ -70,15 +75,15 @@ void naws_client::on_size(callback_type const &callback)
 // ==========================================================================
 void naws_client::on_subnegotiation(subnegotiation_type const &subnegotiation)
 {
-    if (pimpl_->on_size_ && subnegotiation.size() == 4)
+    if (pimpl_->on_size_ && subnegotiation.content_.size() == 4)
     {
         odin::u16 width = 
-            odin::u16(subnegotiation[0] << 8)
-          | odin::u16(subnegotiation[1] << 0);
+            odin::u16(subnegotiation.content_[0] << 8)
+          | odin::u16(subnegotiation.content_[1] << 0);
           
         odin::u16 height =
-            odin::u16(subnegotiation[2] << 8)
-          | odin::u16(subnegotiation[3] << 0);
+            odin::u16(subnegotiation.content_[2] << 8)
+          | odin::u16(subnegotiation.content_[3] << 0);
           
         pimpl_->on_size_(width, height);
     }

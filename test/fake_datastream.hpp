@@ -52,6 +52,7 @@ public :
     //* =====================================================================
     fake_datastream(boost::asio::io_service &io_service)
         : io_service_(io_service)
+        , alive_(true)
     {
     }
 
@@ -154,12 +155,20 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Sets whether the faked underlying stream is alive.
+    //* =====================================================================
+    void set_alive(bool alive)
+    {
+        alive_ = alive;
+    }
+    
+    //* =====================================================================
     /// \brief Check to see if the underlying stream is still alive.
     /// \return true if the underlying stream is alive, false otherwise.
     //* =====================================================================
     virtual bool is_alive() const
     {
-        return true;
+        return alive_;
     }
 
     //* =====================================================================
@@ -310,6 +319,7 @@ private :
     std::deque<write_request>      write_requests_;
     std::deque<input_value_type>   input_buffer_;
     std::deque<output_value_type>  output_buffer_;
+    bool                           alive_;
 };
 
 #endif

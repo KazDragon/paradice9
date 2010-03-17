@@ -1,9 +1,14 @@
 #include "telnet_options_naws_client_fixture.hpp"
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/stream.hpp"
-#include "odin/telnet/router.hpp"
+#include "odin/telnet/command_router.hpp"
+#include "odin/telnet/negotiation_router.hpp"
+#include "odin/telnet/subnegotiation_router.hpp"
+#include "odin/telnet/input_visitor.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "fake_datastream.hpp"
+#include <boost/foreach.hpp>
+#include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_options_naws_client_fixture);
@@ -15,6 +20,7 @@ namespace bll = boost::lambda;
 
 typedef fake_datastream<odin::u8, odin::u8> fake_byte_stream;
 
+
 void telnet_options_naws_client_fixture::test_constructor()
 {
     boost::asio::io_service          io_service;
@@ -22,11 +28,13 @@ void telnet_options_naws_client_fixture::test_constructor()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::NAWS, naws_client.get_option_id());
 }
@@ -38,11 +46,13 @@ void telnet_options_naws_client_fixture::test_inheritance()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     odin::telnet::client_option &option = naws_client;
     (void)option;
@@ -55,11 +65,13 @@ void telnet_options_naws_client_fixture::test_on_size()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     boost::function<void (odin::u16, odin::u16)> callback;
     
@@ -73,11 +85,13 @@ void telnet_options_naws_client_fixture::test_callback_no_callback()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     naws_client.set_activatable(true);
     
@@ -117,23 +131,37 @@ void telnet_options_naws_client_fixture::test_callback_width()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
+
+    odin::telnet::input_visitor visitor(
+        shared_ptr<odin::telnet::command_router>()
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router
+      , NULL);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     odin::u16 width  = 0;
     odin::u16 height = 0;
-    boost::function<void (odin::u16, odin::u16)> callback = (
+    boost::function<void (odin::u16, odin::u16)> naws_callback = (
         bll::var(width)  = bll::_1
       , bll::var(height) = bll::_2
     );
     
     naws_client.set_activatable(true);
-    naws_client.on_size(callback);
+    naws_client.on_size(naws_callback);
     
-    telnet_stream->async_read(1, NULL);
+    function<void (
+        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    (
+        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
+    );
+    
+    telnet_stream->async_read(1, callback);
     
     {
         odin::u8 data[] = { 
@@ -156,6 +184,7 @@ void telnet_options_naws_client_fixture::test_callback_width()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();
@@ -174,6 +203,7 @@ void telnet_options_naws_client_fixture::test_callback_width()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();
@@ -192,6 +222,7 @@ void telnet_options_naws_client_fixture::test_callback_width()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();
@@ -210,6 +241,7 @@ void telnet_options_naws_client_fixture::test_callback_width()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();
@@ -226,23 +258,37 @@ void telnet_options_naws_client_fixture::test_callback_height()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
+
+    odin::telnet::input_visitor visitor(
+        shared_ptr<odin::telnet::command_router>()
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router
+      , NULL);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     odin::u16 width  = 0;
     odin::u16 height = 0;
-    boost::function<void (odin::u16, odin::u16)> callback = (
+    boost::function<void (odin::u16, odin::u16)> naws_callback = (
         bll::var(width)  = bll::_1
       , bll::var(height) = bll::_2
     );
     
     naws_client.set_activatable(true);
-    naws_client.on_size(callback);
+    naws_client.on_size(naws_callback);
     
-    telnet_stream->async_read(1, NULL);
+    function<void (
+        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    (
+        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
+    );
+    
+    telnet_stream->async_read(1, callback);
     
     {
         odin::u8 data[] = { 
@@ -265,6 +311,7 @@ void telnet_options_naws_client_fixture::test_callback_height()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();
@@ -283,7 +330,8 @@ void telnet_options_naws_client_fixture::test_callback_height()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
-     
+        telnet_stream->async_read(1, callback);
+
         io_service.reset();
         io_service.run();
         
@@ -301,7 +349,8 @@ void telnet_options_naws_client_fixture::test_callback_height()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
-     
+        telnet_stream->async_read(1, callback);
+
         io_service.reset();
         io_service.run();
         
@@ -319,7 +368,8 @@ void telnet_options_naws_client_fixture::test_callback_height()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
-     
+        telnet_stream->async_read(1, callback);
+
         io_service.reset();
         io_service.run();
         
@@ -335,21 +385,33 @@ void telnet_options_naws_client_fixture::test_subnegotiation_short()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
+
+    odin::telnet::input_visitor visitor(
+        shared_ptr<odin::telnet::command_router>()
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router
+      , NULL);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
 
     odin::u32 called = 0;    
-    boost::function<void (odin::u16, odin::u16)> callback = (
+    boost::function<void (odin::u16, odin::u16)> naws_callback = (
         ++bll::var(called)
     );
     
     naws_client.set_activatable(true);
-    naws_client.on_size(callback);
+    naws_client.on_size(naws_callback);
     
-    telnet_stream->async_read(1, NULL);
+    function<void (
+        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    (
+        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
+    );
     
     {
         odin::u8 data[] = { 
@@ -357,6 +419,7 @@ void telnet_options_naws_client_fixture::test_subnegotiation_short()
         };
         
         fake_stream->write_data_to_read(data);
+        telnet_stream->async_read(1, callback);
         
         io_service.reset();
         io_service.run();
@@ -372,6 +435,7 @@ void telnet_options_naws_client_fixture::test_subnegotiation_short()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();
@@ -387,21 +451,34 @@ void telnet_options_naws_client_fixture::test_subnegotiation_long()
         new fake_datastream<odin::u8, odin::u8>(io_service));
     shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::router> telnet_router(
-        new odin::telnet::router(telnet_stream));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
+
+    odin::telnet::input_visitor visitor(
+        shared_ptr<odin::telnet::command_router>()
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router
+      , NULL);
 
     odin::telnet::options::naws_client naws_client(
-        telnet_stream, telnet_router);
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
 
     odin::u32 called = 0;    
-    boost::function<void (odin::u16, odin::u16)> callback = (
+    boost::function<void (odin::u16, odin::u16)> naws_callback = (
         ++bll::var(called)
     );
     
     naws_client.set_activatable(true);
-    naws_client.on_size(callback);
+    naws_client.on_size(naws_callback);
     
-    telnet_stream->async_read(1, NULL);
+
+    function<void (
+        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    (
+        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
+    );
     
     {
         odin::u8 data[] = { 
@@ -409,6 +486,7 @@ void telnet_options_naws_client_fixture::test_subnegotiation_long()
         };
         
         fake_stream->write_data_to_read(data);
+        telnet_stream->async_read(1, callback);
         
         io_service.reset();
         io_service.run();
@@ -424,6 +502,7 @@ void telnet_options_naws_client_fixture::test_subnegotiation_long()
         odin::runtime_array<odin::u8> array(data);
         
         fake_stream->write_data_to_read(array);
+        telnet_stream->async_read(1, callback);
      
         io_service.reset();
         io_service.run();

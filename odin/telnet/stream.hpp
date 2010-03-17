@@ -1,7 +1,7 @@
 // ==========================================================================
 // Odin Telnet Stream
 //
-// Copyright (C) 2003 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -27,68 +27,42 @@
 #ifndef ODIN_TELNET_STREAM_HPP_
 #define ODIN_TELNET_STREAM_HPP_
 
-#include "odin/io/datastream.hpp"
 #include "odin/telnet/protocol.hpp"
-#include <boost/function.hpp>
+#include "odin/io/datastream.hpp"
 #include <boost/shared_ptr.hpp>
-#include <boost/utility.hpp>
+#include <boost/variant.hpp>
+#include <string>
 
 namespace boost { namespace asio {
-
-class io_service;
-
+    class io_service;
 }}
 
 namespace odin { namespace telnet {
 
-class initiated_negotiation;
-class completed_negotiation;
-        
+namespace detail {
+    typedef boost::variant<
+        odin::telnet::command_type
+      , odin::telnet::negotiation_type
+      , odin::telnet::subnegotiation_type
+      , std::string
+    > element_type;
+}
+
 //* =========================================================================
-/// \brief A wrapper around a datastream that provides Telnet protocol
-/// capabilities.
-///
-/// \par Behaviour
-/// For odin::telnet::stream, the parts of data that are Telnet data are
-/// considered to be blocking - it is possible that a read of these data
-/// yield no bytes of actual data.
+/// \brief A class that represents a telnet datastream.
 //* =========================================================================
-class stream 
-    : public  odin::io::byte_stream
-    , private boost::noncopyable
+class stream
+    : public odin::io::datastream<
+          odin::telnet::detail::element_type
+        , odin::telnet::detail::element_type
+      >
 {
 public :
-    //* =====================================================================
-    /// \brief The callback type used to register for notification of when
-    /// a Telnet command has been received.
-    //* =====================================================================
-    typedef boost::function
-    <
-        void (command)
-    > command_callback;
-
-    //* =====================================================================
-    /// \brief The callback type used to register for notification of when
-    /// a Telnet negotiation has been made by the remote end point.
-    //* =====================================================================
-    typedef boost::function
-    <
-        void (negotiation_request_type, option_id_type)
-    > negotiation_callback;
     
-    //* =====================================================================
-    /// \brief The callback type used to register for notification of when
-    /// a Telnet subnegotiation has been received.
-    //* =====================================================================
-    typedef ::boost::function
-    <
-        void (option_id_type, subnegotiation_type)
-    > subnegotiation_callback;
-
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    explicit stream(
+    stream(
         boost::shared_ptr<odin::io::byte_stream> const &underlying_stream
       , boost::asio::io_service                        &io_service);
 
@@ -101,8 +75,11 @@ public :
     /// \brief Returns the number of objects that are available to be read.
     /// \return the number of objects that are available to be read without 
     /// blocking, or no value if this is unknown and a call to read() might
-    /// block.  The value 0 must only be returned in the case that there is 
-    /// no more data to be read, and the stream is dead.  
+    /// block.  Note: if a stream is serving any asynchronous read requests,
+    /// it must return at most the amount already buffered by the stream,
+    /// otherwise that it might block. The value 0 must only be returned
+    /// in the case that there is no more data to be read, and the stream is 
+    /// dead. 
     /// \warning This operation MUST NOT block.
     //* =====================================================================
     virtual boost::optional<input_size_type> available() const;
@@ -156,40 +133,6 @@ public :
     /// \return true if the underlying stream is alive, false otherwise.
     //* =====================================================================
     virtual bool is_alive() const;
-
-    //* =====================================================================
-    /// \brief Send a Telnet command to the datastream.
-    //* =====================================================================
-    void send_command(command cmd);
-
-    //* =====================================================================
-    /// \brief Initiate or complete a Telnet negotiation.
-    //* =====================================================================
-    void send_negotiation(
-        negotiation_request_type request
-      , option_id_type           type);
-    
-    //* =====================================================================
-    /// \brief Send a Telnet subnegotiation to the datastream.
-    //* =====================================================================
-    void send_subnegotiation(
-        option_id_type             id
-      , subnegotiation_type const &subnegotiation);
-    
-    //* =====================================================================
-    /// \brief Register for notification of incoming Telnet commands.
-    //* =====================================================================
-    void on_command(command_callback const &callback);
-    
-    //* =====================================================================
-    /// \brief Register for notification of incoming negotiation requests.
-    //* =====================================================================
-    void on_negotiation(negotiation_callback const &callback);
-
-    //* =====================================================================
-    /// \brief Register for notification of incoming subnegotiations.
-    //* =====================================================================
-    void on_subnegotiation(subnegotiation_callback const &callback);
     
 private :
     class impl;

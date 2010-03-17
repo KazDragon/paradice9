@@ -231,11 +231,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\completed_negotiation.hpp"
+				RelativePath=".\telnet\command_router.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\filter.hpp"
+				RelativePath=".\telnet\completed_negotiation.hpp"
 				>
 			</File>
 			<File
@@ -243,11 +243,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\protocol.hpp"
+				RelativePath=".\telnet\input_visitor.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\router.hpp"
+				RelativePath=".\telnet\negotiation_router.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\protocol.hpp"
 				>
 			</File>
 			<File
@@ -256,6 +260,14 @@
 			</File>
 			<File
 				RelativePath=".\telnet\stream.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\subnegotiation_router.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\subnegotiation_router.hpp"
 				>
 			</File>
 		</Filter>
@@ -267,11 +279,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\completed_negotiation.cpp"
+				RelativePath=".\telnet\command_router.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\filter.cpp"
+				RelativePath=".\telnet\completed_negotiation.cpp"
 				>
 			</File>
 			<File
@@ -279,7 +291,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\router.cpp"
+				RelativePath=".\telnet\input_visitor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\negotiation_router.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\protocol.cpp"
 				>
 			</File>
 			<File
@@ -307,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\telnet\options\naws_server.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet\options\subnegotiationless_client.hpp"
 				>
 			</File>
@@ -322,12 +346,40 @@
 				RelativePath=".\telnet\options\suppress_goahead_server.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_server.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\transmit_binary_client.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Telnet Option Source Files"
 			>
 			<File
 				RelativePath=".\telnet\options\naws_client.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\naws_server.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_client.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_server.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\transmit_binary_server.hpp"
 				>
 			</File>
 		</Filter>

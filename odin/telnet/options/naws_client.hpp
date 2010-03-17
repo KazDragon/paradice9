@@ -30,11 +30,6 @@
 #include "odin/telnet/client_option.hpp"
 #include <boost/function.hpp>
 
-namespace odin { namespace telnet {
-    class router;
-    class stream;
-}}
-
 namespace odin { namespace telnet { namespace options {
 
 //* ==========================================================================
@@ -55,8 +50,9 @@ public :
     /// \brief Constructor
     //* =====================================================================
     naws_client(
-        boost::shared_ptr<odin::telnet::stream> const &stream
-      , boost::shared_ptr<odin::telnet::router> const &router);
+        boost::shared_ptr<odin::telnet::stream> const                &stream
+      , boost::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
+      , boost::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router);
 
     //* =====================================================================
     /// \brief Destructor

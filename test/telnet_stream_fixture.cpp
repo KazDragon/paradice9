@@ -1,12 +1,10 @@
 #include "telnet_stream_fixture.hpp"
 #include "odin/telnet/stream.hpp"
-#include "odin/telnet/initiated_negotiation.hpp"
+#include "odin/telnet/protocol.hpp"
 #include "fake_datastream.hpp"
 #include <boost/function.hpp>
-#include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
-#include <boost/lambda/construct.hpp>
-#include <boost/lambda/exceptions.hpp>
+#include <boost/lambda/lambda.hpp>
 #include <boost/typeof/typeof.hpp>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_stream_fixture);
@@ -25,22 +23,40 @@ void telnet_stream_fixture::test_constructor()
     boost::asio::io_service           io_service;
     shared_ptr<odin::io::byte_stream> fake_stream(
         new fake_bytestream(io_service));
-    
+
     odin::telnet::stream stream(fake_stream, io_service);
 }
 
 void telnet_stream_fixture::test_inheritance()
 {
-    // Tests that a telnet stream is itself a byte stream.
+    // Tests that a telnet stream is a bidirectional stream of telnet symbols.
+    typedef variant<
+        odin::telnet::command_type
+      , odin::telnet::negotiation_type
+      , odin::telnet::subnegotiation_type
+      , string
+    > telnet_io_type;
+
     boost::asio::io_service           io_service;
     shared_ptr<odin::io::byte_stream> fake_stream(
         new fake_bytestream(io_service));
-    
+
     odin::telnet::stream stream(fake_stream, io_service);
     
-    odin::io::byte_stream &byte_stream = stream;
-    (void)byte_stream;
+    odin::io::datastream<
+        telnet_io_type
+      , telnet_io_type
+    > &ref = stream;
+    
+    (void)ref;
 }
+
+// Now that the particulars of the stream have been established, we can
+// make typedefs to them for ease of use.
+typedef odin::telnet::stream::input_size_type     input_size_type;
+typedef odin::telnet::stream::input_value_type    input_value_type;
+typedef odin::runtime_array<input_value_type>      input_array_type;
+typedef odin::telnet::stream::input_callback_type input_callback_type;
 
 void telnet_stream_fixture::test_sync_read_normal()
 {
@@ -49,1174 +65,669 @@ void telnet_stream_fixture::test_sync_read_normal()
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 expected_data[] = { 'X' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(expected_data);
-    
-    odin::runtime_array<odin::u8> actual_array(
-        stream.read(odin::runtime_array<odin::u8>::size_type(1)));
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-}
-
-void telnet_stream_fixture::test_async_read_normal()
-{
-    // Tests that an asynchronous read of a normal character yields a normal
-    // character.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 expected_data[] = { 'X' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(expected_data);
-    
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-
-    stream.async_read(
-        odin::runtime_array<odin::u8>::size_type(1)
-      , callback);
-    
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-}
-
-void telnet_stream_fixture::test_available_empty()
-{
-    // If a stream is empty, then available() must return an unitialised
-    // optional signifying that a read would block.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-}
-
-void telnet_stream_fixture::test_available_normal()
-{
-    // If a stream has only normal data in it, then available() must return
-    // the size of that normal data.  This is the amount that may be read
-    // without blocking.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e' };
+    odin::u8 data[] = { 'X' };
     odin::runtime_array<odin::u8> array(data);
     
-    fake_stream->write_data_to_read(array);
+    fake_stream->write_data_to_read(data);
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size(), available.get());
+    input_array_type actual_variant_array(stream.read(input_size_type(1)));
+    
+    string expected_string("X");
+    
+    input_value_type expected_variant(expected_string);
+    input_array_type expected_variant_array(&expected_variant, 1);
+
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
+    
+    BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
+    
+    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
 }
 
-void telnet_stream_fixture::test_available_normal_iac()
+void telnet_stream_fixture::test_sync_read_normal_iac()
 {
-    // If a stream has normal data followed by a lone IAC, then that final
-    // IAC might be a telnet byte (or it may be an escaped IAC - we just don't
-    // know yet).  Therefore, it must not be counted in the data available to
-    // read.
+    // Test that a stream followed by a lone IAC returns all the data up
+    // to that IAC.  The final byte may turn out to be the beginning of
+    // a telnet command, or might end up an escaped IAC.  It's not known,
+    // so it must not be returned.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
     odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e', odin::telnet::IAC };
     odin::runtime_array<odin::u8> array(data);
     
     fake_stream->write_data_to_read(array);
+    input_array_type actual_variant_array(stream.read(input_size_type(1)));
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-}
+    string expected_string("abcde");
+    
+    input_value_type expected_variant(expected_string);
+    input_array_type expected_variant_array(&expected_variant, 1);
 
-void telnet_stream_fixture::test_available_normal_iac_iac()
-{
-    // If a stream has normal data followed by a pair of IAC, then that counts
-    // as a single literal IAC byte.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
     
-    odin::u8 data[] = { 
-        'a', 'b', 'c', 'd', 'e', odin::telnet::IAC, odin::telnet::IAC 
-    };
-    odin::runtime_array<odin::u8> array(data);
+    BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
     
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-}
-
-void telnet_stream_fixture::test_available_normal_iac_iac_normal()
-{
-    // If a stream has normal data followed by a pair of IAC, then that counts
-    // as a single literal IAC byte.  This must be included as normal data.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 
-        'a', 'b', 'c', 'd', 'e', odin::telnet::IAC, odin::telnet::IAC, 'f' 
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-}
-
-void telnet_stream_fixture::test_available_negotiation()
-{
-    // If the stream begins with a negotiation and then stops, then reading
-    // may block.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-}
-
-void telnet_stream_fixture::test_available_negotiation_normal()
-{
-    // If the stream begins with a negotiation and then continues with normal
-    // data, then reading will not block until that normal data is exhausted.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
-      , 'a', 'b', 'c'
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 3, available.get());
-}
-
-void telnet_stream_fixture::test_available_during_async_read()
-{
-    // The method available() usually makes a synchronous read on the 
-    // underlying stream in order to buffer up data and give a decent
-    // response.  However, if there is currently an asynchronous read
-    // ongoing, then this may cause data to be read out of sequence.  
-    // Therefore, we test that available() returns uninitialised (for
-    // "may block" and that no data is buffered (by checking the side-
-    // effect that data will appear in order).
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 partial_data0[] = { 'a' };
-    fake_stream->write_data_to_read(partial_data0);
-    
-    odin::u32                     called = 0;
-    odin::runtime_array<odin::u8> result_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        ++bll::var(called)
-      , bll::var(result_array) = bll::_1
-    );
-    
-    stream.async_read(2, callback);
-    io_service.run();
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-    
-    odin::u8 partial_data1[] = { 'b' };
-    
-    fake_stream->write_data_to_read(partial_data1);
-    io_service.reset();
-    io_service.run();
-    
-    odin::u8 expected_data[] = { 'a', 'b' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    CPPUNIT_ASSERT_EQUAL(odin::u32(1), called);
-    CPPUNIT_ASSERT_EQUAL(expected_array, result_array); 
-}
-
-void telnet_stream_fixture::test_available_during_async_callback()
-{
-    // The method available() usually makes a synchronous read on the
-    // underlying stream in order to buffer up data and give a decent
-    // response.  This is suspended while an asynchronous read is active.
-    // However, on the callback from an asynchronous read, it may well be
-    // that a call to available() is performed in order to determine how
-    // much the next asynchronous read should attempt to read.  The call
-    // to available() must be allowed to be performed here.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 'a', 'b', 'c', 'd' };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(data);
-    
-    odin::u32                                                 called = 0;
-    odin::runtime_array<odin::u8>                             result_array;
-    boost::optional<odin::runtime_array<odin::u8>::size_type> available;
-    
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        ++bll::var(called)
-      , bll::var(result_array) = bll::_1
-      , bll::var(available)    = bll::bind(
-            &odin::telnet::stream::available, &stream)
-    );
-    
-    stream.async_read(1, callback);
-    io_service.run();
-    
-    odin::u8 expected_data[] = { 'a' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    CPPUNIT_ASSERT_EQUAL(odin::u32(1), called);
-    CPPUNIT_ASSERT_EQUAL(expected_array, result_array);
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-}
-
-void telnet_stream_fixture::test_sync_read_normal_iac()
-{
-    // If the stream ends in an IAC byte, then that must not be included
-    // (yet) in the available bytes to read.  Similarly, if that byte is
-    // read, it must block.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 'a', 'b', 'c', odin::telnet::IAC };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-    
-    odin::runtime_array<odin::u8> expected_array(data, array.size() - 1);
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(available.get()));
-
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
+    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
 }
 
 void telnet_stream_fixture::test_sync_read_normal_iac_iac()
 {
-    // If the stream has a pair of IAC bytes together, they must act
-    // as and be read as a single IAC byte. 
+    // Test that a stream followed by a double IAC returns all the data 
+    // including the escaped IAC.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
     odin::u8 data[] = { 
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC 
+        'a', 'b', 'c', 'd', 'e', odin::telnet::IAC, odin::telnet::IAC
     };
     odin::runtime_array<odin::u8> array(data);
     
-    odin::u8 expected_data[] = {
-        'a', 'b', 'c', odin::telnet::IAC 
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
     fake_stream->write_data_to_read(array);
+    input_array_type actual_variant_array(stream.read(input_size_type(1)));
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(available.get()));
+    string expected_string("abcde\xFF");
     
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
-}    
+    input_value_type expected_variant(expected_string);
+    input_array_type expected_variant_array(&expected_variant, 1);
 
-void telnet_stream_fixture::test_sync_read_normal_iac_iac_normal()
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
+    
+    BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
+    
+    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
+}
+
+void telnet_stream_fixture::test_sync_read_normal_iac_then_iac()
 {
-    // If the stream has a pair of IAC bytes together, they must act
-    // as and be read as a single IAC byte. 
+    // Test that a stream followed by a lone IAC returns all the data up
+    // to that IAC.  The final byte may turn out to be the beginning of
+    // a telnet command, or might end up an escaped IAC.  It's not known,
+    // so it must not be returned.
+    // Then check that adding a second lone IAC and reading again returns
+    // the escaped IAC.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC, 'd'
-    };
-    odin::runtime_array<odin::u8> array(data);
+    {
+        odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e', odin::telnet::IAC };
+        odin::runtime_array<odin::u8> array(data);
+        
+        fake_stream->write_data_to_read(array);
+    }
     
-    odin::u8 expected_data[] = {
-        'a', 'b', 'c', odin::telnet::IAC, 'd'
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
+    input_array_type actual_variant_array(stream.read(input_size_type(1)));
     
-    fake_stream->write_data_to_read(array);
+    {
+        string expected_string("abcde");
+        
+        input_value_type expected_variant(expected_string);
+        input_array_type expected_variant_array(&expected_variant, 1);
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
-
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(available.get()));
+        CPPUNIT_ASSERT_EQUAL(input_array_type::size_type(1), actual_variant_array.size());
+        
+        BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
+        
+        CPPUNIT_ASSERT_EQUAL(expected_string, element0);
+    }
     
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
-}    
+    {
+        odin::u8 data[] = { odin::telnet::IAC };
+        odin::runtime_array<odin::u8> array(data);
+        
+        fake_stream->write_data_to_read(array);
+    }
+    
+    actual_variant_array = stream.read(input_size_type(1));
+    
+    {
+        string expected_string("\xFF");
+        
+        input_value_type expected_variant(expected_string);
+        input_array_type expected_variant_array(&expected_variant, 1);
+    
+        CPPUNIT_ASSERT_EQUAL(
+            expected_variant_array.size()
+          , actual_variant_array.size());
+        
+        BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
+        
+        CPPUNIT_ASSERT_EQUAL(expected_string, element0);
+    }
+}
 
 void telnet_stream_fixture::test_sync_read_command()
 {
-    // If a stream contains only a telnet command, then reading from it
-    // will block, but will announce to a listener that the command has been
-    // read.
+    // Tests that a synchronous read of a command yields a command.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::AYT
-    };
+    odin::u8 data[] = { odin::telnet::IAC, odin::telnet::NOP };
     odin::runtime_array<odin::u8> array(data);
     
-    fake_stream->write_data_to_read(array);
+    fake_stream->write_data_to_read(data);
+    input_array_type actual_variant_array(stream.read(input_size_type(1)));
     
-    odin::telnet::command command = odin::telnet::command(0);
-    function<void (odin::telnet::command)> command_handler = (
-        bll::var(command) = bll::_1
-    );
-        
-    stream.on_command(command_handler);
+    odin::telnet::command_type expected_command = odin::telnet::NOP;
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
+    input_value_type expected_variant(expected_command);
+    input_array_type expected_variant_array(&expected_variant, 1);
+
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
     
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
+    BOOST_AUTO(
+        element0
+      , get<odin::telnet::command_type>(actual_variant_array[0]));
     
-    CPPUNIT_ASSERT_EQUAL(command, odin::telnet::AYT);
+    CPPUNIT_ASSERT(expected_command == element0);
 }
 
-void telnet_stream_fixture::test_sync_read_command_normal()
+void telnet_stream_fixture::test_sync_read_normal_command()
 {
+    // Tests that a synchronous read of a normal character string and
+    // a command yields that.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::AYT, 'a'
-    };
+    odin::u8 data[] = { 'a', odin::telnet::IAC, odin::telnet::NOP };
     odin::runtime_array<odin::u8> array(data);
     
-    odin::u8 expected_data[] = { 'a' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
+    fake_stream->write_data_to_read(data);
+    input_array_type actual_variant_array(stream.read(input_size_type(2)));
+    
+    string expected_string("a");
+    
+    odin::telnet::command_type expected_command = odin::telnet::NOP;
+    
+    input_value_type expected_variant0(expected_string);
+    input_value_type expected_variant1(expected_command);
+    
+    input_array_type expected_variant_array(2);
+    expected_variant_array[0] = expected_variant0;
+    expected_variant_array[1] = expected_variant1;
 
-    fake_stream->write_data_to_read(array);
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
     
-    odin::telnet::command command = odin::telnet::command(0);
-    function<void (odin::telnet::command)> command_handler = (
-        bll::var(command) = bll::_1
-    );
-        
-    stream.on_command(command_handler);
+    BOOST_AUTO(
+        element0
+      , get<string>(actual_variant_array[0]));
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
+    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
     
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(expected_array.size()));
-
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
+    BOOST_AUTO(
+        element1
+      , get<odin::telnet::command_type>(actual_variant_array[1]));
     
-    CPPUNIT_ASSERT_EQUAL(command, odin::telnet::AYT);
+    CPPUNIT_ASSERT_EQUAL(expected_command, element1);
 }
 
-void telnet_stream_fixture::test_sync_read_negotiation()
+void telnet_stream_fixture::test_sync_read_partial()
 {
-    // If a stream contains only a telnet negotiation, then reading from it
-    // will block, but will announce to a listener that the negotiation has 
-    // been read.
+    // Tests that a synchronous read of part of an input stream leaves the
+    // remainder available to be read.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
+    odin::u8 data[] = { 
+        'a'
+      , odin::telnet::IAC, odin::telnet::NOP
+      , 'b', 'c'
     };
-    odin::runtime_array<odin::u8> array(data);
     
-    fake_stream->write_data_to_read(array);
+    fake_stream->write_data_to_read(data);
+    input_array_type actual_variant_array(stream.read(input_size_type(2)));
     
-    odin::telnet::negotiation_request_type request   = 
-        odin::telnet::negotiation_request_type(0);
-    odin::telnet::option_id_type           option_id = 0;
-    
-    function<void (
-        odin::telnet::negotiation_request_type
-      , odin::telnet::option_id_type)> negotiation_handler = (
-        bll::var(request)   = bll::_1
-      , bll::var(option_id) = bll::_2
-    );
+    {
+        string expected_string0("a");
         
-    stream.on_negotiation(negotiation_handler);
+        odin::telnet::command_type expected_command1 = odin::telnet::NOP;
+        
+        input_value_type expected_variant0 = expected_string0;
+        input_value_type expected_variant1 = expected_command1;
+        
+        input_array_type expected_variant_array(2);
+        expected_variant_array[0] = expected_variant0;
+        expected_variant_array[1] = expected_variant1;
+        
+        CPPUNIT_ASSERT_EQUAL(
+            expected_variant_array.size()
+          , actual_variant_array.size());
+        
+        BOOST_AUTO(
+            actual_element0
+          , get<string>(actual_variant_array[0]));
+        
+        CPPUNIT_ASSERT_EQUAL(expected_string0, actual_element0);
+        
+        BOOST_AUTO(
+            actual_element1
+          , get<odin::telnet::command_type>(actual_variant_array[1]));
+        
+        CPPUNIT_ASSERT_EQUAL(expected_command1, actual_element1);
+    }
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
+    actual_variant_array = stream.read(input_size_type(1));
     
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
-    
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
+    {
+        string           expected_string2("bc");
+        input_value_type expected_variant2(expected_string2);
+        input_array_type expected_variant_array(&expected_variant2, 1);
+        
+        CPPUNIT_ASSERT_EQUAL(
+            expected_variant_array.size()
+          , actual_variant_array.size());
+        
+        BOOST_AUTO(
+            actual_element2
+          , get<string>(actual_variant_array[0]));
+        
+        CPPUNIT_ASSERT_EQUAL(expected_string2, actual_element2);
+    }
 }
 
-void telnet_stream_fixture::test_sync_read_negotiation_normal()
+void telnet_stream_fixture::test_sync_read_many()
 {
+    // Tests a synchronous read of a stream of many parts.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
     odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO, 'a'
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    odin::u8 expected_data[] = { 'a' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-
-    fake_stream->write_data_to_read(array);
-    
-    odin::telnet::negotiation_request_type request   = 
-        odin::telnet::negotiation_request_type(0);
-    odin::telnet::option_id_type           option_id = 0;
-    
-    function<void (
-        odin::telnet::negotiation_request_type
-      , odin::telnet::option_id_type)> negotiation_handler = (
-        bll::var(request)   = bll::_1
-      , bll::var(option_id) = bll::_2
-    );
-        
-    stream.on_negotiation(negotiation_handler);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
-
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(expected_array.size()));
-    
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
-    
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
-}
-
-void telnet_stream_fixture::test_sync_read_subnegotiation()
-{
-    // If a stream contains only a telnet subnegotiation, then reading from it
-    // will block, but will announce to a listener that the subnegotiation has 
-    // been read.
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO
-      , 'x', 'y'
+        'a', 'b', 'c'
+      , odin::telnet::IAC, odin::telnet::NOP
+      , odin::telnet::IAC, odin::telnet::AYT
+      , odin::telnet::IAC, odin::telnet::SB
+        , odin::telnet::NAWS, 0, 1, 2, 3
       , odin::telnet::IAC, odin::telnet::SE
+      , 'd', 'e', 'f'
     };
     odin::runtime_array<odin::u8> array(data);
+    
+    fake_stream->write_data_to_read(data);
+    input_array_type actual_variant_array(stream.read(input_size_type(5)));
+    
+    string           expected_string0("abc");
+    input_value_type expected_variant0(expected_string0);
 
-    fake_stream->write_data_to_read(array);
-
-    odin::u8 expected_data[] = { 'x', 'y' };
-    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
-    odin::telnet::subnegotiation_type    expected_array(expected_data);
-
-    odin::telnet::option_id_type subnegotiation_id(0);
-    odin::telnet::subnegotiation_type    subnegotiation;
-
-    boost::function<void (
-        odin::telnet::option_id_type
-      , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
-      , bll::var(subnegotiation) = bll::_2
-    );
-
-    stream.on_subnegotiation(subnegotiation_handler);
-
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
-
-    CPPUNIT_ASSERT_EQUAL(expected_id, subnegotiation_id);
-    CPPUNIT_ASSERT_EQUAL(expected_array, subnegotiation);
+    odin::telnet::command_type expected_command1 = odin::telnet::NOP;
+    input_value_type expected_variant1(expected_command1);
+    
+    odin::telnet::command_type expected_command2 = odin::telnet::AYT;
+    input_value_type expected_variant2(expected_command2);
+    
+    odin::u8 subnegotiation3_data[] = { 0, 1, 2, 3 };
+    vector<odin::u8> subnegotiation3_array(
+        subnegotiation3_data
+      , subnegotiation3_data + 4);
+    odin::telnet::subnegotiation_type expected_subnegotiation3;
+    expected_subnegotiation3.option_id_ = odin::telnet::NAWS;
+    expected_subnegotiation3.content_   = subnegotiation3_array;
+    input_value_type expected_variant3(expected_subnegotiation3);
+    
+    string           expected_string4("def");
+    input_value_type expected_variant4(expected_string4);
+    
+    input_array_type expected_variant_array(5);
+    expected_variant_array[0] = expected_variant0;
+    expected_variant_array[1] = expected_variant1;
+    expected_variant_array[2] = expected_variant2;
+    expected_variant_array[3] = expected_variant3;
+    expected_variant_array[4] = expected_variant4;
+    
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
+    
+    BOOST_AUTO(
+        element0
+      , get<string>(actual_variant_array[0]));
+    
+    CPPUNIT_ASSERT_EQUAL(element0, expected_string0);
+    
+    BOOST_AUTO(
+        element1
+      , get<odin::telnet::command_type>(actual_variant_array[1]));
+    
+    CPPUNIT_ASSERT_EQUAL(element1, expected_command1);
+    
+    BOOST_AUTO(
+        element2
+      , get<odin::telnet::command_type>(actual_variant_array[2]));
+    
+    CPPUNIT_ASSERT_EQUAL(element2, expected_command2);
+    
+    BOOST_AUTO(
+        element3
+      , get<odin::telnet::subnegotiation_type>(actual_variant_array[3]));
+    
+    CPPUNIT_ASSERT_EQUAL(
+        expected_subnegotiation3.option_id_
+      , element3.option_id_);
+    
+    CPPUNIT_ASSERT(
+        expected_subnegotiation3.content_ == element3.content_);
+    
+    BOOST_AUTO(
+        element4
+      , get<string>(actual_variant_array[4]));
+    
+    CPPUNIT_ASSERT_EQUAL(expected_string4, element4);
 }
 
-void telnet_stream_fixture::test_sync_read_subnegotiation_normal()
+void telnet_stream_fixture::test_async_read_normal()
 {
+    // Tests an asynchronous read of a stream of normal characters.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO
-      , 'x', 'y'
-      , odin::telnet::IAC, odin::telnet::SE
-      , 'z'
-    };
-    odin::runtime_array<odin::u8> array(data);
-
-    odin::u8 expected_data[] = { 'z' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(array);
-
-    odin::u8 expected_subnegotiation_data[] = { 'x', 'y' };
-    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
-    odin::telnet::subnegotiation_type    expected_subnegotiation_array(
-        expected_subnegotiation_data);
-
-    odin::telnet::option_id_type subnegotiation_id(0);
-    odin::telnet::subnegotiation_type    subnegotiation;
-
-    boost::function<void (
-        odin::telnet::option_id_type
-      , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
-      , bll::var(subnegotiation) = bll::_2
-    );
-
-    stream.on_subnegotiation(subnegotiation_handler);
-
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(expected_array.size()));
-
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
-
-    CPPUNIT_ASSERT_EQUAL(expected_id, subnegotiation_id);
-    CPPUNIT_ASSERT_EQUAL(expected_subnegotiation_array, subnegotiation);
-}
-
-void telnet_stream_fixture::test_async_read_normal_iac()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 'a', 'b', 'c', odin::telnet::IAC };
+    odin::u8 data[] = { 'a', 'b', 'c' };
     odin::runtime_array<odin::u8> array(data);
     
-    fake_stream->write_data_to_read(array);
+    fake_stream->write_data_to_read(data);
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(array.size() - 1, available.get());
+    input_array_type actual_variant_array;
+    odin::u32        called = 0;
     
-    odin::runtime_array<odin::u8> expected_array(data, array.size() - 1);
-    CPPUNIT_ASSERT_EQUAL(expected_array, stream.read(available.get()));
+    input_callback_type input_callback = (
+        bll::var(actual_variant_array) = bll::_1
+      , ++bll::var(called)
+    );
+    
+    stream.async_read(input_size_type(1), input_callback);
+    
+    // The callback may not occur synchronously.
+    CPPUNIT_ASSERT(actual_variant_array.empty());
+    
+    io_service.run();
+    
+    // The callback must now have occurred.
+    string           expected_string("abc");
+    input_value_type expected_variant(expected_string);
+    input_array_type expected_variant_array(&expected_variant, 1);
+    
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
+    
+    CPPUNIT_ASSERT_EQUAL(
+        expected_string
+      , get<string>(actual_variant_array[0]));
 
-    CPPUNIT_ASSERT_THROW(
-        stream.read(odin::telnet::stream::input_size_type(1))
-      , blocking_error);
+        
 }
 
-void telnet_stream_fixture::test_async_read_normal_iac_iac()
+void telnet_stream_fixture::test_available_empty()
 {
+    // Tests that available() on a stream containing no data yields a
+    // "would block" response.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
+    
+    CPPUNIT_ASSERT(!stream.available().is_initialized());
+}
+
+void telnet_stream_fixture::test_available_iac()
+{
+    // Tests that available() on a stream containing only an IAC yields a
+    // "would block" response, because there is no complete token on the
+    // stream.
+    boost::asio::io_service     io_service;
+    shared_ptr<fake_bytestream> fake_stream(
+        new fake_bytestream(io_service));
+    odin::telnet::stream       stream(fake_stream, io_service);
+    
+    odin::u8 data[] = { odin::telnet::IAC };
+    odin::runtime_array<odin::u8> array(data);
+    
+    fake_stream->write_data_to_read(array);
+    
+    CPPUNIT_ASSERT(!stream.available().is_initialized());
+}
+
+void telnet_stream_fixture::test_available_normal()
+{
+    // Tests that available() on a stream containing normal data will yield
+    // a result of 1, being the one element that is an array of those data.
+    boost::asio::io_service     io_service;
+    shared_ptr<fake_bytestream> fake_stream(
+        new fake_bytestream(io_service));
+    odin::telnet::stream       stream(fake_stream, io_service);
+    
+    odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e' };
+    odin::runtime_array<odin::u8> array(data);
+
+    fake_stream->write_data_to_read(array);
+    
+    CPPUNIT_ASSERT(stream.available().is_initialized());
+    CPPUNIT_ASSERT_EQUAL(input_size_type(1), stream.available().get());
+}
+
+void telnet_stream_fixture::test_available_many()
+{
+    // Tests that available() on a stream containing many pieces of data will
+    // yield an appropriate result.
+    boost::asio::io_service     io_service;
+    shared_ptr<fake_bytestream> fake_stream(
+        new fake_bytestream(io_service));
+    odin::telnet::stream       stream(fake_stream, io_service);
     
     odin::u8 data[] = { 
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC 
+        'a', 'b', 'c', 'd', 'e'
+      , odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
+      , 'd', odin::telnet::IAC, odin::telnet::IAC
+      , odin::telnet::IAC, odin::telnet::NOP
+      , odin::telnet::IAC, odin::telnet::DONT, odin::telnet::ECHO
+      , 'e', 'f'
     };
+    
     odin::runtime_array<odin::u8> array(data);
-    
-    odin::u8 expected_data[] = {
-        'a', 'b', 'c', odin::telnet::IAC 
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
+
     fake_stream->write_data_to_read(array);
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
-
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-    
-    stream.async_read(available.get(), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-    
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
+    CPPUNIT_ASSERT(stream.available().is_initialized());
+    CPPUNIT_ASSERT_EQUAL(input_size_type(6), stream.available().get());
 }
 
-void telnet_stream_fixture::test_async_read_normal_iac_iac_normal()
+void telnet_stream_fixture::test_available_during_async_read()
 {
+    // Tests that available() on a stream during an async read yields a
+    // "would block."
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
+
+    odin::u8 data[] = { 'a', 'b', odin::telnet::IAC, odin::telnet::NOP };
+    odin::runtime_array<odin::u8> array(data);
+
+    fake_stream->write_data_to_read(array);
     
+    stream.async_read(1, NULL);    
+    
+    CPPUNIT_ASSERT(!stream.available().is_initialized());
+}
+
+void telnet_stream_fixture::test_available_during_async_callback()
+{
+    // Tests that available() on a stream during an async read yields a
+    // "would block."
+    boost::asio::io_service     io_service;
+    shared_ptr<fake_bytestream> fake_stream(
+        new fake_bytestream(io_service));
+    odin::telnet::stream       stream(fake_stream, io_service);
+
     odin::u8 data[] = { 
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC, 'd'
+        'a', 'b'
+      , odin::telnet::IAC, odin::telnet::NOP
+      , 'c', 'd'
     };
     odin::runtime_array<odin::u8> array(data);
-    
-    odin::u8 expected_data[] = {
-        'a', 'b', 'c', odin::telnet::IAC, 'd' 
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
 
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
+    fake_stream->write_data_to_read(array);
+
+    optional<input_size_type> available;
+    input_callback_type callback = (
+        bll::var(available) 
+            = bll::bind(&odin::telnet::stream::available, &stream)
     );
     
-    stream.async_read(available.get(), callback);
-
+    stream.async_read(1, callback);    
+    
     io_service.run();
     
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-    
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
+    CPPUNIT_ASSERT(available.is_initialized());
+    CPPUNIT_ASSERT_EQUAL(input_size_type(2), available.get());
 }
 
-void telnet_stream_fixture::test_async_read_command()
+typedef odin::telnet::stream::output_size_type     output_size_type;
+typedef odin::telnet::stream::output_value_type    output_value_type;
+typedef odin::runtime_array<output_value_type>      output_array_type;
+typedef odin::telnet::stream::output_callback_type output_callback_type;
+
+void telnet_stream_fixture::test_sync_write_nothing()
 {
+    // Tests that writing nothing to a telnet stream writes nothing to
+    // the underlying straem.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
+    odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::AYT
-    };
-    odin::runtime_array<odin::u8> array(data);
+    string            element0;
+    output_value_type variant0(element0);
+    output_array_type variant_array(&variant0, 1);
     
-    fake_stream->write_data_to_read(array);
+    stream.write(variant_array);
     
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-
-    odin::telnet::command command = odin::telnet::command(0);
-    function<void (odin::telnet::command)> command_handler = (
-        bll::var(command) = bll::_1
-    );
+    odin::runtime_array<odin::u8> actual_array = 
+        fake_stream->read_data_written();
         
-    stream.on_command(command_handler);
+    odin::runtime_array<odin::u8> expected_array;
     
-    stream.async_read(odin::telnet::stream::input_size_type(1), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(true, actual_array.empty());
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::AYT, command);
-        
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
-}
-
-void telnet_stream_fixture::test_async_read_command_normal()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::AYT, 'a'
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    odin::u8 expected_data[] = { 'a' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
-
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-
-    odin::telnet::command command = odin::telnet::command(0);
-    function<void (odin::telnet::command)> command_handler = (
-        bll::var(command) = bll::_1
-    );
-        
-    stream.on_command(command_handler);
-    stream.async_read(expected_array.size(), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::AYT, command);
-        
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
-}
-
-void telnet_stream_fixture::test_async_read_negotiation()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-
-    odin::telnet::negotiation_request_type request   = 
-        odin::telnet::negotiation_request_type(0);
-    odin::telnet::option_id_type           option_id = 0;
-    
-    function<void (
-        odin::telnet::negotiation_request_type
-      , odin::telnet::option_id_type)> negotiation_handler = (
-        bll::var(request)   = bll::_1
-      , bll::var(option_id) = bll::_2
-    );
-        
-    stream.on_negotiation(negotiation_handler);
-    
-    stream.async_read(odin::telnet::stream::input_size_type(1), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(true, actual_array.empty());
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
-        
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
-}
-
-void telnet_stream_fixture::test_async_read_negotiation_normal()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO, 'a'
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    odin::u8 expected_data[] = { 'a' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(array);
-    
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(true, available.is_initialized());
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), available.get());
-
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-
-    odin::telnet::negotiation_request_type request   = 
-        odin::telnet::negotiation_request_type(0);
-    odin::telnet::option_id_type           option_id = 0;
-    
-    function<void (
-        odin::telnet::negotiation_request_type
-      , odin::telnet::option_id_type)> negotiation_handler = (
-        bll::var(request)   = bll::_1
-      , bll::var(option_id) = bll::_2
-    );
-        
-    stream.on_negotiation(negotiation_handler);
-    stream.async_read(expected_array.size(), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, request);
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, option_id);
-        
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
-}
-
-void telnet_stream_fixture::test_async_read_subnegotiation()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO
-      , 'x', 'y'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    odin::runtime_array<odin::u8> array(data);
-
-    fake_stream->write_data_to_read(array);
-
-    BOOST_AUTO(available, stream.available());
-    CPPUNIT_ASSERT_EQUAL(false, available.is_initialized());
-    
-    odin::u8 expected_data[] = { 'x', 'y' };
-    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
-    odin::telnet::subnegotiation_type    expected_array(expected_data);
-
-    odin::telnet::option_id_type subnegotiation_id(0);
-    odin::telnet::subnegotiation_type    subnegotiation;
-
-    boost::function<void (
-        odin::telnet::option_id_type
-      , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
-      , bll::var(subnegotiation) = bll::_2
-    );
-
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-      
-    stream.on_subnegotiation(subnegotiation_handler);
-    stream.async_read(odin::telnet::stream::input_size_type(1), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(true, actual_array.empty());
-    CPPUNIT_ASSERT_EQUAL(expected_id, subnegotiation_id);
-    CPPUNIT_ASSERT_EQUAL(expected_array, subnegotiation);
-        
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
-}
-
-void telnet_stream_fixture::test_async_read_subnegotiation_normal()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-    
-    odin::u8 data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO
-      , 'x', 'y'
-      , odin::telnet::IAC, odin::telnet::SE
-      , 'z'
-    };
-    odin::runtime_array<odin::u8> array(data);
-
-    odin::u8 expected_data[] = { 'z' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    fake_stream->write_data_to_read(array);
-
-    odin::u8 expected_subnegotiation_data[] = { 'x', 'y' };
-    odin::telnet::option_id_type expected_id(odin::telnet::ECHO);
-    odin::telnet::subnegotiation_type    expected_subnegotiation_array(
-        expected_subnegotiation_data);
-
-    odin::telnet::option_id_type subnegotiation_id(0);
-    odin::telnet::subnegotiation_type    subnegotiation;
-
-    boost::function<void (
-        odin::telnet::option_id_type
-      , odin::telnet::subnegotiation_type)> subnegotiation_handler = (
-        bll::var(subnegotiation_id) = bll::_1
-      , bll::var(subnegotiation) = bll::_2
-    );
-
-    stream.on_subnegotiation(subnegotiation_handler);
-    
-    odin::runtime_array<odin::u8> actual_array;
-    boost::function<void (odin::runtime_array<odin::u8>)> callback = (
-        bll::var(actual_array) = bll::_1
-    );
-    
-    stream.async_read(expected_array.size(), callback);
-
-    io_service.run();
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-    CPPUNIT_ASSERT_EQUAL(expected_id, subnegotiation_id);
-    CPPUNIT_ASSERT_EQUAL(expected_subnegotiation_array, subnegotiation);
-        
-    stream.async_read(
-        odin::telnet::stream::input_size_type(1)
-      , bll::throw_exception(bll::bind(bll::constructor<blocking_error>())));
-
-    io_service.reset();
-    io_service.run();    
+    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
+    CPPUNIT_ASSERT(expected_array == actual_array);
 }
 
 void telnet_stream_fixture::test_sync_write_normal()
 {
+    // Tests that writing nothing to a telnet stream writes nothing to
+    // the underlying stream.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 data[] = { 'a', 'b', 'c' };
-    odin::runtime_array<odin::u8> array(data);
-
-    CPPUNIT_ASSERT_EQUAL(array.size(), stream.write(array));
-    CPPUNIT_ASSERT_EQUAL(array, fake_stream->read_data_written());
+    odin::telnet::stream       stream(fake_stream, io_service);
+    
+    string            element0("abc");
+    output_value_type variant0(element0);
+    output_array_type variant_array(&variant0, 1);
+    
+    stream.write(variant_array);
+    
+    odin::runtime_array<odin::u8> actual_array = 
+        fake_stream->read_data_written();
+        
+    odin::u8 expected_data[] = { 'a', 'b', 'c' };
+    odin::runtime_array<odin::u8> expected_array(expected_data);
+    
+    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
+    CPPUNIT_ASSERT(expected_array == actual_array);
 }
 
 void telnet_stream_fixture::test_sync_write_normal_iac()
 {
+    // Tests that writing nothing to a telnet stream writes nothing to
+    // the underlying stream.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 data[] = { 'a', 'b', 'c', odin::telnet::IAC };
-    odin::runtime_array<odin::u8> array(data);
-
-    odin::u8 expected_data[] = {
+    odin::telnet::stream       stream(fake_stream, io_service);
+    
+    string            element0("abc\xFF");
+    output_value_type variant0(element0);
+    output_array_type variant_array(&variant0, 1);
+    
+    stream.write(variant_array);
+    
+    odin::runtime_array<odin::u8> actual_array = 
+        fake_stream->read_data_written();
+        
+    odin::u8 expected_data[] = { 
         'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC
     };
     odin::runtime_array<odin::u8> expected_array(expected_data);
-
-    CPPUNIT_ASSERT_EQUAL(array.size(), stream.write(array));
-    CPPUNIT_ASSERT_EQUAL(expected_array, fake_stream->read_data_written());
+    
+    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
+    CPPUNIT_ASSERT(expected_array == actual_array);
 }
 
 void telnet_stream_fixture::test_async_write_normal()
 {
+    // Tests that writing nothing to a telnet stream writes nothing to
+    // the underlying stream.
     boost::asio::io_service     io_service;
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 data[] = { 'a', 'b', 'c'  };
-    odin::runtime_array<odin::u8> array(data);
-
-    odin::runtime_array<odin::u8>::size_type amount_sent = 0;
-    odin::telnet::stream::output_callback_type callback = (
-        bll::var(amount_sent) = bll::_1
+    odin::telnet::stream       stream(fake_stream, io_service);
+    
+    string            element0("abc");
+    output_value_type variant0(element0);
+    output_array_type variant_array(&variant0, 1);
+    
+    odin::u32        called = 0;
+    output_size_type output_size = 0;
+    boost::function<void (output_size_type)> callback = (
+        ++bll::var(called)
+      , bll::var(output_size) = bll::_1
     );
-
-    stream.async_write(data, callback);
-
+    
+    stream.async_write(variant_array, callback);
+    
+    // This may not happen synchronously.
+    odin::runtime_array<odin::u8> actual_array = 
+        fake_stream->read_data_written();
+        
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), called);
+    CPPUNIT_ASSERT_EQUAL(output_size_type(0), output_size);
+    CPPUNIT_ASSERT_EQUAL(true, actual_array.empty());
+        
     io_service.run();
 
-    CPPUNIT_ASSERT_EQUAL(array.size(), amount_sent);
-    CPPUNIT_ASSERT_EQUAL(array, fake_stream->read_data_written());
-}
-
-void telnet_stream_fixture::test_async_write_normal_iac()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 data[] = { 
-        'a', 'b', 'c', odin::telnet::IAC
-    };
-    odin::runtime_array<odin::u8> array(data);
-
-    odin::u8 expected_data[] = {
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC
-    };
+    actual_array = fake_stream->read_data_written();
+    
+    odin::u8 expected_data[] = { 'a', 'b', 'c' };
     odin::runtime_array<odin::u8> expected_array(expected_data);
 
-    odin::runtime_array<odin::u8>::size_type amount_sent = 0;
-    odin::telnet::stream::output_callback_type callback = (
-        bll::var(amount_sent) = bll::_1
-    );
-
-    stream.async_write(data, callback);
-
-    io_service.run();
-
-    CPPUNIT_ASSERT_EQUAL(array.size(), amount_sent);
-    CPPUNIT_ASSERT_EQUAL(expected_array, fake_stream->read_data_written());
-}
-
-void telnet_stream_fixture::test_send_command()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 expected_data[] = {
-        odin::telnet::IAC, odin::telnet::AYT
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-
-    stream.send_command(odin::telnet::AYT);
-
-    CPPUNIT_ASSERT_EQUAL(expected_array, fake_stream->read_data_written());
-}
-
-void telnet_stream_fixture::test_send_negotiation()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::u8 expected_data[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-
-    stream.send_negotiation(odin::telnet::WILL, odin::telnet::ECHO);
-
-    CPPUNIT_ASSERT_EQUAL(expected_array, fake_stream->read_data_written());
-}
-
-void telnet_stream_fixture::test_send_subnegotiation()
-{
-    boost::asio::io_service     io_service;
-    shared_ptr<fake_bytestream> fake_stream(
-        new fake_bytestream(io_service));
-    odin::telnet::stream        stream(fake_stream, io_service);
-
-    odin::telnet::option_id_type subnegotiation_id = 
-        odin::telnet::ECHO;
-
-    odin::u8 subnegotiation_data[] = {
-        'x', 'y'
-    };
-    odin::runtime_array<odin::u8> subnegotiation_array(subnegotiation_data);
-
-    odin::u8 expected_data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO
-      , 'x', 'y'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-
-    stream.send_subnegotiation(subnegotiation_id, subnegotiation_array);
-
-    CPPUNIT_ASSERT_EQUAL(expected_array, fake_stream->read_data_written());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), called);
+    CPPUNIT_ASSERT_EQUAL(variant_array.size(), output_size);    
+    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
+    CPPUNIT_ASSERT(expected_array == actual_array);
 }

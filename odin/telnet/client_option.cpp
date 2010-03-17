@@ -1,7 +1,7 @@
 // ==========================================================================
 // Odin Telnet Client-Option.
 //
-// Copyright (C) 2003 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -26,7 +26,8 @@
 // ==========================================================================
 #include "odin/telnet/client_option.hpp"
 #include "odin/telnet/stream.hpp"
-#include "odin/telnet/router.hpp"
+#include "odin/telnet/negotiation_router.hpp"
+#include "odin/telnet/subnegotiation_router.hpp"
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
@@ -37,18 +38,154 @@ namespace odin { namespace telnet {
 // ==============================================================================
 // CLIENT_OPTION IMPLEMENTATION STRUCTURE
 // ==============================================================================
-struct client_option::impl
+class client_option::impl
     : public enable_shared_from_this<impl>
 {
-    shared_ptr<odin::telnet::stream>     stream_;
-    shared_ptr<odin::telnet::router>     router_;
+public :
+    impl(
+        shared_ptr<stream> const                   &stream
+      , shared_ptr<negotiation_router> const       &negotiation_router
+      , shared_ptr<subnegotiation_router> const    &subnegotiation_router
+      , option_id_type                              option_id)
+      : stream_(stream)
+      , negotiation_router_(negotiation_router)
+      , subnegotiation_router_(subnegotiation_router)
+      , option_id_(option_id)
+      , active_(false)
+      , activate_sent_(false)
+      , activatable_(false)
+      , deactivate_sent_(false)
+      , do_negotiation_(1)
+      , dont_negotiation_(1)
+    {
+        negotiation_type do_negotiation_content;
+        do_negotiation_content.request_   = DO;
+        do_negotiation_content.option_id_ = option_id_;
+        do_negotiation_[0] = do_negotiation_content;
+        
+        negotiation_type dont_negotiation_content;
+        dont_negotiation_content.request_   = DONT;
+        dont_negotiation_content.option_id_ = option_id_;
+        dont_negotiation_[0] = dont_negotiation_content;
+    }
+    
+    void register_routes(
+        function<void (subnegotiation_type)> const &subnegotiation_callback)
+    {
+        negotiation_type will_negotiation;
+        will_negotiation.request_   = WILL;
+        will_negotiation.option_id_ = option_id_;
+        
+        negotiation_router_->register_route(
+            will_negotiation
+          , bind(&impl::on_will, shared_from_this()));
+
+        negotiation_type wont_negotiation;
+        wont_negotiation.request_   = WONT;
+        wont_negotiation.option_id_ = option_id_;
+        
+        negotiation_router_->register_route(
+            wont_negotiation
+          , bind(&impl::on_wont, shared_from_this()));
+        
+        subnegotiation_callback_ = subnegotiation_callback;
+        
+        subnegotiation_router_->register_route(
+            option_id_
+          , bind(&impl::on_subnegotiation, shared_from_this(), _1));
+    }
+    
+    void unregister_routes()
+    {
+        negotiation_type will_negotiation;
+        will_negotiation.request_   = WILL;
+        will_negotiation.option_id_ = option_id_;
+        
+        negotiation_router_->unregister_route(will_negotiation);
+
+        negotiation_type wont_negotiation;
+        wont_negotiation.request_   = WONT;
+        wont_negotiation.option_id_ = option_id_;
+        
+        negotiation_router_->unregister_route(wont_negotiation);
+        
+        subnegotiation_router_->unregister_route(option_id_);
+    }
+
+    option_id_type get_option_id() const
+    {
+        return option_id_;
+    }
+    
+    void activate()
+    {
+        if(!active_ && !activate_sent_)
+        {
+            stream_->write(do_negotiation_);
+            activate_sent_ = true;
+        }
+    }
+    
+    void deactivate()
+    {
+        if (active_)
+        {
+            stream_->write(dont_negotiation_);
+            deactivate_sent_ = true;
+        }
+        else
+        {
+            if (on_request_complete_)
+            {
+                on_request_complete_();
+            }
+        }
+    }
+    
+    bool is_active() const
+    {
+        return active_;
+    }
+    
+    void set_activatable(bool activatable)
+    {
+        activatable_ = activatable;
+    }
+    
+    bool is_activatable() const
+    {
+        return activatable_;
+    }
+
+    bool is_negotiating_activation() const
+    {
+        return activate_sent_;
+    }
+            
+    bool is_negotiating_deactivation() const
+    {
+        return deactivate_sent_;
+    }
+    
+    void on_request_complete(function<void ()> const &callback)
+    {
+        on_request_complete_ = callback;
+    }
+    
+private :
+    shared_ptr<stream>                   stream_;
+    shared_ptr<negotiation_router>       negotiation_router_;
+    shared_ptr<subnegotiation_router>    subnegotiation_router_;
     option_id_type                       option_id_;
     bool                                 active_;
     bool                                 activate_sent_;
     bool                                 activatable_;
     bool                                 deactivate_sent_;
     function<void ()>                    on_request_complete_;
-    function<void (subnegotiation_type)> on_subnegotiation_;
+    function<void (subnegotiation_type)> subnegotiation_callback_;
+    
+    odin::runtime_array<stream::output_value_type> do_negotiation_;
+    odin::runtime_array<stream::output_value_type> dont_negotiation_;
     
     void on_will()
     {
@@ -67,13 +204,13 @@ struct client_option::impl
         {
             if (active_)
             {
-                stream_->send_negotiation(DO, option_id_);
+                stream_->write(do_negotiation_);
             }
             else if (activatable_)
             {
                 active_ = true;
                 
-                stream_->send_negotiation(DO, option_id_);
+                stream_->write(do_negotiation_);
                 
                 if (on_request_complete_)
                 {
@@ -82,7 +219,7 @@ struct client_option::impl
             }
             else
             {
-                stream_->send_negotiation(DONT, option_id_);
+                stream_->write(dont_negotiation_);
             }
         }
     }
@@ -102,7 +239,7 @@ struct client_option::impl
             // Since we have neither sent an activate nor a deactivate,
             // this is an unsolicited message.  Therefore, we must respond to
             // it.
-            stream_->send_negotiation(DONT, option_id_);
+            stream_->write(dont_negotiation_);
         }
 
         // We must update the client only if this is a response to a request
@@ -119,9 +256,9 @@ struct client_option::impl
     
     void on_subnegotiation(subnegotiation_type const &subnegotiation)
     {
-        if (active_)
+        if (active_ && subnegotiation_callback_)
         {
-            on_subnegotiation_(subnegotiation);
+            subnegotiation_callback_(subnegotiation);
         }
     }
 };
@@ -130,35 +267,17 @@ struct client_option::impl
 // CONSTRUCTOR
 // ==========================================================================
 client_option::client_option(
-    shared_ptr<odin::telnet::stream> stream
-  , shared_ptr<odin::telnet::router> router
-  , option_id_type                   option_id)
-    : pimpl_(new impl)
+    shared_ptr<stream> const                &stream
+  , shared_ptr<negotiation_router> const    &negotiation_router
+  , shared_ptr<subnegotiation_router> const &subnegotiation_router
+  , option_id_type                           option_id)
+    : pimpl_(new impl(
+          stream
+        , negotiation_router
+        , subnegotiation_router
+        , option_id))
 {
-    pimpl_->stream_            = stream;
-    pimpl_->router_            = router;
-    pimpl_->option_id_         = option_id;
-    pimpl_->active_            = false;
-    pimpl_->activate_sent_     = false;
-    pimpl_->activatable_       = false;
-    pimpl_->deactivate_sent_   = false;
-    
-    pimpl_->on_subnegotiation_ = 
-        bind(&client_option::on_subnegotiation, this, _1);
-    
-    pimpl_->router_->register_negotiation(
-        WILL
-      , get_option_id()
-      , bind(&impl::on_will, pimpl_->shared_from_this()));
-    
-    pimpl_->router_->register_negotiation(
-        WONT
-      , get_option_id()
-      , bind(&impl::on_wont, pimpl_->shared_from_this()));
-    
-    pimpl_->router_->register_subnegotiation(
-        get_option_id()
-      , bind(&impl::on_subnegotiation, pimpl_->shared_from_this(), _1));
+    pimpl_->register_routes(bind(&client_option::on_subnegotiation, this, _1));
 }
 
 // ==========================================================================
@@ -166,9 +285,7 @@ client_option::client_option(
 // ==========================================================================
 client_option::~client_option()
 {
-    pimpl_->router_->unregister_negotiation(WILL, get_option_id());
-    pimpl_->router_->unregister_negotiation(WONT, get_option_id());
-    pimpl_->router_->unregister_subnegotiation(get_option_id());
+    pimpl_->unregister_routes();
 }
 
 // ==========================================================================
@@ -176,7 +293,7 @@ client_option::~client_option()
 // ==========================================================================
 option_id_type client_option::get_option_id() const
 {
-    return pimpl_->option_id_;
+    return pimpl_->get_option_id();
 }
 
 // ==========================================================================
@@ -184,12 +301,7 @@ option_id_type client_option::get_option_id() const
 // ==========================================================================
 void client_option::activate()
 {
-    if(!pimpl_->active_ && !pimpl_->activate_sent_)
-    {
-        pimpl_->stream_->send_negotiation(
-            odin::telnet::DO, get_option_id());
-        pimpl_->activate_sent_ = true;
-    }
+    pimpl_->activate();
 }
 
 // ==========================================================================
@@ -197,19 +309,7 @@ void client_option::activate()
 // ==========================================================================
 void client_option::deactivate()
 {
-    if (pimpl_->active_)
-    {
-        pimpl_->stream_->send_negotiation(
-            odin::telnet::DONT, get_option_id());
-        pimpl_->deactivate_sent_ = true;
-    }
-    else
-    {
-        if (pimpl_->on_request_complete_)
-        {
-            pimpl_->on_request_complete_();
-        }
-    }
+    pimpl_->deactivate();
 }
 
 // ==========================================================================
@@ -217,7 +317,7 @@ void client_option::deactivate()
 // ==========================================================================
 bool client_option::is_active() const
 {
-    return pimpl_->active_;
+    return pimpl_->is_active();
 }
 
 // ==========================================================================
@@ -225,7 +325,7 @@ bool client_option::is_active() const
 // ==========================================================================
 void client_option::set_activatable(bool activatable)
 {
-    pimpl_->activatable_ = activatable;
+    pimpl_->set_activatable(activatable);
 }
 
 // ==========================================================================
@@ -233,7 +333,7 @@ void client_option::set_activatable(bool activatable)
 // ==========================================================================
 bool client_option::is_activatable() const
 {
-    return pimpl_->activatable_;
+    return pimpl_->is_activatable();
 }
 
 // ==========================================================================
@@ -241,7 +341,7 @@ bool client_option::is_activatable() const
 // ==========================================================================
 bool client_option::is_negotiating_activation() const
 {
-    return pimpl_->activate_sent_;
+    return pimpl_->is_negotiating_activation();
 }
         
 // ==========================================================================
@@ -249,7 +349,7 @@ bool client_option::is_negotiating_activation() const
 // ==========================================================================
 bool client_option::is_negotiating_deactivation() const
 {
-    return pimpl_->deactivate_sent_;
+    return pimpl_->is_negotiating_deactivation();
 }
 
 // ==========================================================================
@@ -257,7 +357,7 @@ bool client_option::is_negotiating_deactivation() const
 // ==========================================================================
 void client_option::on_request_complete(function<void ()> const &callback)
 {
-    pimpl_->on_request_complete_ = callback;
+    pimpl_->on_request_complete(callback);
 }
 
 }}

@@ -30,7 +30,8 @@
 #include "odin/telnet/client_option.hpp"
 
 namespace odin { namespace telnet {
-    class router;
+    class negotiation_router;
+    class subnegotiation_router;
     class stream;
 }}
 
@@ -49,9 +50,11 @@ class subnegotiationless_client : public odin::telnet::client_option
 // ==========================================================================
 public :
     subnegotiationless_client(
-        boost::shared_ptr<odin::telnet::stream> const &stream
-      , boost::shared_ptr<odin::telnet::router> const &router)
-        : odin::telnet::client_option(stream, router, OptionId)
+        boost::shared_ptr<odin::telnet::stream> const                &stream
+      , boost::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
+      , boost::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
+        : odin::telnet::client_option(
+            stream, negotiation_router, subnegotiation_router, OptionId)
     {
     }
     

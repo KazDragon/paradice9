@@ -177,7 +177,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\buffered_datastream_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\completed_negotiation_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\completed_negotiation_test.cpp"
 				>
 			</File>
 			<File
@@ -189,11 +197,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\initiated_negotiation_test.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\paradice_test.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\router_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\router_test.cpp"
 				>
 			</File>
 			<File
@@ -205,11 +221,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\small_buffer_test.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_client_option_fixture.cpp"
 				>
 			</File>
 			<File
+				RelativePath=".\telnet_command_router_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_filter_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_generator_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_input_visitor_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_negotiation_router_fixture.cpp"
 				>
 			</File>
 			<File
@@ -237,7 +273,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet_router_fixture.cpp"
+				RelativePath=".\telnet_parser_fixture.cpp"
 				>
 			</File>
 			<File
@@ -248,6 +284,10 @@
 				RelativePath=".\telnet_stream_fixture.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\telnet_subnegotiation_router_fixture.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -255,15 +295,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\buffered_datastream_fixture.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\buffered_datastream_fixture.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\completed_negotiation_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\completed_negotiation_test.hpp"
 				>
 			</File>
 			<File
@@ -283,7 +323,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\initiated_negotiation_test.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\router_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\router_test.hpp"
 				>
 			</File>
 			<File
@@ -295,11 +343,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\small_buffer_test.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_client_option_fixture.hpp"
 				>
 			</File>
 			<File
+				RelativePath=".\telnet_command_router_fixture.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_filter_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_generator_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_input_visitor_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_negotiation_router_fixture.hpp"
 				>
 			</File>
 			<File
@@ -327,7 +395,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet_router_fixture.hpp"
+				RelativePath=".\telnet_parser_fixture.hpp"
 				>
 			</File>
 			<File
@@ -336,6 +404,10 @@
 			</File>
 			<File
 				RelativePath=".\telnet_stream_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_subnegotiation_router_fixture.hpp"
 				>
 			</File>
 		</Filter>

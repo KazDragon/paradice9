@@ -1,7 +1,7 @@
 // ==========================================================================
 // Odin Telnet Stream
 //
-// Copyright (C) 2003 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -25,521 +25,493 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "odin/telnet/stream.hpp"
-#include "odin/telnet/filter.hpp"
-#include "odin/telnet/initiated_negotiation.hpp"
+#include "odin/telnet/detail/generator.hpp"
+#include "odin/telnet/detail/parser.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
-#include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
-#include <deque>
 #include <functional>
+#include <deque>
 
 using namespace std;
 using namespace boost;
-using namespace odin;
 
 namespace odin { namespace telnet {
 
-typedef odin::io::byte_stream byte_stream;
-typedef odin::io::char_stream char_stream;
-
-class stream::impl 
-    : public enable_shared_from_this<stream::impl>
+// ==========================================================================
+// STREAM IMPLEMENTATION STRUCTURE
+// ==========================================================================
+class stream::impl
+    : public enable_shared_from_this<impl>
 {
-public :    
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
+public :
+    typedef odin::io::byte_stream::input_value_type     underlying_input_value_type;
+    typedef odin::io::byte_stream::input_size_type      underlying_input_size_type;
+    typedef odin::io::byte_stream::input_callback_type  underlying_input_callback_type;
+    typedef odin::io::byte_stream::output_value_type    underlying_output_value_type;
+    typedef odin::io::byte_stream::output_size_type     underlying_output_size_type;
+    typedef odin::io::byte_stream::output_callback_type underlying_output_callback_type;
+
+    typedef odin::telnet::stream::input_value_type      input_value_type;
+    typedef odin::telnet::stream::input_size_type       input_size_type;
+    typedef odin::telnet::stream::input_callback_type   input_callback_type;
+    typedef odin::telnet::stream::output_value_type     output_value_type;
+    typedef odin::telnet::stream::output_size_type      output_size_type;
+    typedef odin::telnet::stream::output_callback_type  output_callback_type;
+    
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
     impl(
-        shared_ptr<byte_stream> const &underlying_stream
-      , boost::asio::io_service       &io_service)
-      : underlying_stream_(underlying_stream)
-      , io_service_(io_service)
-      , async_read_request_fired_(false)
-      , async_write_request_fired_(false)
+        shared_ptr<odin::io::byte_stream> const &underlying_stream
+      , boost::asio::io_service                 &io_service)
+        : underlying_stream_(underlying_stream)
+        , io_service_(io_service)
+        , read_request_active_(false)
+        , write_request_active_(false)
     {
     }
- 
-    //* =====================================================================
-    /// \brief Returns the number of bytes available to be read without
-    /// blocking.
-    //* =====================================================================
-    optional<stream::input_size_type> available() const
+        
+    // ======================================================================
+    // AVAILABLE
+    // ======================================================================
+    optional<input_size_type> available() const
     {
-        // If there are any asynchronous read requests currently underway,
-        // then there is no way to say with any precision what may happen
-        // on a synchronour read.  Exit now.
-        if (unfulfilled_read_request())
+        // If there is a read request ongoing, we must return a "would block"
+        // message.
+        if (!read_requests_.empty())
         {
-            return optional<stream::input_size_type>();
+            return optional<input_size_type>();
         }
-
-        // Since there are no waiting asynchronous read requests, we may act
-        // synchronously.  We begin by querying the underlying stream for any
-        // data it has available. We then add these to our own input buffer.
+        
+        // Grab any data that is available on the underlying datastream.
         BOOST_AUTO(underlying_available, underlying_stream_->available());
         
         if (underlying_available.is_initialized())
         {
             BOOST_AUTO(
-                data
+                values 
               , underlying_stream_->read(underlying_available.get()));
             
             copy(
-                data.begin()
-              , data.end()
-              , back_inserter(input_buffer_));
+                values.begin()
+              , values.end()
+              , back_inserter(unparsed_input_buffer_));
+            
+            parse_input_buffer();
         }
         
-        // Now that we have all the data in the input buffer, we query how
-        // much of that can be read without blocking.
-        stream::input_size_type readable_size = get_readable_size();
-        
-        return readable_size == 0
-             ? optional<stream::input_size_type>()
-             : optional<stream::input_size_type>(readable_size);
+        return parsed_input_buffer_.empty()
+             ? optional<input_size_type>()
+             : optional<input_size_type>(parsed_input_buffer_.size());
     }
     
-    //* =====================================================================
-    /// \brief Returns an array of size number of non-telnet bytes from the
-    /// stream. Telnet bytes are filtered out during the read and appropriate
-    /// callbacks are made.
-    //* =====================================================================
-    runtime_array<stream::input_value_type> read(
-        stream::input_size_type size)
+    // ======================================================================
+    // READ
+    // ======================================================================
+    odin::runtime_array<input_value_type> read(input_size_type size)
     {
-        runtime_array<stream::input_value_type> result(size);
-        
-        stream::input_size_type amount_copied = 0;
-        
-        while (amount_copied < size)
+        // Block until enough data has been read to fulfill this request.
+        while (parsed_input_buffer_.size() < size)
         {
-            if (input_buffer_.empty())
-            {
-                // There is no data in the input buffer.  Read up to the
-                // amount available in the underlying stream.
-                BOOST_AUTO(available, underlying_stream_->available());
-                
-                BOOST_AUTO(
-                    data
-                  , underlying_stream_->read(available ? *available : 1));
-                
-                copy(data.begin(), data.end(), back_inserter(input_buffer_));
-            }
-            else
-            {
-                // There is data in the input buffer.  Parse the front byte.
-                BOOST_AUTO(raw_value,      input_buffer_.front());
-                BOOST_AUTO(filtered_value, filter_(raw_value));
-                
-                if (filtered_value)
-                {
-                    result[amount_copied++] = *filtered_value;
-                }
-                
-                input_buffer_.pop_front();
-            }
+            sync_underflow();
+            parse_input_buffer();
+
+            // TODO: there is a possibility of a malformed input stream
+            // causing this to block forever, but still fill up with data.
+            // There should be a user-configurable point at which an exception
+            // is thrown.
+            
+            // For example:
+            // if (unparsed_input_stream_.size() > 64000) { throw something; }
+            
+            // However, this would only occur if a client made a call to
+            // read() which actually did block.  Most use cases involve calling
+            // available() first to see how much can be read without blocking.
+            // However, available() suffers from the same memory issue.
         }
+        
+        odin::runtime_array<input_value_type> result(size);
+        
+        copy(
+            parsed_input_buffer_.begin()
+          , parsed_input_buffer_.begin() + size
+          , result.begin());
+        
+        parsed_input_buffer_.erase(
+            parsed_input_buffer_.begin()
+          , parsed_input_buffer_.begin() + size);
         
         return result;
     }
-        
-    //* =====================================================================
-    /// \brief Asynchronously reads from the stream.  The callback function
-    /// is called after size non-telnet bytes have been received.  Any
-    /// telnet bytes are filtered out during this read and appropriate
-    /// callbacks are made.
-    //* =====================================================================
+
+    // ======================================================================
+    // ASYNC_READ
+    // ======================================================================
     void async_read(
-        stream::input_size_type            size
-      , stream::input_callback_type const &callback)
+        input_size_type            size
+      , input_callback_type const &callback)
     {
-        read_request request(size, callback);
-        read_requests_.push_back(request);
+        read_requests_.push_back(read_request(size, callback));
+        schedule_read_request();
+    }
+
+    // ======================================================================
+    // WRITE
+    // ======================================================================
+    output_size_type write(odin::runtime_array<output_value_type> const &values)
+    {
+        BOOST_AUTO(begin, values.begin());
+        BOOST_AUTO(end,   values.end());
         
-        io_service_.post(bind(
+        BOOST_AUTO(generated_output, (generate_(begin, end)));
+        
+        odin::runtime_array<
+            odin::io::byte_stream::output_value_type
+        > output_values(generated_output.size());
+        
+        copy(
+            generated_output.begin()
+          , generated_output.end()
+          , output_values.begin());
+        
+        underlying_stream_->write(output_values);
+        
+        return values.size();
+    }
+    
+    // ======================================================================
+    // ASYNC_WRITE
+    // ======================================================================
+    void async_write(
+        odin::runtime_array<output_value_type> const &values
+      , output_callback_type const                   &callback)
+    {
+        write_requests_.push_back(write_request(values, callback));
+        schedule_write_request();
+    }
+    
+    // ======================================================================
+    // IS_ALIVE
+    // ======================================================================
+    bool is_alive() const
+    {
+        return underlying_stream_->is_alive();
+    }
+    
+private :
+    // ======================================================================
+    // PARSE
+    // ======================================================================
+    template <class ForwardInputIterator>
+    vector<input_value_type> parse(
+        ForwardInputIterator &start
+      , ForwardInputIterator  end)
+    {
+        return parse_(start, end);
+    }
+    
+    // ======================================================================
+    // SYNC_UNDERFLOW
+    // ======================================================================
+    void sync_underflow()
+    {
+        // Read as much data as is available from the underlying 
+        // datastream, to a minimum of one byte.
+        BOOST_AUTO(available, underlying_stream_->available());
+        
+        BOOST_AUTO(amount_to_read,
+            available.is_initialized()
+          ? *available 
+          : 1);
+          
+        BOOST_AUTO(data, underlying_stream_->read(amount_to_read));
+            
+        copy(
+            data.begin()
+          , data.end()
+          , back_inserter(unparsed_input_buffer_));
+    }
+    
+    // ======================================================================
+    // PARSE_INPUT_BUFFER
+    // ======================================================================
+    void parse_input_buffer() const
+    {
+        // Take input from the unparsed input buffer and parse as much as
+        // it as possible.  Then erase any consumed input.
+        BOOST_AUTO(begin, unparsed_input_buffer_.begin());
+        BOOST_AUTO(end,   unparsed_input_buffer_.end());
+        
+        BOOST_AUTO(parsed_elements, parse_(begin, end));
+        
+        copy(
+            parsed_elements.begin()
+          , parsed_elements.end()
+          , back_inserter(parsed_input_buffer_));
+        
+        // Finally, erase the consumed input.
+        unparsed_input_buffer_.erase(
+            unparsed_input_buffer_.begin()
+          , begin);
+    }
+    
+    // ======================================================================
+    // SCHEDULE_READ_REQUEST
+    // ======================================================================
+    void schedule_read_request()
+    {
+        // Schedules a call to look at the read requests asynchronously.
+        io_service_.post(boost::bind(
             &impl::check_async_read_requests
           , shared_from_this()));
     }
     
-    //* =====================================================================
-    /// \brief Perform a synchronous write to the stream.
-    /// \return the number of objects written to the stream.
-    /// Write an array of WriteValues to the stream.  
-    //* =====================================================================
-    stream::output_size_type write(
-        odin::runtime_array<stream::output_value_type> const &values)
+    // ======================================================================
+    // CHECK_ASYNC_READ_REQUESTS
+    // ======================================================================
+    void check_async_read_requests()
     {
-        underlying_stream_->write(duplicate_iacs(values));
+        if (read_requests_.empty())
+        {
+            // There are no read requests.  Return immediately.
+            return;
+        }
+        
+        read_request &request = read_requests_[0];
+        
+        // If there is already an async read requested, then this flag will
+        // be set and we don't need to do anything yet.
+        if (!read_request_active_)
+        {
+            // See if this can be fulfilled from the currently read data.
+            if (parsed_input_buffer_.size() >= request.size_)
+            {
+                // We can fulfill the request from the data we have available.
+                odin::runtime_array<input_value_type> result(request.size_);
+                
+                copy(
+                    parsed_input_buffer_.begin()
+                  , parsed_input_buffer_.begin() + request.size_
+                  , result.begin());
+                
+                parsed_input_buffer_.erase(
+                    parsed_input_buffer_.begin()
+                  , parsed_input_buffer_.begin() + request.size_);
 
-        return values.size();
+                // If this is the only request, then it is valid for the client
+                // to call available() during the callback.  Therefore, this
+                // request needs to be popped off the queue before the callback
+                // takes place.  So we need to copy the callback in order to
+                // call it.
+                input_callback_type callback = request.callback_;
+                read_requests_.pop_front();
+                
+                if (callback != NULL)
+                {
+                    callback(result);
+                }
+            }
+            else
+            {
+                // There is insufficient data to fulfill the request.  Perform
+                // an asynchronous read on the underlying input stream.
+                BOOST_AUTO(
+                    underlying_available
+                  , underlying_stream_->available());
+                
+                BOOST_AUTO(
+                    amount
+                  , underlying_available.is_initialized()
+                      ? underlying_available.get()
+                      : 1);
+                
+                underlying_stream_->async_read(
+                    amount
+                  , bind(
+                        &impl::async_read_complete
+                      , shared_from_this()
+                      , _1));
+                
+                read_request_active_ = true;
+            }
+        }
     }
-
-    //* =====================================================================
-    /// \brief Schedules an asynchronous write to the stream.
-    /// 
-    /// Writes an array of WriteValues to the stream.  Returns immediately.
-    /// Calls callback upon completion of the write operation, passing
-    /// the amount of data written as a value.
-    /// \warning async_write MAY NOT return the amount of data written 
-    /// synchronously, since this invalidates a set of operations.
-    //* =====================================================================
-    void async_write(
-        odin::runtime_array<stream::output_value_type> const &values
-      , stream::output_callback_type const                   &callback)
+    
+    // ======================================================================
+    // ASYNC_READ_COMPLETE
+    // ======================================================================
+    void async_read_complete(
+        odin::runtime_array<
+            odin::io::byte_stream::input_value_type
+        > const &values)
     {
-        write_request request(values, callback);
-        write_requests_.push_back(request);
+        copy(
+            values.begin()
+          , values.end()
+          , back_inserter(unparsed_input_buffer_));
+        
+        parse_input_buffer();
 
-        io_service_.post(bind(
+        // The read requests is now complete.  Unset the flag that records
+        // this.
+        read_request_active_ = false;
+        
+        // Schedule a check for the read requests.  One might now have been
+        // fulfilled.
+        schedule_read_request();
+    }
+    
+    // ======================================================================
+    // SCHEDULE_WRITE_REQUEST
+    // ======================================================================
+    void schedule_write_request()
+    {
+        // Schedules a call to look at the write requests asynchronously.
+        io_service_.post(boost::bind(
             &impl::check_async_write_requests
           , shared_from_this()));
     }
-
-    //* =====================================================================
-    /// \brief Send a Telnet command to the datastream.
-    //* =====================================================================
-    void send_command(command cmd)
+    
+    // ======================================================================
+    // CHECK_ASYNC_WRITE_REQUESTS
+    // ======================================================================
+    void check_async_write_requests()
     {
-        stream::output_value_type data[] = { IAC, cmd };
-        underlying_stream_->write(data);
-    }
-
-    //* =====================================================================
-    /// \brief Initiate or complete a Telnet negotiation.
-    //* =====================================================================
-    void send_negotiation(
-        negotiation_request_type request
-      , option_id_type           option_id)
-    {
-        stream::output_value_type data[] = { IAC, request, option_id };
-        underlying_stream_->write(data);
-    }
-
-    //* =====================================================================
-    /// \brief Send a Telnet subnegotiation to the datastream.
-    //* =====================================================================
-    void send_subnegotiation(
-        option_id_type             id
-      , subnegotiation_type const &subnegotiation)
-    {
-        // The subnegotiation itself must have its IACs duplicated so that
-        // we don't accidentally end the sequence early or something.
-        odin::runtime_array<odin::u8> array = duplicate_iacs(subnegotiation);
-
-        // The full sequence is IAC SB <id> <subnegotiation> IAC SE.
-        odin::runtime_array<odin::u8> sequence(array.size() + 5);
-        sequence[0] = IAC;
-        sequence[1] = SB;
-        sequence[2] = id;
-
-        copy(array.begin(), array.end(), sequence.begin() + 3);
-
-        sequence[sequence.size() - 2] = IAC;
-        sequence[sequence.size() - 1] = SE;
-
-        underlying_stream_->write(sequence);
-    }
-
-    //* =====================================================================
-    /// \brief Registers a callback to be made when telnet commands are
-    /// filtered out during reading.
-    //* =====================================================================
-    void on_command(stream::command_callback const &callback)
-    {
-        filter_.on_command(callback);
-    }
-
-    //* =====================================================================
-    /// \brief Registers a callback for when telnet negotiations are
-    /// filtered out during reading.
-    //* =====================================================================
-    void on_negotiation(stream::negotiation_callback const &callback)
-    {
-        filter_.on_negotiation(callback);
-    }
-
-    //* =====================================================================
-    /// \brief Registers a callback to be made when telnet subnegotiations
-    /// are filtered out during reading.
-    //* =====================================================================
-    void on_subnegotiation(stream::subnegotiation_callback const &callback)
-    {
-        filter_.on_subnegotiation(callback);
-    }
-        
-private :    
-    //* =====================================================================
-    /// \brief Returns true if there are any unfulfilled asynchronous read
-    /// requests.
-    //* =====================================================================
-    bool unfulfilled_read_request() const
-    {
-        bool result = false;
-        
-        BOOST_FOREACH(read_request const &request, read_requests_)
+        if (write_requests_.empty())
         {
-            if (request.fulfilled_ != request.values_.size())
-            {
-                result = true;
-                break;
-            }
+            // There are no write requests.  Return immediately.
+            return;
         }
         
-        return result;
+        if (!write_request_active_)
+        {
+            // No request is active, so generate output for the next request
+            // and send it to the underlying stream.
+            write_request &request = write_requests_[0];
+            
+            BOOST_AUTO(begin, request.values_.begin());
+            BOOST_AUTO(end,   request.values_.end());
+        
+            BOOST_AUTO(generated_output, (generate_(begin, end)));
+            
+            odin::runtime_array<
+                odin::io::byte_stream::output_value_type
+            > output_values(generated_output.size());
+            
+            copy(
+                generated_output.begin()
+              , generated_output.end()
+              , output_values.begin());
+            
+            underlying_stream_->async_write(
+                output_values
+              , bind(
+                    &impl::async_write_complete
+                  , shared_from_this()
+                  , _1));
+            
+            write_request_active_ = true;
+        }
     }
     
-    //* =====================================================================
-    /// \brief Returns the amount of data readable without encountering
-    /// telnet protocol bytes, except for those that would begin at the
-    /// very start of the data.
-    //* =====================================================================
-    stream::input_size_type get_readable_size() const
-    {
-        // Count until we reach the first telnet byte.
-        stream::input_size_type amount       = 0;
-        bool                    was_filtered = false;
-        odin::telnet::filter    filter;
-        
-        BOOST_FOREACH(odin::u8 value, input_buffer_)
-        {
-            if (was_filtered)
-            {
-                if (filter(value))
-                {
-                    was_filtered = false;
-                    ++amount;
-                }
-                else
-                {
-                    // We have received a telnet sequence.  If we have 
-                    // previously read a normal character, then we must stop
-                    // reading here.
-                    if (amount != 0)
-                    {
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                if (filter(value))
-                {
-                    ++amount;
-                }
-                else
-                {
-                    was_filtered = true;
-                }
-            }
-        }
-        
-        return amount;
-    }
-        
-    //* =====================================================================
-    /// \brief Called when data is received from the underlying stream.
-    //* =====================================================================
-    void read_complete(
-        runtime_array<byte_stream::input_value_type> const &values)
-    {
-        copy(values.begin(), values.end(), back_inserter(input_buffer_));
-        async_read_request_fired_ = false;
-        
-        io_service_.post(bind(
-            &impl::check_async_read_requests
-          , shared_from_this()));
-    }
-        
-    //* =====================================================================
-    /// \brief Called when data is received from the underlying stream.
-    //* =====================================================================
-    void write_complete(stream::output_size_type const &amount)
+    // ======================================================================
+    // ASYNC_WRITE_COMPLETE
+    // ======================================================================
+    void async_write_complete(output_size_type)
     {
         write_request &request = write_requests_[0];
-
+        
         if (request.callback_)
         {
             request.callback_(request.values_.size());
         }
 
-        write_requests_.pop_front();
-        async_write_request_fired_ = false;
-
-        io_service_.post(bind(
-            &impl::check_async_write_requests
-          , shared_from_this()));
-    }
-
-    //* =====================================================================
-    /// \brief Checks whether the top async read request can be fulfilled.
-    //* =====================================================================
-    void check_async_read_requests()
-    {
-        // If there are no read requests, then we have nothing to do.
-        if (read_requests_.empty())
-        {
-            return;
-        }
+        write_requests_.pop_front();        
+        write_request_active_ = false;
         
-        // Fulfill the top request as much as possible.
-        BOOST_AUTO(input_buffer_pos, input_buffer_.begin());
-        read_request &request = read_requests_[0];
-        
-        while (input_buffer_pos   != input_buffer_.end()
-            && request.fulfilled_ != request.values_.size())
-        {
-            BOOST_AUTO(value, filter_(*input_buffer_pos++));
-            
-            if (value)
-            {
-                request.values_[request.fulfilled_++] = *value;
-            }
-        }
-        
-        // Erase any data used to fulfill the top request. 
-        input_buffer_.erase(
-            input_buffer_.begin()
-          , input_buffer_pos);
-        
-        // If the request was fulfilled, perform the necessary callback.
-        if (request.fulfilled_ == request.values_.size())
-        {
-            if (request.callback_)
-            {
-                request.callback_(request.values_);
-            }
-            
-            read_requests_.pop_front();
-            
-            // It may be possible to fulfill more requests from the data in
-            // the input buffer.  Schedule another check.
-            io_service_.post(
-                bind(&impl::check_async_read_requests, shared_from_this()));
-        }
-        else
-        {
-            // Otherwise, schedule an asynchronous operation which will read
-            // the smallest amount of data necessary to fulfill the request.
-            BOOST_AUTO(amount, request.values_.size() - request.fulfilled_);
-
-            underlying_stream_->async_read(
-                amount
-              , bind(&impl::read_complete, shared_from_this(), _1));
-            
-            async_read_request_fired_ = true;
-        }
+        schedule_write_request();
     }
-
-    //* =====================================================================
-    /// \brief Checks whether the top async write request can be fulfilled.
-    //* =====================================================================
-    void check_async_write_requests()
-    {
-        if (write_requests_.empty() || async_write_request_fired_)
-        {
-            return;
-        }
-
-        write_request &request = write_requests_[0];
-
-        underlying_stream_->async_write(
-            duplicate_iacs(request.values_)
-          , bind(&impl::write_complete, shared_from_this(), _1));
-
-        async_write_request_fired_ = true;
-    }
-
-    //* =====================================================================
-    /// \brief Returns an array of values identical to the one passed, except
-    /// that any IAC values have been duplicated.
-    //* =====================================================================
-    odin::runtime_array<odin::u8> duplicate_iacs(
-        odin::runtime_array<odin::u8> const &array)
-    {
-        odin::runtime_array<odin::u8>::size_type number_of_iacs = 0;
-
-        BOOST_FOREACH(odin::u8 value, array)
-        {
-            if (value == IAC)
-            {
-                ++number_of_iacs;
-            }
-        }
-
-        odin::runtime_array<odin::u8> duplicate_array(
-            array.size() + number_of_iacs);
-
-        odin::runtime_array<odin::u8>::size_type pos = 0;
-
-        BOOST_FOREACH(odin::u8 value, array)
-        {
-            duplicate_array[pos++] = value;
-
-            if (value == IAC)
-            {
-                duplicate_array[pos++] = value;
-            }
-        }
-
-        return duplicate_array;
-    }
-
+    
+    // READ_REQUEST =========================================================
+    //  A structure to encapsulate read requests.
+    // ======================================================================
     struct read_request
     {
         read_request(
-            stream::input_size_type            size
-          , stream::input_callback_type const &callback)
-          : values_(size)
-          , callback_(callback)
-          , fulfilled_(0)
+            input_size_type            size
+          , input_callback_type const &callback)
+            : size_(size)
+            , callback_(callback)
         {
         }
-
-        odin::runtime_array<stream::input_value_type> values_;
-        stream::input_callback_type                   callback_;
-        stream::input_size_type                       fulfilled_;
+            
+        input_size_type     size_;
+        input_callback_type callback_;
     };
     
+    // WRITE_REQUEST ========================================================
+    //  A structure to encapsulate write requests.
+    // ======================================================================
     struct write_request
     {
         write_request(
-            odin::runtime_array<stream::output_value_type> const &values
-          , stream::output_callback_type const                   &callback)
-          : values_(values)
-          , callback_(callback)
+            odin::runtime_array<output_value_type> const &values
+          , output_callback_type const                   &callback)
+            : values_(values)
+            , callback_(callback)
         {
         }
-
-        odin::runtime_array<stream::input_value_type> values_;
-        stream::output_callback_type                  callback_;
+          
+        odin::runtime_array<output_value_type> values_;
+        output_callback_type                   callback_;
     };
-
-    shared_ptr<odin::io::byte_stream>       underlying_stream_;
-    boost::asio::io_service                &io_service_;
-    deque<read_request>                     read_requests_;
-    deque<write_request>                    write_requests_;
     
-    mutable deque<odin::u8>                 input_buffer_;
-    odin::telnet::filter                    filter_;
-    bool                                    async_read_request_fired_;
-    bool                                    async_write_request_fired_;
+    // The underlying byte stream that we read from and write to.
+    shared_ptr<odin::io::byte_stream> underlying_stream_;
+    
+    // The IO service we use for asynchronous dispatch.
+    boost::asio::io_service &io_service_;
+    
+    // A parser for dealing with the input stream.
+    odin::telnet::detail::parser parse_;
+    
+    // A generator for dealing with the output stream.
+    odin::telnet::detail::generator generate_;
+    
+    // This buffer is full of unparsed input from the underlying stream.
+    mutable deque<odin::u8> unparsed_input_buffer_;
+    
+    // This buffer is full of parsed input.
+    mutable deque<input_value_type> parsed_input_buffer_;
+    
+    // This is the queue of asynchronous input requests.
+    deque<read_request> read_requests_;
+    
+    // This is the queue of asynchronous output requests.
+    deque<write_request> write_requests_;
+    
+    // A flag to record whether an asynchronous read is currently in progress.
+    bool read_request_active_;
+    
+    // A flag to record whether an asynchronous write is currently in progress.
+    bool write_request_active_;
 };
 
 // ==========================================================================
-// CONSTRUCTOR 
+// CONSTRUCTOR
 // ==========================================================================
 stream::stream(
     shared_ptr<odin::io::byte_stream> const &underlying_stream
   , boost::asio::io_service                 &io_service)
-  : pimpl_(new impl(underlying_stream, io_service))
+    : pimpl_(new impl(underlying_stream, io_service))
 {
 }
 
 // ==========================================================================
-// DESTRUCTOR 
+// DESTRUCTOR
 // ==========================================================================
 stream::~stream()
 {
@@ -548,7 +520,7 @@ stream::~stream()
 // ==========================================================================
 // AVAILABLE
 // ==========================================================================
-optional<stream::input_size_type> stream::available() const
+boost::optional<stream::input_size_type> stream::available() const
 {
     return pimpl_->available();
 }
@@ -572,7 +544,7 @@ void stream::async_read(
 }
 
 // ==========================================================================
-// WRITE
+// WRITE 
 // ==========================================================================
 stream::output_size_type stream::write(
     odin::runtime_array<output_value_type> const& values)
@@ -581,7 +553,7 @@ stream::output_size_type stream::write(
 }
 
 // ==========================================================================
-// ASYNC_WRITE
+// ASYNC_WRITE 
 // ==========================================================================
 void stream::async_write(
     odin::runtime_array<output_value_type> const &values
@@ -591,63 +563,11 @@ void stream::async_write(
 }
 
 // ==========================================================================
-// IS_ALIVE
+// IS_ALIVE 
 // ==========================================================================
 bool stream::is_alive() const
 {
-    return true;
-}
-
-// ==========================================================================
-// SEND_COMMAND
-// ==========================================================================
-void stream::send_command(command cmd)
-{
-    pimpl_->send_command(cmd);
-}
-
-// ==========================================================================
-// SEND_NEGOTIATION
-// ==========================================================================
-void stream::send_negotiation(
-    negotiation_request_type request
-  , option_id_type           option_id)
-{
-    pimpl_->send_negotiation(request, option_id);
-}
-
-// ==========================================================================
-// SEND_SUBNEGOTIATION
-// ==========================================================================
-void stream::send_subnegotiation(
-    option_id_type             id
-  , subnegotiation_type const &subnegotiation)
-{
-    pimpl_->send_subnegotiation(id, subnegotiation);
-}
-
-// ==========================================================================
-// ON_COMMAND
-// ==========================================================================
-void stream::on_command(command_callback const &callback)
-{
-    pimpl_->on_command(callback);
-}
-
-// ==========================================================================
-// ON_NEGOTIATION
-// ==========================================================================
-void stream::on_negotiation(negotiation_callback const &callback)
-{
-    pimpl_->on_negotiation(callback);
-}
-
-// ==========================================================================
-// ON_SUBNEGOTIATION
-// ==========================================================================
-void stream::on_subnegotiation(subnegotiation_callback const &callback)
-{
-    pimpl_->on_subnegotiation(callback);
+    return pimpl_->is_alive();
 }
 
 }}

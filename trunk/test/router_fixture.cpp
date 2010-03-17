@@ -42,6 +42,38 @@ void router_fixture::test_registered_route()
     CPPUNIT_ASSERT_EQUAL(string("xyzzy"), message);
 }
 
+void router_fixture::test_unregister_route()
+{
+    odin::router<char, string, first_element_policy> route;
+    
+    bool   called = false;
+    string message;
+    function<void (string)> fn = (
+        var(called)  = true
+      , var(message) = _1
+    );
+    
+    route.register_route('x', fn);
+    
+    CPPUNIT_ASSERT_EQUAL(false, called);
+    CPPUNIT_ASSERT_EQUAL(string(""), message);
+    
+    route("xyzzy");
+    
+    CPPUNIT_ASSERT_EQUAL(true, called);
+    CPPUNIT_ASSERT_EQUAL(string("xyzzy"), message);
+    
+    route.unregister_route('x');
+    
+    message = "";
+    called  = false;
+    
+    route("xyzzy");
+
+    CPPUNIT_ASSERT_EQUAL(false, called);
+    CPPUNIT_ASSERT_EQUAL(string(""), message);
+}
+
 void router_fixture::test_unregistered_route()
 {
     odin::router<char, string, first_element_policy> route;

@@ -98,9 +98,9 @@ static struct command
   
   , PARADICE_CMD_ENTRY(set)
   , PARADICE_CMD_ENTRY(backtrace)
+  , PARADICE_CMD_ENTRY(title)
   , PARADICE_CMD_ENTRY(rename)
   , PARADICE_CMD_ENTRY(prefix)
-  , PARADICE_CMD_ENTRY(title)
   , PARADICE_CMD_ENTRY(roll)
   
   , PARADICE_CMD_ENTRY(quit)

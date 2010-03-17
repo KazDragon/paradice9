@@ -59,7 +59,7 @@ void telnet_input_visitor_fixture::test_visit_command()
     );
     
     odin::u32                  called         = 0;
-    odin::telnet::command_type actual_command = odin::telnet::command(0);
+    odin::telnet::command_type actual_command = odin::telnet::command_type(0);
     function<void (odin::telnet::command_type)> callback = 
     (
         bll::var(actual_command) = bll::_1,
@@ -74,7 +74,7 @@ void telnet_input_visitor_fixture::test_visit_command()
       , subnegotiation_router
       , text_handler);
     
-    odin::telnet::command expected_command = odin::telnet::AYT; 
+    odin::telnet::command_type expected_command = odin::telnet::AYT; 
     odin::telnet::stream::input_value_type variant_value(expected_command);
     
     apply_visitor(input_visitor, variant_value);

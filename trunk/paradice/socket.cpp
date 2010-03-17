@@ -1,6 +1,7 @@
 #include "socket.hpp"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <deque>
 
 using namespace boost;
@@ -12,8 +13,13 @@ using namespace std;
 
 namespace paradice {
 
-struct socket::impl
+struct socket::impl : enable_shared_from_this<impl>
 {
+    impl()
+        : is_alive_(true)
+    {
+    }
+        
     struct read_request
     {
         read_request(
@@ -60,7 +66,7 @@ struct socket::impl
                   , read_requests_[0].values_.size())
               , bind(
                     &impl::read_complete
-                  , this
+                  , shared_from_this()
                   , boost::asio::placeholders::error
                   , boost::asio::placeholders::bytes_transferred));
             
@@ -97,7 +103,7 @@ struct socket::impl
               , write_requests_.front().values_.size())
           , bind(
                 &impl::write_complete
-              , this
+              , shared_from_this()
               , boost::asio::placeholders::error
               , boost::asio::placeholders::bytes_transferred));
     }
@@ -122,6 +128,8 @@ struct socket::impl
         }
         else
         {
+            is_alive_ = false;
+            
             if (on_death_)
             {
                 on_death_();
@@ -154,7 +162,7 @@ struct socket::impl
                           , read_requests_.front().values_.size())
                       , bind(
                             &impl::read_complete
-                          , this
+                          , shared_from_this()
                           , boost::asio::placeholders::error
                           , boost::asio::placeholders::bytes_transferred));
                     
@@ -164,6 +172,8 @@ struct socket::impl
         }
         else
         {
+            is_alive_ = false;
+            
             if (on_death_)
             {
                 on_death_();
@@ -172,6 +182,7 @@ struct socket::impl
     }
 
     shared_ptr<asio::ip::tcp::socket> socket_;
+    bool                              is_alive_;
     function<void ()>                 on_death_;
 
     deque<read_request>  read_requests_;
@@ -198,12 +209,21 @@ optional<socket::input_size_type> socket::available() const
     else if (pimpl_->read_requests_.empty())
     {
         asio::socket_base::bytes_readable command(true);
-        pimpl_->socket_->io_control(command);
-        std::size_t bytes_readable = command.get();
-
-        return bytes_readable == 0
-             ? optional<input_size_type>()
-             : optional<input_size_type>(bytes_readable);
+        boost::system::error_code ec;
+        pimpl_->socket_->io_control(command, ec);
+        
+        if (!ec)
+        {
+            std::size_t bytes_readable = command.get();
+    
+            return bytes_readable == 0
+                 ? optional<input_size_type>()
+                 : optional<input_size_type>(bytes_readable);
+        }
+        else
+        {
+            return optional<input_size_type>(0);
+        }
     }
     else
     {
@@ -243,7 +263,7 @@ void socket::async_write(
 
 bool socket::is_alive() const
 {
-    return true;
+    return pimpl_->is_alive_;
 }
 
 io_service &socket::get_io_service()

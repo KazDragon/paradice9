@@ -167,7 +167,7 @@ private :
     virtual void on_subnegotiation(
         subnegotiation_type const &subnegotiation) = 0;
     
-    struct impl;
+    class impl;
     boost::shared_ptr<impl> pimpl_;
 };
     

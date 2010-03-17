@@ -171,11 +171,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rules.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\server.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\socket.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\utility.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\who.cpp"
 				>
 			</File>
 		</Filter>
@@ -186,6 +198,10 @@
 			>
 			<File
 				RelativePath=".\client.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\command.hpp"
 				>
 			</File>
 			<File
@@ -201,7 +217,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\context.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dice_roll_parser.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\rules.hpp"
 				>
 			</File>
 			<File
@@ -210,6 +234,14 @@
 			</File>
 			<File
 				RelativePath=".\socket.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\utility.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\who.hpp"
 				>
 			</File>
 		</Filter>

@@ -235,14 +235,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\completed_negotiation.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet\initiated_negotiation.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet\input_visitor.hpp"
 				>
 			</File>
@@ -283,14 +275,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\completed_negotiation.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet\initiated_negotiation.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet\input_visitor.cpp"
 				>
 			</File>
@@ -327,10 +311,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\options\naws_server.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet\options\subnegotiationless_client.hpp"
 				>
 			</File>
@@ -347,14 +327,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\options\terminal_type_client.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet\options\terminal_type_server.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet\options\transmit_binary_client.hpp"
 				>
 			</File>
@@ -367,19 +339,23 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\options\naws_server.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet\options\terminal_type_client.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet\options\terminal_type_server.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet\options\transmit_binary_server.hpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Telnet Detail Header Files"
+			>
+			<File
+				RelativePath=".\telnet\detail\adapt_protocol.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\detail\generator.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\detail\parser.hpp"
 				>
 			</File>
 		</Filter>

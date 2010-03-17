@@ -33,6 +33,10 @@
 
 namespace odin { namespace telnet {
 
+typedef odin::u8 option_id_type;
+typedef odin::u8 negotiation_request_type;
+typedef odin::u8 command_type;
+
 // Special characters recognised by Telnet.
 enum characters
 {
@@ -45,34 +49,27 @@ enum characters
 };
 
 // Telnet commands.
-enum command
-{
-    EOR  = 239 // End Of Record
-  , SE   = 240 // Subnegotiation End
-  , NOP  = 241 // No Operation
-  , DM   = 242 // Data Mark
-  , BRK  = 243 // Break
-  , IP   = 244 // Interrupt Process
-  , AO   = 245 // Abort Output
-  , AYT  = 246 // Are You There?
-  , EC   = 247 // Erase Character
-  , EL   = 248 // Erase Line
-  , GA   = 249 // Go Ahead
-  , SB   = 250 // Subnegotiation Begin
+static command_type const EOR  = 239; // End Of Record
+static command_type const SE   = 240; // Subnegotiation End
+static command_type const NOP  = 241; // No Operation
+static command_type const DM   = 242; // Data Mark
+static command_type const BRK  = 243; // Break
+static command_type const IP   = 244; // Interrupt Process
+static command_type const AO   = 245; // Abort Output
+static command_type const AYT  = 246; // Are You There?
+static command_type const EC   = 247; // Erase Character
+static command_type const EL   = 248; // Erase Line
+static command_type const GA   = 249; // Go Ahead
+static command_type const SB   = 250; // Subnegotiation Begin
 
   // WILL and WONT require a response of DO or DONT
   // DO and DONT require a response of WILL or WONT
-  , WILL = 251
-  , WONT = 252
-  , DO   = 253
-  , DONT = 254
+static negotiation_request_type const WILL = 251;
+static negotiation_request_type const WONT = 252;
+static negotiation_request_type const DO   = 253;
+static negotiation_request_type const DONT = 254;
   
-  , IAC  = 255 // Interpret As Command
-};
-
-typedef odin::u8 option_id_type;
-typedef odin::u8 negotiation_request_type;
-typedef odin::u8 command_type;
+static command_type const IAC  = 255; // Interpret As Command
 
 struct negotiation_type
 {

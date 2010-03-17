@@ -53,6 +53,7 @@ public :
       , option_id_(option_id)
       , active_(false)
       , activate_sent_(false)
+      , activatable_(false)
       , deactivate_sent_(false)
       , will_negotiation_(1)
       , wont_negotiation_(1)

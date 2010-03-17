@@ -181,23 +181,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\completed_negotiation_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\completed_negotiation_test.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\dice_parser_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\initiated_negotiation_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\initiated_negotiation_test.cpp"
 				>
 			</File>
 			<File
@@ -209,10 +193,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\router_test.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\runtime_array_fixture.cpp"
 				>
 			</File>
@@ -221,19 +201,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\small_buffer_test.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet_client_option_fixture.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\telnet_command_router_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet_filter_fixture.cpp"
 				>
 			</File>
 			<File
@@ -299,14 +271,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\completed_negotiation_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\completed_negotiation_test.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\dice_parser_fixture.hpp"
 				>
 			</File>
@@ -319,19 +283,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\initiated_negotiation_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\initiated_negotiation_test.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\router_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\router_test.hpp"
 				>
 			</File>
 			<File
@@ -352,10 +304,6 @@
 			</File>
 			<File
 				RelativePath=".\telnet_command_router_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\telnet_filter_fixture.hpp"
 				>
 			</File>
 			<File

@@ -185,6 +185,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_algorithm_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_component_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_container_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_graphics_context_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\paradice_test.cpp"
 				>
 			</File>
@@ -280,6 +296,34 @@
 			</File>
 			<File
 				RelativePath=".\fake_datastream.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fake_munin_component.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fake_munin_container.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fake_munin_graphics_context.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_algorithm_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_component_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_container_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_graphics_context_fixture.hpp"
 				>
 			</File>
 			<File

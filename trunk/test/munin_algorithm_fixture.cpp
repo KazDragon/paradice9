@@ -2,6 +2,7 @@
 #include "munin/algorithm.hpp"
 
 using namespace boost;
+using namespace odin;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(munin_algorithm_fixture);
 
@@ -20,10 +21,10 @@ void munin_algorithm_fixture::test_rectangle_intersection_same()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(1), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(1), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_no_overlap()
@@ -73,10 +74,10 @@ void munin_algorithm_fixture::test_rectangle_intersection_overlap_top_left()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(1), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(1), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_overlap_bottom_left()
@@ -105,10 +106,10 @@ void munin_algorithm_fixture::test_rectangle_intersection_overlap_bottom_left()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_overlap_bottom_right()
@@ -140,10 +141,10 @@ void munin_algorithm_fixture::test_rectangle_intersection_overlap_bottom_right()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_overlap_top_right()
@@ -175,10 +176,10 @@ void munin_algorithm_fixture::test_rectangle_intersection_overlap_top_right()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_enclose_top()
@@ -210,20 +211,20 @@ void munin_algorithm_fixture::test_rectangle_intersection_enclose_top()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_enclose_left()
@@ -256,20 +257,20 @@ void munin_algorithm_fixture::test_rectangle_intersection_enclose_left()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_enclose_bottom()
@@ -300,20 +301,20 @@ void munin_algorithm_fixture::test_rectangle_intersection_enclose_bottom()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(5), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(5), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(5), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(5), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_enclose_right()
@@ -345,20 +346,20 @@ void munin_algorithm_fixture::test_rectangle_intersection_enclose_right()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(5), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(5), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(5), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(5), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }
 
 void munin_algorithm_fixture::test_rectangle_intersection_contain()
@@ -389,18 +390,18 @@ void munin_algorithm_fixture::test_rectangle_intersection_contain()
     optional<munin::rectangle> intersection = munin::intersection(lhs, rhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     CPPUNIT_ASSERT_EQUAL(true, intersection.is_initialized());
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->origin.x);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(2), intersection->origin.y);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(4), intersection->size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(3), intersection->size.height);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->origin.x);
+    CPPUNIT_ASSERT_EQUAL(u32(2), intersection->origin.y);
+    CPPUNIT_ASSERT_EQUAL(u32(4), intersection->size.width);
+    CPPUNIT_ASSERT_EQUAL(u32(3), intersection->size.height);
 }

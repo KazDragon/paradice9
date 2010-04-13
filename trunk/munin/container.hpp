@@ -29,8 +29,12 @@
 
 #include "munin/types.hpp"
 #include "munin/component.hpp"
+#include "munin/layout.hpp"
 #include "munin/algorithm.hpp"
+#include <boost/any.hpp>
 #include <boost/enable_shared_from_this.hpp>
+
+//#include <iostream>
 
 namespace munin {
     
@@ -44,6 +48,7 @@ class container
 public :
     typedef ElementType            element_type;
     typedef component<ElementType> component_type;
+    typedef layout<ElementType>    layout_type;
     
     //* =====================================================================
     /// \brief Retrieves the number of components that this container
@@ -56,19 +61,56 @@ public :
     
     //* =====================================================================
     /// \brief Adds a component to the container.
+    /// \param component The component to add to the container
+    /// \param layout_hint A hint to be passed to the container's current
+    ///        layout.
     //* =====================================================================
-    void add_component(boost::shared_ptr<component_type> const &component)
+    void add_component(
+        boost::shared_ptr<component_type> const &component
+      , boost::any                        const &layout_hint = boost::any())
     {
         do_add_component(component);
         component->set_parent(this->shared_from_this());
+        
+        boost::shared_ptr<layout_type> current_layout = get_layout();
+        
+        if (current_layout != NULL)
+        {
+            current_layout->add_component(component, layout_hint);
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Removes a component from the container.
+    //* =====================================================================
+    void remove_component(boost::shared_ptr<component_type> const &component)
+    {
+        do_remove_component(component);
+        component->set_parent(boost::shared_ptr< container<ElementType> >());
     }
     
     //* =====================================================================
     /// \brief Retrieves a component from the container.
     //* =====================================================================
-    boost::shared_ptr<component_type> get_component(odin::u32 index)
+    boost::shared_ptr<component_type> get_component(odin::u32 index) const
     {
         return do_get_component(index);
+    }
+    
+    //* =====================================================================
+    /// \brief Sets the container's current layout.
+    //* =====================================================================
+    void set_layout(boost::shared_ptr<layout_type> const &layout)
+    {
+        do_set_layout(layout);
+    }
+    
+    //* =====================================================================
+    /// \brief Retrieves the current layout from the container.
+    //* =====================================================================
+    boost::shared_ptr<layout_type> get_layout() const
+    {
+        return do_get_layout();
     }
     
 private :
@@ -88,11 +130,32 @@ private :
         boost::shared_ptr<component_type> const &component) = 0;
     
     //* =====================================================================
+    /// \brief Called by remove_component().  Derived classes must override
+    /// this function in order to add a component to the container in a
+    /// custom manner.
+    //* =====================================================================
+    virtual void do_remove_component(
+        boost::shared_ptr<component_type> const &component) = 0;
+    
+    //* =====================================================================
     /// \brief Called by get_component().  Derived classes must override this
     /// function in order to retrieve a component in a custom manner.
     //* =====================================================================
     virtual boost::shared_ptr<component_type> do_get_component(
         odin::u32 index) const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by set_layout.  Derived classes must override this
+    /// function in order to set a layout in a custom manner.
+    //* =====================================================================
+    virtual void do_set_layout(
+        boost::shared_ptr<layout_type> const &layout) = 0;
+    
+    //* =====================================================================
+    /// \brief Called by get_layout.  Derived classes must override this
+    /// function in order to get the container's layout in a custom manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<layout_type> do_get_layout() const = 0;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -110,7 +173,22 @@ private :
       , point const                    &offset
       , rectangle const                &region)
     {
+        /*
+        std::cout << "munin::container::do_draw\n"
+                  << "  region = (" << region.origin.x << ", "
+                                    << region.origin.y << ") -> ["
+                                    << region.size.width << ", "
+                                    << region.size.height << "]\n"
+                  << "  offset = [" << offset.x << ", "
+                                    << offset.y << "]"
+                  << std::endl;
+        */
+                                 
         odin::u32 number_of_components = get_number_of_components();
+        
+        /*
+        std::cout << "#components = " << number_of_components << std::endl;
+        */
         
         for (odin::u32 index = 0; index < number_of_components; ++index)
         {
@@ -124,11 +202,27 @@ private :
             component_region.origin = current_component->get_position();
             component_region.size   = current_component->get_size();
             
+            /*
+            std::cout << "=== component # " << index << " ===\n"
+                      << "  region = (" << component_region.origin.x << ", "
+                                        << component_region.origin.y << ") -> ["
+                                        << component_region.size.width << ", "
+                                        << component_region.size.height << "]\n";
+            */
+            
             boost::optional<rectangle> draw_region =
                 intersection(region, component_region);
                 
             if (draw_region)
             {
+                /*
+                std::cout << "  intersection = ("
+                          << draw_region->origin.x << ", "
+                          << draw_region->origin.y << ") -> ["
+                          << draw_region->size.width << ", "
+                          << draw_region->size.height << "]\n";
+                */
+                
                 // The draw region is currently relative to this container's
                 // origin.  It should be relative to the child's origin.
                 draw_region->origin.x -= component_region.origin.x;
@@ -141,6 +235,12 @@ private :
                 point component_offset;
                 component_offset.x = position.x + offset.x;
                 component_offset.y = position.y + offset.y;
+                
+                /*
+                std::cout << "   offset = ("
+                          << component_offset.x << ", "
+                          << component_offset.y << ")\n" << std::endl;
+                */
                 
                 current_component->draw(
                     context, component_offset, draw_region.get());

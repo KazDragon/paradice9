@@ -27,11 +27,17 @@
 #ifndef MUNIN_ANSI_ATTRIBUTE_HPP_
 #define MUNIN_ANSI_ATTRIBUTE_HPP_
 
+#include <iosfwd>
+
 namespace munin { namespace ansi {
 
 struct attribute
 {
 };
+
+bool operator==(attribute const &lhs, attribute const &rhs);
+
+std::ostream &operator<<(std::ostream &out, attribute const &attr);
 
 }}
 

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin ANSI Types.
+// Munin ANSI Attribute Constants.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,31 +24,25 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ANSI_TYPES_HPP_
-#define MUNIN_ANSI_TYPES_HPP_
-
 #include "munin/ansi/attribute.hpp"
-#include <boost/optional.hpp>
-#include <iosfwd>
-#include <utility>
+#include <iostream>
 
 namespace munin { namespace ansi {
 
-//* =========================================================================
-/// \brief The type of an element in an ANSI component.  Each element is a
-/// normal character and can optionally have attributes (such as boldness,
-/// colour, font, etc.) applied to it.  A lack of an attribute indicates that
-/// the character has the "default" attribute.
-//* =========================================================================
-typedef std::pair<
-    char
-  , boost::optional<munin::ansi::attribute>
-> element_type;
-  
-bool operator==(element_type const &lhs, element_type const &rhs);
+bool operator==(attribute const &lhs, attribute const &rhs)
+{
+    return true;
+}
 
-std::ostream &operator<<(std::ostream &out, element_type const &element);
+std::ostream &operator<<(std::ostream &out, attribute const &attr)
+{
+    out << "attr[";
+
+    // TODO: add attributes.
+
+    out << "]";
+
+    return out;
+}
 
 }}
-
-#endif

@@ -40,25 +40,25 @@ class graphics_context
 public :
     typedef ElementType element_type;
     
-    // ROW_PROXY ============================================================
+    // COLUMN_PROXY =========================================================
     // ======================================================================
-    class row_proxy
+    class column_proxy
     {
-        // COLUMN_PROXY =====================================================
+        // ROW_PROXY ========================================================
         // ==================================================================
-        class column_proxy
+        class row_proxy
         {
         public :
             // ==============================================================
             // CONSTRUCTOR
             // ==============================================================
-            column_proxy(
+            row_proxy(
                 graphics_context &ctx
-              , odin::u32         row
-              , odin::u32         column)
+              , odin::u32         column
+              , odin::u32         row)
                 : ctx_(ctx)
-                , row_(row)
                 , column_(column)
+                , row_(row)
             {
             }
             
@@ -67,7 +67,7 @@ public :
             // ==============================================================
             void operator=(element_type value)
             {
-                ctx_.set_value(row_, column_, value);
+                ctx_.set_value(column_, row_, value);
             }
             
             // ==============================================================
@@ -75,53 +75,53 @@ public :
             // ==============================================================
             operator element_type()
             {
-                return ctx_.get_value(row_, column_);
+                return ctx_.get_value(column_, row_);
             }
             
         private :
             graphics_context &ctx_;
-            odin::u32         row_;
             odin::u32         column_;
+            odin::u32         row_;
         };
         
     public :
         // ==================================================================
         // CONSTRUCTOR
         // ==================================================================
-        row_proxy(
+        column_proxy(
             graphics_context &ctx
-          , odin::u32         row)
+          , odin::u32         column)
             : ctx_(ctx)
-            , row_(row)
+            , column_(column)
         {
         }
             
         // ==================================================================
         // OPERATOR[]
         // ==================================================================
-        column_proxy operator[](odin::u32 column)
+        row_proxy operator[](odin::u32 row)
         {
-            return column_proxy(ctx_, row_, column);
+            return row_proxy(ctx_, column_, row);
         }
         
     private :
         graphics_context &ctx_;
-        odin::u32         row_;
+        odin::u32         column_;
     };
     
-    //* =====================================================================
-    /// \brief Destructor
-    //* =====================================================================
+    // ======================================================================
+    // DESTRUCTOR
+    // ======================================================================
     virtual ~graphics_context()
     {
     }
     
-    //* =====================================================================
-    ///
-    //* =====================================================================
-    row_proxy operator[](odin::u32 row)
+    // ======================================================================
+    // OPERATOR[]
+    // ======================================================================
+    column_proxy operator[](odin::u32 column)
     {
-        return row_proxy(*this, row);
+        return column_proxy(*this, column);
     }
     
 private :
@@ -130,8 +130,8 @@ private :
     /// the graphics context.
     //* =====================================================================
     virtual void set_value(
-        odin::u32    row
-      , odin::u32    column
+        odin::u32    column
+      , odin::u32    row
       , element_type value) = 0; 
 
     //* =====================================================================
@@ -139,8 +139,8 @@ private :
     /// on the graphics context.
     //* =====================================================================
     virtual element_type get_value(
-        odin::u32 row
-      , odin::u32 column) const = 0;
+        odin::u32 column
+      , odin::u32 row) const = 0;
 };
     
 }

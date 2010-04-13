@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_ansi_graphics_context_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\munin_component_fixture.cpp"
 				>
 			</File>
@@ -198,6 +202,10 @@
 			</File>
 			<File
 				RelativePath=".\munin_graphics_context_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_layout_fixture.cpp"
 				>
 			</File>
 			<File
@@ -311,7 +319,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fake_munin_layout.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\munin_algorithm_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_ansi_graphics_context_fixture.hpp"
 				>
 			</File>
 			<File
@@ -324,6 +340,10 @@
 			</File>
 			<File
 				RelativePath=".\munin_graphics_context_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_layout_fixture.hpp"
 				>
 			</File>
 			<File

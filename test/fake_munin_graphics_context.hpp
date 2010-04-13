@@ -13,17 +13,17 @@ struct fake_graphics_context : munin::graphics_context<ElementType>
 
 private :
     virtual void set_value(
-        odin::u32    row
-      , odin::u32    column
+        odin::u32    column
+      , odin::u32    row
       , element_type value)
     {
-        values_[row][column] = value;
+        values_[column][row] = value;
     }
 
     virtual element_type get_value(
-        odin::u32 row
-      , odin::u32 column) const
+        odin::u32 column
+      , odin::u32 row) const
     {
-        return const_cast<fake_graphics_context&>(*this).values_[row][column];
+        return const_cast<fake_graphics_context&>(*this).values_[column][row];
     }
 };

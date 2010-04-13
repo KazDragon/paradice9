@@ -29,6 +29,8 @@
 
 #include "munin/types.hpp"
 #include <boost/shared_ptr.hpp>
+#include <boost/signal.hpp>
+#include <vector>
 
 namespace munin {
     
@@ -38,8 +40,14 @@ class container;
 template <class ElementType>
 class graphics_context;
 
-// COMPONENT ================================================================
-// ==========================================================================
+//* =========================================================================
+/// \brief An object capable of being drawn on a graphics context.
+/// A component is a fundamental piece of the munin architecture and is the
+/// base class for anything that is capable of being drawn in some way.  It
+/// is closely attached to its graphics context, with which it shares an
+/// ElementType.  This type is the fundamental graphical unit, which could 
+/// be a coloured pixel, or an attributed character, or something else. 
+//* =========================================================================
 template <class ElementType>
 class component
 {
@@ -86,6 +94,23 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Retrieves the preferred size of this component.
+    /// \par
+    /// The preferred size of a component is the size at which all elements
+    /// can be displayed with clarity.  For example, the preferred size of
+    /// a static text control with the following text:
+    /// \code
+    /// This is a
+    /// Static Text Box
+    /// \endcode
+    /// would be (15, 2).
+    //* =====================================================================
+    extent get_preferred_size() const
+    {
+        return do_get_preferred_size();
+    }
+    
+    //* =====================================================================
     /// \brief Sets the parent of the component
     //* =====================================================================
     void set_parent(boost::shared_ptr< container<element_type> > const &parent)
@@ -118,6 +143,17 @@ public :
         do_draw(context, offset, region);
     }
     
+    //* =====================================================================
+    /// \fn on_redraw
+    /// \param regions The regions of the component that requires redrawing.
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the component should be redrawn.
+    //* =====================================================================
+    boost::signal
+    <
+        void (std::vector<rectangle> regions)
+    > on_redraw;
+    
 private :
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
@@ -148,6 +184,13 @@ private :
     virtual extent do_get_size() const = 0;
 
     //* =====================================================================
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual extent do_get_preferred_size() const = 0;
+    
+    //* =====================================================================
     /// \brief Called by set_parent().  Derived classes must override this
     /// function in order to set the parent of the component in a custom
     /// manner.
@@ -171,7 +214,8 @@ private :
     ///
     /// \param context the context in which the component should draw itself.
     /// \param offset the position of the parent component (if there is one)
-    ///        relative to the context.
+    ///        relative to the context.  That is, (0,0) to this component
+    ///        is actually (offset.x, offset.y) in the context.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================

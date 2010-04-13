@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Context
+// Munin Graphics Context.
 //
-// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,45 +24,62 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_CONTEXT_HPP_
-#define PARADICE_CONTEXT_HPP_
+#ifndef MUNIN_ANSI_GRAPHICS_CONTEXT_HPP_
+#define MUNIN_ANSI_GRAPHICS_CONTEXT_HPP_
 
-#include "odin/runtime_array.hpp"
+#include "munin/graphics_context.hpp"
+#include "munin/ansi/types.hpp"
+#include "munin/types.hpp"
+#include <boost/shared_ptr.hpp>
 
-namespace paradice {
+namespace munin { namespace ansi {
 
-class client;
-
-//* =========================================================================
-/// \brief Describes the interface for a context in which a Paradice server
-/// can run.
-//* =========================================================================
-class context
+class graphics_context
+    : public munin::graphics_context<munin::ansi::element_type>
 {
 public :
     //* =====================================================================
-    /// \brief Destructor
+    /// \brief Constructor
     //* =====================================================================
-    virtual ~context() {}
+    graphics_context();
     
     //* =====================================================================
-    /// \brief Retrieves a list of clients currently connected to Paradice.
+    /// \brief Destructor
     //* =====================================================================
-    virtual odin::runtime_array< boost::shared_ptr<client> > get_clients() = 0;
+    virtual ~graphics_context();
+    
+    //* =====================================================================
+    /// \brief Sets the size of the graphics context.
+    //* =====================================================================
+    void set_size(extent const &size);
+    
+    //* =====================================================================
+    /// \brief Retrieves the size of the graphics context.
+    //* =====================================================================
+    extent get_size() const;
+    
+private :
+    //* =====================================================================
+    /// \brief Sets the value and attribute at the specified coordinates on
+    /// the graphics context.
+    //* =====================================================================
+    virtual void set_value(
+        odin::u32    column
+      , odin::u32    row
+      , element_type value); 
 
     //* =====================================================================
-    /// \brief Adds a client to the list of clients currently connected
-    /// to Paradice.
+    /// \brief Retrieves the value and attribute at the specified coordinates
+    /// on the graphics context.
     //* =====================================================================
-    virtual void add_client(boost::shared_ptr<client> const &cli) = 0;
-
-    //* =====================================================================
-    /// \brief Removes a client from the list of clients currently
-    /// connected to Paradice.
-    //* =====================================================================
-    virtual void remove_client(boost::shared_ptr<client> const &cli) = 0;
+    virtual element_type get_value(
+        odin::u32 column
+      , odin::u32 row) const;
+    
+    class impl;
+    boost::shared_ptr<impl> pimpl_;
 };
 
-}
+}}
 
 #endif

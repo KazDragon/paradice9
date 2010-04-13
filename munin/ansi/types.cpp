@@ -24,31 +24,60 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ANSI_TYPES_HPP_
-#define MUNIN_ANSI_TYPES_HPP_
-
-#include "munin/ansi/attribute.hpp"
-#include <boost/optional.hpp>
-#include <iosfwd>
-#include <utility>
+#include "munin/ansi/types.hpp"
+#include <boost/format.hpp>
+#include <iostream>
+#include <cctype>
 
 namespace munin { namespace ansi {
 
-//* =========================================================================
-/// \brief The type of an element in an ANSI component.  Each element is a
-/// normal character and can optionally have attributes (such as boldness,
-/// colour, font, etc.) applied to it.  A lack of an attribute indicates that
-/// the character has the "default" attribute.
-//* =========================================================================
-typedef std::pair<
-    char
-  , boost::optional<munin::ansi::attribute>
-> element_type;
-  
-bool operator==(element_type const &lhs, element_type const &rhs);
+bool operator==(element_type const &lhs, element_type const &rhs)
+{
+    if (lhs.first != rhs.first)
+    {
+        return false;
+    }
+    
+    if (!lhs.second.is_initialized() && !rhs.second.is_initialized())
+    {
+        return true;
+    }
+    
+    if (lhs.second.is_initialized() != rhs.second.is_initialized())
+    {
+        return false;
+    }
+    
+    return lhs.second.get() == rhs.second.get();
+}
 
-std::ostream &operator<<(std::ostream &out, element_type const &element);
+std::ostream &operator<<(std::ostream &out, element_type const &element)
+{
+    out << "element['";
+    
+    if (std::isprint(element.first))
+    {
+        out << element.first;
+    }
+    else
+    {
+        out << boost::format("0x%02X") % int(element.first);
+    }
+    
+    out << "', ";
+    
+    if (element.second.is_initialized())
+    {
+        out << element.second.get();
+    }
+    else
+    {
+        out << "(default)";
+    }
+    
+    out << "]";
+    
+    return out;
+}
 
 }}
-
-#endif

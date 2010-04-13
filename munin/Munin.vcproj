@@ -160,6 +160,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\basic_container.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\basic_layout.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\component.hpp"
 				>
 			</File>
@@ -169,6 +177,10 @@
 			</File>
 			<File
 				RelativePath=".\graphics_context.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\layout.hpp"
 				>
 			</File>
 			<File
@@ -190,6 +202,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ansi\graphics_context.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ansi\protocol.hpp"
 				>
 			</File>
@@ -201,6 +217,18 @@
 		<Filter
 			Name="Ansi Source Files"
 			>
+			<File
+				RelativePath=".\ansi\attribute.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\graphics_context.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\types.cpp"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

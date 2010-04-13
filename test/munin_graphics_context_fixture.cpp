@@ -1,7 +1,10 @@
 #include "munin_graphics_context_fixture.hpp"
 #include "fake_munin_graphics_context.hpp"
-#include <utility>
 #include "odin/types.hpp"
+#include <boost/bind.hpp>
+#include <boost/foreach.hpp>
+#include <algorithm>
+#include <utility>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(munin_graphics_context_fixture);
 

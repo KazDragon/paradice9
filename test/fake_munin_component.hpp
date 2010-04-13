@@ -1,12 +1,11 @@
 #include "munin/component.hpp"
+#include "munin/graphics_context.hpp"
 #include "munin/types.hpp"
 #include "munin/algorithm.hpp"
 #include <algorithm>
 #include <boost/weak_ptr.hpp>
 
-/*
-#include <iostream>
-*/
+//#include <iostream>
 
 template <class ElementType>
 class fake_component : public munin::component<ElementType>
@@ -19,11 +18,29 @@ public :
         bounds_.origin.y    = 0;
         bounds_.size.width  = 0;
         bounds_.size.height = 0;
+        
+        preferred_size_.width  = 0;
+        preferred_size_.height = 0;
     }
     
     void set_brush(ElementType brush)
     {
         brush_ = brush;
+        
+        munin::rectangle region;
+        region.origin.x = 0;
+        region.origin.y = 0;
+        region.size = bounds_.size;
+        
+        std::vector<munin::rectangle> regions;
+        regions.push_back(region);
+        
+        this->on_redraw(regions);
+    }
+    
+    void set_preferred_size(munin::extent const &preferred_size)
+    {
+        preferred_size_ = preferred_size;
     }
     
 private :
@@ -45,6 +62,11 @@ private :
     virtual munin::extent do_get_size() const
     {
         return bounds_.size;
+    }
+    
+    virtual munin::extent do_get_preferred_size() const
+    {
+        return preferred_size_;
     }
     
     //* =====================================================================
@@ -147,7 +169,7 @@ private :
                       << "]"
                       << std::endl;
             */
-
+            
             for (odin::u32 x = 0; x < box.size.width; ++x)
             {
                 for (odin::u32 y = 0; y < box.size.height; ++y)
@@ -159,7 +181,6 @@ private :
                               << y + box.origin.y
                               << ")" << std::endl;
                     */
-
                     context
                         [ x + box.origin.x + offset.x ]
                         [ y + box.origin.y + offset.y ] = brush_;
@@ -170,5 +191,6 @@ private :
     
     boost::weak_ptr< munin::container<ElementType> > parent_;
     munin::rectangle                                 bounds_;
+    munin::extent                                    preferred_size_;
     char                                             brush_;
 };

@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\random.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\rules.cpp"
 				>
 			</File>
@@ -222,6 +226,10 @@
 			</File>
 			<File
 				RelativePath=".\dice_roll_parser.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\random.hpp"
 				>
 			</File>
 			<File

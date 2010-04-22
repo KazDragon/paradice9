@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Graphics Context.
+// Munin ANSI Window.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,73 +24,61 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ANSI_GRAPHICS_CONTEXT_HPP_
-#define MUNIN_ANSI_GRAPHICS_CONTEXT_HPP_
+#ifndef MUNIN_ANSI_WINDOW_HPP_
+#define MUNIN_ANSI_WINDOW_HPP_
 
-#include "munin/graphics_context.hpp"
-#include "munin/ansi/ansi_types.hpp"
-#include "munin/types.hpp"
+#include "munin/ansi/container.hpp"
+#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/signal.hpp>
+#include <vector>
+
+namespace boost { namespace asio {
+    class io_service;
+}}
 
 namespace munin { namespace ansi {
 
-class graphics_context
-    : public munin::graphics_context<munin::ansi::element_type>
+class graphics_context;
+
+//* =========================================================================
+/// \brief An object that represents a top-level window.
+//* =========================================================================
+class window
 {
 public :
     //* =====================================================================
     /// \brief Constructor
+    /// \param io_service A boost::asio::io_service object that is used for
+    /// coalescing multiple paint requests.  It is assumed that its run()
+    /// method is invoked elsewhere.
     //* =====================================================================
-    graphics_context();
-    
-    //* =====================================================================
-    /// \brief Copy Constructor
-    //* =====================================================================
-    graphics_context(graphics_context const &context);
+    window(boost::asio::io_service &io_service);
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~graphics_context();
+    ~window();
     
     //* =====================================================================
-    /// \brief Assigns this graphics context to be a clone of another.
+    /// \brief Retrieve the top level container in the window.  This
+    /// contains all the components that are displayed in this window.
     //* =====================================================================
-    graphics_context &operator=(graphics_context const &other);
+    boost::shared_ptr<container> get_content();
     
     //* =====================================================================
-    /// \brief Sets the size of the graphics context.
+    /// \fn on_repaint
+    /// \param paint_data A sequence of characters that contain the ANSI-
+    /// compliant bytes necessary to repaint the window.
+    /// \brief Connect to this signal in order to receive notification about
+    /// when the window has repainted and the data for how to repaint it.
     //* =====================================================================
-    void set_size(extent const &size);
-    
-    //* =====================================================================
-    /// \brief Retrieves the size of the graphics context.
-    //* =====================================================================
-    extent get_size() const;
-    
-    //* =====================================================================
-    /// \brief Returns true if this context is equal in content to the other.
-    //* =====================================================================
-    bool operator==(graphics_context const &other) const;
+    boost::signal
+    <
+        void (std::vector<char> paint_data)
+    > on_repaint;
     
 private :
-    //* =====================================================================
-    /// \brief Sets the value and attribute at the specified coordinates on
-    /// the graphics context.
-    //* =====================================================================
-    virtual void set_value(
-        odin::u32    column
-      , odin::u32    row
-      , element_type value); 
-
-    //* =====================================================================
-    /// \brief Retrieves the value and attribute at the specified coordinates
-    /// on the graphics context.
-    //* =====================================================================
-    virtual element_type get_value(
-        odin::u32 column
-      , odin::u32 row) const;
-    
     class impl;
     boost::shared_ptr<impl> pimpl_;
 };

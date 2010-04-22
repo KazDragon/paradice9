@@ -101,6 +101,26 @@ private :
     }
     
     //* =====================================================================
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual extent do_get_preferred_size() const
+    {
+        if (layout_ != NULL)
+        {
+            // If there is a layout, then ask it what the preferred size of
+            // this container should be.
+            return layout_->get_preferred_size();
+        }
+        else
+        {
+            // Otherwise, we are happy with the size that we currently have.
+            return this->get_size();
+        }
+    }
+    
+    //* =====================================================================
     /// \brief Called by get_number_of_components().  Derived classes must
     /// override this function in order to retrieve the number of components
     /// in this basic_container in a custom manner.

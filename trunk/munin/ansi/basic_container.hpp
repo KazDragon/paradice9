@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Types.
+// Munin ANSI Basic Container.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,41 +24,16 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_TYPES_HPP_
-#define MUNIN_TYPES_HPP_
+#ifndef MUNIN_ANSI_BASIC_CONTAINER_HPP_
+#define MUNIN_ANSI_BASIC_CONTAINER_HPP_
 
-#include "odin/types.hpp"
-#include <iosfwd>
+#include "munin/basic_container.hpp"
+#include "munin/ansi/ansi_types.hpp"
 
-namespace munin {
-    
-struct point
-{
-    odin::u32 x;
-    odin::u32 y;
-};
+namespace munin { namespace ansi {
 
-bool operator==(point const &lhs, point const &rhs);
-std::ostream& operator<<(std::ostream &out, point const &pt);
+typedef munin::basic_container<element_type> basic_container;    
 
-struct extent
-{
-    odin::u32 width;
-    odin::u32 height;
-};
-
-bool operator==(extent const &lhs, extent const &rhs);
-std::ostream& operator<<(std::ostream &out, extent const &ext);
-
-struct rectangle
-{
-    point  origin;
-    extent size;
-};
-
-bool operator==(rectangle const &lhs, rectangle const &rhs);
-std::ostream& operator<<(std::ostream &out, rectangle const &rect);
-
-}
+}}
 
 #endif

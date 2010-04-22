@@ -4,9 +4,12 @@
 #include "fake_munin_component.hpp"
 #include "fake_munin_layout.hpp"
 #include "fake_munin_graphics_context.hpp"
+#include <boost/lambda/lambda.hpp>
 
+using namespace std;
 using namespace boost;
 using namespace odin;
+namespace bll = boost::lambda;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(munin_container_fixture);
 
@@ -308,4 +311,14 @@ void munin_container_fixture::test_layout()
     CPPUNIT_ASSERT_EQUAL(
         hint1
       , boost::any_cast<std::string>(layout->get_hint(1)));
+}
+
+void munin_container_fixture::test_overlap_same_layer()
+{
+    CPPUNIT_FAIL("Not Implemented");
+}
+
+void munin_container_fixture::test_overlap_different_layer()
+{
+    CPPUNIT_FAIL("Not Implemented");
 }

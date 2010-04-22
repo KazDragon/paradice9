@@ -62,7 +62,10 @@ public :
     }
     
     //* =====================================================================
-    /// \brief Sets the position of this component.
+    /// \brief Sets the position of this component.  This does not cause a
+    /// redraw, on the basis that the entity performing the move (usually
+    /// a layout manager) knows about it, and is better informed about all
+    /// regions redrawn.
     //* =====================================================================
     void set_position(point const &position)
     {
@@ -78,7 +81,10 @@ public :
     }
     
     //* =====================================================================
-    /// \brief Sets the size of this component.
+    /// \brief Sets the size of this component.  This does not cause a
+    /// redraw, on the basis that the entity performing the resize (usually
+    /// a layout manager) knows about it, and is better informed about all
+    /// regions redrawn.
     //* =====================================================================
     void set_size(extent const &size)
     {

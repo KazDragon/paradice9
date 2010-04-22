@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin ANSI Types.
+// Munin ANSI Container.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,60 +24,16 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "munin/ansi/types.hpp"
-#include <boost/format.hpp>
-#include <iostream>
-#include <cctype>
+#ifndef MUNIN_ANSI_CONTAINER_HPP_
+#define MUNIN_ANSI_CONTAINER_HPP_
+
+#include "munin/container.hpp"
+#include "munin/ansi/ansi_types.hpp"
 
 namespace munin { namespace ansi {
 
-bool operator==(element_type const &lhs, element_type const &rhs)
-{
-    if (lhs.first != rhs.first)
-    {
-        return false;
-    }
-    
-    if (!lhs.second.is_initialized() && !rhs.second.is_initialized())
-    {
-        return true;
-    }
-    
-    if (lhs.second.is_initialized() != rhs.second.is_initialized())
-    {
-        return false;
-    }
-    
-    return lhs.second.get() == rhs.second.get();
-}
-
-std::ostream &operator<<(std::ostream &out, element_type const &element)
-{
-    out << "element['";
-    
-    if (std::isprint(element.first))
-    {
-        out << element.first;
-    }
-    else
-    {
-        out << boost::format("0x%02X") % int(element.first);
-    }
-    
-    out << "', ";
-    
-    if (element.second.is_initialized())
-    {
-        out << element.second.get();
-    }
-    else
-    {
-        out << "(default)";
-    }
-    
-    out << "]";
-    
-    return out;
-}
+typedef munin::container<element_type> container;    
 
 }}
+
+#endif

@@ -27,6 +27,7 @@
 #include "communication.hpp"
 #include "connection.hpp"
 #include "dice_roll_parser.hpp"
+#include "paradice/random.hpp"
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -116,7 +117,7 @@ PARADICE_COMMAND_IMPL(roll)
              current_roll < dice_roll.amount_; 
              ++current_roll)
         {
-            s32 score = (rand() % dice_roll.sides_) + 1;
+            s32 score = s32(random_number(1, dice_roll.sides_));
     
             roll_description += str(format("%s%d") 
                 % (current_roll == 0 ? "" : ", ")
@@ -124,13 +125,23 @@ PARADICE_COMMAND_IMPL(roll)
     
             total += score;
         }
-        
-        total_description +=
-            str(format("%s%d [%s]")
-                % (repetition == 0 ? "" : ", ")
-                % total
-                % roll_description);
-            
+
+        if (dice_roll.bonus_ == 0)
+        {
+            total_description +=
+                str(format("%s%d")
+                    % (repetition == 0 ? "" : ", ")
+                    % total);
+        }
+        else
+        {
+            total_description +=
+                str(format("%s%d [%s]")
+                    % (repetition == 0 ? "" : ", ")
+                    % total
+                    % roll_description);
+        }
+
         total_score += total;
     }
 

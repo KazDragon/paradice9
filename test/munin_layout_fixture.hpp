@@ -8,6 +8,7 @@ public :
         CPPUNIT_TEST(test_constructor);
         CPPUNIT_TEST(test_add_component);
         CPPUNIT_TEST(test_remove_component);
+        CPPUNIT_TEST(test_preferred_size);
         CPPUNIT_TEST(test_layout);
     CPPUNIT_TEST_SUITE_END();
 
@@ -15,5 +16,6 @@ private :
     void test_constructor();
     void test_add_component();
     void test_remove_component();
+    void test_preferred_size();
     void test_layout();
 };

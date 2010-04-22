@@ -8,13 +8,7 @@ class fake_container
 {
 public :
     fake_container()
-        : brush_('\0')
     {
-    }
-    
-    void set_brush(ElementType brush)
-    {
-        brush_ = brush;
     }
     
     void set_preferred_size(munin::extent const &preferred_size)
@@ -28,9 +22,5 @@ private :
         return preferred_size_;
     }
 
-    boost::weak_ptr< munin::container<ElementType> > parent_;
-    munin::point                                     position_;
-    munin::extent                                    size_;    
-    munin::extent                                    preferred_size_;
-    char                                             brush_;
+    munin::extent preferred_size_;
 };

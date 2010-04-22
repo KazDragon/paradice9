@@ -193,6 +193,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_ansi_window_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\munin_component_fixture.cpp"
 				>
 			</File>
@@ -328,6 +332,10 @@
 			</File>
 			<File
 				RelativePath=".\munin_ansi_graphics_context_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_ansi_window_fixture.hpp"
 				>
 			</File>
 			<File

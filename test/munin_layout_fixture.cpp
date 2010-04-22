@@ -105,3 +105,17 @@ void munin_layout_fixture::test_layout()
 
     CPPUNIT_ASSERT_EQUAL(true, layout->do_layout_called);
 }
+
+void munin_layout_fixture::test_preferred_size()
+{
+    boost::shared_ptr< fake_layout<char> > layout(new fake_layout<char>);
+    
+    munin::extent preferred_size;
+    preferred_size.width  = 5;
+    preferred_size.height = 6;
+    layout->set_preferred_size(preferred_size);
+    
+    munin::extent actual_preferred_size = layout->get_preferred_size();
+    CPPUNIT_ASSERT_EQUAL(preferred_size.width, actual_preferred_size.width);
+    CPPUNIT_ASSERT_EQUAL(preferred_size.height, actual_preferred_size.height);
+}

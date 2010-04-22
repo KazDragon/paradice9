@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Types.
+// Paradice Random
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,40 +24,14 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_TYPES_HPP_
-#define MUNIN_TYPES_HPP_
+#ifndef PARADICE_RANDOM_HPP_
+#define PARADICE_RANDOM_HPP_
 
 #include "odin/types.hpp"
-#include <iosfwd>
 
-namespace munin {
-    
-struct point
-{
-    odin::u32 x;
-    odin::u32 y;
-};
+namespace paradice {
 
-bool operator==(point const &lhs, point const &rhs);
-std::ostream& operator<<(std::ostream &out, point const &pt);
-
-struct extent
-{
-    odin::u32 width;
-    odin::u32 height;
-};
-
-bool operator==(extent const &lhs, extent const &rhs);
-std::ostream& operator<<(std::ostream &out, extent const &ext);
-
-struct rectangle
-{
-    point  origin;
-    extent size;
-};
-
-bool operator==(rectangle const &lhs, rectangle const &rhs);
-std::ostream& operator<<(std::ostream &out, rectangle const &rect);
+odin::u32 random_number(odin::u32 from, odin::u32 to);
 
 }
 

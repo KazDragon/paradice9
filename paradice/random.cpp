@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Types.
+// Paradice Random
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,41 +24,49 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_TYPES_HPP_
-#define MUNIN_TYPES_HPP_
+#include "paradice/random.hpp"
+#include <boost/random.hpp>
+#include <ctime>
 
-#include "odin/types.hpp"
-#include <iosfwd>
+using namespace odin;
+using namespace boost;
+using namespace std;
 
-namespace munin {
-    
-struct point
+namespace paradice {
+
+struct random_number_generator
 {
-    odin::u32 x;
-    odin::u32 y;
+    random_number_generator()
+    {
+        // Because of the fixed bit pattern for a lot of the current time, 
+        // randomness doesn't really kick in for at least 10 rolls.  So,
+        // We seed and run before actually using any numbers.
+        rng.seed(static_cast<unsigned int>(time(NULL)));
+
+        uniform_int<> numbers(1,100);
+        variate_generator< mt19937&, uniform_int<> > roller(rng, numbers);
+
+        for (u32 roll = 0; roll < 20; ++roll)
+        {
+            roller();
+        }
+    }
+
+    u32 operator()(u32 from, u32 to)
+    {
+        uniform_int<> die(from, to);
+        variate_generator< mt19937&, uniform_int<> > roller(rng, die);
+
+        return roller();
+    }
+
+    mt19937 rng;
 };
 
-bool operator==(point const &lhs, point const &rhs);
-std::ostream& operator<<(std::ostream &out, point const &pt);
-
-struct extent
+odin::u32 random_number(odin::u32 from, odin::u32 to)
 {
-    odin::u32 width;
-    odin::u32 height;
-};
-
-bool operator==(extent const &lhs, extent const &rhs);
-std::ostream& operator<<(std::ostream &out, extent const &ext);
-
-struct rectangle
-{
-    point  origin;
-    extent size;
-};
-
-bool operator==(rectangle const &lhs, rectangle const &rhs);
-std::ostream& operator<<(std::ostream &out, rectangle const &rect);
-
+    static random_number_generator generate;
+    return generate(from, to);
 }
 
-#endif
+}

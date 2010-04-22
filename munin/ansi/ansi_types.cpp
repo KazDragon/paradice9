@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Types.
+// Munin ANSI Types.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,41 +24,60 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_TYPES_HPP_
-#define MUNIN_TYPES_HPP_
+#include "munin/ansi/ansi_types.hpp"
+#include <boost/format.hpp>
+#include <iostream>
+#include <cctype>
 
-#include "odin/types.hpp"
-#include <iosfwd>
+namespace munin { namespace ansi {
 
-namespace munin {
+bool operator==(element_type const &lhs, element_type const &rhs)
+{
+    if (lhs.first != rhs.first)
+    {
+        return false;
+    }
     
-struct point
-{
-    odin::u32 x;
-    odin::u32 y;
-};
-
-bool operator==(point const &lhs, point const &rhs);
-std::ostream& operator<<(std::ostream &out, point const &pt);
-
-struct extent
-{
-    odin::u32 width;
-    odin::u32 height;
-};
-
-bool operator==(extent const &lhs, extent const &rhs);
-std::ostream& operator<<(std::ostream &out, extent const &ext);
-
-struct rectangle
-{
-    point  origin;
-    extent size;
-};
-
-bool operator==(rectangle const &lhs, rectangle const &rhs);
-std::ostream& operator<<(std::ostream &out, rectangle const &rect);
-
+    if (!lhs.second.is_initialized() && !rhs.second.is_initialized())
+    {
+        return true;
+    }
+    
+    if (lhs.second.is_initialized() != rhs.second.is_initialized())
+    {
+        return false;
+    }
+    
+    return lhs.second.get() == rhs.second.get();
 }
 
-#endif
+std::ostream &operator<<(std::ostream &out, element_type const &element)
+{
+    out << "element['";
+    
+    if (std::isprint(element.first))
+    {
+        out << element.first;
+    }
+    else
+    {
+        out << boost::format("0x%02X") % int(element.first);
+    }
+    
+    out << "', ";
+    
+    if (element.second.is_initialized())
+    {
+        out << element.second.get();
+    }
+    else
+    {
+        out << "(default)";
+    }
+    
+    out << "]";
+    
+    return out;
+}
+
+}}

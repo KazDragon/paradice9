@@ -410,7 +410,7 @@ PARADICE_COMMAND_IMPL(rename)
         
         message_to_room(ctx, str(
             format("\r\n%s is now %s.\r\n")
-                % player->get_name()
+                % old_name
                 % get_player_address(player))
           , player);
     

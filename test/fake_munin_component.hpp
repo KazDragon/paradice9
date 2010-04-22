@@ -5,14 +5,18 @@
 #include <algorithm>
 #include <boost/weak_ptr.hpp>
 
-//#include <iostream>
+//#define DEBUG_COMPONENT
+
+#ifdef DEBUG_COMPONENT
+#include <iostream>
+#endif
 
 template <class ElementType>
 class fake_component : public munin::component<ElementType>
 {
 public :
     fake_component()
-        : brush_('\0')
+        : brush_()
     {
         bounds_.origin.x    = 0;
         bounds_.origin.y    = 0;
@@ -106,7 +110,7 @@ private :
       , munin::point const                   &offset
       , munin::rectangle const               &region)
     {
-        /*
+#ifdef DEBUG_COMPONENT
         std::cout << "fake_component::do_draw" << std::endl;
         
         std::cout << "offset = {"
@@ -137,8 +141,8 @@ private :
                   << bounds_.size.height
                   << "]"
                   << std::endl;
-        */
-                  
+#endif
+
         // Region is local to this object.  I.e. region(0,0) is the
         // top left of this object, not the top left of the context.
         // Therefore, it's necessary to offset the region by this 
@@ -157,7 +161,7 @@ private :
         {
             munin::rectangle &box = *intersection;
             
-            /*
+#ifdef DEBUG_COMPONENT
             std::cout << "intersection = ("
                       << box.origin.x
                       << ", "
@@ -168,19 +172,19 @@ private :
                       << box.size.height
                       << "]"
                       << std::endl;
-            */
-            
+#endif
+
             for (odin::u32 x = 0; x < box.size.width; ++x)
             {
                 for (odin::u32 y = 0; y < box.size.height; ++y)
                 {
-                    /*
+#ifdef DEBUG_COMPONENT
                     std::cout << "Drawing " << brush_ << " at ("
-                              << x + box.origin.x
+                              << x + box.origin.x + offset.x
                               << ", "
-                              << y + box.origin.y
+                              << y + box.origin.y + offset.y
                               << ")" << std::endl;
-                    */
+#endif
                     context
                         [ x + box.origin.x + offset.x ]
                         [ y + box.origin.y + offset.y ] = brush_;
@@ -192,5 +196,5 @@ private :
     boost::weak_ptr< munin::container<ElementType> > parent_;
     munin::rectangle                                 bounds_;
     munin::extent                                    preferred_size_;
-    char                                             brush_;
+    ElementType                                      brush_;
 };

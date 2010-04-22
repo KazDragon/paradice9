@@ -41,6 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;.."
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -103,6 +104,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories=".;.."
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -147,6 +149,10 @@
 			>
 			<File
 				RelativePath=".\algorithm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\types.cpp"
 				>
 			</File>
 		</Filter>
@@ -198,7 +204,23 @@
 			Name="Ansi Header Files"
 			>
 			<File
+				RelativePath=".\ansi\ansi_types.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\ansi_types.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ansi\attribute.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\basic_container.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\container.hpp"
 				>
 			</File>
 			<File
@@ -210,7 +232,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\types.hpp"
+				RelativePath=".\ansi\window.hpp"
 				>
 			</File>
 		</Filter>
@@ -226,7 +248,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\types.cpp"
+				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 		</Filter>

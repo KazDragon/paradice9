@@ -28,6 +28,7 @@
 #define MUNIN_LAYOUT_HPP_
 
 #include "odin/types.hpp"
+#include "munin/types.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/any.hpp>
 
@@ -100,6 +101,17 @@ public :
     }
 
     //* =====================================================================
+    /// \brief Returns the preferred size of this layout.
+    /// \par
+    /// The preferred size of the layout is the size that the layout would be
+    /// if all components in it were at their preferred sizes.
+    //* =====================================================================
+    extent get_preferred_size() const
+    {
+        return do_get_preferred_size();
+    }
+    
+    //* =====================================================================
     /// \brief Performs the laying out of the components that were added to
     /// this layout, within the context of the specified container.
     //* =====================================================================
@@ -144,6 +156,13 @@ private :
     //* =====================================================================
     virtual boost::any do_get_hint(odin::u32 index) const = 0;
 
+    //* =====================================================================
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to retrieve the preferred size of the layout
+    /// in a custom manner.
+    //* =====================================================================
+    virtual extent do_get_preferred_size() const = 0;
+    
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this
     /// function in order to lay a container's components out in a custom

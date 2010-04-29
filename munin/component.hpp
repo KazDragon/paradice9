@@ -38,13 +38,13 @@ template <class ElementType>
 class container;
 
 template <class ElementType>
-class graphics_context;
+class canvas;
 
 //* =========================================================================
-/// \brief An object capable of being drawn on a graphics context.
+/// \brief An object capable of being drawn on a canvas.
 /// A component is a fundamental piece of the munin architecture and is the
 /// base class for anything that is capable of being drawn in some way.  It
-/// is closely attached to its graphics context, with which it shares an
+/// is closely attached to its canvas, with which it shares an
 /// ElementType.  This type is the fundamental graphical unit, which could 
 /// be a coloured pixel, or an attributed character, or something else. 
 //* =========================================================================
@@ -133,20 +133,72 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Returns whether this component currently has focus.
+    //* =====================================================================
+    bool has_focus() const
+    {
+        return do_has_focus();
+    }
+    
+    //* =====================================================================
+    /// \brief Returns whether this component can be focused.
+    //* =====================================================================
+    bool can_focus() const
+    {
+        return do_can_focus();
+    }
+    
+    //* =====================================================================
+    /// \brief Sets this component to have the focus.
+    //* =====================================================================
+    void set_focus()
+    {
+        do_set_focus();
+    }
+    
+    //* =====================================================================
+    /// \brief Causes this component to lose its focus.
+    //* =====================================================================
+    void lose_focus()
+    {
+        do_lose_focus();
+    }
+    
+    //* =====================================================================
+    /// \brief If this component has subcomponents, causes the component to
+    /// move the focus from the currently focused subcomponent to the next
+    /// subcomponent.  If it is a leaf component, merely loses focus.
+    //* =====================================================================
+    void focus_next()
+    {
+        do_focus_next();
+    }
+    
+    //* =====================================================================
+    /// \brief If this component has subcomponents, causes the component to
+    /// move the focus from the currently focused subcomponent to the 
+    /// previous subcomponent.  If it is a leaf component, merely loses focus.
+    //* =====================================================================
+    void focus_previous()
+    {
+        do_focus_previous();
+    }
+    
+    //* =====================================================================
     /// \brief Draws the component.
     ///
-    /// \param context the context in which the component should draw itself.
+    /// \param cvs the canvas in which the component should draw itself.
     /// \param offset the position of the parent component (if there is one)
-    ///        relative to the context.
+    ///        relative to the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     void draw(
-        graphics_context<element_type> &context
-      , point const                    &offset
-      , rectangle const                &region)
+        canvas<element_type> &cvs
+      , point const          &offset
+      , rectangle const      &region)
     {
-        do_draw(context, offset, region);
+        do_draw(cvs, offset, region);
     }
     
     //* =====================================================================
@@ -159,6 +211,24 @@ public :
     <
         void (std::vector<rectangle> regions)
     > on_redraw;
+    
+    //* =====================================================================
+    /// \fn on_focus_set
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the component has gained focus.
+    //* =====================================================================
+    boost::signal<
+        void ()
+    > on_focus_set;
+    
+    //* =====================================================================
+    /// \fn on_focus_lost
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the component has lost focus.
+    //* =====================================================================
+    boost::signal<
+        void ()
+    > on_focus_lost;
     
 private :
     //* =====================================================================
@@ -214,21 +284,61 @@ private :
     > do_get_parent() const = 0;
     
     //* =====================================================================
+    /// \brief Called by has_focus().  Derived classes must override this
+    /// function in order to return whether this component has focus in a
+    /// custom manner.
+    //* =====================================================================
+    virtual bool do_has_focus() const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by can_focus().  Derived classes must override this
+    /// function in order to return whether this component can be focused in
+    /// a custom manner.
+    //* =====================================================================
+    virtual bool do_can_focus() const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by set_focus().  Derived classes must override this
+    /// function in order to set the focus to this component in a custom
+    /// manner.
+    //* =====================================================================
+    virtual void do_set_focus() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by lose_focus().  Derived classes must override this
+    /// function in order to lose the focus from this component in a
+    /// custom manner.
+    //* =====================================================================
+    virtual void do_lose_focus() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by focus_next().  Derived classes must override this
+    /// function in order to move the focus in a custom manner.
+    //* =====================================================================
+    virtual void do_focus_next() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by focus_previous().  Derived classes must override 
+    /// this function in order to move the focus in a custom manner.
+    //* =====================================================================
+    virtual void do_focus_previous() = 0;
+    
+    //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed graphics context.  A component must
-    /// only draw the part of itself specified by the region.
+    /// in order to draw onto the passed canvas.  A component must only draw 
+    /// the part of itself specified by the region.
     ///
-    /// \param context the context in which the component should draw itself.
+    /// \param cvs the canvas in which the component should draw itself.
     /// \param offset the position of the parent component (if there is one)
-    ///        relative to the context.  That is, (0,0) to this component
-    ///        is actually (offset.x, offset.y) in the context.
+    ///        relative to the canvas.  That is, (0,0) to this component
+    ///        is actually (offset.x, offset.y) in the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        graphics_context<element_type> &context
-      , point const                    &offset
-      , rectangle const                &region) = 0;
+        canvas<element_type> &cvs
+      , point const          &offset
+      , rectangle const      &region) = 0;
 };
     
 }

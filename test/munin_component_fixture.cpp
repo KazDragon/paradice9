@@ -1,7 +1,8 @@
 #include "munin_component_fixture.hpp"
 #include "munin/component.hpp"
 #include "fake_munin_component.hpp"
-#include "fake_munin_graphics_context.hpp"
+#include "fake_munin_container.hpp"
+#include "fake_munin_canvas.hpp"
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>
 
@@ -79,8 +80,8 @@ void munin_component_fixture::test_preferred_size()
 
 void munin_component_fixture::test_draw()
 {
-    fake_component<char>      component;
-    fake_graphics_context<char> context;
+    fake_component<char> component;
+    fake_canvas<char>    canvas;
     
     munin::point position;
     position.x = 1;
@@ -102,7 +103,7 @@ void munin_component_fixture::test_draw()
     munin::point offset;
     offset.x = 0;
     offset.y = 0;
-    component.draw(context, offset, region);
+    component.draw(canvas, offset, region);
     
     /* Should be equivalent to:
        "    "
@@ -113,29 +114,29 @@ void munin_component_fixture::test_draw()
        where all blanks are '\0's.
     */
     
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[1][1]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[2][1]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[1][2]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[2][2]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[2][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][2]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[2][2]);
     
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[2][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[2][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][3]);
     
     region.origin.x = 1;
     region.origin.y = 1;
     component.set_brush('Y');
     
-    component.draw(context, offset, region);
+    component.draw(canvas, offset, region);
     
     /* Should be equivalent to:
        "     "
@@ -145,33 +146,33 @@ void munin_component_fixture::test_draw()
        "     "
     */
     
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[1][1]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[2][1]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[1][2]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[2][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][2]);
     
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[2][2]);
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[3][2]);
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[2][3]);
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[3][3]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][2]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[3][2]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][3]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[3][3]);
     
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[2][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[2][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][4]);
     
     region.origin.x    = 2;
     region.origin.y    = 2;
@@ -179,7 +180,7 @@ void munin_component_fixture::test_draw()
     region.size.height = 1;
     component.set_brush('Z');
     
-    component.draw(context, offset, region);
+    component.draw(canvas, offset, region);
     
     /* Should be equivalent to:
        "     "
@@ -189,34 +190,34 @@ void munin_component_fixture::test_draw()
        "     "
     */
     
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[1][1]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[2][1]);
-    CPPUNIT_ASSERT_EQUAL('X', context.values_[1][2]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[2][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][2]);
     
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[2][2]);
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[3][2]);
-    CPPUNIT_ASSERT_EQUAL('Y', context.values_[2][3]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][2]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[3][2]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][3]);
     
-    CPPUNIT_ASSERT_EQUAL('Z', context.values_[3][3]);
+    CPPUNIT_ASSERT_EQUAL('Z', canvas.values_[3][3]);
     
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[2][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[0][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[1][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[2][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[3][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', context.values_[4][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][4]);
 }
 
 void munin_component_fixture::test_redraw()
@@ -259,4 +260,167 @@ void munin_component_fixture::test_redraw()
     CPPUNIT_ASSERT_EQUAL(size_t(1), regions.size());
     CPPUNIT_ASSERT_EQUAL(size.width,  regions[0].size.width);
     CPPUNIT_ASSERT_EQUAL(size.height, regions[0].size.height);
+}
+
+void munin_component_fixture::test_set_focus()
+{
+    // Test that set_focus sets the focus, lose_focus loses it and
+    // has_focus returns whether the component has the focus.
+    boost::shared_ptr< fake_component<char> > component(
+        new fake_component<char>);
+    
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+
+    component->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(true, component->has_focus());
+    
+    component->lose_focus();
+
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+}
+
+void munin_component_fixture::test_set_focus_subobject()
+{
+    // Test that setting the focus of a subobject steals focus in the correct
+    // manner.
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component11(new fake_component<char>);
+    
+    sub_container0->add_component(sub_component00);
+    sub_container0->add_component(sub_component01);
+    
+    sub_container1->add_component(sub_component10);
+    sub_container1->add_component(sub_component11);
+    
+    main_container->add_component(sub_container0);
+    main_container->add_component(sub_container1);
+    
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // Now explicitly set the focus of the last object.
+    sub_component11->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component11->has_focus());
+}
+
+void munin_component_fixture::test_set_focus_cant_focus()
+{
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
+
+    CPPUNIT_ASSERT_EQUAL(true, component->can_focus());
+
+    component->set_can_focus(false);
+    
+    CPPUNIT_ASSERT_EQUAL(false, component->can_focus());
+    
+    component->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+}
+
+void munin_component_fixture::test_lose_focus_subobject()
+{
+    // Test that losing the focus of a subobject also causes its parents
+    // to lose focus in the correct manner.
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component11(new fake_component<char>);
+    
+    sub_container0->add_component(sub_component00);
+    sub_container0->add_component(sub_component01);
+    
+    sub_container1->add_component(sub_component10);
+    sub_container1->add_component(sub_component11);
+    
+    main_container->add_component(sub_container0);
+    main_container->add_component(sub_container1);
+    
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // Now explicitly set the focus of the last object.
+    sub_component11->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component11->has_focus());
+    
+    sub_component11->lose_focus();
+
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+}
+
+void munin_component_fixture::test_focus_next()
+{
+    // Test that the component can handle the focus_next function properly.
+    // The component merely unfocuses itself.
+    boost::shared_ptr< fake_component<char> > component(
+        new fake_component<char>);
+    
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+
+    component->focus_next();
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+    
+    component->set_focus();
+    CPPUNIT_ASSERT_EQUAL(true, component->has_focus());
+    
+    component->focus_next();
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+}
+
+void munin_component_fixture::test_focus_previous()
+{
+    // Test that the component can handle the focus_previous function properly.
+    // The component merely unfocuses itself.
+    boost::shared_ptr< fake_component<char> > component(
+        new fake_component<char>);
+    
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+
+    component->focus_previous();
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+    
+    component->set_focus();
+    CPPUNIT_ASSERT_EQUAL(true, component->has_focus());
+    
+    component->focus_previous();
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 }

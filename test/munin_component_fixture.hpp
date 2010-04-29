@@ -11,6 +11,12 @@ public :
         CPPUNIT_TEST(test_preferred_size);
         CPPUNIT_TEST(test_draw);
         CPPUNIT_TEST(test_redraw);
+        CPPUNIT_TEST(test_set_focus);
+        CPPUNIT_TEST(test_set_focus_subobject);
+        CPPUNIT_TEST(test_set_focus_cant_focus);
+        CPPUNIT_TEST(test_lose_focus_subobject);
+        CPPUNIT_TEST(test_focus_next);
+        CPPUNIT_TEST(test_focus_previous);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -20,4 +26,10 @@ private :
     void test_preferred_size();
     void test_draw();
     void test_redraw();
+    void test_set_focus();
+    void test_set_focus_subobject();
+    void test_set_focus_cant_focus();
+    void test_lose_focus_subobject();
+    void test_focus_next();
+    void test_focus_previous();
 };

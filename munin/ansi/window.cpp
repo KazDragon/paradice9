@@ -27,7 +27,7 @@
 #include "munin/ansi/window.hpp"
 #include "munin/ansi/container.hpp"
 #include "munin/ansi/basic_container.hpp"
-#include "munin/ansi/graphics_context.hpp"
+#include "munin/ansi/ansi_canvas.hpp"
 #include "munin/ansi/protocol.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -107,22 +107,22 @@ private :
         if (!pruned_regions.empty())
         {
             extent size = content_->get_size();
-            context_.set_size(size);
+            canvas_.set_size(size);
             
             point origin;
             origin.x = 0;
             origin.y = 0;
             
-            // Take a copy of the context.  We will want to check against this
+            // Take a copy of the canvas.  We will want to check against this
             // after the draw operations to see if anything has changed.
-            graphics_context context_copy = context_;
+            ansi_canvas canvas_clone = canvas_;
             
             BOOST_FOREACH(rectangle const &region, pruned_regions)
             {
-                content_->draw(context_, origin, region);
+                content_->draw(canvas_, origin, region);
             }
             
-            if (!(context_ == context_copy))
+            if (!(canvas_ == canvas_clone))
             {
                 vector<char> output;
                 output.push_back(ESCAPE);
@@ -131,7 +131,7 @@ private :
                 
                 for (u32 column = 0; column < size.width; ++column)
                 {
-                    BOOST_AUTO(current_column, context_[column]);
+                    BOOST_AUTO(current_column, canvas_[column]);
                     
                     for (u32 row = 0; row < size.height; ++row)
                     {
@@ -155,7 +155,7 @@ private :
     window                       &self_;    
     boost::asio::io_service      &io_service_;
     boost::shared_ptr<container>  content_;
-    graphics_context              context_;
+    ansi_canvas                   canvas_;
     
     vector<rectangle>             redraw_regions_;
     bool                          repaint_scheduled_;

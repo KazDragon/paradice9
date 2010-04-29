@@ -1,5 +1,5 @@
-#include "munin/component.hpp"
-#include "munin/graphics_context.hpp"
+#include "munin/basic_component.hpp"
+#include "munin/canvas.hpp"
 #include "munin/types.hpp"
 #include "munin/algorithm.hpp"
 #include <algorithm>
@@ -12,17 +12,13 @@
 #endif
 
 template <class ElementType>
-class fake_component : public munin::component<ElementType>
+class fake_component : public munin::basic_component<ElementType>
 {
 public :
     fake_component()
         : brush_()
+        , can_focus_(true)
     {
-        bounds_.origin.x    = 0;
-        bounds_.origin.y    = 0;
-        bounds_.size.width  = 0;
-        bounds_.size.height = 0;
-        
         preferred_size_.width  = 0;
         preferred_size_.height = 0;
     }
@@ -34,7 +30,7 @@ public :
         munin::rectangle region;
         region.origin.x = 0;
         region.origin.y = 0;
-        region.size = bounds_.size;
+        region.size = this->get_size();
         
         std::vector<munin::rectangle> regions;
         regions.push_back(region);
@@ -47,69 +43,56 @@ public :
         preferred_size_ = preferred_size;
     }
     
+    void set_can_focus(bool focus)
+    {
+        can_focus_ = focus;
+    }
+    
 private :
-    virtual void do_set_position(munin::point const &position)
-    {
-        bounds_.origin = position;
-    }
+    ElementType   brush_;
+    munin::extent preferred_size_;
+    bool          can_focus_;
     
-    virtual munin::point do_get_position() const
-    {
-        return bounds_.origin;
-    }
-    
-    virtual void do_set_size(munin::extent const &size)
-    {
-        bounds_.size = size;
-    }
-    
-    virtual munin::extent do_get_size() const
-    {
-        return bounds_.size;
-    }
-    
+    //* =====================================================================
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
     virtual munin::extent do_get_preferred_size() const
     {
         return preferred_size_;
     }
     
     //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
+    /// \brief Called by can_focus().  Derived classes must override this
+    /// function in order to return whether this component can be focused in
+    /// a custom manner.
     //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< munin::container<ElementType> > const &parent)
+    virtual bool do_can_focus() const
     {
-        parent_ = parent;
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    boost::shared_ptr< munin::container<ElementType> > do_get_parent() const
-    {
-        return parent_.lock();
+        return can_focus_;
     }
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed graphics context.  A component must
-    /// only draw the part of itself specified by the region.
+    /// in order to draw onto the passed canvas.  A component must only draw
+    /// the part of itself specified by the region.
     ///
-    /// \param context the context in which the component should draw itself.
+    /// \param cvs the canvas in which the component should draw itself.
     /// \param offset the position of the parent component (if there is one)
-    ///        relative to the context.
+    ///        relative to the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        munin::graphics_context<ElementType> &context
-      , munin::point const                   &offset
-      , munin::rectangle const               &region)
+        munin::canvas<ElementType> &cvs
+      , munin::point const         &offset
+      , munin::rectangle const     &region)
     {
+        munin::rectangle bounds;
+        bounds.origin = this->get_position();
+        bounds.size   = this->get_size();
+        
 #ifdef DEBUG_COMPONENT
         std::cout << "fake_component::do_draw" << std::endl;
         
@@ -132,30 +115,30 @@ private :
                   << std::endl;
                       
         std::cout << "bounds = ("
-                  << bounds_.origin.x
+                  << bounds.origin.x
                   << ", "
-                  << bounds_.origin.y
+                  << bounds.origin.y
                   << ") -> ["
-                  << bounds_.size.width
+                  << bounds.size.width
                   << ", "
-                  << bounds_.size.height
+                  << bounds.size.height
                   << "]"
                   << std::endl;
 #endif
 
         // Region is local to this object.  I.e. region(0,0) is the
-        // top left of this object, not the top left of the context.
+        // top left of this object, not the top left of the canvas.
         // Therefore, it's necessary to offset the region by this 
         // component's position.
         munin::rectangle offset_region = region;
-        offset_region.origin.x += bounds_.origin.x;
-        offset_region.origin.y += bounds_.origin.y;
+        offset_region.origin.x += bounds.origin.x;
+        offset_region.origin.y += bounds.origin.y;
         
         // Therefore, the points we want to draw is defined by a rectangle
         // that is the intersection of this component's bounds and
-        // the region passed by the graphics context.
+        // the region passed by the canvas.
         boost::optional<munin::rectangle> intersection = 
-            munin::intersection(offset_region, bounds_);
+            munin::intersection(offset_region, bounds);
 
         if (intersection)
         {
@@ -185,16 +168,10 @@ private :
                               << y + box.origin.y + offset.y
                               << ")" << std::endl;
 #endif
-                    context
-                        [ x + box.origin.x + offset.x ]
-                        [ y + box.origin.y + offset.y ] = brush_;
+                    cvs[ x + box.origin.x + offset.x ]
+                       [ y + box.origin.y + offset.y ] = brush_;
                 }
             }
         }
     }
-    
-    boost::weak_ptr< munin::container<ElementType> > parent_;
-    munin::rectangle                                 bounds_;
-    munin::extent                                    preferred_size_;
-    ElementType                                      brush_;
 };

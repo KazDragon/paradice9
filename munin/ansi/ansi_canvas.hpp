@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Graphics Context.
+// Munin ANSI Canvas.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,59 +24,62 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ANSI_GRAPHICS_CONTEXT_HPP_
-#define MUNIN_ANSI_GRAPHICS_CONTEXT_HPP_
+#ifndef MUNIN_ANSI_CANVAS_HPP_
+#define MUNIN_ANSI_CANVAS_HPP_
 
-#include "munin/graphics_context.hpp"
+#include "munin/canvas.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include "munin/types.hpp"
 #include <boost/shared_ptr.hpp>
 
 namespace munin { namespace ansi {
 
-class graphics_context
-    : public munin::graphics_context<munin::ansi::element_type>
+//* =========================================================================
+/// \brief A canvas for ANSI components.
+//* =========================================================================
+class ansi_canvas
+    : public munin::canvas<munin::ansi::element_type>
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    graphics_context();
+    ansi_canvas();
     
     //* =====================================================================
     /// \brief Copy Constructor
     //* =====================================================================
-    graphics_context(graphics_context const &context);
+    ansi_canvas(ansi_canvas const &cvs);
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~graphics_context();
+    virtual ~ansi_canvas();
     
     //* =====================================================================
-    /// \brief Assigns this graphics context to be a clone of another.
+    /// \brief Assigns this canvas to be a clone of another.
     //* =====================================================================
-    graphics_context &operator=(graphics_context const &other);
+    ansi_canvas &operator=(ansi_canvas const &other);
     
     //* =====================================================================
-    /// \brief Sets the size of the graphics context.
+    /// \brief Sets the size of the canvas.
     //* =====================================================================
     void set_size(extent const &size);
     
     //* =====================================================================
-    /// \brief Retrieves the size of the graphics context.
+    /// \brief Retrieves the size of the canvas.
     //* =====================================================================
     extent get_size() const;
     
     //* =====================================================================
-    /// \brief Returns true if this context is equal in content to the other.
+    /// \brief Returns true if this canvas is equal in content to the other.
     //* =====================================================================
-    bool operator==(graphics_context const &other) const;
+    bool operator==(ansi_canvas const &other) const;
     
 private :
     //* =====================================================================
     /// \brief Sets the value and attribute at the specified coordinates on
-    /// the graphics context.
+    /// the canvas.
     //* =====================================================================
     virtual void set_value(
         odin::u32    column
@@ -85,7 +88,7 @@ private :
 
     //* =====================================================================
     /// \brief Retrieves the value and attribute at the specified coordinates
-    /// on the graphics context.
+    /// on the canvas.
     //* =====================================================================
     virtual element_type get_value(
         odin::u32 column

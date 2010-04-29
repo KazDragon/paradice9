@@ -3,7 +3,7 @@
 #include "fake_munin_container.hpp"
 #include "fake_munin_component.hpp"
 #include "fake_munin_layout.hpp"
-#include "fake_munin_graphics_context.hpp"
+#include "fake_munin_canvas.hpp"
 #include <boost/lambda/lambda.hpp>
 
 using namespace std;
@@ -131,7 +131,7 @@ void munin_container_fixture::test_draw()
         container->add_component(component);
     }
     
-    fake_graphics_context<char> graphics_context;
+    fake_canvas<char> canvas;
     
     munin::rectangle region;
     region.origin.x    = 0;
@@ -144,24 +144,24 @@ void munin_container_fixture::test_draw()
     offset.y = 0;
     
     // With the components specified, the container should draw onto the
-    // graphics context as follows:
+    // canvas as follows:
     //
     // "XX "    "   "    "XX "
     // "XX " -> " YY" -> "XYY"
     // "XX "    " YY"    "XYY"
-    container->draw(graphics_context, offset, region);
+    container->draw(canvas, offset, region);
     
-    CPPUNIT_ASSERT_EQUAL('X', graphics_context.values_[0][0]);
-    CPPUNIT_ASSERT_EQUAL('X', graphics_context.values_[1][0]);
-    CPPUNIT_ASSERT_EQUAL('X', graphics_context.values_[0][1]);
-    CPPUNIT_ASSERT_EQUAL('X', graphics_context.values_[0][2]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[0][0]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][0]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[0][1]);
+    CPPUNIT_ASSERT_EQUAL('X', canvas.values_[0][2]);
     
-    CPPUNIT_ASSERT_EQUAL('Y', graphics_context.values_[1][1]);
-    CPPUNIT_ASSERT_EQUAL('Y', graphics_context.values_[1][2]);
-    CPPUNIT_ASSERT_EQUAL('Y', graphics_context.values_[2][1]);
-    CPPUNIT_ASSERT_EQUAL('Y', graphics_context.values_[2][2]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[1][1]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[1][2]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][1]);
+    CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][2]);
     
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
 }
 
 void munin_container_fixture::test_contained_container()
@@ -216,7 +216,7 @@ void munin_container_fixture::test_contained_container()
         outer_container->add_component(inner_container);
     }
     
-    fake_graphics_context<char> graphics_context;
+    fake_canvas<char> canvas;
     
     {
         munin::rectangle region;
@@ -229,17 +229,17 @@ void munin_container_fixture::test_contained_container()
         offset.x = 0;
         offset.y = 0;
         
-        outer_container->draw(graphics_context, offset, region);
+        outer_container->draw(canvas, offset, region);
     }
     
     // The outer container is from (1,1)->(5,5).  Inside that,
     // the inner container is from (1,1)->(4,4), which is (2,2)->(5,5) in
-    // the outer container's context.
+    // the outer container's canvas.
     // The component is from (1,1)->(3,3), which is (3,3)->(5,5) in the
-    // outer container's context.
+    // outer container's canvas.
     // 
     // So, with the components specified, the container should draw onto the
-    // graphics context as follows:
+    // graphics canvas as follows:
     //
     //  01234
     // 0
@@ -248,33 +248,33 @@ void munin_container_fixture::test_contained_container()
     // 3   ##
     // 4   ##
     
-    CPPUNIT_ASSERT_EQUAL('#', graphics_context.values_[3][3]);
-    CPPUNIT_ASSERT_EQUAL('#', graphics_context.values_[3][4]);
-    CPPUNIT_ASSERT_EQUAL('#', graphics_context.values_[4][3]);
-    CPPUNIT_ASSERT_EQUAL('#', graphics_context.values_[4][4]);
+    CPPUNIT_ASSERT_EQUAL('#', canvas.values_[3][3]);
+    CPPUNIT_ASSERT_EQUAL('#', canvas.values_[3][4]);
+    CPPUNIT_ASSERT_EQUAL('#', canvas.values_[4][3]);
+    CPPUNIT_ASSERT_EQUAL('#', canvas.values_[4][4]);
     
     // The rest should be zeroed.
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[0][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[1][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[2][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[3][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[4][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[0][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[1][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[2][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[3][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[4][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[0][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[1][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[2][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[3][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[4][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[0][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[1][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[2][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[0][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[1][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', graphics_context.values_[2][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][0]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][1]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][2]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][3]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][4]);
+    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][4]);
 }
 
 void munin_container_fixture::test_layout()
@@ -315,10 +315,414 @@ void munin_container_fixture::test_layout()
 
 void munin_container_fixture::test_overlap_same_layer()
 {
-    CPPUNIT_FAIL("Not Implemented");
+    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    // Set the components to be so:
+    //
+    //  012
+    // 0##
+    // 1#++
+    // 2 ++
+    //
+    // Note: (1,1) is also occupied by component0 but, because it was added
+    // first, it is "lower" than component1 on the same layer.
+    
+    munin::extent container_size;
+    container_size.width  = 3;
+    container_size.height = 3;
+    container->set_size(container_size);
+    
+    munin::extent component_size;
+    component_size.width  = 2;
+    component_size.height = 2;
+    component0->set_size(component_size);
+    component1->set_size(component_size);
+    
+    munin::point component0_position;
+    component0_position.x = 0;
+    component0_position.y = 0;
+    component0->set_position(component0_position);
+    component0->set_brush('#');
+    
+    munin::point component1_position;
+    component1_position.x = 1;
+    component1_position.y = 1;
+    component1->set_position(component1_position);
+    component1->set_brush('+');
+    
+    container->add_component(component0);
+    container->add_component(component1);
+
+    munin::rectangle region;
+    region.size   = container->get_size();
+    region.origin = container->get_position();
+
+    fake_canvas<char> canvas;
+    container->draw(canvas, container->get_position(), region);
+    
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][0]));
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][1]));
+    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[0][2]));
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[1][0]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[1][1]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[1][2]));
+    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[2][0]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][1]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][2]));
 }
 
 void munin_container_fixture::test_overlap_different_layer()
 {
-    CPPUNIT_FAIL("Not Implemented");
+    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    // Set the components to be so:
+    //
+    //  012
+    // 0##
+    // 1##+
+    // 2 ++
+    //
+    // Note: (1,1) is also occupied by component1 but, because we added
+    // component0 as a higher layer than component1, it gets priority when
+    // painting.
+    
+    munin::extent container_size;
+    container_size.width  = 3;
+    container_size.height = 3;
+    container->set_size(container_size);
+    
+    munin::extent component_size;
+    component_size.width  = 2;
+    component_size.height = 2;
+    component0->set_size(component_size);
+    component1->set_size(component_size);
+    
+    munin::point component0_position;
+    component0_position.x = 0;
+    component0_position.y = 0;
+    component0->set_position(component0_position);
+    component0->set_brush('#');
+    
+    munin::point component1_position;
+    component1_position.x = 1;
+    component1_position.y = 1;
+    component1->set_position(component1_position);
+    component1->set_brush('+');
+    
+    container->add_component(component0, boost::any(), munin::HIGHEST_LAYER);
+    container->add_component(component1, boost::any(), munin::LOWEST_LAYER);
+
+    munin::rectangle region;
+    region.size   = container->get_size();
+    region.origin = container->get_position();
+
+    fake_canvas<char> canvas;
+    container->draw(canvas, container->get_position(), region);
+    
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][0]));
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][1]));
+    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[0][2]));
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[1][0]));
+    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[1][1]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[1][2]));
+    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[2][0]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][1]));
+    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][2]));
+}
+
+void munin_container_fixture::test_set_focus()
+{
+    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+    
+    CPPUNIT_ASSERT_EQUAL(false, container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component1->has_focus());
+    
+    container->set_focus();
+
+    CPPUNIT_ASSERT_EQUAL(true, container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component1->has_focus());
+    
+    container->lose_focus();
+
+    CPPUNIT_ASSERT_EQUAL(false, container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component1->has_focus());
+}
+
+void munin_container_fixture::test_set_focus_cant_focus()
+{
+    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+    
+    CPPUNIT_ASSERT_EQUAL(true, container->can_focus());
+        
+    component0->set_can_focus(false);
+    CPPUNIT_ASSERT_EQUAL(true, container->can_focus());
+    
+    component1->set_can_focus(false);
+    CPPUNIT_ASSERT_EQUAL(false, container->can_focus());
+
+    container->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(false, container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, component1->has_focus());
+}
+
+void munin_container_fixture::test_next_focus()
+{
+    // Test that Next Focus will cycle through the components in a depth-first
+    // order.  That is, sub_components 00, 01, 10, 11.  Other components will
+    // be skipped over because they may not be focused.
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
+    shared_ptr< fake_container<char> > mid_container(new fake_container<char>);
+    shared_ptr< fake_component<char> > mid_component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > mid_component1(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component11(new fake_component<char>);
+    
+    sub_container0->add_component(sub_component00);
+    sub_container0->add_component(sub_component01);
+    
+    mid_container->add_component(mid_component0);
+    mid_container->add_component(mid_component1);
+    
+    sub_container1->add_component(sub_component10);
+    sub_container1->add_component(sub_component11);
+    
+    main_container->add_component(sub_container0);
+    main_container->add_component(mid_container);
+    main_container->add_component(sub_container1);
+    
+    mid_component0->set_can_focus(false);
+    mid_component1->set_can_focus(false);
+    
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // Set the focus to the first component.
+    main_container->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // Cycle to the next component.
+    main_container->focus_next();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // And so on...
+    main_container->focus_next();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    main_container->focus_next();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component11->has_focus());
+    
+    // Check that the focus is lost after the last component loses focus.
+    main_container->focus_next();
+    
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // Finally, check that the next focus of an unfocused container is the
+    // first subcomponent (just like set_focus()).
+    main_container->focus_next();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+}
+
+void munin_container_fixture::test_previous_focus()
+{
+    // Test that Previous Focus will cycle through the components in a 
+    // depth-first reverse order.  That is, sub_components 11, 10, 01, 00.
+    // Other components will be skipped over because they may not be focused.
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
+    shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
+    shared_ptr< fake_container<char> > mid_container(new fake_container<char>);
+    shared_ptr< fake_component<char> > mid_component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > mid_component1(new fake_component<char>);
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
+    shared_ptr< fake_component<char> > sub_component11(new fake_component<char>);
+    
+    sub_container0->add_component(sub_component00);
+    sub_container0->add_component(sub_component01);
+    
+    mid_container->add_component(mid_component0);
+    mid_container->add_component(mid_component1);
+    
+    sub_container1->add_component(sub_component10);
+    sub_container1->add_component(sub_component11);
+    
+    main_container->add_component(sub_container0);
+    main_container->add_component(mid_container);
+    main_container->add_component(sub_container1);
+    
+    mid_component0->set_can_focus(false);
+    mid_component1->set_can_focus(false);
+
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+
+    // Test that setting the previous focus of a component that does not have
+    // focus causes the last subcomponent to gain focus.
+    main_container->focus_previous();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component11->has_focus());
+    
+    // Now test that settings the previous focus cycles backwards through the
+    // components: 11, 10, 01, 00.
+    main_container->focus_previous();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    main_container->focus_previous();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    main_container->focus_previous();
+    
+    CPPUNIT_ASSERT_EQUAL(true, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
+    
+    // And finally, setting the previous focus of the first component should
+    // leave them all unfocused.
+    main_container->focus_previous();
+    
+    CPPUNIT_ASSERT_EQUAL(false, main_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component00->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component01->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_container->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component0->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, mid_component1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_container1->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
+    CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
 }

@@ -36,6 +36,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/weak_ptr.hpp>
+#include <numeric>
 
 //#define DEBUG_CONTAINER
 
@@ -45,8 +46,17 @@
 
 namespace munin {
     
-// CONTAINER ================================================================
-// ==========================================================================
+BOOST_STATIC_CONSTANT(
+    odin::u32, HIGHEST_LAYER = std::numeric_limits<odin::u32>::max());
+BOOST_STATIC_CONSTANT(
+    odin::u32, LOWEST_LAYER = std::numeric_limits<odin::u32>::min());
+BOOST_STATIC_CONSTANT(
+    odin::u32, DEFAULT_LAYER = std::numeric_limits<odin::u32>::max() / 2);
+
+//* =========================================================================
+/// \brief A graphical element capable of containing and arranging other
+/// subcomponents.
+//* =========================================================================
 template <class ElementType>
 class container 
     : public component<ElementType>
@@ -74,11 +84,13 @@ public :
     //* =====================================================================
     void add_component(
         boost::shared_ptr<component_type> const &component
-      , boost::any                        const &layout_hint = boost::any())
+      , boost::any                        const &layout_hint = boost::any()
+      , odin::u32                                layer = DEFAULT_LAYER)
     {
-        do_add_component(component);
+        do_add_component(component, layer);
         component->set_parent(this->shared_from_this());
 
+        // Subscribe to the component's redraw event.
         component->on_redraw.connect(
             boost::bind(
                 &container::subcomponent_redraw_handler
@@ -118,6 +130,14 @@ public :
     boost::shared_ptr<component_type> get_component(odin::u32 index) const
     {
         return do_get_component(index);
+    }
+    
+    //* =====================================================================
+    /// \brief Retrieves a component's layer from the container.
+    //* =====================================================================
+    odin::u32 get_component_layer(odin::u32 index) const
+    {
+        return do_get_component_layer(index);
     }
     
     //* =====================================================================
@@ -180,7 +200,8 @@ private :
     /// custom manner.
     //* =====================================================================
     virtual void do_add_component(
-        boost::shared_ptr<component_type> const &component) = 0;
+        boost::shared_ptr<component_type> const &component
+      , odin::u32                                layer) = 0;
     
     //* =====================================================================
     /// \brief Called by remove_component().  Derived classes must override
@@ -198,6 +219,13 @@ private :
         odin::u32 index) const = 0;
     
     //* =====================================================================
+    /// \brief Called by get_component_layer().  Derived classes must
+    /// override this function in order to retrieve a component layer in a
+    /// custom manner.
+    //* =====================================================================
+    virtual odin::u32 do_get_component_layer(odin::u32 index) const = 0;
+    
+    //* =====================================================================
     /// \brief Called by set_layout.  Derived classes must override this
     /// function in order to set a layout in a custom manner.
     //* =====================================================================
@@ -212,19 +240,19 @@ private :
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed graphics context.  A component must
-    /// only draw the part of itself specified by the region.
+    /// in order to draw onto the passed canvas.  A component must only draw
+    /// the part of itself specified by the region.
     ///
-    /// \param context the context in which the component should draw itself.
+    /// \param cvs the canvas in which the component should draw itself.
     /// \param offset the position of the parent component (if there is one)
-    ///        relative to the context.
+    ///        relative to the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        graphics_context<element_type> &context
-      , point const                    &offset
-      , rectangle const                &region)
+        canvas<element_type> &cvs
+      , point const          &offset
+      , rectangle const      &region)
     {
 #ifdef DEBUG_CONTAINER
         std::cout << "munin::container::do_draw\n"
@@ -243,10 +271,15 @@ private :
         std::cout << "#components = " << number_of_components << std::endl;
 #endif
 
+        // First, we obtain a list of components sorted by layer from lowest
+        // to highest.
+        std::vector< boost::shared_ptr<component_type> > components =
+            do_get_components_sorted();
+            
         for (odin::u32 index = 0; index < number_of_components; ++index)
         {
-            boost::shared_ptr<component_type> current_component =
-                get_component(index);
+            boost::shared_ptr<component_type> &current_component =
+                components[index];
                 
             // The area we want to draw is the intersection of the region
             // passed in above and the region of space that the component
@@ -282,7 +315,7 @@ private :
                 draw_region->origin.y -= component_region.origin.y;
                 
                 // The offset to the component is this container's position
-                // within its context plus the offset passed in.
+                // within its canvas plus the offset passed in.
                 point position = this->get_position();
                 
                 point component_offset;
@@ -296,10 +329,76 @@ private :
 #endif
 
                 current_component->draw(
-                    context, component_offset, draw_region.get());
+                    cvs, component_offset, draw_region.get());
             }
         }
     }
+    
+    //* =====================================================================
+    /// \brief Returns a vector of components, sorted by layer.  A derived
+    /// class may override this, for example if it has a more efficient
+    /// implementation.
+    //* =====================================================================
+    virtual std::vector< boost::shared_ptr<component_type> > 
+        do_get_components_sorted() const
+    {
+        std::vector< boost::shared_ptr<component_type> > components;
+        std::vector< odin::u32 >                         layers;
+        
+#ifdef DEBUG_CONTAINER
+        std::cout << "do_get_components_sorted\n"; 
+#endif
+
+        odin::u32 number_of_components = get_number_of_components();
+        
+#ifdef DEBUG_CONTAINER
+        std::cout << "number of components = " << number_of_components << "\n";
+#endif
+        
+        for (odin::u32 index = 0; index < number_of_components; ++index)
+        {
+#ifdef DEBUG_CONTAINER
+            std::cout << "==== component #" << index << "\n";
+#endif
+            
+            boost::shared_ptr<component_type> comp = get_component(index);
+            odin::u32 layer = get_component_layer(index);
+            
+#ifdef DEBUG_CONTAINER
+            std::cout << " o layer = " << layer << "\n";
+#endif
+            
+            typename std::vector< boost::shared_ptr<component_type> >::iterator
+                component_insert_position = components.begin();
+            std::vector< odin::u32 >::iterator 
+                layer_insert_position = layers.begin();
+                
+            int pos = 0;
+            
+            while (component_insert_position != components.end()
+                && layer_insert_position != layers.end()
+                && layer >= *layer_insert_position)
+            {
+                ++component_insert_position;
+                ++layer_insert_position;
+                ++pos;
+            }
+            
+#ifdef DEBUG_CONTAINER
+            std::cout << " o inserted at position " << pos << std::endl;
+#endif
+            
+            components.insert(component_insert_position, comp);
+            layers.insert(layer_insert_position, layer);
+        }
+        
+#ifdef DEBUG_CONTAINER
+        std::cout << "do_get_components_sorted done." << std::endl;
+#endif
+        
+        return components;
+    }
+    
 };
     
 }

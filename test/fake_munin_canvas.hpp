@@ -1,11 +1,11 @@
-#include "munin/graphics_context.hpp"
+#include "munin/canvas.hpp"
 #include "odin/types.hpp"
 #include <map>
 
 template <class ElementType>
-struct fake_graphics_context : munin::graphics_context<ElementType>
+struct fake_canvas : munin::canvas<ElementType>
 {
-    typedef typename munin::graphics_context<
+    typedef typename munin::canvas<
         ElementType
     >::element_type element_type;
     
@@ -24,6 +24,6 @@ private :
         odin::u32 column
       , odin::u32 row) const
     {
-        return const_cast<fake_graphics_context&>(*this).values_[column][row];
+        return const_cast<fake_canvas&>(*this).values_[column][row];
     }
 };

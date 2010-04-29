@@ -28,6 +28,7 @@
 #include "connection.hpp"
 #include "dice_roll_parser.hpp"
 #include "paradice/random.hpp"
+#include "munin/ansi/protocol.hpp"
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -36,6 +37,20 @@ using namespace boost;
 using namespace odin;
 
 namespace paradice {
+
+namespace {
+    static string const ANSI_DEFAULT = str(format("%c%c%d%c")
+        % munin::ansi::ESCAPE
+        % munin::ansi::ANSI_SEQUENCE
+        % int(munin::ansi::graphics::NO_ATTRIBUTES)
+        % munin::ansi::SELECT_GRAPHICS_RENDITION);
+
+    static string const ANSI_BOLD = str(format("%c%c%d%c")
+        % munin::ansi::ESCAPE
+        % munin::ansi::ANSI_SEQUENCE
+        % int(munin::ansi::graphics::INTENSITY_BOLD)
+        % munin::ansi::SELECT_GRAPHICS_RENDITION);
+}
 
 // ==========================================================================
 // PARADICE COMMAND: ROLL
@@ -129,16 +144,22 @@ PARADICE_COMMAND_IMPL(roll)
         if (dice_roll.bonus_ == 0)
         {
             total_description +=
-                str(format("%s%d")
+                str(format("%s%s%d%s")
                     % (repetition == 0 ? "" : ", ")
-                    % total);
+                    % ANSI_BOLD
+                    % total
+                    % ANSI_DEFAULT);
+
+
         }
         else
         {
             total_description +=
-                str(format("%s%d [%s]")
+                str(format("%s%s%d%s [%s]")
                     % (repetition == 0 ? "" : ", ")
+                    % ANSI_BOLD
                     % total
+                    % ANSI_DEFAULT
                     % roll_description);
         }
 
@@ -158,7 +179,10 @@ PARADICE_COMMAND_IMPL(roll)
             % total_description
             % (dice_roll.repetitions_ == 1
                 ? ""
-                : str(format(" for a grand total of %d") % total_score)))
+                : str(format(" for a grand total of %s%d%s") 
+                      % ANSI_BOLD
+                      % total_score
+                      % ANSI_DEFAULT)))
       , player);
           
     message_to_room(
@@ -175,7 +199,10 @@ PARADICE_COMMAND_IMPL(roll)
             % total_description
             % (dice_roll.repetitions_ == 1
                 ? ""
-                : str(format(" for a grand total of %d") % total_score)))
+                : str(format(" for a grand total of %s%d%s") 
+                      % ANSI_BOLD
+                      % total_score
+                      % ANSI_DEFAULT)))
       , player);
 }
 

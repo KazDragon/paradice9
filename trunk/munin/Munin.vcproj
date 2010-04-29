@@ -104,7 +104,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories=".;.."
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -166,11 +166,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\basic_component.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\basic_container.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\basic_layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\canvas.hpp"
 				>
 			</File>
 			<File
@@ -204,7 +212,7 @@
 			Name="Ansi Header Files"
 			>
 			<File
-				RelativePath=".\ansi\ansi_types.cpp"
+				RelativePath=".\ansi\ansi_canvas.hpp"
 				>
 			</File>
 			<File
@@ -224,11 +232,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\graphics_context.hpp"
+				RelativePath=".\ansi\protocol.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\protocol.hpp"
+				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 			<File
@@ -240,15 +248,15 @@
 			Name="Ansi Source Files"
 			>
 			<File
+				RelativePath=".\ansi\ansi_canvas.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\ansi_types.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ansi\attribute.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\graphics_context.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 		</Filter>

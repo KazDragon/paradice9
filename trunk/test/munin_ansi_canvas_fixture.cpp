@@ -1,34 +1,31 @@
-#include "munin_ansi_graphics_context_fixture.hpp"
-#include "munin/ansi/graphics_context.hpp"
+#include "munin_ansi_canvas_fixture.hpp"
+#include "munin/ansi/ansi_canvas.hpp"
 #include <stdexcept>
 
 using namespace std;
 using namespace boost;
 
-CPPUNIT_TEST_SUITE_REGISTRATION(munin_ansi_graphics_context_fixture);
+CPPUNIT_TEST_SUITE_REGISTRATION(munin_ansi_canvas_fixture);
 
-void munin_ansi_graphics_context_fixture::test_constructor()
+void munin_ansi_canvas_fixture::test_constructor()
 {
-    munin::ansi::graphics_context context;
-    (void)context;
+    munin::ansi::ansi_canvas canvas;
+    (void)canvas;
 }
 
-void munin_ansi_graphics_context_fixture::test_inheritance()
+void munin_ansi_canvas_fixture::test_inheritance()
 {
-    munin::ansi::graphics_context context;
+    munin::ansi::ansi_canvas                  canvas;
+    munin::canvas<munin::ansi::element_type> &canvas_ref = canvas;
     
-    munin::graphics_context<
-        munin::ansi::element_type
-    > &context_ref = context;
-    
-    (void)context_ref;
+    (void)canvas_ref;
 }
 
-void munin_ansi_graphics_context_fixture::test_size()
+void munin_ansi_canvas_fixture::test_size()
 {
-    munin::ansi::graphics_context context;
+    munin::ansi::ansi_canvas canvas;
     
-    munin::extent size = context.get_size();
+    munin::extent size = canvas.get_size();
     
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), size.width);
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), size.height);
@@ -36,24 +33,24 @@ void munin_ansi_graphics_context_fixture::test_size()
     munin::extent new_size;
     new_size.width  = 80;
     new_size.height = 24;
-    context.set_size(new_size);
+    canvas.set_size(new_size);
     
-    size = context.get_size();
+    size = canvas.get_size();
 
     CPPUNIT_ASSERT_EQUAL(odin::u32(80), size.width);
     CPPUNIT_ASSERT_EQUAL(odin::u32(24), size.height);
 }
 
-void munin_ansi_graphics_context_fixture::test_array_indexing()
+void munin_ansi_canvas_fixture::test_array_indexing()
 {
-    munin::ansi::graphics_context context;
+    munin::ansi::ansi_canvas canvas;
     
     munin::extent size;
     size.width  = 80;
     size.height = 24;
-    context.set_size(size);
+    canvas.set_size(size);
     
-    // By default, the context should be full of unattributed spaces.
+    // By default, the canvas should be full of unattributed spaces.
     munin::ansi::element_type element = make_pair(
         ' '
       , optional<munin::ansi::attribute>());    
@@ -64,16 +61,16 @@ void munin_ansi_graphics_context_fixture::test_array_indexing()
         {
             CPPUNIT_ASSERT_EQUAL(
                 element
-              , static_cast<munin::ansi::element_type>(context[column][row]));
+              , static_cast<munin::ansi::element_type>(canvas[column][row]));
         }
     }
     
-    // Populate the graphics context with something appropriate.
+    // Populate the canvas with something appropriate.
     for (odin::u32 row = 0; row < size.height; ++row)
     {
         for (odin::u32 column = 0; column < size.width; ++column)
         {
-            context[column][row] = make_pair(
+            canvas[column][row] = make_pair(
                 char(column * row)
               , optional<munin::ansi::attribute>());
         }
@@ -84,7 +81,7 @@ void munin_ansi_graphics_context_fixture::test_array_indexing()
     {
         for (odin::u32 column = 0; column < size.width; ++column)
         {
-            element = context[column][row];
+            element = canvas[column][row];
             
             CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
             CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
@@ -92,21 +89,21 @@ void munin_ansi_graphics_context_fixture::test_array_indexing()
     }
 }
 
-void munin_ansi_graphics_context_fixture::test_array_resizing()
+void munin_ansi_canvas_fixture::test_array_resizing()
 {
-    munin::ansi::graphics_context context;
+    munin::ansi::ansi_canvas canvas;
     
     munin::extent size;
     size.width  = 80;
     size.height = 24;
-    context.set_size(size);
+    canvas.set_size(size);
     
-    // Populate the graphics context with something appropriate.
+    // Populate the canvas with something appropriate.
     for (odin::u32 row = 0; row < size.height; ++row)
     {
         for (odin::u32 column = 0; column < size.width; ++column)
         {
-            context[column][row] = make_pair(
+            canvas[column][row] = make_pair(
                 char(column * row)
               , optional<munin::ansi::attribute>());
         }
@@ -117,17 +114,17 @@ void munin_ansi_graphics_context_fixture::test_array_resizing()
     {
         for (odin::u32 column = 0; column < size.width; ++column)
         {
-            munin::ansi::element_type element = context[column][row];
+            munin::ansi::element_type element = canvas[column][row];
             
             CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
             CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
         }
     }
     
-    // Resize the context to be one wider and one taller.
+    // Resize the canvas to be one wider and one taller.
     ++size.width;
     ++size.height;
-    context.set_size(size);
+    canvas.set_size(size);
     
     // Assert that all the original data remains and that the new space is
     // correctly filled with blanks.
@@ -135,7 +132,7 @@ void munin_ansi_graphics_context_fixture::test_array_resizing()
     {
         for (odin::u32 column = 0; column < size.width; ++column)
         {
-            munin::ansi::element_type element = context[column][row];
+            munin::ansi::element_type element = canvas[column][row];
          
             if (row == size.height - 1 || column == size.width - 1)
             {
@@ -150,17 +147,17 @@ void munin_ansi_graphics_context_fixture::test_array_resizing()
         }
     }
     
-    // Resize the context to be two smaller and two shorter.
+    // Resize the canvas to be two smaller and two shorter.
     size.width -= 2;
     size.height -= 2;
-    context.set_size(size);
+    canvas.set_size(size);
 
     // Assert that all the original data remains.
     for (odin::u32 row = 0; row < size.height; ++row)
     {
         for (odin::u32 column = 0; column < size.width; ++column)
         {
-            munin::ansi::element_type element = context[column][row];
+            munin::ansi::element_type element = canvas[column][row];
             
             CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
             CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
@@ -168,34 +165,34 @@ void munin_ansi_graphics_context_fixture::test_array_resizing()
     }
 }
 
-void munin_ansi_graphics_context_fixture::test_out_of_range()
+void munin_ansi_canvas_fixture::test_out_of_range()
 {
-    munin::ansi::graphics_context context;
+    munin::ansi::ansi_canvas canvas;
     
     munin::extent size;
     size.width  = 80;
     size.height = 24;
-    context.set_size(size);
+    canvas.set_size(size);
 
     munin::ansi::element_type element;
     
     // Check that going out of range on either the width or height causes an
     // exception to be thrown.
     CPPUNIT_ASSERT_THROW(
-        element = context[size.width][size.height - 1]
+        element = canvas[size.width][size.height - 1]
       , std::out_of_range);
 
     
     CPPUNIT_ASSERT_THROW(
-        element = context[size.width - 1][size.height]
+        element = canvas[size.width - 1][size.height]
       , std::out_of_range);
 
     CPPUNIT_ASSERT_THROW(
-        context[size.width][size.height - 1] = element
+        canvas[size.width][size.height - 1] = element
       , std::out_of_range);
 
     
     CPPUNIT_ASSERT_THROW(
-        context[size.width - 1][size.height] = element
+        canvas[size.width - 1][size.height] = element
       , std::out_of_range);
 }

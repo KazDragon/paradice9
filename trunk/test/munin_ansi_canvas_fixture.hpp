@@ -1,10 +1,10 @@
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 
-class munin_ansi_graphics_context_fixture : public CppUnit::TestFixture
+class munin_ansi_canvas_fixture : public CppUnit::TestFixture
 {
 public :
-    CPPUNIT_TEST_SUITE(munin_ansi_graphics_context_fixture);
+    CPPUNIT_TEST_SUITE(munin_ansi_canvas_fixture);
         CPPUNIT_TEST(test_constructor);
         CPPUNIT_TEST(test_inheritance);
         CPPUNIT_TEST(test_size);

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Graphics Context.
+// Munin ANSI Canvas.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "munin/ansi/graphics_context.hpp"
+#include "munin/ansi/ansi_canvas.hpp"
 #include <boost/format.hpp>
 #include <algorithm>
 #include <stdexcept>
@@ -37,9 +37,9 @@ using namespace odin;
 namespace munin { namespace ansi {
 
 // ==========================================================================
-// GRAPHICS_CONTEXT IMPLEMENTATION STRUCTURE
+// ANSI_CANVAS IMPLEMENTATION STRUCTURE
 // ==========================================================================
-class graphics_context::impl
+class ansi_canvas::impl
 {
 public :
     // ======================================================================
@@ -131,7 +131,7 @@ public :
         if (column >= size_.width || row >= size_.height)
         {
             throw std::out_of_range(str(format(
-                "Access (write) of element (%d, %d) in context with extents "
+                "Access (write) of element (%d, %d) in canvas with extents "
                 "[%d, %d]")
                     % column
                     % row
@@ -150,7 +150,7 @@ public :
         if (column >= size_.width || row >= size_.height)
         {
             throw std::out_of_range(str(format(
-                "Access (read) of element (%d, %d) in context with extents "
+                "Access (read) of element (%d, %d) in canvas with extents "
                 "[%d, %d]")
                     % column
                     % row
@@ -169,7 +169,7 @@ private :
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-graphics_context::graphics_context()
+ansi_canvas::ansi_canvas()
     : pimpl_(new impl)
 {
 }
@@ -177,7 +177,7 @@ graphics_context::graphics_context()
 // ==========================================================================
 // COPY CONSTRUCTOR
 // ==========================================================================
-graphics_context::graphics_context(graphics_context const &other)
+ansi_canvas::ansi_canvas(ansi_canvas const &other)
     : pimpl_(new impl(*other.pimpl_))
 {
 }
@@ -185,14 +185,14 @@ graphics_context::graphics_context(graphics_context const &other)
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-graphics_context::~graphics_context()
+ansi_canvas::~ansi_canvas()
 {
 }
 
 // ==========================================================================
 // OPERATOR=
 // ==========================================================================
-graphics_context &graphics_context::operator=(graphics_context const &other)
+ansi_canvas &ansi_canvas::operator=(ansi_canvas const &other)
 {
     *pimpl_ = *other.pimpl_;
     return *this;
@@ -201,7 +201,7 @@ graphics_context &graphics_context::operator=(graphics_context const &other)
 // ==========================================================================
 // SET_SIZE
 // ==========================================================================
-void graphics_context::set_size(extent const &size)
+void ansi_canvas::set_size(extent const &size)
 {
     pimpl_->set_size(size);
 }
@@ -209,7 +209,7 @@ void graphics_context::set_size(extent const &size)
 // ==========================================================================
 // GET_SIZE
 // ==========================================================================
-extent graphics_context::get_size() const
+extent ansi_canvas::get_size() const
 {
     return pimpl_->get_size();
 }
@@ -217,7 +217,7 @@ extent graphics_context::get_size() const
 // ==========================================================================
 // OPERATOR==
 // ==========================================================================
-bool graphics_context::operator==(graphics_context const &other) const
+bool ansi_canvas::operator==(ansi_canvas const &other) const
 {
     return *pimpl_ == *other.pimpl_;
 }
@@ -225,7 +225,7 @@ bool graphics_context::operator==(graphics_context const &other) const
 // ==========================================================================
 // SET_VALUE
 // ==========================================================================
-void graphics_context::set_value(
+void ansi_canvas::set_value(
     odin::u32    column
   , odin::u32    row
   , element_type value)
@@ -236,7 +236,7 @@ void graphics_context::set_value(
 // ==========================================================================
 // GET_VALUE
 // ==========================================================================
-graphics_context::element_type graphics_context::get_value(
+ansi_canvas::element_type ansi_canvas::get_value(
     odin::u32 column
   , odin::u32 row) const
 {

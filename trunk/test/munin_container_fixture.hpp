@@ -14,6 +14,10 @@ public :
         CPPUNIT_TEST(test_layout);
         CPPUNIT_TEST(test_overlap_same_layer);
         CPPUNIT_TEST(test_overlap_different_layer);
+        CPPUNIT_TEST(test_set_focus);
+        CPPUNIT_TEST(test_set_focus_cant_focus);
+        CPPUNIT_TEST(test_next_focus);
+        CPPUNIT_TEST(test_previous_focus);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -26,4 +30,8 @@ private :
     void test_layout();
     void test_overlap_same_layer();
     void test_overlap_different_layer();
+    void test_set_focus();
+    void test_set_focus_cant_focus();
+    void test_next_focus();
+    void test_previous_focus();
 };

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Graphics Context.
+// Munin Canvas.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,18 +24,19 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_GRAPHICS_CONTEXT_HPP_
-#define MUNIN_GRAPHICS_CONTEXT_HPP_
+#ifndef MUNIN_CANVAS_HPP_
+#define MUNIN_CANVAS_HPP_
 
 #include "odin/types.hpp"
 #include <utility>
 
 namespace munin {
     
-// GRAPHICS_CONTEXT =========================================================
-// ==========================================================================
+//* =========================================================================
+/// \brief An object onto which components can draw themselves.
+//* =========================================================================
 template <class ElementType>
-class graphics_context
+class canvas
 {
 public :
     typedef ElementType element_type;
@@ -53,10 +54,10 @@ public :
             // CONSTRUCTOR
             // ==============================================================
             row_proxy(
-                graphics_context &ctx
-              , odin::u32         column
-              , odin::u32         row)
-                : ctx_(ctx)
+                canvas    &canvas
+              , odin::u32 column
+              , odin::u32 row)
+                : canvas_(canvas)
                 , column_(column)
                 , row_(row)
             {
@@ -67,7 +68,7 @@ public :
             // ==============================================================
             void operator=(element_type value)
             {
-                ctx_.set_value(column_, row_, value);
+                canvas_.set_value(column_, row_, value);
             }
             
             // ==============================================================
@@ -75,13 +76,13 @@ public :
             // ==============================================================
             operator element_type()
             {
-                return ctx_.get_value(column_, row_);
+                return canvas_.get_value(column_, row_);
             }
             
         private :
-            graphics_context &ctx_;
-            odin::u32         column_;
-            odin::u32         row_;
+            canvas    &canvas_;
+            odin::u32  column_;
+            odin::u32  row_;
         };
         
     public :
@@ -89,9 +90,9 @@ public :
         // CONSTRUCTOR
         // ==================================================================
         column_proxy(
-            graphics_context &ctx
-          , odin::u32         column)
-            : ctx_(ctx)
+            canvas    &canvas
+          , odin::u32  column)
+            : canvas_(canvas)
             , column_(column)
         {
         }
@@ -101,18 +102,18 @@ public :
         // ==================================================================
         row_proxy operator[](odin::u32 row)
         {
-            return row_proxy(ctx_, column_, row);
+            return row_proxy(canvas_, column_, row);
         }
         
     private :
-        graphics_context &ctx_;
-        odin::u32         column_;
+        canvas    &canvas_;
+        odin::u32  column_;
     };
     
     // ======================================================================
     // DESTRUCTOR
     // ======================================================================
-    virtual ~graphics_context()
+    virtual ~canvas()
     {
     }
     
@@ -127,7 +128,7 @@ public :
 private :
     //* =====================================================================
     /// \brief Sets the value and attribute at the specified coordinates on
-    /// the graphics context.
+    /// the canvas.
     //* =====================================================================
     virtual void set_value(
         odin::u32    column
@@ -136,7 +137,7 @@ private :
 
     //* =====================================================================
     /// \brief Retrieves the value and attribute at the specified coordinates
-    /// on the graphics context.
+    /// on the canvas.
     //* =====================================================================
     virtual element_type get_value(
         odin::u32 column

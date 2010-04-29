@@ -39,10 +39,8 @@ namespace boost { namespace asio {
 
 namespace munin { namespace ansi {
 
-class graphics_context;
-
 //* =========================================================================
-/// \brief An object that represents a top-level window.
+/// \brief An object that represents a top-level ANSI window.
 //* =========================================================================
 class window
 {

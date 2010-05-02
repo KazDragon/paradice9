@@ -165,14 +165,30 @@ private :
         this->on_focus_lost();
     }
 
+    // ======================================================================
+    // TOGGLE_FOCUS
+    // ======================================================================
+    void toggle_focus()
+    {
+        if (has_focus_)
+        {
+            has_focus_ = false;
+            this->on_focus_lost();
+        }
+        else
+        {
+            has_focus_ = true;
+            this->on_focus_set();
+        }
+    }
+
     //* =====================================================================
     /// \brief Called by focus_next().  Derived classes must override this
     /// function in order to move the focus in a custom manner.
     //* =====================================================================
     virtual void do_focus_next()
     {
-        has_focus_ = false;
-        this->on_focus_lost();
+        toggle_focus();
     }
     
     //* =====================================================================
@@ -181,8 +197,7 @@ private :
     //* =====================================================================
     virtual void do_focus_previous()
     {
-        has_focus_ = false;
-        this->on_focus_lost();
+        toggle_focus();
     }
 };
     

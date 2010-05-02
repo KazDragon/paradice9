@@ -187,17 +187,12 @@ private :
     //* =====================================================================
     virtual extent do_get_preferred_size() const
     {
-        if (layout_ != NULL)
-        {
-            // If there is a layout, then ask it what the preferred size of
-            // this container should be.
-            return layout_->get_preferred_size();
-        }
-        else
-        {
-            // Otherwise, we are happy with the size that we currently have.
-            return this->get_size();
-        }
+        // If there is a layout, then ask it what the preferred size of this
+        // container should be.  Otherwise, we are happy with the size that
+        // we currently have.
+        return layout_ != NULL
+             ? layout_->get_preferred_size()
+             : this->get_size();
     }
     
     //* =====================================================================
@@ -219,9 +214,13 @@ private :
         boost::shared_ptr<component_type> const &component
       , odin::u32                                layer)
     {
+        // Store the component and the layer in which it is to be drawn.
         components_.push_back(component);
         component_layers_.push_back(layer);
         
+        // Register for callbacks to when the new subcomponent either gains
+        // or loses focus.  We can make sure our own focus is correct based
+        // on this information.
         component->on_focus_set.connect(
             boost::bind(
                 &basic_container::subcomponent_focus_set_handler
@@ -385,24 +384,16 @@ private :
         
         has_focus_ = false;
     }
-    
-    //* =====================================================================
-    /// \brief Called by focus_next().  Derived classes must override this
-    /// function in order to move the focus in a custom manner.
-    //* =====================================================================
-    virtual void do_focus_next()
+
+    // ======================================================================
+    // DO_FOCUS_NEXT_HAS_FOCUS
+    // ======================================================================
+    void do_focus_next_has_focus()
     {
-        // If we do not have focus, then set the focus to the first
-        // subcomponent.  Nothing else should be necessary.
-        if (!has_focus_)
-        {
-            this->set_focus();
-            return;
-        }
-        
-        // First, find a component that has the focus and tell it to move
-        // its focus on.  Then, if it no longer has focus, move the focus
-        // to the next object.  If there is no next object, then lose the
+        // We have focus.  Therefore, find the subcomponent that also has 
+        // focus and tell it to move to the next focus.  After that, if it
+        // has no focus, we move the focus to the next subcomponent that
+        // can be focused.  If there is no such object, then we lose our
         // focus.
         odin::u32 number_of_components = this->get_number_of_components();
         
@@ -429,7 +420,7 @@ private :
                             
                         if (next_component->can_focus())
                         {
-                            next_component->set_focus();
+                            next_component->focus_next();
                             focused = true;
                         }
                     }
@@ -445,52 +436,53 @@ private :
             }
         }
     }
+
+    // ======================================================================
+    // DO_FOCUS_NEXT_NO_FOCUS
+    // ======================================================================
+    void do_focus_next_no_focus()
+    {
+        // We do not currently have any focus, therefore we command the first
+        // subcomponent to focus its next component.
+        odin::u32 number_of_components = this->get_number_of_components();
+
+        if (number_of_components != 0)
+        {
+            boost::shared_ptr<component_type> current_component =
+                this->get_component(0);
+
+            current_component->focus_next();
+        }
+    }
     
     //* =====================================================================
-    /// \brief Called by focus_previous().  Derived classes must override 
-    /// this function in order to move the focus in a custom manner.
+    /// \brief Called by focus_next().  Derived classes must override this
+    /// function in order to move the focus in a custom manner.
     //* =====================================================================
-    virtual void do_focus_previous()
+    virtual void do_focus_next()
     {
-        // First, if we have no subcomponents, then we just toggle our focus.
-        odin::u32 number_of_components = this->get_number_of_components();
-        
-        // Next, if we have no focus, then call focus_previous on the last
-        // component we have.  This will cater for any containers.  If we
-        // still have no focus after that, then set its focus.  This will
-        // cater for any bottom level components.
-            
-        if (!has_focus_)
+        if (has_focus_)
         {
-            // Find the last component that could have focus.
-            for (odin::u32 index = number_of_components; index > 0; --index)
-            {
-                boost::shared_ptr<component_type> last_component =
-                    this->get_component(index - 1);
-                    
-                if (last_component->can_focus())
-                {
-                    // If the component is a container, this will focus the
-                    // last component in that container.
-                    last_component->focus_previous();
-                    
-                    // It will have been ignored if the component is not a
-                    // container.  In this case, we set its focus directly.
-                    if (!last_component->has_focus())
-                    {
-                        last_component->set_focus();
-                    }
-                }
-            }
-            
-            return;
+            do_focus_next_has_focus();
         }
-        
-        // Finally, since we do have focus, find the currently focused
-        // subcomponent and tell it to move its focus.  If it no longer has
-        // focus after that, we tell the component prior to that to set its
-        // previous focus (container) or focus (component).  If there is no
-        // prior component, then just lose our focus.
+        else
+        {
+            do_focus_next_no_focus();
+        }
+    }
+    
+    // ======================================================================
+    // DO_FOCUS_PREVIOUS_HAS_FOCUS
+    // ======================================================================
+    void do_focus_previous_has_focus()
+    {
+        // We do have focus.  Find the currently focused component and tell
+        // it to move its focus to its previous subcomponent.  If, after 
+        // that, it no longer has focus, then we find the component prior
+        // to that that can have focus and tell it to set its previous focus.
+        // If there is no component to focus, then just lose our focus.
+        odin::u32 number_of_components = this->get_number_of_components();
+
         for (odin::u32 index = 0; index < number_of_components; ++index)
         {
             boost::shared_ptr<component_type> current_component =
@@ -498,11 +490,6 @@ private :
                 
             if (current_component->has_focus())
             {
-                // If the current component is a container, this will command
-                // it to focus its previous component.  After that, the 
-                // component not having focus will mean that either the 
-                // container has run out of components to focus, or it was not
-                // a container.
                 current_component->focus_previous();
                 
                 if (!current_component->has_focus())
@@ -523,15 +510,6 @@ private :
                             // If the component is a container, this will focus
                             // the last component in that container.
                             last_component->focus_previous();
-                            
-                            // It will have been ignored if the component is 
-                            // not a container.  In this case, we set its focus
-                            // directly.
-                            if (!last_component->has_focus())
-                            {
-                                last_component->set_focus();
-                            }
-                            
                             focused = true;
                         }
                     }
@@ -541,12 +519,49 @@ private :
                         // There are no subcomponents to focus.
                         has_focus_ = false;
                         this->on_focus_lost();
-                        
                     }
                 }
                 
                 break;
             }
+        }
+    }
+
+    // ======================================================================
+    // DO_FOCUS_PREVIOUS_NO_FOCUS
+    // ======================================================================
+    void do_focus_previous_no_focus()
+    {
+        // Find the last component that could have focus and focus its
+        // last element.
+        odin::u32 number_of_components = this->get_number_of_components();
+
+        for (odin::u32 index = number_of_components; index > 0; --index)
+        {
+            boost::shared_ptr<component_type> last_component =
+                this->get_component(index - 1);
+                
+            if (last_component->can_focus())
+            {
+                last_component->focus_previous();
+                break;
+            }
+        }
+    }
+
+    //* =====================================================================
+    /// \brief Called by focus_previous().  Derived classes must override 
+    /// this function in order to move the focus in a custom manner.
+    //* =====================================================================
+    virtual void do_focus_previous()
+    {
+        if (has_focus_)
+        {
+            do_focus_previous_has_focus();
+        }
+        else
+        {
+            do_focus_previous_no_focus();
         }
     }
     

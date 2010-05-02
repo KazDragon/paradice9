@@ -390,15 +390,17 @@ void munin_component_fixture::test_lose_focus_subobject()
 void munin_component_fixture::test_focus_next()
 {
     // Test that the component can handle the focus_next function properly.
-    // The component merely unfocuses itself.
     boost::shared_ptr< fake_component<char> > component(
         new fake_component<char>);
     
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 
     component->focus_next();
-    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+    CPPUNIT_ASSERT_EQUAL(true, component->has_focus());
     
+    component->focus_next();
+    CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
+
     component->set_focus();
     CPPUNIT_ASSERT_EQUAL(true, component->has_focus());
     
@@ -409,12 +411,14 @@ void munin_component_fixture::test_focus_next()
 void munin_component_fixture::test_focus_previous()
 {
     // Test that the component can handle the focus_previous function properly.
-    // The component merely unfocuses itself.
     boost::shared_ptr< fake_component<char> > component(
         new fake_component<char>);
     
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 
+    component->focus_previous();
+    CPPUNIT_ASSERT_EQUAL(true, component->has_focus());
+    
     component->focus_previous();
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
     

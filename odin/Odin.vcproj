@@ -255,10 +255,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\telnet\subnegotiation_router.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\telnet\subnegotiation_router.hpp"
 				>
 			</File>
@@ -292,6 +288,10 @@
 			</File>
 			<File
 				RelativePath=".\telnet\stream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\subnegotiation_router.cpp"
 				>
 			</File>
 		</Filter>

@@ -167,7 +167,7 @@ public :
     //* =====================================================================
     /// \brief If this component has subcomponents, causes the component to
     /// move the focus from the currently focused subcomponent to the next
-    /// subcomponent.  If it is a leaf component, merely loses focus.
+    /// subcomponent.  If it is a leaf component, then it toggles its focus.
     //* =====================================================================
     void focus_next()
     {
@@ -177,7 +177,8 @@ public :
     //* =====================================================================
     /// \brief If this component has subcomponents, causes the component to
     /// move the focus from the currently focused subcomponent to the 
-    /// previous subcomponent.  If it is a leaf component, merely loses focus.
+    /// previous subcomponent.  If it is a leaf component, then it toggles 
+    /// its focus.
     //* =====================================================================
     void focus_previous()
     {

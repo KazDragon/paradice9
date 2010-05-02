@@ -32,7 +32,6 @@
 #include <boost/foreach.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/spirit/include/karma.hpp>
-#include <boost/spirit/include/karma_attr_cast.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/variant.hpp>
@@ -115,7 +114,7 @@ public :
         telnet_subnegotiation_ = 
             lit("\xFF\xFA") 
          << char_ 
-         << *attr_cast<odin::u8>(telnet_byte_)
+         << *telnet_byte_
          << lit("\xFF\xF0")
             ;
         

@@ -35,6 +35,9 @@ using namespace boost;
 
 namespace odin { namespace telnet {
 
+// ==============================================================================
+// INPUT_VISITOR IMPLEMENTATION STRUCTURE
+// ==============================================================================
 struct input_visitor::impl
 {
     shared_ptr<command_router>        command_router_;
@@ -43,6 +46,9 @@ struct input_visitor::impl
     function<void (string)>           text_handler_;
 };
 
+// ==============================================================================
+// CONSTRUCTOR
+// ==============================================================================
 input_visitor::input_visitor(
     shared_ptr<command_router> const        &command_router
   , shared_ptr<negotiation_router> const    &negotiation_router
@@ -56,30 +62,48 @@ input_visitor::input_visitor(
     pimpl_->text_handler_          = text_handler;
 }
     
+// ==============================================================================
+// DESTRUCTOR
+// ==============================================================================
 input_visitor::~input_visitor()
 {
 }
 
+// ==============================================================================
+// OPERATOR()(COMMAND_TYPE)
+// ==============================================================================
 void input_visitor::operator()(command_type const &command)
 {
     (*pimpl_->command_router_)(command);
 }
 
+// ==============================================================================
+// OPERATOR()(NEGOTIATION_TYPE)
+// ==============================================================================
 void input_visitor::operator()(negotiation_type const &negotiation)
 {
     (*pimpl_->negotiation_router_)(negotiation);
 }
 
+// ==============================================================================
+// OPERATOR()(SUBNEGOTIATION_TYPE)
+// ==============================================================================
 void input_visitor::operator()(subnegotiation_type const &subnegotiation)
 {
     (*pimpl_->subnegotiation_router_)(subnegotiation);
 }
 
+// ==============================================================================
+// OPERATOR()(STRING)
+// ==============================================================================
 void input_visitor::operator()(string const &text)
 {
     pimpl_->text_handler_(text);
 }
 
+// ==============================================================================
+// APPLY_INPUT_RANGE
+// ==============================================================================
 void apply_input_range(
     input_visitor                                       &visitor
   , odin::runtime_array<stream::input_value_type> const &values)

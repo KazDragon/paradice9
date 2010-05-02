@@ -28,6 +28,9 @@
 
 namespace odin { namespace telnet {
 
+// ==============================================================================
+// OPERATOR<(NEGOTIATION_TYPE, NEGOTIATION_TYPE)
+// ==============================================================================
 bool operator<(negotiation_type const &lhs, negotiation_type const &rhs)
 {
     return std::make_pair(lhs.request_, lhs.option_id_)

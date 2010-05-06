@@ -315,3 +315,70 @@ void munin_ansi_window_fixture::test_repaint_many_redraws()
     CPPUNIT_ASSERT_EQUAL(expected_data[6],     paint_data[6]);
     CPPUNIT_ASSERT_EQUAL(expected_data[7],     paint_data[7]);
 }
+
+void munin_ansi_window_fixture::test_event()
+{
+    boost::asio::io_service io_service;
+    munin::ansi::window window(io_service);
+    
+    shared_ptr<munin::ansi::container> container(window.get_content());
+    shared_ptr< fake_component<munin::ansi::element_type> > component0(
+        new fake_component<munin::ansi::element_type>);
+    shared_ptr< fake_component<munin::ansi::element_type> > component1(
+        new fake_component<munin::ansi::element_type>);
+    
+    any component0_event;
+    function<void (any)> component0_event_handler = (
+        bll::var(component0_event) = bll::_1
+    );
+    component0->set_event_handler(component0_event_handler);
+    
+    any component1_event;
+    function<void (any)> component1_event_handler = (
+        bll::var(component1_event) = bll::_1
+    );
+    component1->set_event_handler(component1_event_handler);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+
+    CPPUNIT_ASSERT_EQUAL(true, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(true, component1_event.empty());
+    
+    // No component has focus.  therefore, the container should swallow the
+    // event, since it would have no idea where to pass it on to.  In practice,
+    // this should not occur, since the Window should only pass the event on
+    // to its focused component.
+    window.event(string("unfocused container event"));
+    
+    CPPUNIT_ASSERT_EQUAL(true, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(true, component1_event.empty());
+    
+    // Set the focus to the first component.  This is the place to which the
+    // event should go.
+    component0->set_focus();
+    
+    string component0_event_string = "test component0 event";
+    window.event(component0_event_string);
+    
+    CPPUNIT_ASSERT_EQUAL(false, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(true, component1_event.empty());
+    CPPUNIT_ASSERT_EQUAL(
+        component0_event_string
+      , any_cast<string>(component0_event));
+    
+    component0_event = any();
+    
+    // Set the focus to the second component.  The event should hit this next.
+    component1->set_focus();
+    
+    string component1_event_string = "test component0 event";
+    window.event(component1_event_string);
+    
+    CPPUNIT_ASSERT_EQUAL(true, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(false, component1_event.empty());
+    CPPUNIT_ASSERT_EQUAL(
+        component0_event_string
+      , any_cast<string>(component1_event));
+}
+

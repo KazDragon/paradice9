@@ -36,8 +36,10 @@ namespace munin {
 template <class ElementType>
 class component;
 
-// BASIC_LAYOUT =============================================================
-// ==========================================================================
+//* =========================================================================
+/// \brief A default implementation of a layout.  Only do_layout() remains
+/// unimplemented.
+//* =========================================================================
 template <class ElementType>
 class basic_layout : public layout<ElementType>
 {

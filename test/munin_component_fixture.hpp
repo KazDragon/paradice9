@@ -17,6 +17,8 @@ public :
         CPPUNIT_TEST(test_lose_focus_subobject);
         CPPUNIT_TEST(test_focus_next);
         CPPUNIT_TEST(test_focus_previous);
+        CPPUNIT_TEST(test_event);
+        CPPUNIT_TEST(test_get_focussed_component);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -32,4 +34,6 @@ private :
     void test_lose_focus_subobject();
     void test_focus_next();
     void test_focus_previous();
+    void test_event();
+    void test_get_focussed_component();
 };

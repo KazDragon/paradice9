@@ -3,6 +3,8 @@
 #include "munin/types.hpp"
 #include "munin/algorithm.hpp"
 #include <algorithm>
+#include <boost/any.hpp>
+#include <boost/function.hpp>
 #include <boost/weak_ptr.hpp>
 
 //#define DEBUG_COMPONENT
@@ -48,10 +50,16 @@ public :
         can_focus_ = focus;
     }
     
+    void set_event_handler(boost::function<void (boost::any)> handler)
+    {
+        event_handler_ = handler;
+    }
+    
 private :
-    ElementType   brush_;
-    munin::extent preferred_size_;
-    bool          can_focus_;
+    ElementType                        brush_;
+    munin::extent                      preferred_size_;
+    bool                               can_focus_;
+    boost::function<void (boost::any)> event_handler_;
     
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
@@ -71,6 +79,15 @@ private :
     virtual bool do_can_focus() const
     {
         return can_focus_;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event)
+    {
+        event_handler_(event);
     }
     
     //* =====================================================================

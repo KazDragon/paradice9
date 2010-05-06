@@ -28,6 +28,7 @@
 #define MUNIN_COMPONENT_HPP_
 
 #include "munin/types.hpp"
+#include <boost/any.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 #include <vector>
@@ -42,6 +43,7 @@ class canvas;
 
 //* =========================================================================
 /// \brief An object capable of being drawn on a canvas.
+/// \par
 /// A component is a fundamental piece of the munin architecture and is the
 /// base class for anything that is capable of being drawn in some way.  It
 /// is closely attached to its canvas, with which it shares an
@@ -52,7 +54,8 @@ template <class ElementType>
 class component
 {
 public :
-    typedef ElementType element_type;
+    typedef ElementType            element_type;
+    typedef component<ElementType> component_type;
 
     //* =====================================================================
     /// \brief Destructor
@@ -167,7 +170,8 @@ public :
     //* =====================================================================
     /// \brief If this component has subcomponents, causes the component to
     /// move the focus from the currently focused subcomponent to the next
-    /// subcomponent.  If it is a leaf component, then it toggles its focus.
+    /// subcomponent.  If it is a leaf component, then it toggles its focus,
+    /// simulating a container with one element.
     //* =====================================================================
     void focus_next()
     {
@@ -178,11 +182,21 @@ public :
     /// \brief If this component has subcomponents, causes the component to
     /// move the focus from the currently focused subcomponent to the 
     /// previous subcomponent.  If it is a leaf component, then it toggles 
-    /// its focus.
+    /// its focus, simulating a container with one element.
     //* =====================================================================
     void focus_previous()
     {
         do_focus_previous();
+    }
+    
+    //* =====================================================================
+    /// \brief Returns component with focus at the deepest part of the
+    /// component heirarchy, or an empty shared_ptr<> if no component has
+    /// focus.
+    //* =====================================================================
+    boost::shared_ptr<component_type> get_focussed_component()
+    {
+        return do_get_focussed_component();
     }
     
     //* =====================================================================
@@ -200,6 +214,16 @@ public :
       , rectangle const      &region)
     {
         do_draw(cvs, offset, region);
+    }
+    
+    //* =====================================================================
+    /// \brief Send an event to the component.  This may be of any type.
+    /// A component must specify the types of messages it may receive and
+    /// what it will do with it.
+    //* =====================================================================
+    void event(boost::any const &event)
+    {
+        do_event(event);
     }
     
     //* =====================================================================
@@ -325,6 +349,13 @@ private :
     virtual void do_focus_previous() = 0;
     
     //* =====================================================================
+    /// \brief Called by get_focussed_component().  Derived classes must
+    /// override this function in order to return the focussed component
+    /// in a custom manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<component_type> do_get_focussed_component() = 0;
+    
+    //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
     /// in order to draw onto the passed canvas.  A component must only draw 
     /// the part of itself specified by the region.
@@ -340,6 +371,12 @@ private :
         canvas<element_type> &cvs
       , point const          &offset
       , rectangle const      &region) = 0;
+
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event) = 0;
 };
     
 }

@@ -10,6 +10,7 @@ public :
         CPPUNIT_TEST(test_repaint_chain);
         CPPUNIT_TEST(test_repaint_data);
         CPPUNIT_TEST(test_repaint_many_redraws);
+        CPPUNIT_TEST(test_event);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -18,4 +19,5 @@ private :
     void test_repaint_chain();
     void test_repaint_data();
     void test_repaint_many_redraws();
+    void test_event();
 };

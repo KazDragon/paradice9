@@ -40,8 +40,10 @@ class component;
 template <class ElementType>
 class container;
 
-// LAYOUT ===================================================================
-// ==========================================================================
+//* =========================================================================
+/// \brief A class that knows how to lay components out in a container in
+/// a specified manner.
+//* =========================================================================
 template <class ElementType>
 class layout
 {

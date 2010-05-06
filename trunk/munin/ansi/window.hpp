@@ -28,6 +28,7 @@
 #define MUNIN_ANSI_WINDOW_HPP_
 
 #include "munin/ansi/container.hpp"
+#include <boost/any.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
@@ -63,6 +64,13 @@ public :
     /// contains all the components that are displayed in this window.
     //* =====================================================================
     boost::shared_ptr<container> get_content();
+    
+    //* =====================================================================
+    /// \brief Send an event to the window.  This will be passed down to the
+    /// focused component, who should interpret it according to its
+    /// specifications.
+    //* =====================================================================
+    void event(boost::any const &event);
     
     //* =====================================================================
     /// \fn on_repaint

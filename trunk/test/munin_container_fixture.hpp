@@ -18,6 +18,8 @@ public :
         CPPUNIT_TEST(test_set_focus_cant_focus);
         CPPUNIT_TEST(test_next_focus);
         CPPUNIT_TEST(test_previous_focus);
+        CPPUNIT_TEST(test_event);
+        CPPUNIT_TEST(test_get_focussed_component);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -34,4 +36,6 @@ private :
     void test_set_focus_cant_focus();
     void test_next_focus();
     void test_previous_focus();
+    void test_event();
+    void test_get_focussed_component();
 };

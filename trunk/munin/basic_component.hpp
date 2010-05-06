@@ -28,6 +28,7 @@
 #define MUNIN_BASIC_COMPONENT_HPP_
 
 #include "munin/component.hpp"
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/weak_ptr.hpp>
 
 namespace munin {
@@ -37,10 +38,14 @@ namespace munin {
 /// do_get_preferred_size() remain unimplemented.
 //* =========================================================================
 template <class ElementType>
-class basic_component : public component<ElementType>
+class basic_component 
+    : public component<ElementType>
+    , public boost::enable_shared_from_this< basic_component<ElementType> >
 {
 public :
-    typedef ElementType element_type;
+    typedef ElementType                    element_type;
+    typedef munin::component<element_type> component_type;
+    
     
     //* =====================================================================
     /// \brief Constructor
@@ -198,6 +203,18 @@ private :
     virtual void do_focus_previous()
     {
         toggle_focus();
+    }
+
+    //* =====================================================================
+    /// \brief Called by get_focussed_component().  Derived classes must
+    /// override this function in order to return the focussed component
+    /// in a custom manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<component_type> do_get_focussed_component()
+    {
+        return has_focus_
+             ? boost::shared_ptr<component_type>(this->shared_from_this())
+             : boost::shared_ptr<component_type>();
     }
 };
     

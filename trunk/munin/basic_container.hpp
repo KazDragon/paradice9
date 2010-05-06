@@ -566,6 +566,32 @@ private :
     }
     
     //* =====================================================================
+    /// \brief Called by get_focussed_component().  Derived classes must
+    /// override this function in order to return the focussed component
+    /// in a custom manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<component_type> do_get_focussed_component()
+    {
+        if (has_focus_)
+        {
+            odin::u32 number_of_components = this->get_number_of_components();
+            
+            for (odin::u32 index = 0; index < number_of_components; ++index)
+            {
+                boost::shared_ptr<component_type> current_component =
+                    this->get_component(index);
+                    
+                if (current_component->has_focus())
+                {
+                    return current_component->get_focussed_component();
+                }
+            }
+        }
+        
+        return boost::shared_ptr<component_type>();
+    }
+        
+    //* =====================================================================
     /// \brief Called by get_parent().  Derived classes must override this
     /// function in order to get the parent of the component in a custom
     /// manner.
@@ -573,6 +599,28 @@ private :
     boost::shared_ptr< munin::container<ElementType> > do_get_parent() const
     {
         return parent_.lock();
+    }
+
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event)
+    {
+        // Filter the event down to the focused subcomponent.
+        odin::u32 const number_of_components = this->get_number_of_components();
+        
+        for (odin::u32 index = 0; index < number_of_components; ++index)
+        {
+            boost::shared_ptr<component_type> current_component =
+                this->get_component(index);
+                
+            if (current_component->has_focus())
+            {
+                current_component->event(event);
+                break;
+            }
+        }
     }
 };
     

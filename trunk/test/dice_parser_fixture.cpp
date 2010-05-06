@@ -11,8 +11,12 @@ using namespace std;
 //* =========================================================================
 void dice_parser_fixture::test_empty_string()
 {
+    string str;
+    string::const_iterator begin = str.begin();
+    string::const_iterator end   = str.end();
+    
     optional<paradice::dice_roll> roll = 
-        paradice::parse_dice_roll(string(""));
+        paradice::parse_dice_roll(begin, end);
     
     CPPUNIT_ASSERT_EQUAL(false, roll.is_initialized());
 }
@@ -22,8 +26,12 @@ void dice_parser_fixture::test_empty_string()
 //* =========================================================================
 void dice_parser_fixture::test_roll_no_bonus()
 {
+    string str("2d6");
+    string::const_iterator begin = str.begin();
+    string::const_iterator end   = str.end();
+    
     optional<paradice::dice_roll> roll =
-        paradice::parse_dice_roll(string("2d6"));
+        paradice::parse_dice_roll(begin, end);
         
     CPPUNIT_ASSERT_EQUAL(true, roll.is_initialized());
     
@@ -39,8 +47,12 @@ void dice_parser_fixture::test_roll_no_bonus()
 //* =========================================================================
 void dice_parser_fixture::test_roll_with_bonus()
 {
+    string str("3D9+3");
+    string::const_iterator begin = str.begin();
+    string::const_iterator end   = str.end();
+    
     optional<paradice::dice_roll> roll =
-        paradice::parse_dice_roll(string("3D9+3"));
+        paradice::parse_dice_roll(begin, end);
         
     CPPUNIT_ASSERT_EQUAL(true, roll.is_initialized());
     
@@ -56,8 +68,12 @@ void dice_parser_fixture::test_roll_with_bonus()
 //* =========================================================================
 void dice_parser_fixture::test_roll_extended_bonus()
 {
+    string str("10d20+30-35FOO");
+    string::const_iterator begin = str.begin();
+    string::const_iterator end   = str.end();
+    
     optional<paradice::dice_roll> roll =
-        paradice::parse_dice_roll(string("10d20+30-35"));
+        paradice::parse_dice_roll(begin, end);
         
     CPPUNIT_ASSERT_EQUAL(true, roll.is_initialized());
     
@@ -66,5 +82,10 @@ void dice_parser_fixture::test_roll_extended_bonus()
     CPPUNIT_ASSERT_EQUAL(odin::u32(10), result.amount_);
     CPPUNIT_ASSERT_EQUAL(odin::u32(20), result.sides_);
     CPPUNIT_ASSERT_EQUAL(odin::s32(-5), result.bonus_);
+    
+    // Also check that the text after the roll is preserved.
+    CPPUNIT_ASSERT_EQUAL(
+        string("FOO")
+      , string(begin, end));
 }
 

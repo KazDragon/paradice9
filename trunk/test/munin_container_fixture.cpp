@@ -726,3 +726,87 @@ void munin_container_fixture::test_previous_focus()
     CPPUNIT_ASSERT_EQUAL(false, sub_component10->has_focus());
     CPPUNIT_ASSERT_EQUAL(false, sub_component11->has_focus());
 }
+
+void munin_container_fixture::test_event()
+{
+    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    any component0_event;
+    function<void (any)> component0_event_handler = (
+        bll::var(component0_event) = bll::_1
+    );
+    component0->set_event_handler(component0_event_handler);
+    
+    any component1_event;
+    function<void (any)> component1_event_handler = (
+        bll::var(component1_event) = bll::_1
+    );
+    component1->set_event_handler(component1_event_handler);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+
+    CPPUNIT_ASSERT_EQUAL(true, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(true, component1_event.empty());
+    
+    // No component has focus.  therefore, the container should swallow the
+    // event, since it would have no idea where to pass it on to.  In practice,
+    // this should not occur, since the Window should only pass the event on
+    // to its focused component.
+    container->event(string("unfocused container event"));
+    
+    CPPUNIT_ASSERT_EQUAL(true, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(true, component1_event.empty());
+    
+    // Set the focus to the first component.  This is the place to which the
+    // event should go.
+    component0->set_focus();
+    
+    string component0_event_string = "test component0 event";
+    container->event(component0_event_string);
+    
+    CPPUNIT_ASSERT_EQUAL(false, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(true, component1_event.empty());
+    CPPUNIT_ASSERT_EQUAL(
+        component0_event_string
+      , any_cast<string>(component0_event));
+    
+    component0_event = any();
+    
+    // Set the focus to the second component.  The event should hit this next.
+    component1->set_focus();
+    
+    string component1_event_string = "test component0 event";
+    container->event(component1_event_string);
+    
+    CPPUNIT_ASSERT_EQUAL(true, component0_event.empty());
+    CPPUNIT_ASSERT_EQUAL(false, component1_event.empty());
+    CPPUNIT_ASSERT_EQUAL(
+        component0_event_string
+      , any_cast<string>(component1_event));
+}
+
+void munin_container_fixture::test_get_focussed_component()
+{
+    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+    
+    CPPUNIT_ASSERT(
+        container->get_focussed_component()
+     == shared_ptr< munin::component<char> >());
+    
+    component0->set_focus();
+    
+    CPPUNIT_ASSERT(container->get_focussed_component() == component0);
+    
+    component1->set_focus();
+    
+    CPPUNIT_ASSERT(container->get_focussed_component() == component1);
+}
+

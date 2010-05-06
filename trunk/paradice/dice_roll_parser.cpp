@@ -98,14 +98,13 @@ struct dice_roll_grammar
 /// For example, "2d6+3-4" will convert to a dice_roll of { 1, 2, 6, -1 };
 /// "3*2d20" will convert to a dice_roll of { 3, 2, 20, 0 };
 //* =========================================================================
-boost::optional<dice_roll> parse_dice_roll(std::string const &roll)
+boost::optional<dice_roll> parse_dice_roll(
+    std::string::const_iterator &begin
+  , std::string::const_iterator  end)
 {
     dice_roll_grammar<std::string::const_iterator>  roll_grammar;
     dice_roll                                       result;
     dice_roll                                      &ref_result = result;
-    
-    std::string::const_iterator begin = roll.begin();
-    std::string::const_iterator end   = roll.end();
     
     if (phrase_parse(
         begin

@@ -222,8 +222,7 @@ void munin_component_fixture::test_draw()
 
 void munin_component_fixture::test_redraw()
 {
-    boost::shared_ptr< fake_component<char> > component(
-        new fake_component<char>);
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
     
     vector<munin::rectangle> regions;
     function<void (vector<munin::rectangle>)> on_redraw = (
@@ -266,8 +265,7 @@ void munin_component_fixture::test_set_focus()
 {
     // Test that set_focus sets the focus, lose_focus loses it and
     // has_focus returns whether the component has the focus.
-    boost::shared_ptr< fake_component<char> > component(
-        new fake_component<char>);
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
     
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 
@@ -390,8 +388,7 @@ void munin_component_fixture::test_lose_focus_subobject()
 void munin_component_fixture::test_focus_next()
 {
     // Test that the component can handle the focus_next function properly.
-    boost::shared_ptr< fake_component<char> > component(
-        new fake_component<char>);
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
     
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 
@@ -411,8 +408,7 @@ void munin_component_fixture::test_focus_next()
 void munin_component_fixture::test_focus_previous()
 {
     // Test that the component can handle the focus_previous function properly.
-    boost::shared_ptr< fake_component<char> > component(
-        new fake_component<char>);
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
     
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 
@@ -428,3 +424,38 @@ void munin_component_fixture::test_focus_previous()
     component->focus_previous();
     CPPUNIT_ASSERT_EQUAL(false, component->has_focus());
 }
+
+void munin_component_fixture::test_event()
+{
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
+    
+    any event;
+    function<void (any)> event_handler = (bll::var(event) = bll::_1);
+    
+    component->set_event_handler(event_handler);
+    
+    string event_string = "test event";
+    
+    CPPUNIT_ASSERT_EQUAL(true, event.empty());
+    
+    component->event(event_string);
+    
+    CPPUNIT_ASSERT_EQUAL(false, event.empty());
+    CPPUNIT_ASSERT_EQUAL(
+        event_string
+      , any_cast<string>(event));
+}
+
+void munin_component_fixture::test_get_focussed_component()
+{
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
+    
+    CPPUNIT_ASSERT(
+        component->get_focussed_component()
+     == shared_ptr< munin::component<char> >());
+    
+    component->set_focus();
+
+    CPPUNIT_ASSERT(component->get_focussed_component() == component);
+}
+

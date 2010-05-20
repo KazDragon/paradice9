@@ -45,19 +45,19 @@ namespace paradice {
 namespace {
     static string const ANSI_DEFAULT = str(format("%c%c%c")
         % munin::ansi::ESCAPE
-        % munin::ansi::ANSI_SEQUENCE
+        % munin::ansi::CONTROL_SEQUENCE_INTRODUCER
         // No argument = 0, which is DEFAULT_ATTRIBUTES.
         % munin::ansi::SELECT_GRAPHICS_RENDITION);
 
     static string const ANSI_BOLD = str(format("%c%c%d%c")
         % munin::ansi::ESCAPE
-        % munin::ansi::ANSI_SEQUENCE
+        % munin::ansi::CONTROL_SEQUENCE_INTRODUCER
         % int(munin::ansi::graphics::INTENSITY_BOLD)
         % munin::ansi::SELECT_GRAPHICS_RENDITION);
     
     static string const ANSI_GREEN = str(format("%c%c%d%c")
         % munin::ansi::ESCAPE
-        % munin::ansi::ANSI_SEQUENCE
+        % munin::ansi::CONTROL_SEQUENCE_INTRODUCER
         % int(munin::ansi::graphics::FOREGROUND_COLOUR_BASE
             + munin::ansi::graphics::COLOUR_GREEN)
         % munin::ansi::SELECT_GRAPHICS_RENDITION);
@@ -348,7 +348,7 @@ PARADICE_COMMAND_IMPL(showrolls)
         roll_data &data = rolls[index];
         shared_ptr<client> roller = data.roller.lock();
         
-        string name = (roller == NULL ? roller->get_name() : data.name);
+        string name = (roller == NULL ? data.name : roller->get_name());
         
         output += str(format(
             "\r\n%s rolled %s and scored %s%d%s [%d%s]")
@@ -400,3 +400,4 @@ PARADICE_COMMAND_IMPL(clearrolls)
 }
 
 }
+

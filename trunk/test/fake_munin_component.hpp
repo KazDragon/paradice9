@@ -20,9 +20,12 @@ public :
     fake_component()
         : brush_()
         , can_focus_(true)
+        , cursor_state_(false)
     {
         preferred_size_.width  = 0;
         preferred_size_.height = 0;
+        cursor_position_.x     = 0;
+        cursor_position_.y     = 0;
     }
     
     void set_brush(ElementType brush)
@@ -55,10 +58,28 @@ public :
         event_handler_ = handler;
     }
     
+    void set_cursor_state(bool state)
+    {
+        cursor_state_ = state;
+        this->on_cursor_state_changed(cursor_state_);
+    }
+    
+    void set_cursor_position(munin::point position)
+    {
+        cursor_position_ = position;
+        
+        if (cursor_state_)
+        {
+            this->on_cursor_position_changed(cursor_position_);
+        }
+    }
+
 private :
     ElementType                        brush_;
     munin::extent                      preferred_size_;
     bool                               can_focus_;
+    bool                               cursor_state_;
+    munin::point                       cursor_position_;
     boost::function<void (boost::any)> event_handler_;
     
     //* =====================================================================
@@ -79,6 +100,23 @@ private :
     virtual bool do_can_focus() const
     {
         return can_focus_;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
+    //* =====================================================================
+    virtual bool do_get_cursor_state() const
+    {
+        return cursor_state_;
+    }
+    
+    //* =====================================================================
+    /// \brief
+    //* =====================================================================
+    virtual munin::point do_get_cursor_position() const
+    {
+        return cursor_position_;
     }
     
     //* =====================================================================
@@ -174,9 +212,9 @@ private :
                       << std::endl;
 #endif
 
-            for (odin::u32 x = 0; x < box.size.width; ++x)
+            for (odin::s32 x = 0; x < box.size.width; ++x)
             {
-                for (odin::u32 y = 0; y < box.size.height; ++y)
+                for (odin::s32 y = 0; y < box.size.height; ++y)
                 {
 #ifdef DEBUG_COMPONENT
                     std::cout << "Drawing " << brush_ << " at ("

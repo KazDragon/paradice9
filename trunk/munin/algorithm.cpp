@@ -25,8 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/algorithm.hpp"
+#include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <algorithm>
 
 using namespace boost;
+using namespace std;
 
 namespace munin {
     
@@ -95,6 +99,107 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
     }
     
     return overlap;
+}
+
+// ==========================================================================
+// CUT_SLICES
+// ==========================================================================
+static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
+{
+    vector<rectangle> slices;
+    
+    BOOST_FOREACH(rectangle const &current_rectangle, rectangles)
+    {
+        for (odin::s32 row = 0; row < current_rectangle.size.height; ++row)
+        {
+            slices.push_back(
+                rectangle(point(current_rectangle.origin.x
+                              , current_rectangle.origin.y + row)
+                        , extent(current_rectangle.size.width
+                               , 1))); 
+        }
+    }
+    
+    return slices;
+}
+
+// ==========================================================================
+// MERGE_OVERLAPPING_SLICES
+// ==========================================================================
+static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
+{
+    BOOST_AUTO(first_slice, rectangles.begin());
+    
+    while (first_slice != rectangles.end())
+    {
+        BOOST_AUTO(second_slice, first_slice + 1);
+        
+        while (second_slice != rectangles.end())
+        {
+            if (first_slice->origin.y == second_slice->origin.y)
+            {
+                rectangle const &leftmost = 
+                    first_slice->origin.x < second_slice->origin.x
+                  ? *first_slice
+                  : *second_slice;
+                  
+                rectangle const &not_leftmost =
+                    first_slice->origin.x < second_slice->origin.x
+                  ? *second_slice
+                  : *first_slice;
+                  
+                if (leftmost.origin.x + leftmost.size.width
+                   >= not_leftmost.origin.x)
+                {
+                    odin::s32 left = 
+                        (min)(first_slice->origin.x, second_slice->origin.x);
+                    odin::s32 right =
+                        (max)(first_slice->origin.x + first_slice->size.width
+                            , second_slice->origin.x + second_slice->size.width);
+                        
+                    first_slice->origin.x   = left;
+                    first_slice->size.width = right - left;
+    
+                    second_slice = rectangles.erase(second_slice);
+                }
+            }
+            else
+            {
+                ++second_slice;
+            }
+        }
+        
+        ++first_slice;
+    }
+    
+    return rectangles;
+}
+
+// ==========================================================================
+// COMPARE_SLICES
+// ==========================================================================
+static bool compare_slices(rectangle const &lhs, rectangle const &rhs)
+{
+    if (lhs.origin.y == rhs.origin.y)
+    {
+        return lhs.origin.x < rhs.origin.x;
+    }
+    else
+    {
+        return lhs.origin.y < rhs.origin.y;
+    }
+}
+
+
+// ==========================================================================
+// RECTANGULAR_SLICE
+// ==========================================================================
+vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
+{
+    vector<rectangle> slices = merge_overlapping_slices(cut_slices(rectangles));
+    sort(slices.begin(), slices.end(), &compare_slices);
+    
+    return slices;
 }
 
 }

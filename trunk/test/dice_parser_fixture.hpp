@@ -1,6 +1,3 @@
-#ifndef PARADICE_DICE_PARSER_FIXTURE_HPP_
-#define PARADICE_DICE_PARSER_FIXTURE_HPP_
-
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -21,4 +18,3 @@ private :
     void test_roll_extended_bonus();
 };
 
-#endif

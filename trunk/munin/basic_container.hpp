@@ -28,6 +28,7 @@
 #define MUNIN_BASIC_CONTAINER_HPP_
 
 #include "munin/container.hpp"
+#include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <vector>
@@ -35,7 +36,9 @@
 namespace munin {
     
 //* =========================================================================
-/// \brief A default implementation of a container.
+/// \brief A default implementation of a container.  Only 
+/// do_initialise_region need be overridden to make some kind of default
+/// background for the element type.
 //* =========================================================================
 template <class ElementType>
 class basic_container 
@@ -48,12 +51,10 @@ public :
     typedef layout<ElementType>    layout_type;
     
     basic_container()
-        : has_focus_(false)
+        : bounds_(point(0, 0), extent(0, 0))
+        , has_focus_(false)
+        , cursor_state_(false)
     {
-        bounds_.origin.x  = 0;
-        bounds_.origin.y  = 0;
-        bounds_.size.width  = 0;
-        bounds_.size.height = 0;
     }
     
 private :
@@ -63,6 +64,7 @@ private :
     boost::shared_ptr<layout_type>                   layout_;
     rectangle                                        bounds_;
     bool                                             has_focus_;
+    bool                                             cursor_state_;
     
     //* =====================================================================
     /// \brief Called when a subcomponent's focus is gained.
@@ -81,25 +83,24 @@ private :
         // Iterate through all our subcomponents and ensure that this
         // is the only subcomponent to have focus.  Then, if we do not have
         // focus, set our focus.
-        odin::u32 number_of_components = this->get_number_of_components();
-        
-        for (odin::u32 index = 0; index < number_of_components; ++index)
+        BOOST_FOREACH(
+            boost::shared_ptr<component_type> current_component
+          , components_)
         {
-            boost::shared_ptr<component_type> current_component =
-                this->get_component(index);
-                
             if (current_component != focused_component
              && current_component->has_focus())
             {
                 current_component->lose_focus();
             }
-        }
-        
+        }        
+
         if (!has_focus_)
         {
             has_focus_ = true;
             this->on_focus_set();
         }
+        
+        focus_changed();
     }
     
     //* =====================================================================
@@ -120,16 +121,16 @@ private :
         // subcomponents focused (for example, setting the focus of a new
         // subcomponent may cause the focus for the reporting component to
         // be lost).  If we do not, then unfocus this component.
-        odin::u32 number_of_components = this->get_number_of_components();
-        bool      component_is_focused = false;
+        bool component_is_focused = false;
 
-        for (odin::u32 index = 0;
-             index < number_of_components && !component_is_focused;
-             ++index)
+        BOOST_FOREACH(
+            boost::shared_ptr<component_type> current_component
+          , components_)
         {
-            if (this->get_component(index)->has_focus())
+            if (current_component->has_focus())
             {
                 component_is_focused = true;
+                break;
             }
         }
         
@@ -137,6 +138,113 @@ private :
         {
             has_focus_ = false;
             this->on_focus_lost();
+        }
+        
+        focus_changed();
+    }
+    
+    //* =====================================================================
+    /// \brief Called when this or a subcomponent's focus changes.  This is
+    /// to ensure that properties that change when moving from one component
+    /// to the next (such as cursor state and position) are updated properly.
+    //* =====================================================================
+    void focus_changed()
+    {
+        if (has_focus_)
+        {
+            // Find the currently focussed subcomponent.
+            BOOST_FOREACH(
+                boost::shared_ptr<component_type> current_component
+              , components_)
+            {
+                if (current_component->has_focus())
+                {
+                    // Update for the new cursor state if necessary.
+                    bool new_cursor_state = 
+                        current_component->get_cursor_state();
+
+                    if (new_cursor_state != cursor_state_)
+                    {
+                        cursor_state_ = new_cursor_state;
+                        this->on_cursor_state_changed(cursor_state_);
+                    }
+                    
+                    // If the cursor state is enabled, then update for a new
+                    // cursor position.
+                    if (cursor_state_)
+                    {
+                        point cursor_position =
+                            current_component->get_position()
+                          + current_component->get_cursor_position();
+                          
+                        this->on_cursor_position_changed(cursor_position);
+                    }
+                }
+            }
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Called when a subcomponent's cursor state changes.  Propagates
+    /// the change if necessary.
+    //* =====================================================================
+    void subcomponent_cursor_state_change_handler(
+        boost::weak_ptr<component_type> const &weak_subcomponent
+      , bool                                   state)
+    {
+        boost::shared_ptr<component_type> subcomponent(
+            weak_subcomponent.lock());
+        
+        if (subcomponent
+         && state != cursor_state_ 
+         && subcomponent->has_focus())
+        {
+            cursor_state_ = state;
+            this->on_cursor_state_changed(cursor_state_);
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Called when a subcomponent's cursor position changes.
+    /// Propagates the change if necessary.
+    //* =====================================================================
+    void subcomponent_cursor_position_change_handler(
+        boost::weak_ptr<component_type> const &weak_subcomponent
+      , point                                  position)
+    {
+        boost::shared_ptr<component_type> subcomponent(
+            weak_subcomponent.lock());
+        
+        if (subcomponent && subcomponent->has_focus())
+        {
+            this->on_cursor_position_changed(
+                subcomponent->get_position() + position);
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Called when a subcomponent's position changes.  Propagates
+    /// any necessary redraw events.
+    //* =====================================================================
+    void subcomponent_position_change_handler(
+        boost::weak_ptr<component_type> const &weak_subcomponent
+      , point                                  changed_from
+      , point                                  changed_to)
+    {
+        boost::shared_ptr<component_type> subcomponent(
+            weak_subcomponent.lock());
+        
+        if (subcomponent)
+        {
+            extent const subcomponent_size = subcomponent->get_size();
+            
+            std::vector<rectangle> redraw_regions;
+            redraw_regions.push_back(
+                rectangle(changed_from, subcomponent_size));
+            redraw_regions.push_back(
+                rectangle(changed_to, subcomponent_size));
+            
+            this->on_redraw(redraw_regions);
         }
     }
     
@@ -218,7 +326,7 @@ private :
         components_.push_back(component);
         component_layers_.push_back(layer);
         
-        // Register for callbacks to when the new subcomponent either gains
+        // Register for callbacks for when the new subcomponent either gains
         // or loses focus.  We can make sure our own focus is correct based
         // on this information.
         component->on_focus_set.connect(
@@ -232,6 +340,32 @@ private :
                 &basic_container::subcomponent_focus_lost_handler
               , this
               , boost::weak_ptr<component_type>(component)));
+        
+        // Register for callbacks for when the subcomponent's cursor state
+        // or position changes.
+        component->on_cursor_state_changed.connect(
+            boost::bind(
+                &basic_container::subcomponent_cursor_state_change_handler
+              , this
+              , boost::weak_ptr<component_type>(component)
+              , _1));
+        
+        component->on_cursor_position_changed.connect(
+            boost::bind(
+                &basic_container::subcomponent_cursor_position_change_handler
+              , this
+              , boost::weak_ptr<component_type>(component)
+              , _1));
+        
+        // Register for callbacks for when the subcomponent's position
+        // changes.
+        component->on_position_changed.connect(
+            boost::bind(
+                &basic_container::subcomponent_position_change_handler
+              , this
+              , boost::weak_ptr<component_type>(component)
+              , _1
+              , _2));
     }
     
     //* =====================================================================
@@ -306,7 +440,7 @@ private :
     /// manner.
     //* =====================================================================
     virtual void do_set_parent(
-        boost::shared_ptr< munin::container<ElementType> > const &parent)
+        boost::shared_ptr< container<ElementType> > const &parent)
     {
         parent_ = parent;
     }
@@ -352,9 +486,16 @@ private :
     {
         if (this->can_focus())
         {
-            if (this->get_number_of_components() != 0)
+            // Find the first component that can be focussed and focus it.
+            BOOST_FOREACH(
+                boost::shared_ptr<component_type> current_component
+              , components_)
             {
-                this->get_component(0)->set_focus();
+                if (current_component->can_focus())
+                {
+                    current_component->set_focus();
+                    break;
+                }
             }
             
             has_focus_ = true;
@@ -369,13 +510,10 @@ private :
     //* =====================================================================
     virtual void do_lose_focus()
     {
-        for (odin::u32 index = 0; 
-             index < this->get_number_of_components(); 
-             ++index)
+        BOOST_FOREACH(
+            boost::shared_ptr<component_type> current_component
+          , components_)
         {
-            boost::shared_ptr<component_type> current_component =
-                this->get_component(index);
-                
             if (current_component->has_focus())
             {
                 current_component->lose_focus();
@@ -596,7 +734,7 @@ private :
     /// function in order to get the parent of the component in a custom
     /// manner.
     //* =====================================================================
-    boost::shared_ptr< munin::container<ElementType> > do_get_parent() const
+    boost::shared_ptr< container<ElementType> > do_get_parent() const
     {
         return parent_.lock();
     }
@@ -621,6 +759,50 @@ private :
                 break;
             }
         }
+    }
+
+    //* =====================================================================
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
+    //* =====================================================================
+    virtual bool do_get_cursor_state() const
+    {
+        return cursor_state_;
+    }
+
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual point do_get_cursor_position() const
+    {
+        // If we have no focus, then return the default position.
+        if (has_focus_ && cursor_state_)
+        {
+            // Find the subcomponent that has focus and get its cursor 
+            // position.  This must then be offset by the subcomponent's 
+            // position within our container.
+            BOOST_FOREACH(
+                boost::shared_ptr<component_type> current_component
+              , components_)
+            {
+                if (current_component->has_focus())
+                {
+                    point component_position = 
+                        current_component->get_position();
+                        
+                    point cursor_position =
+                        current_component->get_cursor_position();
+                        
+                    return component_position + cursor_position;
+                }
+            }
+        }
+
+        // Either we do not have focus, or the currently focussed subcomponent
+        // does not have a cursor.  Return the default position.
+        return point(0, 0);
     }
 };
     

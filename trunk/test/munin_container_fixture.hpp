@@ -19,7 +19,8 @@ public :
         CPPUNIT_TEST(test_next_focus);
         CPPUNIT_TEST(test_previous_focus);
         CPPUNIT_TEST(test_event);
-        CPPUNIT_TEST(test_get_focussed_component);
+        CPPUNIT_TEST(test_cursor_state);
+        CPPUNIT_TEST(test_cursor_position);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -38,4 +39,6 @@ private :
     void test_previous_focus();
     void test_event();
     void test_get_focussed_component();
+    void test_cursor_state();
+    void test_cursor_position();
 };

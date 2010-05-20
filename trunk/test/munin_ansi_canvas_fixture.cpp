@@ -27,8 +27,8 @@ void munin_ansi_canvas_fixture::test_size()
     
     munin::extent size = canvas.get_size();
     
-    CPPUNIT_ASSERT_EQUAL(odin::u32(0), size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(0), size.height);
+    CPPUNIT_ASSERT_EQUAL(odin::s32(0), size.width);
+    CPPUNIT_ASSERT_EQUAL(odin::s32(0), size.height);
     
     munin::extent new_size;
     new_size.width  = 80;
@@ -37,8 +37,8 @@ void munin_ansi_canvas_fixture::test_size()
     
     size = canvas.get_size();
 
-    CPPUNIT_ASSERT_EQUAL(odin::u32(80), size.width);
-    CPPUNIT_ASSERT_EQUAL(odin::u32(24), size.height);
+    CPPUNIT_ASSERT_EQUAL(odin::s32(80), size.width);
+    CPPUNIT_ASSERT_EQUAL(odin::s32(24), size.height);
 }
 
 void munin_ansi_canvas_fixture::test_array_indexing()
@@ -55,9 +55,9 @@ void munin_ansi_canvas_fixture::test_array_indexing()
         ' '
       , optional<munin::ansi::attribute>());    
     
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             CPPUNIT_ASSERT_EQUAL(
                 element
@@ -66,9 +66,9 @@ void munin_ansi_canvas_fixture::test_array_indexing()
     }
     
     // Populate the canvas with something appropriate.
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             canvas[column][row] = make_pair(
                 char(column * row)
@@ -77,9 +77,9 @@ void munin_ansi_canvas_fixture::test_array_indexing()
     }
     
     // Assert that everything has been set correctly.
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             element = canvas[column][row];
             
@@ -99,9 +99,9 @@ void munin_ansi_canvas_fixture::test_array_resizing()
     canvas.set_size(size);
     
     // Populate the canvas with something appropriate.
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             canvas[column][row] = make_pair(
                 char(column * row)
@@ -110,9 +110,9 @@ void munin_ansi_canvas_fixture::test_array_resizing()
     }
     
     // Assert that everything has been set correctly.
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             munin::ansi::element_type element = canvas[column][row];
             
@@ -128,9 +128,9 @@ void munin_ansi_canvas_fixture::test_array_resizing()
     
     // Assert that all the original data remains and that the new space is
     // correctly filled with blanks.
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             munin::ansi::element_type element = canvas[column][row];
          
@@ -153,9 +153,9 @@ void munin_ansi_canvas_fixture::test_array_resizing()
     canvas.set_size(size);
 
     // Assert that all the original data remains.
-    for (odin::u32 row = 0; row < size.height; ++row)
+    for (odin::s32 row = 0; row < size.height; ++row)
     {
-        for (odin::u32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
             munin::ansi::element_type element = canvas[column][row];
             

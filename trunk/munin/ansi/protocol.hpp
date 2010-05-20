@@ -27,11 +27,13 @@
 #ifndef MUNIN_ANSI_PROTOCOL_HPP_
 #define MUNIN_ANSI_PROTOCOL_HPP_
 
+#include "munin/types.hpp"
 #include "odin/types.hpp"
 #include <boost/utility.hpp>
 #include <string>
 
 namespace munin { namespace ansi {
+    static char const BEL                              = 0x07;
 
     // The generic formula for an ANSI escape code is:
     //   ESCAPE '[' [arg [;arg...]] COMMAND
@@ -39,8 +41,9 @@ namespace munin { namespace ansi {
     // separated by semi-colons, and COMMAND is a single letter that states
     // the purpose of the sequence.
     
-    static char const ESCAPE        = '\x1B';
-    static char const ANSI_SEQUENCE = '[';
+    static char const ESCAPE                           = '\x1B';
+    static char const CONTROL_SEQUENCE_INTRODUCER      = '[';
+    static char const OPERATING_SYSTEM_COMMAND         = ']';
     
     // Move the cursor up N rows.
     static char const CURSOR_UP                        = 'A';
@@ -120,6 +123,19 @@ namespace graphics {
     static colour const COLOUR_WHITE         = 7;
     static colour const COLOUR_DEFAULT       = 9;
 }
+
+//* =========================================================================
+/// \brief Constructs a string that is used to move to a particular
+/// co-ordinate.  The passed in point is expected to be 0-based, while the
+/// ANSI result is 1-based.
+//* =========================================================================
+std::string cursor_position(munin::point const &position);
+
+//* =========================================================================
+/// \brief Constructs a string that is used to set the window title to the 
+/// specified text.
+//* =========================================================================
+std::string set_window_title(std::string const &text);
 
 }}
 

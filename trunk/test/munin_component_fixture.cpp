@@ -24,17 +24,26 @@ void munin_component_fixture::test_position()
 {
     fake_component<char> component;
     
+    munin::point moved_from(0,0);
+    munin::point moved_to(0,0);
+    function<void (munin::point, munin::point)> callback = (
+        bll::var(moved_from) = bll::_1
+      , bll::var(moved_to) = bll::_2
+    );
+    
+    component.on_position_changed.connect(callback);
+    
     munin::point position = component.get_position();
-    CPPUNIT_ASSERT_EQUAL(u32(0), position.x);
-    CPPUNIT_ASSERT_EQUAL(u32(0), position.y);
+    CPPUNIT_ASSERT_EQUAL(s32(0), position.x);
+    CPPUNIT_ASSERT_EQUAL(s32(0), position.y);
     
-    position.x = 5;
-    position.y = 6;
-    component.set_position(position);
+    munin::point new_position(5,6);
+    component.set_position(new_position);
     
-    munin::point new_position = component.get_position();
-    CPPUNIT_ASSERT_EQUAL(position.x, new_position.x);
-    CPPUNIT_ASSERT_EQUAL(position.y, new_position.y);
+    munin::point actual_position = component.get_position();
+    CPPUNIT_ASSERT_EQUAL(actual_position, component.get_position());
+    CPPUNIT_ASSERT_EQUAL(position, moved_from);
+    CPPUNIT_ASSERT_EQUAL(new_position, moved_to);
 }
 
 void munin_component_fixture::test_size()
@@ -42,8 +51,8 @@ void munin_component_fixture::test_size()
     fake_component<char> component;
     
     munin::extent extent = component.get_size();
-    CPPUNIT_ASSERT_EQUAL(u32(0), extent.width);
-    CPPUNIT_ASSERT_EQUAL(u32(0), extent.height);
+    CPPUNIT_ASSERT_EQUAL(s32(0), extent.width);
+    CPPUNIT_ASSERT_EQUAL(s32(0), extent.height);
     
     extent.width  = 240;
     extent.height = 480;
@@ -62,8 +71,8 @@ void munin_component_fixture::test_preferred_size()
     munin::extent preferred_extent =
         static_cast<munin::component<char>&>(component).get_preferred_size();
         
-    CPPUNIT_ASSERT_EQUAL(u32(0), preferred_extent.width);
-    CPPUNIT_ASSERT_EQUAL(u32(0), preferred_extent.height);
+    CPPUNIT_ASSERT_EQUAL(s32(0), preferred_extent.width);
+    CPPUNIT_ASSERT_EQUAL(s32(0), preferred_extent.height);
     
     munin::extent extent;
     extent.width  = 240;
@@ -282,9 +291,9 @@ void munin_component_fixture::test_set_focus_subobject()
 {
     // Test that setting the focus of a subobject steals focus in the correct
     // manner.
-    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
@@ -338,9 +347,9 @@ void munin_component_fixture::test_lose_focus_subobject()
 {
     // Test that losing the focus of a subobject also causes its parents
     // to lose focus in the correct manner.
-    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
@@ -457,5 +466,66 @@ void munin_component_fixture::test_get_focussed_component()
     component->set_focus();
 
     CPPUNIT_ASSERT(component->get_focussed_component() == component);
+}
+
+void munin_component_fixture::test_cursor_state()
+{
+    // Check that the basic component has enough structure to support a
+    // cursor's state.
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
+    
+    bool cursor_enabled = false;
+    function<void (bool)> callback = (bll::var(cursor_enabled) = bll::_1);
+    
+    // The basic component should have an event that can be used to signify
+    // cursor state changes.
+    component->on_cursor_state_changed.connect(callback);
+    
+    // The basic component should expose a method to obtain the cursor state.
+    // This would forward to a derived virtual function.
+    CPPUNIT_ASSERT_EQUAL(false, component->get_cursor_state());
+    
+    // A component will know under what states it should have a cursor.  Our
+    // fake component exposes a method to change that, which fires the event
+    // callback.
+    component->set_cursor_state(true);
+    
+    CPPUNIT_ASSERT_EQUAL(true, component->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(true, cursor_enabled);
+}
+
+void munin_component_fixture::test_cursor_position()
+{
+    // Check that the basic component has enough structure to support
+    // a cursor's position.
+    shared_ptr< fake_component<char> > component(new fake_component<char>);
+    
+    munin::point cursor_position(0, 0);
+    function<void (munin::point)> callback = 
+        (bll::var(cursor_position) = bll::_1);
+    
+    // The basic component should have an event that can be used to signify
+    // a change in the cursor position.
+    component->on_cursor_position_changed.connect(callback);
+    
+    // The basic component should expose a method to obtain the cursor
+    // position.  This would forward to a derived virtual function.
+    CPPUNIT_ASSERT_EQUAL(cursor_position, component->get_cursor_position());
+    
+    // Our fake component will only report a position change if it has a
+    // cursor enabled.
+    component->set_cursor_state(true);
+    
+    munin::point new_position;
+    new_position.x = 1;
+    new_position.y = 2;
+    
+    // Our fake component exposes a method to change the cursor position.
+    // This should fire the event callback, and the new position should be
+    // updated.
+    component->set_cursor_position(new_position);
+    
+    CPPUNIT_ASSERT_EQUAL(new_position, component->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(new_position, cursor_position);
 }
 

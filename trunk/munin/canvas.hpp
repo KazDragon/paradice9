@@ -55,8 +55,8 @@ public :
             // ==============================================================
             row_proxy(
                 canvas    &canvas
-              , odin::u32 column
-              , odin::u32 row)
+              , odin::s32 column
+              , odin::s32 row)
                 : canvas_(canvas)
                 , column_(column)
                 , row_(row)
@@ -81,8 +81,8 @@ public :
             
         private :
             canvas    &canvas_;
-            odin::u32  column_;
-            odin::u32  row_;
+            odin::s32  column_;
+            odin::s32  row_;
         };
         
     public :
@@ -91,7 +91,7 @@ public :
         // ==================================================================
         column_proxy(
             canvas    &canvas
-          , odin::u32  column)
+          , odin::s32  column)
             : canvas_(canvas)
             , column_(column)
         {
@@ -100,14 +100,14 @@ public :
         // ==================================================================
         // OPERATOR[]
         // ==================================================================
-        row_proxy operator[](odin::u32 row)
+        row_proxy operator[](odin::s32 row)
         {
             return row_proxy(canvas_, column_, row);
         }
         
     private :
         canvas    &canvas_;
-        odin::u32  column_;
+        odin::s32  column_;
     };
     
     // ======================================================================
@@ -120,7 +120,7 @@ public :
     // ======================================================================
     // OPERATOR[]
     // ======================================================================
-    column_proxy operator[](odin::u32 column)
+    column_proxy operator[](odin::s32 column)
     {
         return column_proxy(*this, column);
     }
@@ -131,8 +131,8 @@ private :
     /// the canvas.
     //* =====================================================================
     virtual void set_value(
-        odin::u32    column
-      , odin::u32    row
+        odin::s32    column
+      , odin::s32    row
       , element_type value) = 0; 
 
     //* =====================================================================
@@ -140,8 +140,8 @@ private :
     /// on the canvas.
     //* =====================================================================
     virtual element_type get_value(
-        odin::u32 column
-      , odin::u32 row) const = 0;
+        odin::s32 column
+      , odin::s32 row) const = 0;
 };
     
 }

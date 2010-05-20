@@ -188,6 +188,14 @@ private :
     }
 
     //* =====================================================================
+    /// \brief Initialises a region prior to drawing.
+    //* =====================================================================
+    virtual void do_initialise_region(
+        canvas<element_type> &cvs
+      , point const          &offset
+      , rectangle const      &region) = 0;
+
+    //* =====================================================================
     /// \brief Called by get_number_of_components().  Derived classes must
     /// override this function in order to retrieve the number of components
     /// in this container in a custom manner.
@@ -254,6 +262,9 @@ private :
       , point const          &offset
       , rectangle const      &region)
     {
+        // First, initialise that region to an undrawn state.
+        do_initialise_region(cvs, offset, region);
+        
 #ifdef DEBUG_CONTAINER
         std::cout << "munin::container::do_draw\n"
                   << "  region = (" << region.origin.x << ", "
@@ -311,16 +322,11 @@ private :
 
                 // The draw region is currently relative to this container's
                 // origin.  It should be relative to the child's origin.
-                draw_region->origin.x -= component_region.origin.x;
-                draw_region->origin.y -= component_region.origin.y;
+                draw_region->origin -= component_region.origin;
                 
                 // The offset to the component is this container's position
                 // within its canvas plus the offset passed in.
-                point position = this->get_position();
-                
-                point component_offset;
-                component_offset.x = position.x + offset.x;
-                component_offset.y = position.y + offset.y;
+                point component_offset = this->get_position() + offset;
                 
 #ifdef DEBUG_CONTAINER
                 std::cout << "   offset = ("

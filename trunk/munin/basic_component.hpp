@@ -51,12 +51,9 @@ public :
     /// \brief Constructor
     //* =====================================================================
     basic_component()
-        : has_focus_(false)
+        : bounds_(point(0, 0), extent(0, 0))
+        , has_focus_(false)
     {
-        bounds_.origin.x    = 0;
-        bounds_.origin.y    = 0;
-        bounds_.size.width  = 0;
-        bounds_.size.height = 0;
     }
     
 private :
@@ -71,7 +68,10 @@ private :
     //* =====================================================================
     virtual void do_set_position(point const &position)
     {
+        point old_position = bounds_.origin;
         bounds_.origin = position;
+        
+        this->on_position_changed(old_position, position);
     }
     
     //* =====================================================================
@@ -215,6 +215,32 @@ private :
         return has_focus_
              ? boost::shared_ptr<component_type>(this->shared_from_this())
              : boost::shared_ptr<component_type>();
+    }
+
+    //* =====================================================================
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
+    //* =====================================================================
+    virtual bool do_get_cursor_state() const
+    {
+        // By default, a component has no cursor.
+        return false;
+    }
+
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual point do_get_cursor_position() const
+    {
+        // By default, a component has no cursor, so we choose a sentry
+        // value of (0,0) for its non-existent location.
+        point position;
+        position.x = 0;
+        position.y = 0;
+        
+        return position;
     }
 };
     

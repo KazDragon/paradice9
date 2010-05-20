@@ -24,29 +24,29 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ANSI_BASIC_CONTAINER_HPP_
-#define MUNIN_ANSI_BASIC_CONTAINER_HPP_
-
-#include "munin/basic_container.hpp"
-#include "munin/ansi/ansi_types.hpp"
+#include "munin/ansi/basic_container.hpp"
+#include "munin/canvas.hpp"
 
 namespace munin { namespace ansi {
 
-//* =========================================================================
-/// \brief A default implementation of an ANSI container.
-//* =========================================================================
-class basic_container : public munin::basic_container<element_type>
+// ==========================================================================
+// DO_INITIALISE_REGION
+// ==========================================================================
+void basic_container::do_initialise_region(
+    canvas<element_type> &cvs
+  , point const          &offset
+  , rectangle const      &region)
 {
-private :
-    //* =====================================================================
-    /// \brief Initialises a region prior to drawing.
-    //* =====================================================================
-    virtual void do_initialise_region(
-        canvas<element_type> &cvs
-      , point const          &offset
-      , rectangle const      &region);
-};
+    for (odin::s32 row = 0; row < region.size.width; ++row)
+    {
+        for (odin::s32 column = 0; column < region.size.height; ++column)
+        {
+            cvs[offset.x + region.origin.x + row   ]
+               [offset.y + region.origin.y + column] 
+                    = element_type(' ', attribute());
+        }
+    }
+}
 
 }}
 
-#endif

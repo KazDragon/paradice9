@@ -29,6 +29,7 @@
 
 #include "munin/types.hpp"
 #include <boost/optional.hpp>
+#include <vector>
 
 namespace munin {
     
@@ -40,6 +41,18 @@ boost::optional<rectangle> intersection(
     rectangle const &lhs
   , rectangle const &rhs);
 
-}
+//* =========================================================================
+/// \fn rectangular_slice
+/// \brief Returns an array o sliced rectangles.
+/// \par
+/// A rectangular slice takes an array of rectangles, and returns an array
+/// of the fewest number of rectangles, each of height 1, that describes the
+/// area covered by the original rectangles.  These are sorted from left to
+/// right, top to bottom.
+//* =========================================================================
+std::vector<rectangle> rectangular_slice(
+    std::vector<rectangle> const &rectangles);
 
+}
+    
 #endif

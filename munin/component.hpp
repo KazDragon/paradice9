@@ -200,6 +200,23 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Returns true if this component has a visible cursor, false
+    /// otherwise.
+    //* =====================================================================
+    bool get_cursor_state() const
+    {
+        return do_get_cursor_state();
+    }
+    
+    //* =====================================================================
+    /// \brief Returns the cursor's current position within the component.
+    //* =====================================================================
+    point get_cursor_position() const
+    {
+        return do_get_cursor_position();
+    }
+    
+    //* =====================================================================
     /// \brief Draws the component.
     ///
     /// \param cvs the canvas in which the component should draw itself.
@@ -238,6 +255,18 @@ public :
     > on_redraw;
     
     //* =====================================================================
+    /// \fn on_position_changed
+    /// \param from The position from which the component moved.
+    /// \param to   The position to which the component moved.
+    /// \brief Connect to this signal in order to receive notification about
+    /// when the component changes position.
+    //* =====================================================================
+    boost::signal
+    <
+        void (point from, point to)
+    > on_position_changed;
+    
+    //* =====================================================================
     /// \fn on_focus_set
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component has gained focus.
@@ -254,6 +283,24 @@ public :
     boost::signal<
         void ()
     > on_focus_lost;
+    
+    //* =====================================================================
+    /// \fn on_cursor_state_changed
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the component's cursor state changes.
+    //* =====================================================================
+    boost::signal<
+        void (bool)
+    > on_cursor_state_changed;
+    
+    //* =====================================================================
+    /// \fn on_cursor_position_changed
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the component's cursor position changes.
+    //* =====================================================================
+    boost::signal<
+        void (point)
+    > on_cursor_position_changed;
     
 private :
     //* =====================================================================
@@ -354,6 +401,19 @@ private :
     /// in a custom manner.
     //* =====================================================================
     virtual boost::shared_ptr<component_type> do_get_focussed_component() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
+    //* =====================================================================
+    virtual bool do_get_cursor_state() const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual point do_get_cursor_position() const = 0;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

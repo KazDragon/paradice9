@@ -75,14 +75,20 @@ public :
     // ======================================================================
     void set_size(extent const &size)
     {
+        if (size_ == size)
+        {
+            // No change; no actions are necessary.
+            return;
+        }
+        
         // Create a new elements array and fill it with data from the old
         // array if necessary or with default spaces.
         vector<element_type> new_elements;
         new_elements.resize(size.height * size.width);
         
-        for (u32 row = 0; row < size.height; ++row)
+        for (s32 row = 0; row < size.height; ++row)
         {
-            for (u32 column = 0; column < size.width; ++column)
+            for (s32 column = 0; column < size.width; ++column)
             {
                 if (row < size_.height && column < size_.width)
                 {
@@ -126,7 +132,7 @@ public :
     // ======================================================================
     // SET_VALUE
     // ======================================================================
-    void set_value(odin::u32 column, odin::u32 row, element_type const &element)
+    void set_value(odin::s32 column, odin::s32 row, element_type const &element)
     {
         if (column >= size_.width || row >= size_.height)
         {
@@ -145,7 +151,7 @@ public :
     // ======================================================================
     // GET_VALUE
     // ======================================================================
-    element_type get_value(odin::u32 column, odin::u32 row) const
+    element_type get_value(odin::s32 column, odin::s32 row) const
     {
         if (column >= size_.width || row >= size_.height)
         {
@@ -226,8 +232,8 @@ bool ansi_canvas::operator==(ansi_canvas const &other) const
 // SET_VALUE
 // ==========================================================================
 void ansi_canvas::set_value(
-    odin::u32    column
-  , odin::u32    row
+    odin::s32    column
+  , odin::s32    row
   , element_type value)
 {
     pimpl_->set_value(column, row, value);
@@ -237,8 +243,8 @@ void ansi_canvas::set_value(
 // GET_VALUE
 // ==========================================================================
 ansi_canvas::element_type ansi_canvas::get_value(
-    odin::u32 column
-  , odin::u32 row) const
+    odin::s32 column
+  , odin::s32 row) const
 {
     element_type value = pimpl_->get_value(column, row);
     return pimpl_->get_value(column, row);

@@ -91,7 +91,7 @@ void munin_layout_fixture::test_layout()
         new fake_component<char>);    
     
     boost::shared_ptr< fake_container<char> > container0(
-        new fake_container<char>);
+        new fake_container<char>(' '));
     
     boost::any hint0 = string("hint0");
     boost::any hint1 = string("hint1");

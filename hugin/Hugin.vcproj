@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Munin"
-	ProjectGUID="{7D97B5FC-4610-48D6-BA2C-6491150A96A0}"
-	RootNamespace="Munin"
+	Name="Hugin"
+	ProjectGUID="{473E113E-921F-4DC0-81AA-1F06C75D3505}"
+	RootNamespace="Hugin"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -20,7 +20,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -80,8 +80,8 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="1"
+			ConfigurationType="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -103,8 +103,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=".;.."
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -120,10 +118,17 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				GenerateDebugInformation="true"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -133,6 +138,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -148,11 +156,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\algorithm.cpp"
+				RelativePath=".\frame.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\types.cpp"
+				RelativePath=".\text_area.cpp"
 				>
 			</File>
 		</Filter>
@@ -162,43 +170,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\algorithm.hpp"
+				RelativePath=".\frame.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\basic_component.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\basic_container.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\basic_layout.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\canvas.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\component.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\container.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\graphics_context.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\layout.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\types.hpp"
+				RelativePath=".\text_area.hpp"
 				>
 			</File>
 		</Filter>
@@ -207,66 +183,6 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-		</Filter>
-		<Filter
-			Name="Ansi Header Files"
-			>
-			<File
-				RelativePath=".\ansi\ansi_canvas.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\ansi_types.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\attribute.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\basic_container.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\container.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\protocol.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\protocol.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\window.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\window.hpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Ansi Source Files"
-			>
-			<File
-				RelativePath=".\ansi\ansi_canvas.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\ansi_types.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\attribute.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\basic_container.cpp"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

@@ -32,31 +32,121 @@
 
 namespace munin {
     
+//* =========================================================================
+/// \brief A class that represents a position in space.
+/// \par
+/// A class that represents a position in space, where x is the co-ordinate 
+/// along the horizontal axis and y being the co-ordinate along the vertical 
+/// axis.
+//* =========================================================================
 struct point
 {
-    odin::u32 x;
-    odin::u32 y;
+    //* =====================================================================
+    /// \brief Default Constructor
+    /// \par
+    /// Constructs a point, leaving the values uninitialised.
+    //* =====================================================================
+    point();
+    
+    //* =====================================================================
+    /// \brief Constructor
+    /// \par
+    /// Constructs a point from a passed in x co-ordinate and a passed in
+    /// y co-ordinate.
+    //* =====================================================================
+    point(odin::s32 x_coordinate, odin::s32 y_coordinate);
+    
+    //* =====================================================================
+    /// \brief Addition
+    //* =====================================================================
+    point &operator+=(point const &rhs);
+    
+    //* =====================================================================
+    /// \brief Subtraction
+    //* =====================================================================
+    point &operator-=(point const &rhs);
+    
+    odin::s32 x;
+    odin::s32 y;
 };
 
 bool operator==(point const &lhs, point const &rhs);
+bool operator!=(point const &lhs, point const &rhs);
+point operator+(point lhs, point const &rhs);
+point operator-(point lhs, point const &rhs);
 std::ostream& operator<<(std::ostream &out, point const &pt);
 
+//* =========================================================================
+/// \brief A class that represents a direction with distance in space
+/// (a vector).
+/// \par
+/// A class that represents a direction in space, with width being the
+/// extent in the horizontal axis, and height being the extent in the
+/// vertical axis.
+//* =========================================================================
 struct extent
 {
-    odin::u32 width;
-    odin::u32 height;
+    //* =====================================================================
+    /// \brief Default Constructor
+    /// \par
+    /// Constructs an extent, leaving the width and height uninitialised.
+    //* =====================================================================
+    extent();
+
+    //* =====================================================================
+    /// \brief Constructor
+    /// \par
+    /// Constructs an extent with width and height being set to the passed-in
+    /// arguments.
+    //* =====================================================================
+    extent(odin::s32 width, odin::s32 height);
+    
+    //* =====================================================================
+    /// \brief Addition
+    //* =====================================================================
+    extent &operator+=(extent const &rhs);
+
+    //* =====================================================================
+    /// \brief Subtraction
+    //* =====================================================================
+    extent &operator-=(extent const &rhs);
+    
+    odin::s32 width;
+    odin::s32 height;
 };
 
 bool operator==(extent const &lhs, extent const &rhs);
+bool operator!=(extent const &lhs, extent const &rhs);
+extent operator+(extent lhs, extent const &rhs);
+extent operator-(extent lhs, extent const &rhs);
 std::ostream& operator<<(std::ostream &out, extent const &ext);
 
+//* =========================================================================
+/// \brief A class that represents a rectangle in space.
+//* =========================================================================
 struct rectangle
 {
+    //* =====================================================================
+    /// \brief Default Constructor
+    /// \par
+    /// Constructs the rectangle, leaving the origin and size uninitialised.
+    //* =====================================================================
+    rectangle();
+    
+    //* =====================================================================
+    /// \brief Constructor
+    /// \par
+    /// Constructs the rectangle, using the specified origin and size.
+    //* =====================================================================
+    rectangle(point origin, extent size);
+    
     point  origin;
     extent size;
 };
 
 bool operator==(rectangle const &lhs, rectangle const &rhs);
+bool operator!=(rectangle const &lhs, rectangle const &rhs);
+rectangle operator+(point const &pt, extent const &ext);
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
 
 }

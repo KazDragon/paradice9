@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "client.hpp"
 #include "connection.hpp"
+#include "munin/ansi/protocol.hpp"
 #include <boost/foreach.hpp>
 #include <deque>
 #include <string>
@@ -113,6 +114,9 @@ void client::set_level(level new_level)
 void client::set_name(string const &name)
 {
     pimpl_->name_ = name;
+    get_connection()->write(
+        munin::ansi::set_window_title(
+            pimpl_->name_ + " - Paradice"));
 }
 
 // ==========================================================================

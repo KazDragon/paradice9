@@ -15,20 +15,20 @@ CPPUNIT_TEST_SUITE_REGISTRATION(munin_container_fixture);
 
 void munin_container_fixture::test_constructor()
 {
-    fake_container<char> container;
+    fake_container<char> container(' ');
     (void)container;
 }
 
 void munin_container_fixture::test_inheritance()
-{
-    fake_container<char> container;
+{                                   
+    fake_container<char> container(' ');
     munin::component<char> &component = container;
     (void)component;
 }
 
 void munin_container_fixture::test_add_component()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     CPPUNIT_ASSERT_EQUAL(u32(0), container->get_number_of_components());
     
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
@@ -57,7 +57,7 @@ void munin_container_fixture::test_add_component()
 
 void munin_container_fixture::test_remove_component()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     CPPUNIT_ASSERT_EQUAL(u32(0), container->get_number_of_components());
     
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
@@ -95,7 +95,7 @@ void munin_container_fixture::test_remove_component()
 
 void munin_container_fixture::test_draw()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     
     {
         shared_ptr< fake_component<char> > component(new fake_component<char>);
@@ -161,7 +161,7 @@ void munin_container_fixture::test_draw()
     CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][1]);
     CPPUNIT_ASSERT_EQUAL('Y', canvas.values_[2][2]);
     
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[2][0]);
 }
 
 void munin_container_fixture::test_contained_container()
@@ -183,7 +183,7 @@ void munin_container_fixture::test_contained_container()
     }
     
     shared_ptr< fake_container<char> > inner_container(
-        new fake_container<char>);
+        new fake_container<char>(' '));
     
     {
         munin::point position;
@@ -200,7 +200,7 @@ void munin_container_fixture::test_contained_container()
     }
     
     shared_ptr< fake_container<char> > outer_container( 
-        new fake_container<char>);
+        new fake_container<char>(' '));
     
     {
         munin::point position;
@@ -253,33 +253,33 @@ void munin_container_fixture::test_contained_container()
     CPPUNIT_ASSERT_EQUAL('#', canvas.values_[4][3]);
     CPPUNIT_ASSERT_EQUAL('#', canvas.values_[4][4]);
     
-    // The rest should be zeroed.
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][0]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][1]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[3][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[4][2]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][3]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[0][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[1][4]);
-    CPPUNIT_ASSERT_EQUAL('\0', canvas.values_[2][4]);
+    // The rest should be spaces.
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[0][0]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[1][0]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[2][0]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[3][0]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[4][0]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[0][1]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[1][1]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[2][1]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[3][1]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[4][1]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[0][2]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[1][2]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[2][2]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[3][2]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[4][2]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[0][3]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[1][3]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[2][3]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[0][4]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[1][4]);
+    CPPUNIT_ASSERT_EQUAL(' ', canvas.values_[2][4]);
 }
 
 void munin_container_fixture::test_layout()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_layout<char> >    layout(new fake_layout<char>);
     
     CPPUNIT_ASSERT(container->get_layout() == NULL);
@@ -315,7 +315,7 @@ void munin_container_fixture::test_layout()
 
 void munin_container_fixture::test_overlap_same_layer()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     
@@ -362,20 +362,20 @@ void munin_container_fixture::test_overlap_same_layer()
     fake_canvas<char> canvas;
     container->draw(canvas, container->get_position(), region);
     
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][0]));
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][1]));
-    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[0][2]));
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[1][0]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[1][1]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[1][2]));
-    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[2][0]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][1]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][2]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][0]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][1]));
+    CPPUNIT_ASSERT_EQUAL(' ', char(canvas[0][2]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[1][0]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[1][1]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[1][2]));
+    CPPUNIT_ASSERT_EQUAL(' ', char(canvas[2][0]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[2][1]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[2][2]));
 }
 
 void munin_container_fixture::test_overlap_different_layer()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     
@@ -423,20 +423,20 @@ void munin_container_fixture::test_overlap_different_layer()
     fake_canvas<char> canvas;
     container->draw(canvas, container->get_position(), region);
     
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][0]));
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[0][1]));
-    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[0][2]));
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[1][0]));
-    CPPUNIT_ASSERT_EQUAL('#',  char(canvas[1][1]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[1][2]));
-    CPPUNIT_ASSERT_EQUAL('\0', char(canvas[2][0]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][1]));
-    CPPUNIT_ASSERT_EQUAL('+',  char(canvas[2][2]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][0]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][1]));
+    CPPUNIT_ASSERT_EQUAL(' ', char(canvas[0][2]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[1][0]));
+    CPPUNIT_ASSERT_EQUAL('#', char(canvas[1][1]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[1][2]));
+    CPPUNIT_ASSERT_EQUAL(' ', char(canvas[2][0]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[2][1]));
+    CPPUNIT_ASSERT_EQUAL('+', char(canvas[2][2]));
 }
 
 void munin_container_fixture::test_set_focus()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     
@@ -462,7 +462,7 @@ void munin_container_fixture::test_set_focus()
 
 void munin_container_fixture::test_set_focus_cant_focus()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     
@@ -489,12 +489,12 @@ void munin_container_fixture::test_next_focus()
     // Test that Next Focus will cycle through the components in a depth-first
     // order.  That is, sub_components 00, 01, 10, 11.  Other components will
     // be skipped over because they may not be focused.
-    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
-    shared_ptr< fake_container<char> > mid_container(new fake_container<char>);
+    shared_ptr< fake_container<char> > mid_container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > mid_component0(new fake_component<char>);
     shared_ptr< fake_component<char> > mid_component1(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
@@ -617,14 +617,14 @@ void munin_container_fixture::test_previous_focus()
     // Test that Previous Focus will cycle through the components in a 
     // depth-first reverse order.  That is, sub_components 11, 10, 01, 00.
     // Other components will be skipped over because they may not be focused.
-    shared_ptr< fake_container<char> > main_container(new fake_container<char>);
-    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>);
+    shared_ptr< fake_container<char> > main_container(new fake_container<char>(' '));
+    shared_ptr< fake_container<char> > sub_container0(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > sub_component00(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component01(new fake_component<char>);
-    shared_ptr< fake_container<char> > mid_container(new fake_container<char>);
+    shared_ptr< fake_container<char> > mid_container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > mid_component0(new fake_component<char>);
     shared_ptr< fake_component<char> > mid_component1(new fake_component<char>);
-    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>);
+    shared_ptr< fake_container<char> > sub_container1(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > sub_component10(new fake_component<char>);
     shared_ptr< fake_component<char> > sub_component11(new fake_component<char>);
     
@@ -729,7 +729,7 @@ void munin_container_fixture::test_previous_focus()
 
 void munin_container_fixture::test_event()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     
@@ -790,7 +790,7 @@ void munin_container_fixture::test_event()
 
 void munin_container_fixture::test_get_focussed_component()
 {
-    shared_ptr< fake_container<char> > container(new fake_container<char>);
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     
@@ -808,5 +808,134 @@ void munin_container_fixture::test_get_focussed_component()
     component1->set_focus();
     
     CPPUNIT_ASSERT(container->get_focussed_component() == component1);
+}
+
+void munin_container_fixture::test_cursor_state()
+{
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+
+    bool cursor_state = false;
+    function<void(bool)> callback = (bll::var(cursor_state) = bll::_1);
+    
+    // The basic component should have an event that can be used to signify
+    // cursor state changes.
+    container->on_cursor_state_changed.connect(callback);
+    
+    // Since no components have a cursor state set, the container also should
+    // have the cursor state unset.
+    CPPUNIT_ASSERT_EQUAL(false, container->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(false, cursor_state);
+    
+    // Even though we enable a component's cursor, it does not have focus,
+    // so the container's cursor state remains false.
+    component0->set_cursor_state(true);
+    
+    CPPUNIT_ASSERT_EQUAL(false, container->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(false, cursor_state);
+
+    // By setting the focus to the second (non-cursor) component, we should
+    // still have no cursor.
+    component1->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(false, container->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(false, cursor_state);
+
+    // By setting focus to the first (with-cursor) component, we should finally
+    // have a cursor.
+    component0->set_focus();
+
+    CPPUNIT_ASSERT_EQUAL(true, container->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(true, cursor_state);
+                               
+    // By setting the cursor state of the focussed component off, we should
+    // no longer have a cursor.
+    component0->set_cursor_state(false);
+    
+    CPPUNIT_ASSERT_EQUAL(false, container->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(false, cursor_state);
+    
+    // By setting the cursor state back on, we should again have a cursor.
+    component0->set_cursor_state(true);
+    
+    CPPUNIT_ASSERT_EQUAL(true, container->get_cursor_state());
+    CPPUNIT_ASSERT_EQUAL(true, cursor_state);
+}
+
+void munin_container_fixture::test_cursor_position()
+{
+    shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
+    shared_ptr< fake_component<char> > component0(new fake_component<char>);
+    shared_ptr< fake_component<char> > component1(new fake_component<char>);
+    
+    container->add_component(component0);
+    container->add_component(component1);
+
+    munin::point component0_position;
+    component0_position.x = 1;
+    component0_position.y = 2;
+    component0->set_position(component0_position);
+    
+    munin::point component1_position;
+    component1_position.x = 5;
+    component1_position.y = 7;
+    component1->set_position(component1_position);
+    
+    munin::point default_position;
+    default_position.x = 0;
+    default_position.y = 0;
+    
+    munin::point cursor_position = default_position;
+    
+    function<void(munin::point)> callback = 
+        (bll::var(cursor_position) = bll::_1);
+    
+    // The basic component should have an event that can be used to signify
+    // cursor position changes.
+    container->on_cursor_position_changed.connect(callback);
+    
+    // Since no components have a cursor state set, the container also should
+    // have a default cursor position;
+    CPPUNIT_ASSERT_EQUAL(default_position, container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(default_position, cursor_position);
+    
+    // Even though we enable a component's cursor, it does not have focus,
+    // so the container's cursor position remains the default.
+    component0->set_cursor_state(true);
+    
+    CPPUNIT_ASSERT_EQUAL(default_position, container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(default_position, cursor_position);
+
+    // By setting the focus to the second (non-cursor) component, we should
+    // still have no cursor.
+    component1->set_focus();
+    
+    CPPUNIT_ASSERT_EQUAL(default_position, container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(default_position, cursor_position);
+
+    // By setting focus to the first (with-cursor) component, we should finally
+    // have a cursor.  Because it will be reported as the default position
+    // within the component, it will in fact be the same as that component's
+    // position within the container.
+    component0->set_focus();
+
+    CPPUNIT_ASSERT_EQUAL(component0_position, container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(component0_position, cursor_position);
+    
+    // By changing the cursor position within the component, we should get
+    // an event update telling us that it has moved.
+    munin::point new_position;
+    new_position.x = 1;
+    new_position.y = 1;
+    component0->set_cursor_position(new_position);
+    
+    CPPUNIT_ASSERT_EQUAL(
+        component0_position + new_position, container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(component0_position + new_position, cursor_position);
+        
 }
 

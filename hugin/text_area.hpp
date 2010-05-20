@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin ANSI Canvas.
+// Hugin Text Area.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,80 +24,84 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ANSI_CANVAS_HPP_
-#define MUNIN_ANSI_CANVAS_HPP_
+#ifndef HUGIN_TEXT_AREA_HPP_
+#define HUGIN_TEXT_AREA_HPP_
 
-#include "munin/canvas.hpp"
+#include "munin/basic_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
-#include "munin/types.hpp"
-#include <boost/shared_ptr.hpp>
 
-namespace munin { namespace ansi {
+namespace hugin { 
 
 //* =========================================================================
-/// \brief A canvas for ANSI components.
+/// \brief An object that represents a text_area, or text_area.
 //* =========================================================================
-class ansi_canvas
-    : public munin::canvas<munin::ansi::element_type>
+class text_area : public munin::basic_component<munin::ansi::element_type>  
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    ansi_canvas();
-    
-    //* =====================================================================
-    /// \brief Copy Constructor
-    //* =====================================================================
-    ansi_canvas(ansi_canvas const &cvs);
+    text_area();
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~ansi_canvas();
+    virtual ~text_area();
     
     //* =====================================================================
-    /// \brief Assigns this canvas to be a clone of another.
+    /// \brief Inserts the specified text into the text area at the cursor
+    /// position.
     //* =====================================================================
-    ansi_canvas &operator=(ansi_canvas const &other);
-    
-    //* =====================================================================
-    /// \brief Sets the size of the canvas.
-    //* =====================================================================
-    void set_size(extent const &size);
-    
-    //* =====================================================================
-    /// \brief Retrieves the size of the canvas.
-    //* =====================================================================
-    extent get_size() const;
-    
-    //* =====================================================================
-    /// \brief Returns true if this canvas is equal in content to the other.
-    //* =====================================================================
-    bool operator==(ansi_canvas const &other) const;
+    void insert_text(std::string const &text);
     
 private :
     //* =====================================================================
-    /// \brief Sets the value and attribute at the specified coordinates on
-    /// the canvas.
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
     //* =====================================================================
-    virtual void set_value(
-        odin::s32    column
-      , odin::s32    row
-      , element_type value); 
+    virtual munin::extent do_get_preferred_size() const;
 
     //* =====================================================================
-    /// \brief Retrieves the value and attribute at the specified coordinates
-    /// on the canvas.
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
-    virtual element_type get_value(
-        odin::s32 column
-      , odin::s32 row) const;
+    virtual bool do_get_cursor_state() const;
     
-    class impl;
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual munin::point do_get_cursor_position() const;
+    
+    //* =====================================================================
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw 
+    /// the part of itself specified by the region.
+    ///
+    /// \param cvs the canvas in which the component should draw itself.
+    /// \param offset the position of the parent component (if there is one)
+    ///        relative to the canvas.  That is, (0,0) to this component
+    ///        is actually (offset.x, offset.y) in the canvas.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
+    //* =====================================================================
+    virtual void do_draw(
+        munin::canvas<element_type> &cvs
+      , munin::point const          &offset
+      , munin::rectangle const      &region);
+
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event);
+    
+    struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
 
-}}
+}
 
 #endif

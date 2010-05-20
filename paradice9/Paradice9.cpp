@@ -34,6 +34,7 @@
 #include "paradice/rules.hpp"
 #include "paradice/who.hpp"
 #include "odin/tokenise.hpp"
+#include "munin/ansi/protocol.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -50,6 +51,7 @@ using namespace odin;
 namespace po = program_options;
 
 static string const intro =
+munin::ansi::set_window_title("Kaz Dragon's Paradice") +
 "             _                                                         \r\n"
 "    |/ _._  | \\.__. _  _ ._/ _                                        \r\n"
 "    |\\(_|/_ |_/|(_|(_|(_)| |_>                                        \r\n"
@@ -67,10 +69,10 @@ static string const intro =
     { name,        NULL                                   }
     
 #define PARADICE_CMD_ENTRY(func) \
-    { #func,        bind(&paradice::do_##func, _1, _2, _3) }
+    { #func,       bind(&paradice::do_##func, _1, _2, _3) }
     
 #define PARADICE_CMD_ALIAS(func, alias) \
-    { alias,        bind(&paradice::do_##func, _1, _2, _3) }
+    { alias,       bind(&paradice::do_##func, _1, _2, _3) }
     
 typedef function<void (
     shared_ptr<paradice::context> ctx

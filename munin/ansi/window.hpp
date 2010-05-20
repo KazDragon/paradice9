@@ -81,7 +81,7 @@ public :
     //* =====================================================================
     boost::signal
     <
-        void (std::vector<char> paint_data)
+        void (std::string paint_data)
     > on_repaint;
     
 private :

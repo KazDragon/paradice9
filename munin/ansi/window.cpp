@@ -32,11 +32,80 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace boost;
 using namespace std;
 using namespace odin;
+
+namespace {
+
+
+//* =========================================================================
+/// \brief Returns true if the specified region is identical between the
+/// two canvases, false otherwise.
+//* =========================================================================
+bool canvas_region_compare(
+    munin::rectangle                         const &region
+  , munin::canvas<munin::ansi::element_type>       &lhs
+  , munin::canvas<munin::ansi::element_type>       &rhs)
+{
+    bool compare_equal = true;
+    
+    for (s32 row = 0;
+         row < region.size.height && compare_equal; 
+         ++row)
+    {
+        for (s32 column = 0;
+             column < region.size.width && compare_equal;
+             ++column)
+        {
+            munin::ansi::element_type const &lhs_element =
+                lhs[row + region.origin.y][column + region.origin.x];
+            munin::ansi::element_type const &rhs_element =
+                rhs[row + region.origin.y][column + region.origin.x];
+                
+            compare_equal = lhs_element == rhs_element;
+        }
+    }
+    
+    return compare_equal;
+}
+
+//* =========================================================================
+/// \brief Returns a string which would paint the specified region on a
+/// canvas.
+//* =========================================================================
+string canvas_region_string(
+    munin::rectangle const &region
+  , munin::canvas<munin::ansi::element_type> &cvs)
+{
+    string output;
+    
+    for (s32 row = 0; row < region.size.height; ++row)
+    {
+        // Place the cursor at the start of this row.
+        output += munin::ansi::cursor_position(
+            munin::point(region.origin.x, region.origin.y + row));
+        
+        for (s32 column = 0; column < region.size.width; ++column)
+        {
+            munin::ansi::element_type const &element = 
+                cvs[column + region.origin.x]
+                   [row    + region.origin.y];
+            
+            // TODO: apply graphics attributes here.
+            
+            // With the attributes set, output the actual character.
+            output.push_back(element.first);
+        }
+    }
+    
+    return output;
+}
+
+}
 
 namespace munin { namespace ansi {
 
@@ -53,10 +122,18 @@ public :
         : self_(self)
         , io_service_(io_service)
         , content_(new basic_container)
+        , last_cursor_position_(point(0,0))
+        , last_cursor_state_(false)
         , repaint_scheduled_(false)
     {
         content_->on_redraw.connect(
             bind(&impl::redraw_handler, this, _1));
+        
+        content_->on_cursor_state_changed.connect(
+            bind(&impl::schedule_repaint, this));
+        
+        content_->on_cursor_position_changed.connect(
+            bind(&impl::schedule_repaint, this));
     }
     
     // ======================================================================
@@ -77,6 +154,19 @@ public :
     
 private :
     // ======================================================================
+    // SCHEDULE_REPAINT
+    // ======================================================================
+    void schedule_repaint()
+    {
+        // Schedules a repaint only if one has not already been scheduled.
+        if (!repaint_scheduled_)
+        {
+            io_service_.post(bind(&impl::do_repaint, this));
+            repaint_scheduled_ = true;
+        }
+    }
+    
+    // ======================================================================
     // REDRAW_HANDLER
     // ======================================================================
     void redraw_handler(vector<rectangle> const &regions)
@@ -84,16 +174,8 @@ private :
         // Coalesce all redraw events into a single repaint.  That way,
         // there is only one major repaint if 100 components decide they
         // need drawing at once.
-        copy(
-            regions.begin()
-          , regions.end()
-          , back_inserter(redraw_regions_));
-        
-        if (!repaint_scheduled_)
-        {
-            io_service_.post(bind(&impl::do_repaint, this));
-            repaint_scheduled_ = true;
-        }
+        copy(regions.begin(), regions.end(), back_inserter(redraw_regions_));
+        schedule_repaint();
     }
     
     // ======================================================================
@@ -111,49 +193,70 @@ private :
                 pruned_regions.push_back(region);
             }
         }
-        
-        if (!pruned_regions.empty())
-        {
-            extent size = content_->get_size();
-            canvas_.set_size(size);
-            
-            point origin;
-            origin.x = 0;
-            origin.y = 0;
-            
-            // Take a copy of the canvas.  We will want to check against this
-            // after the draw operations to see if anything has changed.
-            ansi_canvas canvas_clone = canvas_;
-            
-            BOOST_FOREACH(rectangle const &region, pruned_regions)
-            {
-                content_->draw(canvas_, origin, region);
-            }
-            
-            if (!(canvas_ == canvas_clone))
-            {
-                vector<char> output;
-                output.push_back(ESCAPE);
-                output.push_back(ANSI_SEQUENCE);
-                output.push_back(SAVE_CURSOR_POSITION);
-                
-                for (u32 column = 0; column < size.width; ++column)
-                {
-                    BOOST_AUTO(current_column, canvas_[column]);
-                    
-                    for (u32 row = 0; row < size.height; ++row)
-                    {
-                         element_type const &element = current_column[row];
-                         output.push_back(element.first);
-                    }
-                }
 
-                output.push_back(ESCAPE);
-                output.push_back(ANSI_SEQUENCE);
-                output.push_back(RESTORE_CURSOR_POSITION);
-    
-                self_.on_repaint(output);
+        // Prepare a string that is a collection of the ANSI data required
+        // to update the window.         
+        string output;
+        
+        // Next, cut the regions into horizontal slices.
+        vector<rectangle> slices = rectangular_slice(pruned_regions);
+        
+        // Ensure that our canvas is the correct size.
+        extent size = content_->get_size();
+        canvas_.set_size(size);
+        
+        // Take a copy of the canvas.  We will want to check against this
+        // after the draw operations to see if anything has changed.
+        ansi_canvas canvas_clone = canvas_;
+        
+        // Draw each slice on the canvas.
+        BOOST_FOREACH(rectangle const &region, slices)
+        {
+            content_->draw(canvas_, point(0,0), region);
+        }
+        
+        // For each slice, see if it has changed between the canvas that was
+        // updated and the clone of the original.
+        BOOST_FOREACH(rectangle const &slice, slices)
+        {
+            if (!canvas_region_compare(slice, canvas_, canvas_clone))
+            {
+                output += canvas_region_string(slice, canvas_);
             }
+        }
+        
+        // Finally, deal with the cursor.
+        bool cursor_state = content_->get_cursor_state();
+        
+        if (cursor_state)
+        {
+            point current_cursor_position = content_->get_cursor_position();
+            
+            // The cursor is enabled.  If there has been any output, or if
+            // it has been moved, then it must be put in position.
+            if (!output.empty() 
+             || current_cursor_position != last_cursor_position_)
+            {
+                output += cursor_position(current_cursor_position);
+                last_cursor_position_ = current_cursor_position;
+            }
+        }
+        else
+        {
+            // There is no cursor.  Therefore, we drop it in the bottom right
+            // corner, but only if there has been any output.
+            if (!output.empty())
+            {
+                output += cursor_position(
+                    point(size.width - 1, size.height - 1));
+            }
+        }
+        
+        // Finally, only if anything has been repainted, send the notification 
+        // to any observers, telling them how it is done.
+        if (!output.empty())
+        {
+            self_.on_repaint(output);
         }
         
         redraw_regions_.clear();
@@ -164,6 +267,9 @@ private :
     boost::asio::io_service      &io_service_;
     boost::shared_ptr<container>  content_;
     ansi_canvas                   canvas_;
+    
+    point                         last_cursor_position_;
+    bool                          last_cursor_state_;
     
     vector<rectangle>             redraw_regions_;
     bool                          repaint_scheduled_;

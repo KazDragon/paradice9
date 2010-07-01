@@ -284,6 +284,11 @@ PARADICE_COMMAND_IMPL(who)
           ? ""
           : names[current_name_index];
           
+        // Trim down the name if it is too long.
+        current_name = current_name.substr(
+            0
+          , (min)(current_name.size(), size_t(maximum_name_size)));
+
         // Pad the name out to the standard column width
         current_name += string(column_width - current_name.size(), ' ');
         

@@ -152,6 +152,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\frame.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\text_area.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\types.cpp"
 				>
 			</File>
@@ -190,11 +198,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\frame.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\graphics_context.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\text_area.hpp"
 				>
 			</File>
 			<File

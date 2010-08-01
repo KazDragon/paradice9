@@ -1,10 +1,10 @@
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 
-class hugin_text_area_fixture : public CppUnit::TestFixture
+class munin_text_area_fixture : public CppUnit::TestFixture
 {
 public :
-    CPPUNIT_TEST_SUITE(hugin_text_area_fixture);
+    CPPUNIT_TEST_SUITE(munin_text_area_fixture);
         CPPUNIT_TEST(test_constructor);
         CPPUNIT_TEST(test_inheritance);
         CPPUNIT_TEST(test_add_text);

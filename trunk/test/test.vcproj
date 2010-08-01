@@ -185,14 +185,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\hugin_frame_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\hugin_text_area_fixture.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\munin_algorithm_fixture.cpp"
 				>
 			</File>
@@ -217,7 +209,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_frame_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\munin_layout_fixture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_text_area_fixture.cpp"
 				>
 			</File>
 			<File
@@ -335,14 +335,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\hugin_frame_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\hugin_text_area_fixture.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\munin_algorithm_fixture.hpp"
 				>
 			</File>
@@ -367,7 +359,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_frame_fixture.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\munin_layout_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_text_area_fixture.hpp"
 				>
 			</File>
 			<File

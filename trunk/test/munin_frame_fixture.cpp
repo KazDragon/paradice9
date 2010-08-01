@@ -1,5 +1,5 @@
-#include "hugin_frame_fixture.hpp"
-#include "hugin/frame.hpp"
+#include "munin_frame_fixture.hpp"
+#include "munin/frame.hpp"
 #include "munin/component.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include "fake_munin_canvas.hpp"
@@ -10,26 +10,26 @@ using namespace std;
 using namespace boost;
 using namespace odin;
 
-CPPUNIT_TEST_SUITE_REGISTRATION(hugin_frame_fixture);
+CPPUNIT_TEST_SUITE_REGISTRATION(munin_frame_fixture);
 
-void hugin_frame_fixture::test_constructor()
+void munin_frame_fixture::test_constructor()
 {
-    boost::shared_ptr<hugin::frame> frame(new hugin::frame);
+    boost::shared_ptr<munin::frame> frame(new munin::frame);
     (void)frame;
 }
 
-void hugin_frame_fixture::test_inheritance()
+void munin_frame_fixture::test_inheritance()
 {
-    boost::shared_ptr<hugin::frame> frame(new hugin::frame);
+    boost::shared_ptr<munin::frame> frame(new munin::frame);
     boost::shared_ptr<
         munin::component<munin::ansi::element_type>
     > frame_ref = frame;
     (void)frame_ref;
 }
 
-void hugin_frame_fixture::test_draw()
+void munin_frame_fixture::test_draw()
 {
-    boost::shared_ptr<hugin::frame> frame(new hugin::frame);
+    boost::shared_ptr<munin::frame> frame(new munin::frame);
     
     // The default horizontal brushes are "-" character.
     // The default vertical brushes are "|" character.
@@ -87,7 +87,7 @@ void hugin_frame_fixture::test_draw()
     CPPUNIT_ASSERT_EQUAL('+', munin::ansi::element_type(canvas[4][2]).first);
 }
 
-void hugin_frame_fixture::test_draw_with_offsets()
+void munin_frame_fixture::test_draw_with_offsets()
 {
     typedef fake_container<munin::ansi::element_type> container;
     munin::ansi::element_type default_brush('@', munin::ansi::attribute());
@@ -102,7 +102,7 @@ void hugin_frame_fixture::test_draw_with_offsets()
     // extents (5,3).
     boost::shared_ptr<container> container0(new container(default_brush));
     boost::shared_ptr<container> container1(new container(default_brush));
-    boost::shared_ptr<hugin::frame> frame(new hugin::frame);
+    boost::shared_ptr<munin::frame> frame(new munin::frame);
     
     container0->set_size(munin::extent(8,8));
     

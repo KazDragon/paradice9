@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Text Area.
+// Munin Text Area.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "hugin/text_area.hpp"
+#include "munin/text_area.hpp"
 #include "munin/canvas.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include <string>
@@ -34,7 +34,7 @@ using namespace std;
 using namespace munin;
 using namespace odin;
 
-namespace hugin { 
+namespace munin { 
 
 // ==========================================================================
 // TEXT_AREA IMPLEMENTATION STRUCTURE

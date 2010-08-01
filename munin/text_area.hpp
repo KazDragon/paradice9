@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Frame.
+// Munin Text Area.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,29 +24,35 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_FRAME_HPP_
-#define HUGIN_FRAME_HPP_
+#ifndef MUNIN_TEXT_AREA_HPP_
+#define MUNIN_TEXT_AREA_HPP_
 
 #include "munin/basic_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
 
-namespace hugin { 
+namespace munin { 
 
 //* =========================================================================
-/// \brief An object that represents a frame, or frame.
+/// \brief An object that represents a text_area, or text_area.
 //* =========================================================================
-class frame : public munin::basic_component<munin::ansi::element_type>  
+class text_area : public munin::basic_component<munin::ansi::element_type>  
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    frame();
+    text_area();
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~frame();
+    virtual ~text_area();
+    
+    //* =====================================================================
+    /// \brief Inserts the specified text into the text area at the cursor
+    /// position.
+    //* =====================================================================
+    void insert_text(std::string const &text);
     
 private :
     //* =====================================================================
@@ -56,6 +62,19 @@ private :
     //* =====================================================================
     virtual munin::extent do_get_preferred_size() const;
 
+    //* =====================================================================
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
+    //* =====================================================================
+    virtual bool do_get_cursor_state() const;
+    
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual munin::point do_get_cursor_position() const;
+    
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
     /// in order to draw onto the passed canvas.  A component must only draw 

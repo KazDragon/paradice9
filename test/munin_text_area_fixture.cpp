@@ -1,5 +1,5 @@
-#include "hugin_text_area_fixture.hpp"
-#include "hugin/text_area.hpp"
+#include "munin_text_area_fixture.hpp"
+#include "munin/text_area.hpp"
 #include "munin/component.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include "fake_munin_canvas.hpp"
@@ -10,11 +10,11 @@ using namespace std;
 using namespace boost;
 using namespace odin;
 
-CPPUNIT_TEST_SUITE_REGISTRATION(hugin_text_area_fixture);
+CPPUNIT_TEST_SUITE_REGISTRATION(munin_text_area_fixture);
 
-void hugin_text_area_fixture::test_constructor()
+void munin_text_area_fixture::test_constructor()
 {
-    boost::shared_ptr<hugin::text_area> text_area(new hugin::text_area);
+    boost::shared_ptr<munin::text_area> text_area(new munin::text_area);
     
     // An input area should always have a cursor available, and it should start
     // in the top left.
@@ -23,16 +23,16 @@ void hugin_text_area_fixture::test_constructor()
         munin::point(0, 0), text_area->get_cursor_position());
 }
 
-void hugin_text_area_fixture::test_inheritance()
+void munin_text_area_fixture::test_inheritance()
 {
-    boost::shared_ptr<hugin::text_area> text_area(new hugin::text_area);
+    boost::shared_ptr<munin::text_area> text_area(new munin::text_area);
     boost::shared_ptr<
         munin::component<munin::ansi::element_type>
     > text_area_ref = text_area;
     (void)text_area_ref;
 }
 
-void hugin_text_area_fixture::test_add_text()
+void munin_text_area_fixture::test_add_text()
 {
     // Test that an input area can handle textual additions.  This involves
     // several steps:
@@ -50,7 +50,7 @@ void hugin_text_area_fixture::test_add_text()
     // The should act just like before, except the cursor will now be out
     // of the orignal size of the component.  The component's size will have
     // also changed.
-    boost::shared_ptr<hugin::text_area> text_area(new hugin::text_area);
+    boost::shared_ptr<munin::text_area> text_area(new munin::text_area);
     munin::point  position(0, 0);
     munin::extent size(3, 2);    
     text_area->set_position(position);

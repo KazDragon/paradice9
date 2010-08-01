@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Frame.
+// Munin Frame.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "hugin/frame.hpp"
+#include "munin/frame.hpp"
 #include "munin/ansi/ansi_canvas.hpp"
 #include "munin/algorithm.hpp"
 #include <boost/typeof/typeof.hpp>
@@ -32,7 +32,7 @@
 using namespace munin;
 using namespace odin;
 
-namespace hugin { 
+namespace munin { 
 
 // ==========================================================================
 // FRAME IMPLEMENTATION STRUCTURE

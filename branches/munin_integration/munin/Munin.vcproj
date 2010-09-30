@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\card.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\component.hpp"
 				>
 			</File>

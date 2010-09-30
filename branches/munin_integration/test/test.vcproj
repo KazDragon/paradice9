@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_card_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\munin_component_fixture.cpp"
 				>
 			</File>
@@ -348,6 +352,10 @@
 			</File>
 			<File
 				RelativePath=".\munin_canvas_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\munin_card_fixture.hpp"
 				>
 			</File>
 			<File

@@ -289,6 +289,134 @@ PARADICE_COMMAND_IMPL(roll)
 }
 
 // ==========================================================================
+// PARADICE COMMAND: ROLL
+// ==========================================================================
+PARADICE_COMMAND_IMPL(rollprivate)
+{
+    static string const usage_message =
+        "\r\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>]"
+        "\r\n Example: rollprivate 2d6+3-20"
+        "\r\n Example: rollprivate 20*2d6"
+        "\r\n\r\n";
+
+    string::const_iterator begin = arguments.begin();
+    string::const_iterator end   = arguments.end();
+    
+    BOOST_AUTO(rolls, parse_dice_roll(begin, end));
+
+    if (!rolls)
+    {
+        player->get_connection()->write(usage_message);
+        return;
+    }
+
+    BOOST_AUTO(dice_roll, rolls.get());
+
+    if (dice_roll.repetitions_ == 0
+     || dice_roll.amount_      == 0)
+    {
+        send_to_player(
+            ctx
+          , "You roll no dice and score nothing.\r\n"
+          , player);
+        
+        return;
+    }
+
+    if (dice_roll.sides_ == 0)
+    {
+        send_to_player(
+            ctx
+          , "You fumble your roll and spill all your zero-sided dice on "
+            "the floor.\r\n"
+          , player);
+        
+        return;
+    }
+    
+    if (dice_roll.repetitions_ * dice_roll.amount_ > 200)
+    {
+        send_to_player(
+            ctx
+          , "You can only roll at most 200 dice at once.\r\n"
+          , player);
+        
+        return;
+    }
+
+    string total_description;
+    s32    total_score = 0;
+    
+    for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
+    {
+        string roll_description;
+        s32    total = dice_roll.bonus_;
+
+        for (u32 current_roll = 0; 
+             current_roll < dice_roll.amount_; 
+             ++current_roll)
+        {
+            s32 score = s32(random_number(1, dice_roll.sides_));
+    
+            roll_description += str(format("%s%d") 
+                % (current_roll == 0 ? "" : ", ")
+                % score);
+    
+            total += score;
+        }
+
+        bool max_roll = 
+            total == s32(dice_roll.amount_ * dice_roll.sides_)
+                   + dice_roll.bonus_;
+            
+        if (dice_roll.bonus_ == 0)
+        {
+            total_description +=
+                str(format("%s%s%d%s%s")
+                    % (repetition == 0 ? "" : ", ")
+                    % ANSI_BOLD
+                    % total
+                    % (max_roll ? MAX_ROLL_INDICATOR : "")
+                    % ANSI_DEFAULT);
+
+
+        }
+        else
+        {
+            total_description +=
+                str(format("%s%s%d%s [%s%s]")
+                    % (repetition == 0 ? "" : ", ")
+                    % ANSI_BOLD
+                    % total
+                    % ANSI_DEFAULT
+                    % roll_description
+                    % (max_roll ? MAX_ROLL_INDICATOR : ""));
+        }
+
+        total_score += total;
+    }
+
+    message_to_player(
+        ctx
+      , str(format("\r\nYou privately roll %dd%d%s%d %sand score %s%s\r\n\r\n")
+            % dice_roll.amount_
+            % dice_roll.sides_
+            % (dice_roll.bonus_ >= 0 ? "+" : "")
+            % dice_roll.bonus_
+            % (dice_roll.repetitions_ == 1 
+                ? ""
+                : str(format("%d times ") % dice_roll.repetitions_))
+            % total_description
+            % (dice_roll.repetitions_ == 1
+                ? ""
+                : str(format(" for a grand total of %s%d%s") 
+                      % ANSI_BOLD
+                      % total_score
+                      % ANSI_DEFAULT)))
+      , player);
+}
+
+// ==========================================================================
 // PARADICE COMMAND: SHOWROLLS
 // ==========================================================================
 PARADICE_COMMAND_IMPL(showrolls)

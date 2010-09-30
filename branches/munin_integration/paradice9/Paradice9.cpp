@@ -106,6 +106,7 @@ static struct command
   , PARADICE_CMD_ENTRY(prefix)
   , PARADICE_CMD_ALIAS(prefix, "honorific")
   , PARADICE_CMD_ENTRY(roll)
+  , PARADICE_CMD_ENTRY(rollprivate)
   , PARADICE_CMD_ENTRY(showrolls)
   , PARADICE_CMD_ENTRY(clearrolls)
   

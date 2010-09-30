@@ -30,6 +30,7 @@
 namespace paradice {
 
 PARADICE_COMMAND_DECL(roll);
+PARADICE_COMMAND_DECL(rollprivate);
 PARADICE_COMMAND_DECL(showrolls);
 PARADICE_COMMAND_DECL(clearrolls);
 

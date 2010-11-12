@@ -33,6 +33,7 @@
 using namespace std;
 using namespace munin;
 using namespace odin;
+using namespace boost;
 
 namespace munin { 
 
@@ -168,6 +169,12 @@ void text_area::do_draw(
 // ==========================================================================
 void text_area::do_event(boost::any const &event)
 {
+    char const* pch = any_cast<char>(&event);
+
+    if (pch != NULL)
+    {
+        insert_text(string(1, *pch));
+    }
 }
 
 // ==========================================================================

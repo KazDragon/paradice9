@@ -2,10 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Paradice"
-	ProjectGUID="{DA91447D-3067-40A9-989C-35D513205B20}"
-	RootNamespace="Paradice"
-	Keyword="Win32Proj"
+	Name="guibuilder"
+	ProjectGUID="{BDC220A1-E8BC-4A5E-8F0D-D48E76D3B09B}"
+	RootNamespace="guibuilder"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -20,8 +19,8 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="1"
+			ConfigurationType="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,11 +41,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT)"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -60,10 +58,16 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalLibraryDirectories="$(BOOST_LIB_ROOT)"
+				GenerateDebugInformation="true"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -75,6 +79,9 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -82,8 +89,8 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="1"
+			ConfigurationType="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -106,10 +113,9 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT)"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_NDEBUG;_CONSOLE;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -123,10 +129,18 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalLibraryDirectories="$(BOOST_LIB_ROOT)"
+				GenerateDebugInformation="true"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -136,6 +150,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -155,27 +172,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\communication.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\configuration.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\connection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\dice_roll_parser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\random.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\rules.cpp"
+				RelativePath=".\main.cpp"
 				>
 			</File>
 			<File
@@ -187,11 +184,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\utility.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\who.cpp"
+				RelativePath=".\ui.cpp"
 				>
 			</File>
 		</Filter>
@@ -205,38 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\command.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\communication.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\configuration.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\connection.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\context.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\dice_roll_parser.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\random.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\rules.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\server.hpp"
 				>
 			</File>
@@ -245,11 +206,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\utility.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\who.hpp"
+				RelativePath=".\ui.hpp"
 				>
 			</File>
 		</Filter>

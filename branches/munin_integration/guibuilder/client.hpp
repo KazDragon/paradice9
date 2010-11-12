@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Algorithm.
+// GuiBuilder Client
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,35 +24,47 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ALGORITHM_HPP_
-#define MUNIN_ALGORITHM_HPP_
+#ifndef GUIBUILDER_CLIENT_HPP_
+#define GUIBUILDER_CLIENT_HPP_
 
-#include "munin/types.hpp"
-#include <boost/optional.hpp>
-#include <vector>
+#include <odin/io/datastream.hpp>
+#include <boost/function.hpp>
+#include <boost/shared_ptr.hpp>
+#include <string>
 
-namespace munin {
-    
-//* =========================================================================
-/// \fn intersection
-/// \brief Returns the intersection of two rectangles.
-//* =========================================================================
-boost::optional<rectangle> intersection(
-    rectangle const &lhs
-  , rectangle const &rhs);
+namespace boost { namespace asio {
+    class io_service;
+}}
 
-//* =========================================================================
-/// \fn rectangular_slice
-/// \brief Returns an array of sliced rectangles.
-/// \par
-/// A rectangular slice takes an array of rectangles, and returns an array
-/// of the fewest number of rectangles, each of height 1, that describes the
-/// area covered by the original rectangles.  These are sorted from left to
-/// right, top to bottom.
-//* =========================================================================
-std::vector<rectangle> rectangular_slice(
-    std::vector<rectangle> const &rectangles);
+namespace munin { namespace ansi {
+    class window;
+}}
+
+namespace guibuilder {
+
+typedef odin::io::datastream<odin::u8, odin::u8> stream;
+
+class client
+{
+public :
+    client(
+        boost::shared_ptr<stream>  connection
+      , boost::asio::io_service   &io_service);
+
+    ~client();
+
+    boost::shared_ptr<munin::ansi::window> get_window();
+
+    void on_window_size_changed(
+        boost::function<void (odin::u16 width, odin::u16 height)> callback);
+
+    void on_text(boost::function<void (std::string text)> callback);
+
+private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
+};
 
 }
-    
+
 #endif

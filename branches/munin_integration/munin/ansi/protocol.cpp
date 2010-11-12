@@ -64,9 +64,9 @@ string cursor_position(munin::point const &position)
     return str(format("%c%c%s%s%s%c")
         % ESCAPE
         % CONTROL_SEQUENCE_INTRODUCER
-        % x_coordinate
-        % separator
         % y_coordinate
+        % separator
+        % x_coordinate
         % CURSOR_POSITION);
 }
 

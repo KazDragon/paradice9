@@ -60,7 +60,6 @@ public :
 private :
     std::vector< boost::shared_ptr<component_type> > components_;
     std::vector< odin::u32 >                         component_layers_;
-    boost::weak_ptr<container_type>                  parent_;
     boost::shared_ptr<layout_type>                   layout_;
     rectangle                                        bounds_;
     bool                                             has_focus_;
@@ -275,7 +274,23 @@ private :
     //* =====================================================================
     virtual void do_set_size(extent const &size)
     {
+        // After changing the size, the larger region of the two will need
+        // redrawing.  For now, we can just put both regions in and let the
+        // pruner take care of it.
+        std::vector<rectangle> redraw_regions;
+        redraw_regions.push_back(bounds_);
+
         bounds_.size = size;
+        redraw_regions.push_back(bounds_);
+
+        BOOST_AUTO(layout, get_layout());
+
+        if (layout)
+        {
+            (*layout)(shared_from_this());
+        }
+
+        this->on_redraw(redraw_regions);
     }
 
     //* =====================================================================
@@ -434,17 +449,6 @@ private :
         return layout_;
     }
 
-    //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< container<ElementType> > const &parent)
-    {
-        parent_ = parent;
-    }
-    
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
@@ -727,16 +731,6 @@ private :
         }
         
         return boost::shared_ptr<component_type>();
-    }
-        
-    //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    boost::shared_ptr< container<ElementType> > do_get_parent() const
-    {
-        return parent_.lock();
     }
 
     //* =====================================================================

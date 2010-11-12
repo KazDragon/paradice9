@@ -57,9 +57,8 @@ public :
     }
     
 private :
-    rectangle                                  bounds_;
-    boost::weak_ptr< container<element_type> > parent_;
-    bool                                       has_focus_;
+    rectangle bounds_;
+    bool      has_focus_;
     
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
@@ -102,27 +101,6 @@ private :
     virtual extent do_get_size() const
     {
         return bounds_.size;
-    }
-
-    //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< container<element_type> > const &parent)
-    {
-        parent_ = parent;
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual boost::shared_ptr< container<element_type> > do_get_parent() const
-    {
-        return parent_.lock();
     }
 
     //* =====================================================================

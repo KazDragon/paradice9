@@ -1,5 +1,5 @@
 #include "munin_frame_fixture.hpp"
-#include "munin/frame.hpp"
+#include "munin/ansi/frame.hpp"
 #include "munin/component.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include "fake_munin_canvas.hpp"
@@ -14,13 +14,13 @@ CPPUNIT_TEST_SUITE_REGISTRATION(munin_frame_fixture);
 
 void munin_frame_fixture::test_constructor()
 {
-    boost::shared_ptr<munin::frame> frame(new munin::frame);
+    boost::shared_ptr< munin::ansi::frame> frame(new munin::ansi::frame);
     (void)frame;
 }
 
 void munin_frame_fixture::test_inheritance()
 {
-    boost::shared_ptr<munin::frame> frame(new munin::frame);
+    boost::shared_ptr<munin::ansi::frame> frame(new munin::ansi::frame);
     boost::shared_ptr<
         munin::component<munin::ansi::element_type>
     > frame_ref = frame;
@@ -29,7 +29,7 @@ void munin_frame_fixture::test_inheritance()
 
 void munin_frame_fixture::test_draw()
 {
-    boost::shared_ptr<munin::frame> frame(new munin::frame);
+    boost::shared_ptr<munin::ansi::frame> frame(new munin::ansi::frame);
     
     // The default horizontal brushes are "-" character.
     // The default vertical brushes are "|" character.
@@ -102,7 +102,7 @@ void munin_frame_fixture::test_draw_with_offsets()
     // extents (5,3).
     boost::shared_ptr<container> container0(new container(default_brush));
     boost::shared_ptr<container> container1(new container(default_brush));
-    boost::shared_ptr<munin::frame> frame(new munin::frame);
+    boost::shared_ptr<munin::ansi::frame> frame(new munin::ansi::frame);
     
     container0->set_size(munin::extent(8,8));
     

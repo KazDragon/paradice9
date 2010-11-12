@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Algorithm.
+// GuiBuilder UI
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,35 +24,19 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ALGORITHM_HPP_
-#define MUNIN_ALGORITHM_HPP_
+#ifndef GUIBUILDER_UI_HPP_
+#define GUIBUILDER_UI_HPP_
 
-#include "munin/types.hpp"
-#include <boost/optional.hpp>
-#include <vector>
+#include "munin/ansi/basic_container.hpp"
 
-namespace munin {
-    
-//* =========================================================================
-/// \fn intersection
-/// \brief Returns the intersection of two rectangles.
-//* =========================================================================
-boost::optional<rectangle> intersection(
-    rectangle const &lhs
-  , rectangle const &rhs);
+namespace guibuilder {
 
-//* =========================================================================
-/// \fn rectangular_slice
-/// \brief Returns an array of sliced rectangles.
-/// \par
-/// A rectangular slice takes an array of rectangles, and returns an array
-/// of the fewest number of rectangles, each of height 1, that describes the
-/// area covered by the original rectangles.  These are sorted from left to
-/// right, top to bottom.
-//* =========================================================================
-std::vector<rectangle> rectangular_slice(
-    std::vector<rectangle> const &rectangles);
+class ui : public munin::ansi::basic_container
+{
+public :
+    ui();
+};
 
 }
-    
+
 #endif

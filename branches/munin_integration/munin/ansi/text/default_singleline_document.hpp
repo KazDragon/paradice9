@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Text Area.
+// Munin Text Document.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,91 +24,90 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_TEXT_AREA_HPP_
-#define MUNIN_TEXT_AREA_HPP_
+#ifndef MUNIN_ANSI_TEXT_DEFAULT_SINGLELINE_DOCUMENT_HPP_
+#define MUNIN_ANSI_TEXT_DEFAULT_SINGLELINE_DOCUMENT_HPP_
 
-#include "munin/basic_component.hpp"
+#include "munin/text/document.hpp"
 #include "munin/ansi/ansi_types.hpp"
-#include "munin/frame.hpp"
 
-namespace munin { 
+namespace munin { namespace ansi { namespace text {
 
 //* =========================================================================
-/// \brief An object that represents a text_area, or text_area.
+/// \brief Provides a document model for a single-lined ANSI text control.
 //* =========================================================================
-class text_area : public munin::basic_component<munin::ansi::element_type>  
+class default_singleline_document
+    : public munin::text::document<munin::ansi::element_type>
 {
 public :
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
-    text_area();
-    
-    //* =====================================================================
-    /// \brief Destructor
-    //* =====================================================================
-    virtual ~text_area();
-    
-    //* =====================================================================
-    /// \brief Sets the frame of this component
-    //* =====================================================================
-    void set_frame(
-        boost::shared_ptr< munin::frame<munin::ansi::element_type> > frame);
+    typedef munin::ansi::element_type   character_type;
+    typedef default_singleline_document document_type;
 
-    //* =====================================================================
-    /// \brief Inserts the specified text into the text area at the cursor
-    /// position.
-    //* =====================================================================
-    void insert_text(std::string const &text);
-    
 private :
     //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
+    /// \brief Called by set_width().  Derived classes must override this
+    /// function in order to set the width of the document in a custom 
     /// manner.
     //* =====================================================================
-    virtual munin::extent do_get_preferred_size() const;
+    virtual void do_set_width(odin::u32 width);
 
     //* =====================================================================
-    /// \brief Called by get_cursor_state().  Derived classes must override
-    /// this function in order to return the cursor state in a custom manner.
+    /// \brief Called by get_width().  Derived classes must override this
+    /// function in order to retrieve the width of the document in a
+    /// custom manner.
     //* =====================================================================
-    virtual bool do_get_cursor_state() const;
-    
-    //* =====================================================================
-    /// \brief Called by get_cursor_position().  Derived classes must
-    /// override this function in order to return the cursor position in
-    /// a custom manner.
-    //* =====================================================================
-    virtual munin::point do_get_cursor_position() const;
-    
-    //* =====================================================================
-    /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw 
-    /// the part of itself specified by the region.
-    ///
-    /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.  That is, (0,0) to this component
-    ///        is actually (offset.x, offset.y) in the canvas.
-    /// \param region the region relative to this component's origin that
-    /// should be drawn.
-    //* =====================================================================
-    virtual void do_draw(
-        munin::canvas<element_type> &cvs
-      , munin::point const          &offset
-      , munin::rectangle const      &region);
+    virtual odin::u32 do_get_width();
 
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
+    /// \brief Called by set_height().  Derived classes must override this
+    /// function in order to set the height of the document in a custom 
+    /// manner.
     //* =====================================================================
-    virtual void do_event(boost::any const &event);
-    
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    virtual void do_set_height(odin::u32 height);
+
+    //* =====================================================================
+    /// \brief Called by get_height().  Derived classes must override this
+    /// function in order to retrieve the height of the document in a
+    /// custom manner.
+    //* =====================================================================
+    virtual odin::u32 do_get_height();
+
+    //* =====================================================================
+    /// \brief Called by set_caret_position().  Derived classes must
+    /// override this function in order to set the caret's position in a
+    /// custom manner.
+    //* =====================================================================
+    virtual void do_set_caret_position(munin::point const& pt);
+
+    //* =====================================================================
+    /// \brief Called by get_caret_position().  Derived classes must
+    /// override this function in order to retrieve the caret's position in a
+    /// custom manner.
+    //* =====================================================================
+    virtual munin::point do_get_caret_position();
+
+    //* =====================================================================
+    /// \brief Called by set_caret_index().  Derived classes must
+    /// override this function in order to set the caret's index in a custom
+    /// manner.
+    //* =====================================================================
+    virtual void do_set_caret_index(odin::u32 index);
+
+    //* =====================================================================
+    /// \brief Called by get_caret_index().  Derived classes must override
+    /// this function in order to retrieve the caret's position in a custom
+    /// manner.
+    //* =====================================================================
+    virtual odin::u32 do_get_caret_index();
+
+    //* =====================================================================
+    /// \brief Called by insert_text().  Derived classes must override this
+    /// function in order to insert text into the document in a custom
+    /// manner.
+    //* =====================================================================
+    virtual void do_insert_text(
+        odin::runtime_array<character_type> const& text);
 };
 
-}
+}}}
 
 #endif

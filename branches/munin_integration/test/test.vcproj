@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;.."
+				AdditionalIncludeDirectories=".;..;$(CPPUNIT_INCLUDE_ROOT);$(BOOST_INCLUDE_ROOT)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,6 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="cppunitd.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="$(CPPUNIT_LIB_ROOT);$(BOOST_LIB_ROOT)"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -87,7 +88,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="$(TargetPath)"
+				CommandLine="&quot;$(TargetPath)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -117,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=".;.."
+				AdditionalIncludeDirectories=".;..;$(CPPUNIT_INCLUDE_ROOT);$(BOOST_INCLUDE_ROOT)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -138,6 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="cppunit.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="$(CPPUNIT_LIB_ROOT);$(BOOST_LIB_ROOT)"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -164,7 +166,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="$(TargetPath)"
+				CommandLine="&quot;$(TargetPath)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -177,10 +179,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\buffered_datastream_fixture.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\dice_parser_fixture.cpp"
 				>
 			</File>
@@ -190,10 +188,6 @@
 			</File>
 			<File
 				RelativePath=".\munin_ansi_canvas_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\munin_ansi_window_fixture.cpp"
 				>
 			</File>
 			<File
@@ -307,10 +301,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\buffered_datastream_fixture.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\dice_parser_fixture.hpp"
 				>
 			</File>
@@ -344,10 +334,6 @@
 			</File>
 			<File
 				RelativePath=".\munin_ansi_canvas_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\munin_ansi_window_fixture.hpp"
 				>
 			</File>
 			<File

@@ -182,7 +182,6 @@ void munin_ansi_canvas_fixture::test_out_of_range()
         element = canvas[size.width][size.height - 1]
       , std::out_of_range);
 
-    
     CPPUNIT_ASSERT_THROW(
         element = canvas[size.width - 1][size.height]
       , std::out_of_range);
@@ -190,7 +189,6 @@ void munin_ansi_canvas_fixture::test_out_of_range()
     CPPUNIT_ASSERT_THROW(
         canvas[size.width][size.height - 1] = element
       , std::out_of_range);
-
     
     CPPUNIT_ASSERT_THROW(
         canvas[size.width - 1][size.height] = element

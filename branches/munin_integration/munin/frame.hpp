@@ -28,59 +28,43 @@
 #define MUNIN_FRAME_HPP_
 
 #include "munin/basic_component.hpp"
-#include "munin/ansi/ansi_types.hpp"
 
-namespace munin { 
+namespace munin {
 
-//* =========================================================================
-/// \brief An object that represents a frame, or frame.
-//* =========================================================================
-class frame : public munin::basic_component<munin::ansi::element_type>  
+template <class ElementType>
+class frame : public munin::basic_component<ElementType>
 {
 public :
     //* =====================================================================
-    /// \brief Constructor
+    /// \brief Retrieves the height of the frame.
     //* =====================================================================
-    frame();
-    
+    odin::u32 get_frame_height() const
+    {
+        return do_get_frame_height();
+    }
+
     //* =====================================================================
-    /// \brief Destructor
+    /// \brief Retreives the width of the frame.
     //* =====================================================================
-    virtual ~frame();
-    
+    odin::u32 get_frame_width() const
+    {
+        return do_get_frame_width();
+    }
+
 private :
     //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
+    /// \brief Called by get_frame_width().  Derived classes must override 
+    /// this function in order to get the width of the frame in a custom
     /// manner.
     //* =====================================================================
-    virtual munin::extent do_get_preferred_size() const;
+    virtual odin::u32 do_get_frame_width() const = 0;
 
     //* =====================================================================
-    /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw 
-    /// the part of itself specified by the region.
-    ///
-    /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.  That is, (0,0) to this component
-    ///        is actually (offset.x, offset.y) in the canvas.
-    /// \param region the region relative to this component's origin that
-    /// should be drawn.
+    /// \brief Called by get_frame_height().  Derived classes must override 
+    /// this function in order to get the height of the frame in a custom
+    /// manner.
     //* =====================================================================
-    virtual void do_draw(
-        munin::canvas<element_type> &cvs
-      , munin::point const          &offset
-      , munin::rectangle const      &region);
-
-    //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
-    //* =====================================================================
-    virtual void do_event(boost::any const &event);
-    
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    virtual odin::u32 do_get_frame_height() const = 0;
 };
 
 }

@@ -87,7 +87,8 @@ public :
     /// \brief Sets the size of this component.  This does not cause a
     /// redraw, on the basis that the entity performing the resize (usually
     /// a layout manager) knows about it, and is better informed about all
-    /// regions redrawn.
+    /// regions redrawn.  It does, however, inform an active layout to lay
+    /// the components out.
     //* =====================================================================
     void set_size(extent const &size)
     {
@@ -117,22 +118,6 @@ public :
     extent get_preferred_size() const
     {
         return do_get_preferred_size();
-    }
-    
-    //* =====================================================================
-    /// \brief Sets the parent of the component
-    //* =====================================================================
-    void set_parent(boost::shared_ptr< container<element_type> > const &parent)
-    {
-        do_set_parent(parent);
-    }
-    
-    //* =====================================================================
-    /// \brief Retrieves the parent of this component.
-    //* =====================================================================
-    boost::shared_ptr< container<element_type> > get_parent() const
-    {
-        return do_get_parent();
     }
     
     //* =====================================================================
@@ -337,23 +322,6 @@ private :
     /// manner.
     //* =====================================================================
     virtual extent do_get_preferred_size() const = 0;
-    
-    //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< container<element_type> > const &parent) = 0;
-    
-    //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual boost::shared_ptr< 
-        container<element_type> 
-    > do_get_parent() const = 0;
     
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this

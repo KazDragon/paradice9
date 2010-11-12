@@ -62,9 +62,9 @@ bool canvas_region_compare(
              ++column)
         {
             munin::ansi::element_type const &lhs_element =
-                lhs[row + region.origin.y][column + region.origin.x];
+                lhs[column + region.origin.x][row + region.origin.y];
             munin::ansi::element_type const &rhs_element =
-                rhs[row + region.origin.y][column + region.origin.x];
+                rhs[column + region.origin.x][row + region.origin.y];
                 
             compare_equal = lhs_element == rhs_element;
         }
@@ -183,10 +183,34 @@ private :
     // ======================================================================
     void do_repaint()
     {
-        // First, prune out any regions with dimensions zero.
+        // First, trim any redraw regions to the expected size of the canvas.
+        extent size = content_->get_size();
+
+        vector<rectangle> trimmed_regions;
+
+        BOOST_FOREACH(rectangle region, redraw_regions_)
+        {
+            if (region.origin.x < size.width
+             && region.origin.y < size.height)
+            {
+                if (region.origin.x + region.size.width >= size.width)
+                {
+                    region.size.width = size.width - region.origin.x;
+                }
+
+                if (region.origin.y + region.size.height >= size.height)
+                {
+                    region.size.height = size.height - region.origin.y;
+                }
+
+                trimmed_regions.push_back(region);
+            }
+        }
+
+        // Then, prune out any regions with dimensions zero.
         vector<rectangle> pruned_regions;
         
-        BOOST_FOREACH(rectangle const &region, redraw_regions_)
+        BOOST_FOREACH(rectangle region, trimmed_regions)
         {
             if (region.size.width != 0 && region.size.height != 0)
             {
@@ -198,33 +222,41 @@ private :
         // to update the window.         
         string output;
         
-        // Next, cut the regions into horizontal slices.
-        vector<rectangle> slices = rectangular_slice(pruned_regions);
-        
-        // Ensure that our canvas is the correct size.
-        extent size = content_->get_size();
+        // Record whether our content's size and the canvas's sizes are
+        // mismatched.  If so, we will need to do a complete repaint,
+        // because there is no real telling what the client has done i.e.
+        // whether it has scrolled or cropped.
+        bool repaint_all = canvas_.get_size() != size;
+
+        // Ensure that our canvas is the correct size for the content that we
+        // are going to paint.
         canvas_.set_size(size);
-        
+
+        // Since we are going to repaint as little as possible, cut the 
+        // regions into horizontal slices.
+        vector<rectangle> slices = rectangular_slice(pruned_regions);
+    
         // Take a copy of the canvas.  We will want to check against this
         // after the draw operations to see if anything has changed.
         ansi_canvas canvas_clone = canvas_;
-        
+
         // Draw each slice on the canvas.
-        BOOST_FOREACH(rectangle const &region, slices)
+        BOOST_FOREACH(rectangle region, slices)
         {
             content_->draw(canvas_, point(0,0), region);
         }
         
         // For each slice, see if it has changed between the canvas that was
         // updated and the clone of the original.
-        BOOST_FOREACH(rectangle const &slice, slices)
+        BOOST_FOREACH(rectangle slice, slices)
         {
-            if (!canvas_region_compare(slice, canvas_, canvas_clone))
+            if (repaint_all
+             || !canvas_region_compare(slice, canvas_, canvas_clone))
             {
                 output += canvas_region_string(slice, canvas_);
             }
         }
-        
+
         // Finally, deal with the cursor.
         bool cursor_state = content_->get_cursor_state();
         

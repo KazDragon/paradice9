@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Algorithm.
+// GuiBuilder UI
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,35 +24,26 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_ALGORITHM_HPP_
-#define MUNIN_ALGORITHM_HPP_
+#include "ui.hpp"
+#include "munin/ansi/frame.hpp"
+#include "munin/text_area.hpp"
+#include "munin/grid_layout.hpp"
 
-#include "munin/types.hpp"
-#include <boost/optional.hpp>
-#include <vector>
+using namespace boost;
 
-namespace munin {
+namespace guibuilder {
+
+ui::ui()
+{
+    shared_ptr<munin::ansi::frame> frame(new munin::ansi::frame);
+    frame->set_size(munin::extent(80, 24));
+    frame->set_position(munin::point(0, 0));
     
-//* =========================================================================
-/// \fn intersection
-/// \brief Returns the intersection of two rectangles.
-//* =========================================================================
-boost::optional<rectangle> intersection(
-    rectangle const &lhs
-  , rectangle const &rhs);
+    set_layout(
+        shared_ptr< munin::layout<munin::ansi::element_type> >(
+            new munin::grid_layout<munin::ansi::element_type>(1, 1)));
 
-//* =========================================================================
-/// \fn rectangular_slice
-/// \brief Returns an array of sliced rectangles.
-/// \par
-/// A rectangular slice takes an array of rectangles, and returns an array
-/// of the fewest number of rectangles, each of height 1, that describes the
-/// area covered by the original rectangles.  These are sorted from left to
-/// right, top to bottom.
-//* =========================================================================
-std::vector<rectangle> rectangular_slice(
-    std::vector<rectangle> const &rectangles);
+    add_component(frame);
+}
 
 }
-    
-#endif

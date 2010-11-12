@@ -35,6 +35,7 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
+#include <boost/utility.hpp>
 #include <boost/weak_ptr.hpp>
 #include <numeric>
 
@@ -47,11 +48,11 @@
 namespace munin {
     
 BOOST_STATIC_CONSTANT(
-    odin::u32, HIGHEST_LAYER = std::numeric_limits<odin::u32>::max());
+    odin::u32, HIGHEST_LAYER = (std::numeric_limits<odin::u32>::max)());
 BOOST_STATIC_CONSTANT(
-    odin::u32, LOWEST_LAYER = std::numeric_limits<odin::u32>::min());
+    odin::u32, LOWEST_LAYER = (std::numeric_limits<odin::u32>::min)());
 BOOST_STATIC_CONSTANT(
-    odin::u32, DEFAULT_LAYER = std::numeric_limits<odin::u32>::max() / 2);
+    odin::u32, DEFAULT_LAYER = (std::numeric_limits<odin::u32>::max)() / 2);
 
 //* =========================================================================
 /// \brief A graphical element capable of containing and arranging other
@@ -88,7 +89,6 @@ public :
       , odin::u32                                layer = DEFAULT_LAYER)
     {
         do_add_component(component, layer);
-        component->set_parent(this->shared_from_this());
 
         // Subscribe to the component's redraw event.
         component->on_redraw.connect(
@@ -121,7 +121,6 @@ public :
     void remove_component(boost::shared_ptr<component_type> const &component)
     {
         do_remove_component(component);
-        component->set_parent(boost::shared_ptr< container<ElementType> >());
     }
     
     //* =====================================================================

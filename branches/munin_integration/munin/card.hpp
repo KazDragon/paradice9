@@ -213,8 +213,6 @@ private :
 
     face_map_type                faces_;
     boost::optional<std::string> current_face_;
-    boost::signals::connection   on_focus_set_connection_;
-    boost::signals::connection   on_focus_lost_connection_;
 };
 
 }

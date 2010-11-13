@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\composite_component.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\container.hpp"
 				>
 			</File>

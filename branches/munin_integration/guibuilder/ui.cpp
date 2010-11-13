@@ -28,6 +28,7 @@
 #include "munin/ansi/frame.hpp"
 #include "munin/text_area.hpp"
 #include "munin/grid_layout.hpp"
+#include "munin/composite_component.hpp"
 
 using namespace boost;
 

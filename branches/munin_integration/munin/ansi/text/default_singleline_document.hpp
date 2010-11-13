@@ -29,6 +29,7 @@
 
 #include "munin/text/document.hpp"
 #include "munin/ansi/ansi_types.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace munin { namespace ansi { namespace text {
 
@@ -42,7 +43,20 @@ public :
     typedef munin::ansi::element_type   character_type;
     typedef default_singleline_document document_type;
 
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    default_singleline_document();
+
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~default_singleline_document();
+
 private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
+
     //* =====================================================================
     /// \brief Called by set_width().  Derived classes must override this
     /// function in order to set the width of the document in a custom 
@@ -55,7 +69,7 @@ private :
     /// function in order to retrieve the width of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_width();
+    virtual odin::u32 do_get_width() const;
 
     //* =====================================================================
     /// \brief Called by set_height().  Derived classes must override this
@@ -69,7 +83,7 @@ private :
     /// function in order to retrieve the height of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_height();
+    virtual odin::u32 do_get_height() const;
 
     //* =====================================================================
     /// \brief Called by set_caret_position().  Derived classes must
@@ -83,7 +97,7 @@ private :
     /// override this function in order to retrieve the caret's position in a
     /// custom manner.
     //* =====================================================================
-    virtual munin::point do_get_caret_position();
+    virtual munin::point do_get_caret_position() const;
 
     //* =====================================================================
     /// \brief Called by set_caret_index().  Derived classes must
@@ -97,7 +111,7 @@ private :
     /// this function in order to retrieve the caret's position in a custom
     /// manner.
     //* =====================================================================
-    virtual odin::u32 do_get_caret_index();
+    virtual odin::u32 do_get_caret_index() const;
 
     //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this

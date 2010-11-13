@@ -136,7 +136,7 @@ private :
     /// function in order to retrieve the width of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_width() = 0;
+    virtual odin::u32 do_get_width() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_height().  Derived classes must override this
@@ -150,7 +150,7 @@ private :
     /// function in order to retrieve the height of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_height() = 0;
+    virtual odin::u32 do_get_height() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_caret_position().  Derived classes must
@@ -164,7 +164,7 @@ private :
     /// override this function in order to retrieve the caret's position in a
     /// custom manner.
     //* =====================================================================
-    virtual munin::point do_get_caret_position() = 0;
+    virtual munin::point do_get_caret_position() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_caret_index().  Derived classes must
@@ -178,7 +178,7 @@ private :
     /// this function in order to retrieve the caret's position in a custom
     /// manner.
     //* =====================================================================
-    virtual odin::u32 do_get_caret_index() = 0;
+    virtual odin::u32 do_get_caret_index() const = 0;
 
     //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this

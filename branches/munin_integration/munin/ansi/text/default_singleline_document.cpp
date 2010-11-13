@@ -25,24 +25,56 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/ansi/text/default_singleline_document.hpp"
+#include <algorithm>
+#include <functional>
+#include <vector>
+#include <boost/foreach.hpp>
 
 using namespace odin;
+using namespace std;
 
 namespace munin { namespace ansi { namespace text {
+
+struct default_singleline_document::impl
+{
+    impl()
+      : index_(0)
+    {
+    }
+
+    vector<default_singleline_document::character_type> text_;
+    u32                                                 index_;
+};
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+default_singleline_document::default_singleline_document()
+  : pimpl_(new impl)
+{
+}
+
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
+default_singleline_document::~default_singleline_document()
+{
+}
 
 // ==========================================================================
 // DO_SET_WIDTH
 // ==========================================================================
 void default_singleline_document::do_set_width(u32 width)
 {
+    // Width is ignored.  The width is the length of the document.
 }
 
 // ==========================================================================
 // DO_GET_WIDTH
 // ==========================================================================
-u32 default_singleline_document::do_get_width()
+u32 default_singleline_document::do_get_width() const
 {
-    return 0;
+    return u32(pimpl_->text_.size());
 }
 
 // ==========================================================================
@@ -50,14 +82,15 @@ u32 default_singleline_document::do_get_width()
 // ==========================================================================
 void default_singleline_document::do_set_height(u32 height)
 {
+    // Height is ignored.  It is always 1.
 }
 
 // ==========================================================================
 // DO_GET_HEIGHT
 // ==========================================================================
-u32 default_singleline_document::do_get_height()
+u32 default_singleline_document::do_get_height() const
 {
-    return 0;
+    return u32(1);
 }
 
 // ==========================================================================
@@ -65,14 +98,15 @@ u32 default_singleline_document::do_get_height()
 // ==========================================================================
 void default_singleline_document::do_set_caret_position(munin::point const& pt)
 {
+    pimpl_->index_ = (max)(u32(pimpl_->text_.size()), u32(pt.x));
 }
 
 // ==========================================================================
 // DO_GET_CARET_POSITION
 // ==========================================================================
-munin::point default_singleline_document::do_get_caret_position()
+munin::point default_singleline_document::do_get_caret_position() const
 {
-    return munin::point();
+    return munin::point(pimpl_->index_, 0);
 }
 
 // ==========================================================================
@@ -80,14 +114,15 @@ munin::point default_singleline_document::do_get_caret_position()
 // ==========================================================================
 void default_singleline_document::do_set_caret_index(u32 index)
 {
+    pimpl_->index_ = (max)(u32(pimpl_->text_.size()), index);
 }
 
 // ==========================================================================
 // DO_GET_CARET_INDEX
 // ==========================================================================
-u32 default_singleline_document::do_get_caret_index()
+u32 default_singleline_document::do_get_caret_index() const
 {
-    return 0;
+    return pimpl_->index_;
 }
 
 // ==========================================================================
@@ -96,6 +131,24 @@ u32 default_singleline_document::do_get_caret_index()
 void default_singleline_document::do_insert_text(
     runtime_array<character_type> const& text)
 {
+    // This is a single-line control, so we remove any \ns or \rs first.
+    vector<character_type> stripped_text;
+    stripped_text.reserve(text.size());
+
+    BOOST_FOREACH(character_type ch, text)
+    {
+        if (ch.first != '\n' && ch.first != '\r')
+        {
+            stripped_text.push_back(ch);
+        }
+    }
+    
+    pimpl_->text_.insert(
+        pimpl_->text_.begin() + pimpl_->index_
+      , stripped_text.begin()
+      , stripped_text.end());
+
+    set_caret_index(get_caret_index() + stripped_text.size());
 }
 
 }}}

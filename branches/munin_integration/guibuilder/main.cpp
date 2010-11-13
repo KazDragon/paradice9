@@ -36,6 +36,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <list>
@@ -137,11 +138,10 @@ void on_accept(shared_ptr<guibuilder::socket> socket)
 {
     schedule_keepalive(
         socket
-      , boost::shared_ptr<boost::asio::deadline_timer>(
-            new boost::asio::deadline_timer(io_service)));
+      , make_shared<boost::asio::deadline_timer>(ref(io_service)));
 
-    shared_ptr<guibuilder::client> client(
-        new guibuilder::client(socket, io_service));
+    BOOST_AUTO(client, make_shared<guibuilder::client>(socket, ref(io_service)));
+    
     socket->on_death(bind(on_death, weak_ptr<guibuilder::client>(client)));
     clients.push_back(client);
 
@@ -164,14 +164,11 @@ void on_accept(shared_ptr<guibuilder::socket> socket)
     window->on_repaint.connect(
         bind(&on_repaint, weak_ptr<guibuilder::socket>(socket), _1));
 
-    boost::shared_ptr<
-        munin::component<munin::ansi::element_type>
-    > user_interface(new guibuilder::ui);
+    BOOST_AUTO(user_interface, make_shared<guibuilder::ui>());
 
     content->set_size(munin::extent(80, 24));
     content->set_layout(
-        shared_ptr< munin::layout<munin::ansi::element_type> >(
-            new munin::grid_layout<munin::ansi::element_type>(1, 1)));
+        make_shared< munin::grid_layout<munin::ansi::element_type> >(1, 1));
 
     content->add_component(user_interface);
     content->set_focus();

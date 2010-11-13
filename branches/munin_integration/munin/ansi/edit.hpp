@@ -1,5 +1,5 @@
 // ==========================================================================
-// GuiBuilder UI
+// Munin ANSI Edit Component.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,31 +24,38 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "ui.hpp"
-#include "munin/ansi/frame.hpp"
-#include "munin/text_area.hpp"
-#include "munin/grid_layout.hpp"
+#ifndef MUNIN_ANSI_EDIT_HPP_
+#define MUNIN_ANSI_EDIT_HPP_
+
 #include "munin/composite_component.hpp"
-#include "munin/ansi/edit.hpp"
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
+#include "munin/ansi/ansi_types.hpp"
+#include <boost/shared_ptr.hpp>
 
-using namespace boost;
+namespace munin { namespace ansi {
 
-namespace guibuilder {
-
-ui::ui()
+//* =========================================================================
+/// \brief A class that models a single-line text control with a frame
+/// bordering it.
+//* =========================================================================
+class edit 
+  : public munin::composite_component<munin::ansi::element_type>
 {
-    BOOST_AUTO(frame, make_shared<munin::ansi::frame>());
-    frame->set_size(munin::extent(80, 24));
-    frame->set_position(munin::point(0, 0));
-    
-    BOOST_AUTO(edit, make_shared<munin::ansi::edit>());
+public :
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    edit();
 
-    set_layout(
-        make_shared<munin::grid_layout<munin::ansi::element_type> >(1, 1));
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~edit();
 
-    add_component(frame);
-}
+private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
+};
 
-}
+}}
+
+#endif

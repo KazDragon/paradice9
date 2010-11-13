@@ -222,11 +222,12 @@ private :
         // to update the window.         
         string output;
         
-        // Record whether our content's size and the canvas's sizes are
-        // mismatched.  If so, we will need to do a complete repaint,
-        // because there is no real telling what the client has done i.e.
-        // whether it has scrolled or cropped.
-        bool repaint_all = canvas_.get_size() != size;
+        // If the canvas has been shrunk, then many things can happen.
+        // Since there's no way in that case to tell whether the client
+        // has clipped or scrolled or whatever, we must repaint everything
+        // in that case.
+        bool repaint_all = canvas_.get_size().width  > size.width
+                        || canvas_.get_size().height > size.height;
 
         // Ensure that our canvas is the correct size for the content that we
         // are going to paint.

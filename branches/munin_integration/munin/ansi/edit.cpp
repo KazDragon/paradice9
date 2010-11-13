@@ -1,5 +1,5 @@
 // ==========================================================================
-// GuiBuilder UI
+// Munin ANSI Edit Component.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,31 +24,57 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "ui.hpp"
-#include "munin/ansi/frame.hpp"
-#include "munin/text_area.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/composite_component.hpp"
 #include "munin/ansi/edit.hpp"
+#include "munin/ansi/basic_container.hpp"
+#include "munin/ansi/frame.hpp"
 #include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 
 using namespace boost;
 
-namespace guibuilder {
+namespace munin { namespace ansi {
 
-ui::ui()
+namespace detail {
+
+enum subcomponent
 {
-    BOOST_AUTO(frame, make_shared<munin::ansi::frame>());
-    frame->set_size(munin::extent(80, 24));
-    frame->set_position(munin::point(0, 0));
-    
-    BOOST_AUTO(edit, make_shared<munin::ansi::edit>());
-
-    set_layout(
-        make_shared<munin::grid_layout<munin::ansi::element_type> >(1, 1));
-
-    add_component(frame);
-}
+    subcomponent_frame
+  , subcomponent_renderer
+};
 
 }
+
+struct edit::impl
+{
+};
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+edit::edit()
+  : munin::composite_component<element_type>(make_shared<basic_container>())
+  , pimpl_(new impl)
+{
+    // TODO:
+    /*
+    get_container()->set_layout(
+        shared_ptr<detail::edit_layout>(new detail::edit_layout));
+        */
+    get_container()->add_component(
+        make_shared<frame>(), detail::subcomponent_frame);
+
+    // TODO:
+    /*
+    get_container()->add_component(
+        shared_ptr<edit_renderer>
+      , detail::subcomponent_renderer);
+      */
+}
+
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
+edit::~edit()
+{
+}
+
+}}

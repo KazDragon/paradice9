@@ -30,6 +30,8 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/typeof/typeof.hpp>
 
 using namespace boost;
 
@@ -58,8 +60,7 @@ struct server::impl
     {
         if (!error)
         {
-            boost::shared_ptr<socket> paradice_socket(new socket(new_socket));
-
+            BOOST_AUTO(paradice_socket, make_shared<socket>(new_socket));
             on_accept_(paradice_socket);
 
             schedule_accept();
@@ -68,8 +69,9 @@ struct server::impl
 
     void schedule_accept()
     {
-        shared_ptr<asio::ip::tcp::socket> new_socket(
-            new asio::ip::tcp::socket(io_service_));
+        BOOST_AUTO(
+            new_socket, 
+            make_shared<asio::ip::tcp::socket>(ref(io_service_)));
 
         acceptor_.async_accept(
             *new_socket.get()

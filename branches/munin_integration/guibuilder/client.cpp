@@ -34,6 +34,7 @@
 #include "odin/telnet/options/echo_server.hpp"
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <string>
 
@@ -124,48 +125,42 @@ client::client(
     pimpl_->connection_ = connection;
 
     pimpl_->telnet_stream_ = 
-        shared_ptr<odin::telnet::stream>(
-            new odin::telnet::stream(pimpl_->connection_, io_service));
+        make_shared<odin::telnet::stream>(
+            pimpl_->connection_, ref(io_service));
 
     pimpl_->telnet_command_router_ = 
-        shared_ptr<odin::telnet::command_router>(
-            new odin::telnet::command_router);
+        make_shared<odin::telnet::command_router>();
 
     pimpl_->telnet_negotiation_router_ =
-        shared_ptr<odin::telnet::negotiation_router>(
-            new odin::telnet::negotiation_router);
+        make_shared<odin::telnet::negotiation_router>();
 
     pimpl_->telnet_subnegotiation_router_ =
-        shared_ptr<odin::telnet::subnegotiation_router>(
-            new odin::telnet::subnegotiation_router);
+        make_shared<odin::telnet::subnegotiation_router>();
 
     pimpl_->telnet_input_visitor_ =
-        shared_ptr<odin::telnet::input_visitor>(
-            new odin::telnet::input_visitor(
-                pimpl_->telnet_command_router_
-              , pimpl_->telnet_negotiation_router_
-              , pimpl_->telnet_subnegotiation_router_
-              , bind(&impl::on_text, pimpl_, _1)));
+        make_shared<odin::telnet::input_visitor>(
+            pimpl_->telnet_command_router_
+          , pimpl_->telnet_negotiation_router_
+          , pimpl_->telnet_subnegotiation_router_
+          , bind(&impl::on_text, pimpl_, _1));
 
     pimpl_->telnet_echo_server_ = 
-        shared_ptr<odin::telnet::options::echo_server>(
-            new odin::telnet::options::echo_server(
-                pimpl_->telnet_stream_
-              , pimpl_->telnet_negotiation_router_
-              , pimpl_->telnet_subnegotiation_router_));
+        make_shared<odin::telnet::options::echo_server>(
+            pimpl_->telnet_stream_
+          , pimpl_->telnet_negotiation_router_
+          , pimpl_->telnet_subnegotiation_router_);
 
     pimpl_->telnet_echo_server_->set_activatable(true);
     pimpl_->telnet_echo_server_->activate();
 
     pimpl_->telnet_naws_client_ =
-        shared_ptr<odin::telnet::options::naws_client>(
-            new odin::telnet::options::naws_client(
-                pimpl_->telnet_stream_
-              , pimpl_->telnet_negotiation_router_
-              , pimpl_->telnet_subnegotiation_router_));
+        make_shared<odin::telnet::options::naws_client>(
+            pimpl_->telnet_stream_
+          , pimpl_->telnet_negotiation_router_
+          , pimpl_->telnet_subnegotiation_router_);
+
     pimpl_->telnet_naws_client_->set_activatable(true);
     pimpl_->telnet_naws_client_->activate();
-
     pimpl_->telnet_naws_client_->on_size(
         bind(
             &impl::on_window_size_changed
@@ -174,15 +169,15 @@ client::client(
           , _2));
 
     pimpl_->telnet_suppress_ga_server_ =
-        shared_ptr<odin::telnet::options::suppress_goahead_server>(
-            new odin::telnet::options::suppress_goahead_server(
-                pimpl_->telnet_stream_
-              , pimpl_->telnet_negotiation_router_
-              , pimpl_->telnet_subnegotiation_router_));
+        make_shared<odin::telnet::options::suppress_goahead_server>(
+            pimpl_->telnet_stream_
+          , pimpl_->telnet_negotiation_router_
+          , pimpl_->telnet_subnegotiation_router_);
+
     pimpl_->telnet_suppress_ga_server_->set_activatable(true);
     pimpl_->telnet_suppress_ga_server_->activate();
 
-    pimpl_->window_     = shared_ptr<window>(new window(io_service));
+    pimpl_->window_ = make_shared<window>(ref(io_service));
 
     pimpl_->schedule_next_read();
 }

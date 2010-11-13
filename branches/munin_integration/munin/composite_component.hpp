@@ -65,19 +65,24 @@ public :
       : container_(underlying_container)
     {
         // Connect the underlying container's default signals to the signals
-        // of this component.
+        // of this component with.
         container_->on_redraw.connect(boost::bind(
-            &composite_component::on_redraw, this, _1));
+            &composite_component::on_redraw, this));
+
         container_->on_position_changed.connect(boost::bind(
-            &composite_component::on_position_changed, this, _1, _2));
+            &composite_component::on_position_changed, this));
+
         container_->on_focus_set.connect(boost::bind(
             &composite_component::on_focus_set, this));
+
         container_->on_focus_lost.connect(boost::bind(
             &composite_component::on_focus_lost, this));
+
         container_->on_cursor_state_changed.connect(boost::bind(
-            &composite_component::on_cursor_state_changed, this, _1));
+            &composite_component::on_cursor_state_changed, this));
+
         container_->on_cursor_position_changed.connect(boost::bind(
-            &composite_component::on_cursor_position_changed, this, _1));
+            &composite_component::on_cursor_position_changed, this));
     }
 
     //* =====================================================================
@@ -251,7 +256,7 @@ private :
       , point const          &offset
       , rectangle const      &region) 
     {
-        container_->do_draw(cvs, offset, region);
+        container_->draw(cvs, offset, region);
     }
 
     //* =====================================================================
@@ -260,7 +265,7 @@ private :
     //* =====================================================================
     virtual void do_event(boost::any const &event) 
     {
-        container_->do_event(event);
+        container_->event(event);
     }
 
     boost::shared_ptr<container_type> container_;

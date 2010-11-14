@@ -151,4 +151,23 @@ void default_singleline_document::do_insert_text(
     set_caret_index(get_caret_index() + stripped_text.size());
 }
 
+// ==========================================================================
+// DO_GET_NUMBER_OF_LINES
+// ==========================================================================
+u32 default_singleline_document::do_get_number_of_lines() const
+{
+    return 1;
+}
+
+// ==========================================================================
+// DO_GET_TEXT_LINE
+// ==========================================================================
+odin::runtime_array<default_singleline_document::character_type> 
+    default_singleline_document::do_get_text_line(u32 index) const
+{
+    return odin::runtime_array<character_type>(
+        &*pimpl_->text_.begin()
+      , pimpl_->text_.size());
+}
+
 }}}

@@ -53,6 +53,17 @@ public :
 
 private :
     //* =====================================================================
+    /// \brief Called by can_focus().  Derived classes must override this
+    /// function in order to return whether this component can be focused in
+    /// a custom manner.
+    //* =====================================================================
+    virtual bool do_can_focus() const
+    {
+        // By default, a frame cannot receive focus.
+        return false;
+    }
+
+    //* =====================================================================
     /// \brief Called by get_frame_width().  Derived classes must override 
     /// this function in order to get the width of the frame in a custom
     /// manner.

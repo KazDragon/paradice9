@@ -35,7 +35,7 @@ namespace munin {
 
 //* =========================================================================
 /// \brief A default implementation of a component.  Only do_draw()
-/// do_get_preferred_size() remain unimplemented.
+/// do_get_preferred_size() and do_event() remain unimplemented.
 //* =========================================================================
 template <class ElementType>
 class basic_component 

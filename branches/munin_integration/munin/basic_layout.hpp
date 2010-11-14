@@ -37,8 +37,8 @@ template <class ElementType>
 class component;
 
 //* =========================================================================
-/// \brief A default implementation of a layout.  Only do_layout() remains
-/// unimplemented.
+/// \brief A default implementation of a layout.  Only do_layout() and
+/// do_get_preferred_size() remain unimplemented.
 //* =========================================================================
 template <class ElementType>
 class basic_layout : public layout<ElementType>

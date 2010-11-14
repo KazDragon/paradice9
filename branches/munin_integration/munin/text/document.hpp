@@ -123,6 +123,22 @@ public :
         do_insert_text(text);
     }
 
+    //* =====================================================================
+    /// \brief Returns the number of lines in the text.
+    //* =====================================================================
+    odin::u32 get_number_of_lines() const
+    {
+        return do_get_number_of_lines();
+    }
+
+    //* =====================================================================
+    /// \brief Returns the specified line of text in the document.
+    //* =====================================================================
+    odin::runtime_array<character_type> get_text_line(odin::u32 index) const
+    {
+        return do_get_text_line(index);
+    }
+
 private :
     //* =====================================================================
     /// \brief Called by set_width().  Derived classes must override this
@@ -187,6 +203,20 @@ private :
     //* =====================================================================
     virtual void do_insert_text(
         odin::runtime_array<character_type> const& text) = 0;
+
+    //* =====================================================================
+    /// \brief Called by get_number_of_lines().  Derived classes must 
+    /// override this function in order to get the number of lines in the
+    /// document in a custom manner.
+    //* =====================================================================
+    virtual odin::u32 do_get_number_of_lines() const = 0;
+
+    //* =====================================================================
+    /// \brief Called by get_text_line().  Derived classes must override this
+    /// function in order to return the text line in a custom manner.
+    //* =====================================================================
+    virtual odin::runtime_array<character_type> do_get_text_line(
+        odin::u32 index) const = 0;
 };
 
 }}

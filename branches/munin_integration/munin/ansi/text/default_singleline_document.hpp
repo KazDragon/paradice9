@@ -120,6 +120,20 @@ private :
     //* =====================================================================
     virtual void do_insert_text(
         odin::runtime_array<character_type> const& text);
+
+    //* =====================================================================
+    /// \brief Called by get_number_of_lines().  Derived classes must 
+    /// override this function in order to get the number of lines in the
+    /// document in a custom manner.
+    //* =====================================================================
+    virtual odin::u32 do_get_number_of_lines() const;
+
+    //* =====================================================================
+    /// \brief Called by get_text_line().  Derived classes must override this
+    /// function in order to return the text line in a custom manner.
+    //* =====================================================================
+    virtual odin::runtime_array<character_type> do_get_text_line(
+        odin::u32 index) const;
 };
 
 }}}

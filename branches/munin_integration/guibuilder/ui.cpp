@@ -39,16 +39,12 @@ namespace guibuilder {
 
 ui::ui()
 {
-    BOOST_AUTO(frame, make_shared<munin::ansi::frame>());
-    frame->set_size(munin::extent(80, 24));
-    frame->set_position(munin::point(0, 0));
-    
     BOOST_AUTO(edit, make_shared<munin::ansi::edit>());
 
     set_layout(
         make_shared<munin::grid_layout<munin::ansi::element_type> >(1, 1));
 
-    add_component(frame);
+    add_component(edit);
 }
 
 }

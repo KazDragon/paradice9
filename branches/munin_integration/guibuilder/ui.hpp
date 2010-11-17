@@ -27,11 +27,13 @@
 #ifndef GUIBUILDER_UI_HPP_
 #define GUIBUILDER_UI_HPP_
 
-#include "munin/ansi/basic_container.hpp"
+#include "munin/composite_component.hpp"
+#include "munin/ansi/ansi_types.hpp"
 
 namespace guibuilder {
 
-class ui : public munin::ansi::basic_container
+class ui 
+    : public munin::composite_component<munin::ansi::element_type>
 {
 public :
     ui();

@@ -1,4 +1,3 @@
-#CC          = g++-4
 CC           = g++
 AR           = ar -r
 RM           = rm -f
@@ -13,8 +12,9 @@ I_DIRS       = -I.
 NOLINK       = -c
 L_DIRS       = -L.
 LIBS         = -lparadice -lmunin -lodin -lboost_program_options \
-               -lboost_system -lws2_32 -lwsock32
+               -lboost_system -lboost_signals -lws2_32 -lwsock32
 E_NAME       = paradice.exe
+G_NAME       = guibuilder.exe
 
 ODIN_NAMES        = telnet/client_option \
                     telnet/command_router \
@@ -31,18 +31,33 @@ ODIN_LIB          = libodin.a
 
 MUNIN_NAMES       = algorithm \
                     ansi/attribute \
-                    ansi/graphics_context \
-                    ansi/types \
+                    ansi/ansi_canvas \
+                    ansi/ansi_types \
+                    ansi/attribute \
+                    ansi/basic_container \
+                    ansi/edit \
+                    ansi/frame \
+                    ansi/protocol \
+                    ansi/text/default_singleline_document \
                     ansi/window \
+                    text_area \
                     types
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
 MUNIN_LIB         = libmunin.a
+
+GUIBUILDER_NAMES  = client \
+                    main \
+                    server \
+                    socket \
+                    ui
+GUIBUILDER_O_FILES= $(GUIBUILDER_NAMES:%=guibuilder/%.o)
 
 PARADICE_NAMES    = client \
                     communication \
                     configuration \
                     connection \
                     dice_roll_parser \
+                    random \
                     rules \
                     server \
                     socket \
@@ -58,14 +73,12 @@ TEST_L_DIRS       = -L.
 TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_system \
                     -lboost_signals -lws2_32 -lwsock32
 TEST_L_FLAGS      = --enable-auto-import
-TEST_FIXTURES     = buffered_datastream \
-                    dice_parser \
+TEST_FIXTURES     = dice_parser \
                     munin_algorithm \
-                    munin_ansi_graphics_context \
-                    munin_ansi_window \
+                    munin_ansi_canvas \
                     munin_component \
                     munin_container \
-                    munin_graphics_context \
+                    munin_canvas \
                     munin_layout \
                     router \
                     runtime_array \
@@ -92,8 +105,12 @@ TEST_EXE          = paradice_test.exe
 $(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(PARADICE_LIB) $(TEST_EXE) $(PARADICE9_O_FILES)
 	$(CC) $(NAME_IS) $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS)
     
+$(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(PARADICE_LIB) $(TEST_EXE) $(GUIBUILDER_O_FILES)
+	$(CC) $(NAME_IS) $@ $(GUIBUILDER_O_FILES) $(L_DIRS) $(LIBS)
+	
 clean: 
 	$(RM) $(E_NAME) $(PARADICE9_O_FILES) \
+	      $(G_NAME) $(GUIBUILDER_O_FILES) \
           $(PARADICE_LIB) $(PARADICE_O_FILES) \
           $(MUNIN_LIB) $(MUNIN_O_FILES) \
           $(ODIN_LIB) $(ODIN_O_FILES) \
@@ -114,3 +131,4 @@ $(TEST_EXE): $(TEST_O_FILES) $(ODIN_LIB) $(PARADICE_LIB) $(MUNIN_LIB)
     
 %.o: %.cpp
 	$(CC) $(NAME_IS) $@ $(NOLINK) $(C_FLAGS) $(I_DIRS) $<
+

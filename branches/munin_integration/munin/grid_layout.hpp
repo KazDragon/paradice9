@@ -29,6 +29,7 @@
 
 #include "munin/layout.hpp"
 #include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
 #include <algorithm>
 #include <vector>
 
@@ -133,7 +134,7 @@ private :
         // width and the maximum preferred height of all components.
         extent maximum_preferred_size(0, 0);
 
-        BOOST_FOREACH(shared_ptr<component_type> comp, components_)
+        BOOST_FOREACH(boost::shared_ptr<component_type> comp, components_)
         {
             extent preferred_size = comp->get_preferred_size();
 
@@ -168,8 +169,8 @@ private :
             // Naive: will have missing pixels and off-by-one errors
             components_[index]->set_position(
                 munin::point(
-                    (size.height / rows_)    * index
-                  , (size.width  / columns_) * index));
+                    (size.width / columns_) * column
+                  , (size.height / rows_) * row));
 
             components_[index]->set_size(
                 munin::extent(

@@ -52,8 +52,9 @@ class composite_component
     : public component<ElementType>
 {
 public :
-    typedef component<ElementType> component_type;
-    typedef container<ElementType> container_type;
+    typedef ElementType             element_type;
+    typedef component<element_type> component_type;
+    typedef container<element_type> container_type;
 
     //* =====================================================================
     /// \brief Constructor
@@ -66,23 +67,23 @@ public :
     {
         // Connect the underlying container's default signals to the signals
         // of this component with.
-        container_->on_redraw.connect(boost::bind(
-            &composite_component::on_redraw, this));
+        container_->on_redraw.connect(
+            boost::bind(boost::ref(this->on_redraw), _1));
 
-        container_->on_position_changed.connect(boost::bind(
-            &composite_component::on_position_changed, this));
+        container_->on_position_changed.connect(
+            boost::bind(boost::ref(this->on_position_changed), _1, _2));
 
-        container_->on_focus_set.connect(boost::bind(
-            &composite_component::on_focus_set, this));
+        container_->on_focus_set.connect(
+            boost::bind(boost::ref(this->on_focus_set)));
 
-        container_->on_focus_lost.connect(boost::bind(
-            &composite_component::on_focus_lost, this));
+        container_->on_focus_lost.connect(
+            boost::bind(boost::ref(this->on_focus_lost)));
+        
+        container_->on_cursor_state_changed.connect(
+            boost::bind(boost::ref(this->on_cursor_state_changed), _1));
 
-        container_->on_cursor_state_changed.connect(boost::bind(
-            &composite_component::on_cursor_state_changed, this));
-
-        container_->on_cursor_position_changed.connect(boost::bind(
-            &composite_component::on_cursor_position_changed, this));
+        container_->on_cursor_position_changed.connect(
+            boost::bind(boost::ref(this->on_cursor_position_changed), _1));
     }
 
     //* =====================================================================

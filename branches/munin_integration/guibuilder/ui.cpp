@@ -25,11 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "ui.hpp"
-#include "munin/ansi/frame.hpp"
 #include "munin/text_area.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/composite_component.hpp"
+#include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/edit.hpp"
+#include "munin/ansi/frame.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -38,13 +39,14 @@ using namespace boost;
 namespace guibuilder {
 
 ui::ui()
+    : munin::composite_component<munin::ansi::element_type>(
+           make_shared<munin::ansi::basic_container>())
 {
-    BOOST_AUTO(edit, make_shared<munin::ansi::edit>());
-
-    set_layout(
+    get_container()->set_layout(
         make_shared<munin::grid_layout<munin::ansi::element_type> >(1, 1));
 
-    add_component(edit);
+    get_container()->add_component(
+        make_shared<munin::ansi::edit>());
 }
 
 }

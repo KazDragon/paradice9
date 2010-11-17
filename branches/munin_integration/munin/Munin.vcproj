@@ -276,15 +276,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\protocol.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ansi\protocol.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 			<File
@@ -333,6 +325,14 @@
 			</File>
 			<File
 				RelativePath=".\ansi\frame.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\protocol.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 		</Filter>

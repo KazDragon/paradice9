@@ -98,6 +98,13 @@ public :
               , boost::weak_ptr<component_type>(component)
               , _1));
         
+        component->on_cursor_position_changed.connect(
+            boost::bind(
+                &container::subcomponent_cursor_position_change_handler
+              , this
+              , boost::weak_ptr<component_type>(component)
+              , _1));
+
         boost::shared_ptr<layout_type> current_layout = get_layout();
         
         if (current_layout != NULL)
@@ -186,6 +193,24 @@ private :
         }
     }
 
+    //* =====================================================================
+    /// \brief Called when a component within the container has changed
+    /// its cursor position.
+    //* =====================================================================
+    void subcomponent_cursor_position_change_handler(
+        boost::weak_ptr<component_type> weak_subcomponent
+      , munin::point                    position)
+    {
+        boost::shared_ptr<component_type> subcomponent(
+            weak_subcomponent.lock());
+
+        if (subcomponent && subcomponent->has_focus())
+        {
+            this->on_cursor_position_changed(
+                this->get_position() + position);
+        }
+    }
+    
     //* =====================================================================
     /// \brief Initialises a region prior to drawing.
     //* =====================================================================

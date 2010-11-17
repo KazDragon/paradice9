@@ -30,11 +30,13 @@
 #include "munin/types.hpp"
 #include "odin/types.hpp"
 #include "odin/runtime_array.hpp"
+#include <boost/signal.hpp>
 
 namespace munin { namespace text {
 
 //* =========================================================================
-/// \interface
+/// \interface munin::text::document<CharacterType>
+/// \tparam CharacterType the type of character that this document contains.
 /// \brief Provides a document model for a text control.
 //* =========================================================================
 template <class CharacterType>
@@ -89,6 +91,7 @@ public :
     void set_caret_position(munin::point const& pt)
     {
         do_set_caret_position(pt);
+        on_caret_position_changed();
     }
 
     //* =====================================================================
@@ -105,6 +108,7 @@ public :
     void set_caret_index(odin::u32 index)
     {
         do_set_caret_index(index);
+        on_caret_position_changed();
     }
 
     //* =====================================================================
@@ -139,6 +143,27 @@ public :
         return do_get_text_line(index);
     }
 
+    //* =====================================================================
+    /// \fn on_redraw
+    /// \param regions The regions of the document that require redrawing.
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the component should be redrawn.
+    //* =====================================================================
+    boost::signal
+    <
+        void (std::vector<rectangle> regions)
+    > on_redraw;
+    
+    //* =====================================================================
+    /// \fn on_caret_position_changed
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the caret has changed position.
+    //* =====================================================================
+    boost::signal
+    <
+        void ()
+    > on_caret_position_changed;
+    
 private :
     //* =====================================================================
     /// \brief Called by set_width().  Derived classes must override this

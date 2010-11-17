@@ -283,11 +283,11 @@ private :
         bounds_.size = size;
         redraw_regions.push_back(bounds_);
 
-        BOOST_AUTO(layout, get_layout());
+        boost::shared_ptr<layout_type> container_layout = this->get_layout();
 
-        if (layout)
+        if (container_layout)
         {
-            (*layout)(shared_from_this());
+            (*container_layout)(this->shared_from_this());
         }
 
         this->on_redraw(redraw_regions);

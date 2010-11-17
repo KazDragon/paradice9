@@ -29,6 +29,7 @@
 #include <functional>
 #include <vector>
 #include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 
 using namespace odin;
 using namespace std;
@@ -131,6 +132,8 @@ u32 default_singleline_document::do_get_caret_index() const
 void default_singleline_document::do_insert_text(
     runtime_array<character_type> const& text)
 {
+    BOOST_AUTO(old_index, pimpl_->index_);
+    
     // This is a single-line control, so we remove any \ns or \rs first.
     vector<character_type> stripped_text;
     stripped_text.reserve(text.size());
@@ -149,6 +152,11 @@ void default_singleline_document::do_insert_text(
       , stripped_text.end());
 
     set_caret_index(get_caret_index() + stripped_text.size());
+    
+    vector<munin::rectangle> regions;
+    regions.push_back(munin::rectangle(
+        munin::point(old_index, 0), munin::extent(s32(text.size()), 0)));
+    on_redraw(regions);
 }
 
 // ==========================================================================

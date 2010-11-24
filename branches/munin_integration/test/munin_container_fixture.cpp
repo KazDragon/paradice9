@@ -910,8 +910,9 @@ void munin_container_fixture::test_cursor_position()
     component0->set_cursor_position(new_position);
     
     CPPUNIT_ASSERT_EQUAL(
-        component0_position + new_position, container->get_cursor_position());
-    CPPUNIT_ASSERT_EQUAL(component0_position + new_position, cursor_position);
+        new_position + container->get_position() + component0->get_position()
+      , container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(new_position, cursor_position);
         
 }
 

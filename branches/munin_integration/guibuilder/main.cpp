@@ -135,6 +135,18 @@ void on_text(
     }
 }
 
+void on_control_sequence(
+    weak_ptr<guibuilder::client>        weak_client
+  , odin::ansi::control_sequence const &control_sequence)
+{
+    shared_ptr<guibuilder::client> client = weak_client.lock();
+    
+    if (client)
+    {
+        client->get_window()->event(control_sequence);
+    }
+}
+
 void on_accept(shared_ptr<guibuilder::socket> socket)
 {
     schedule_keepalive(
@@ -159,6 +171,12 @@ void on_accept(shared_ptr<guibuilder::socket> socket)
           , boost::weak_ptr<guibuilder::client>(client)
           , _1));
 
+    client->on_control_sequence(
+        bind(
+            &on_control_sequence
+          , boost::weak_ptr<guibuilder::client>(client)
+          , _1));
+    
     boost::shared_ptr<munin::ansi::window>    window  = client->get_window();
     boost::shared_ptr<munin::ansi::container> content = window->get_content();
 

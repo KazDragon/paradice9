@@ -25,6 +25,8 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/ansi/protocol.hpp"
+#include "odin/ansi/protocol.hpp"
+#include "odin/ascii/protocol.hpp"
 #include <boost/format.hpp>
 
 using namespace std;
@@ -62,12 +64,12 @@ string cursor_position(munin::point const &position)
       : ";";
       
     return str(format("%c%c%s%s%s%c")
-        % ESCAPE
-        % CONTROL_SEQUENCE_INTRODUCER
+        % odin::ansi::ESCAPE
+        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
         % y_coordinate
         % separator
         % x_coordinate
-        % CURSOR_POSITION);
+        % odin::ansi::CURSOR_POSITION);
 }
 
 // ==========================================================================
@@ -76,10 +78,10 @@ string cursor_position(munin::point const &position)
 string set_window_title(string const &text)
 {
     return str(format("%c%c0;%s%c")
-        % ESCAPE
-        % OPERATING_SYSTEM_COMMAND
+        % odin::ansi::ESCAPE
+        % odin::ansi::OPERATING_SYSTEM_COMMAND
         % text
-        % BEL);
+        % odin::ansi::BEL);
 }
 
 }}

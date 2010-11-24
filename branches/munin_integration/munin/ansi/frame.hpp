@@ -48,7 +48,7 @@ public :
     //* =====================================================================
     virtual ~frame();
     
-private :
+protected :
     //* =====================================================================
     /// \brief Called by get_frame_width().  Derived classes must override 
     /// this function in order to get the width of the frame in a custom
@@ -93,6 +93,7 @@ private :
     //* =====================================================================
     virtual void do_event(boost::any const &event);
     
+private :    
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };

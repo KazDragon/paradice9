@@ -287,7 +287,7 @@ public :
         void (point)
     > on_cursor_position_changed;
     
-private :
+protected :
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
     /// function in order to set the position of the component in a custom

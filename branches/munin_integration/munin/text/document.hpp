@@ -120,6 +120,30 @@ public :
     }
 
     //* =====================================================================
+    /// \brief Selects a region of text
+    /// \param from The index of the character to select from.
+    /// \param to Optionally, the index to select to.  If this is omitted,
+    /// the parameter is left empty which indicates the end of the document
+    /// by default.
+    //* =====================================================================
+    void select_text(
+        odin::u32                  from
+      , boost::optional<odin::u32> to = boost::optional<odin::u32>())
+    {
+        do_select_text(from, to);
+    }
+    
+    //* =====================================================================
+    /// \brief Optionally, returns the region of text that is currently 
+    /// selected.
+    //* =====================================================================
+    boost::optional< std::pair<odin::u32, odin::u32> > 
+        get_selected_text_region() const
+    {
+        return get_selected_text_region();
+    }
+    
+    //* =====================================================================
     /// \brief Inserts the given characters at the caret.
     //* =====================================================================
     void insert_text(odin::runtime_array<character_type> const& text)
@@ -127,6 +151,16 @@ public :
         do_insert_text(text);
     }
 
+    //* =====================================================================
+    /// \brief If there is a region selected in the document, then that 
+    /// region is deleted.  Otherwise, if there is a character immediately
+    /// left of the caret, that character is deleted.
+    //* =====================================================================
+    void delete_text()
+    {
+        do_delete_text();
+    }
+    
     //* =====================================================================
     /// \brief Returns the number of lines in the text.
     //* =====================================================================
@@ -222,12 +256,34 @@ private :
     virtual odin::u32 do_get_caret_index() const = 0;
 
     //* =====================================================================
+    /// \brief Called by select_text().  Derived classes must override this
+    /// function in order to select text in a custom manner.
+    //* =====================================================================
+    virtual void do_select_text(
+        odin::u32                  from
+      , boost::optional<odin::u32> to) = 0;
+    
+    //* =====================================================================
+    /// \brief Called by get_selected_text().  Derived classes must override
+    /// this function in order to retrieve the selected text in a custom
+    /// manner.
+    //* =====================================================================
+    virtual boost::optional< std::pair<odin::u32, odin::u32> >
+        do_get_selected_text_region() const = 0;
+
+    //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this
     /// function in order to insert text into the document in a custom
     /// manner.
     //* =====================================================================
     virtual void do_insert_text(
         odin::runtime_array<character_type> const& text) = 0;
+
+    //* =====================================================================
+    /// \brief Called by delete_text().  Derived classes must override this
+    /// function in order to delete text in a custom manner.
+    //* =====================================================================
+    virtual void do_delete_text() = 0;
 
     //* =====================================================================
     /// \brief Called by get_number_of_lines().  Derived classes must 

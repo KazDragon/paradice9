@@ -67,7 +67,7 @@ public :
     {
     }
     
-private :
+protected :
     //* =====================================================================
     /// \brief Called by get_number_of_components().  Derived classes must
     /// override this function in order to get the number of components in
@@ -179,6 +179,7 @@ private :
         }
     }
 
+private :    
     std::vector< boost::shared_ptr<component_type> > components_;
     odin::u32                                        rows_;
     odin::u32                                        columns_;

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Text Document.
+// Munin Default Single Line Text Document.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -114,12 +114,34 @@ private :
     virtual odin::u32 do_get_caret_index() const;
 
     //* =====================================================================
+    /// \brief Called by select_text().  Derived classes must override this
+    /// function in order to select text in a custom manner.
+    //* =====================================================================
+    virtual void do_select_text(
+        odin::u32                  from
+      , boost::optional<odin::u32> to);
+    
+    //* =====================================================================
+    /// \brief Called by get_selected_text().  Derived classes must override
+    /// this function in order to retrieve the selected text in a custom
+    /// manner.
+    //* =====================================================================
+    virtual boost::optional< std::pair<odin::u32, odin::u32> >
+        do_get_selected_text_region() const;
+
+    //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this
     /// function in order to insert text into the document in a custom
     /// manner.
     //* =====================================================================
     virtual void do_insert_text(
         odin::runtime_array<character_type> const& text);
+
+    //* =====================================================================
+    /// \brief Called by delete_text().  Derived classes must override this
+    /// function in order to delete text in a custom manner.
+    //* =====================================================================
+    virtual void do_delete_text();
 
     //* =====================================================================
     /// \brief Called by get_number_of_lines().  Derived classes must 

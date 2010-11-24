@@ -25,11 +25,11 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "ui.hpp"
-#include "munin/text_area.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/composite_component.hpp"
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/edit.hpp"
+#include "munin/ansi/text_area.hpp"
 #include "munin/ansi/frame.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -43,10 +43,10 @@ ui::ui()
            make_shared<munin::ansi::basic_container>())
 {
     get_container()->set_layout(
-        make_shared<munin::grid_layout<munin::ansi::element_type> >(1, 1));
+        make_shared<munin::grid_layout<munin::ansi::element_type> >(2, 1));
 
-    get_container()->add_component(
-        make_shared<munin::ansi::edit>());
+    get_container()->add_component(make_shared<munin::ansi::text_area>());
+    //get_container()->add_component(make_shared<munin::ansi::edit>());
 }
 
 }

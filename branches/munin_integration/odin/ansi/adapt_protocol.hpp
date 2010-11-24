@@ -1,5 +1,5 @@
 // ==========================================================================
-// GuiBuilder Client
+// Odin ANSI Protocol Fusion Adaptation Structures.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,51 +24,18 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef GUIBUILDER_CLIENT_HPP_
-#define GUIBUILDER_CLIENT_HPP_
+#ifndef ODIN_ANSI_ADAPT_PROTOCOL_HPP_
+#define ODIN_ANSI_ADAPT_PROTOCOL_HPP_
 
-#include "odin/io/datastream.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <string>
+#include <boost/fusion/include/adapt_struct.hpp>
 
-namespace boost { namespace asio {
-    class io_service;
-}}
-
-namespace munin { namespace ansi {
-    class window;
-}}
-
-namespace guibuilder {
-
-typedef odin::io::datastream<odin::u8, odin::u8> stream;
-
-class client
-{
-public :
-    client(
-        boost::shared_ptr<stream>  connection
-      , boost::asio::io_service   &io_service);
-
-    ~client();
-
-    boost::shared_ptr<munin::ansi::window> get_window();
-
-    void on_window_size_changed(
-        boost::function<void (odin::u16 width, odin::u16 height)> callback);
-
-    void on_text(boost::function<void (std::string text)> callback);
-
-    void on_control_sequence(
-        boost::function<void (odin::ansi::control_sequence)> callback);
-    
-private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
-};
-
-}
+BOOST_FUSION_ADAPT_STRUCT(
+    odin::ansi::control_sequence,
+    (bool,        meta_)
+    (char,        initiator_)
+    (std::string, arguments_)
+    (char,        command_)
+)
 
 #endif

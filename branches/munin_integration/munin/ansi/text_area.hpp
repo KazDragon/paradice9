@@ -1,5 +1,5 @@
 // ==========================================================================
-// GuiBuilder Client
+// Munin ANSI Text Area Component.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,51 +24,38 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef GUIBUILDER_CLIENT_HPP_
-#define GUIBUILDER_CLIENT_HPP_
+#ifndef MUNIN_ANSI_TEXT_AREA_HPP_
+#define MUNIN_ANSI_TEXT_AREA_HPP_
 
-#include "odin/io/datastream.hpp"
-#include "odin/ansi/protocol.hpp"
-#include <boost/function.hpp>
+#include "munin/composite_component.hpp"
+#include "munin/ansi/ansi_types.hpp"
 #include <boost/shared_ptr.hpp>
-#include <string>
-
-namespace boost { namespace asio {
-    class io_service;
-}}
 
 namespace munin { namespace ansi {
-    class window;
-}}
 
-namespace guibuilder {
-
-typedef odin::io::datastream<odin::u8, odin::u8> stream;
-
-class client
+//* =========================================================================
+/// \brief A class that models a multi-line text control with a frame
+/// bordering it.
+//* =========================================================================
+class text_area 
+  : public munin::composite_component<munin::ansi::element_type>
 {
 public :
-    client(
-        boost::shared_ptr<stream>  connection
-      , boost::asio::io_service   &io_service);
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    text_area();
 
-    ~client();
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~text_area();
 
-    boost::shared_ptr<munin::ansi::window> get_window();
-
-    void on_window_size_changed(
-        boost::function<void (odin::u16 width, odin::u16 height)> callback);
-
-    void on_text(boost::function<void (std::string text)> callback);
-
-    void on_control_sequence(
-        boost::function<void (odin::ansi::control_sequence)> callback);
-    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
 
-}
+}}
 
 #endif

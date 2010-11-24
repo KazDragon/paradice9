@@ -56,10 +56,7 @@ public :
     {
     }
     
-private :
-    rectangle bounds_;
-    bool      has_focus_;
-    
+protected :
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
     /// function in order to set the position of the component in a custom
@@ -220,6 +217,11 @@ private :
         
         return position;
     }
+    
+private :
+    rectangle bounds_;
+    bool      has_focus_;
+    
 };
     
 }

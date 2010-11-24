@@ -152,10 +152,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\text_area.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\types.cpp"
 				>
 			</File>
@@ -222,10 +218,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\text_area.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\types.hpp"
 				>
 			</File>
@@ -276,7 +268,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ansi\protocol.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ansi\protocol.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\text_area.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 			<File
@@ -287,6 +291,10 @@
 				Name="Text Header Files"
 				>
 				<File
+					RelativePath=".\ansi\text\default_multiline_document.hpp"
+					>
+				</File>
+				<File
 					RelativePath=".\ansi\text\default_singleline_document.hpp"
 					>
 				</File>
@@ -294,6 +302,10 @@
 			<Filter
 				Name="Text Source Files"
 				>
+				<File
+					RelativePath=".\ansi\text\default_multiline_document.cpp"
+					>
+				</File>
 				<File
 					RelativePath=".\ansi\text\default_singleline_document.cpp"
 					>
@@ -328,11 +340,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\protocol.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\window.cpp"
+				RelativePath=".\ansi\text_area.cpp"
 				>
 			</File>
 		</Filter>

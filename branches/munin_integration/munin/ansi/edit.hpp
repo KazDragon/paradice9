@@ -50,10 +50,6 @@ public :
     /// \brief Destructor
     //* =====================================================================
     virtual ~edit();
-
-private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
 };
 
 }}

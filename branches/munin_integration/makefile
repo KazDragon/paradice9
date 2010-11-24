@@ -16,7 +16,8 @@ LIBS         = -lparadice -lmunin -lodin -lboost_program_options \
 E_NAME       = paradice.exe
 G_NAME       = guibuilder.exe
 
-ODIN_NAMES        = telnet/client_option \
+ODIN_NAMES        = ansi/protocol \
+                    telnet/client_option \
                     telnet/command_router \
                     telnet/input_visitor \
                     telnet/negotiation_router \
@@ -38,9 +39,10 @@ MUNIN_NAMES       = algorithm \
                     ansi/edit \
                     ansi/frame \
                     ansi/protocol \
+                    ansi/text/default_multiline_document \
                     ansi/text/default_singleline_document \
+                    ansi/text_area \
                     ansi/window \
-                    text_area \
                     types
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
 MUNIN_LIB         = libmunin.a
@@ -73,7 +75,8 @@ TEST_L_DIRS       = -L.
 TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_system \
                     -lboost_signals -lws2_32 -lwsock32
 TEST_L_FLAGS      = --enable-auto-import
-TEST_FIXTURES     = dice_parser \
+TEST_FIXTURES     = ansi_parser \
+                    dice_parser \
                     munin_algorithm \
                     munin_ansi_canvas \
                     munin_component \

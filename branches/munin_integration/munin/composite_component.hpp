@@ -102,7 +102,6 @@ protected :
         return container_;
     }
 
-private :
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
     /// function in order to set the position of the component in a custom
@@ -269,6 +268,7 @@ private :
         container_->event(event);
     }
 
+private :
     boost::shared_ptr<container_type> container_;
 };
 

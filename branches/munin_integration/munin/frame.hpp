@@ -51,7 +51,7 @@ public :
         return do_get_frame_width();
     }
 
-private :
+protected :
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in

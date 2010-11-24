@@ -1,5 +1,5 @@
 // ==========================================================================
-// GuiBuilder Client
+// Odin ANSI Protocol.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,51 +24,17 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef GUIBUILDER_CLIENT_HPP_
-#define GUIBUILDER_CLIENT_HPP_
-
-#include "odin/io/datastream.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <string>
 
-namespace boost { namespace asio {
-    class io_service;
-}}
+namespace odin { namespace ansi {
 
-namespace munin { namespace ansi {
-    class window;
-}}
-
-namespace guibuilder {
-
-typedef odin::io::datastream<odin::u8, odin::u8> stream;
-
-class client
+bool operator==(control_sequence const& lhs, control_sequence const& rhs)
 {
-public :
-    client(
-        boost::shared_ptr<stream>  connection
-      , boost::asio::io_service   &io_service);
-
-    ~client();
-
-    boost::shared_ptr<munin::ansi::window> get_window();
-
-    void on_window_size_changed(
-        boost::function<void (odin::u16 width, odin::u16 height)> callback);
-
-    void on_text(boost::function<void (std::string text)> callback);
-
-    void on_control_sequence(
-        boost::function<void (odin::ansi::control_sequence)> callback);
-    
-private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
-};
-
+    return lhs.meta_      == rhs.meta_
+        && lhs.command_   == rhs.command_
+        && lhs.initiator_ == rhs.initiator_
+        && lhs.arguments_ == rhs.arguments_;
 }
 
-#endif
+}}
+

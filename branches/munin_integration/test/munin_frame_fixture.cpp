@@ -120,20 +120,6 @@ void munin_frame_fixture::test_draw_with_offsets()
       , munin::point(0,0)
       , munin::rectangle(munin::point(0,0), munin::extent(8,8)));
     
-    /*
-    printf("\n");
-    for (s32 y = 0; y < 8; ++y)
-    {
-        for (s32 x = 0; x < 8; ++x)
-        {
-            printf("%c", munin::ansi::element_type(canvas[x][y]).first);
-        }
-        
-        printf("\n");
-    }
-    printf("\n");
-    */
-    
     // The final result is that the frame should be positioned at (3,3)
     // and extend (5,3).
     CPPUNIT_ASSERT_EQUAL('+', munin::ansi::element_type(canvas[3][3]).first);

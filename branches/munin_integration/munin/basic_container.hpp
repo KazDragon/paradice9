@@ -57,14 +57,7 @@ public :
     {
     }
     
-private :
-    std::vector< boost::shared_ptr<component_type> > components_;
-    std::vector< odin::u32 >                         component_layers_;
-    boost::shared_ptr<layout_type>                   layout_;
-    rectangle                                        bounds_;
-    bool                                             has_focus_;
-    bool                                             cursor_state_;
-    
+protected :    
     //* =====================================================================
     /// \brief Called when a subcomponent's focus is gained.
     //* =====================================================================
@@ -283,11 +276,11 @@ private :
         bounds_.size = size;
         redraw_regions.push_back(bounds_);
 
-        boost::shared_ptr<layout_type> container_layout = this->get_layout();
+        boost::shared_ptr<layout_type> layout = this->get_layout();
 
-        if (container_layout)
+        if (layout)
         {
-            (*container_layout)(this->shared_from_this());
+            (*layout)(this->shared_from_this());
         }
 
         this->on_redraw(redraw_regions);
@@ -798,6 +791,15 @@ private :
         // does not have a cursor.  Return the default position.
         return point(0, 0);
     }
+
+private :
+    std::vector< boost::shared_ptr<component_type> > components_;
+    std::vector< odin::u32 >                         component_layers_;
+    boost::shared_ptr<layout_type>                   layout_;
+    rectangle                                        bounds_;
+    bool                                             has_focus_;
+    bool                                             cursor_state_;
+    
 };
     
 }

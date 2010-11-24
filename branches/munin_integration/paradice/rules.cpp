@@ -29,7 +29,7 @@
 #include "dice_roll_parser.hpp"
 #include "paradice/random.hpp"
 #include "odin/tokenise.hpp"
-#include "munin/ansi/protocol.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/weak_ptr.hpp>
@@ -44,23 +44,23 @@ namespace paradice {
 
 namespace {
     static string const ANSI_DEFAULT = str(format("%c%c%c")
-        % munin::ansi::ESCAPE
-        % munin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        % odin::ansi::ESCAPE
+        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
         // No argument = 0, which is DEFAULT_ATTRIBUTES.
-        % munin::ansi::SELECT_GRAPHICS_RENDITION);
+        % odin::ansi::SELECT_GRAPHICS_RENDITION);
 
     static string const ANSI_BOLD = str(format("%c%c%d%c")
-        % munin::ansi::ESCAPE
-        % munin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        % int(munin::ansi::graphics::INTENSITY_BOLD)
-        % munin::ansi::SELECT_GRAPHICS_RENDITION);
+        % odin::ansi::ESCAPE
+        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        % int(odin::ansi::graphics::INTENSITY_BOLD)
+        % odin::ansi::SELECT_GRAPHICS_RENDITION);
     
     static string const ANSI_GREEN = str(format("%c%c%d%c")
-        % munin::ansi::ESCAPE
-        % munin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        % int(munin::ansi::graphics::FOREGROUND_COLOUR_BASE
-            + munin::ansi::graphics::COLOUR_GREEN)
-        % munin::ansi::SELECT_GRAPHICS_RENDITION);
+        % odin::ansi::ESCAPE
+        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        % int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE
+            + odin::ansi::graphics::COLOUR_GREEN)
+        % odin::ansi::SELECT_GRAPHICS_RENDITION);
     
     static string const MAX_ROLL_INDICATOR = str(format("%s%s!%s")
         % ANSI_BOLD

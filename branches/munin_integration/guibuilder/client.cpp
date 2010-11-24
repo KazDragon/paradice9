@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "client.hpp"
 #include "munin/ansi/window.hpp"
+#include "odin/ansi/parser.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
 #include "odin/telnet/negotiation_router.hpp"
@@ -36,6 +37,7 @@
 #include "odin/telnet/options/suppress_goahead_server.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <deque>
 #include <string>
 
 using namespace std;
@@ -44,8 +46,68 @@ using namespace munin::ansi;
 
 namespace guibuilder {
 
+namespace {
+    
+struct ansi_input_visitor
+    : public static_visitor<>
+{
+    ansi_input_visitor(
+        function<void (odin::ansi::control_sequence)> on_control_sequence
+      , function<void (string)>                       on_text)
+        : on_control_sequence_(on_control_sequence)
+        , on_text_(on_text)
+    {
+    }
+    
+    void operator()(odin::ansi::control_sequence const &control_sequence)
+    {
+        printf("[META: %s CSI: 0x%02X ('%c') CMD: 0x%02X('%c')\n"
+          , (control_sequence.meta_ ? "Yes" : "No")
+          , int(control_sequence.initiator_)
+          , control_sequence.initiator_
+          , int(control_sequence.command_)
+          , control_sequence.command_
+          );
+
+        if (!control_sequence.arguments_.empty())
+        {
+            printf("ARGUMENTS:\n");
+            
+            BOOST_FOREACH(char ch, control_sequence.arguments_)
+            {
+                printf("    [0x%02X]", int(ch));
+                
+                if (isprint(ch))
+                {
+                    printf(" (%c)", ch);
+                }
+                
+                printf("\n");
+            }
+        }
+        
+        if (on_control_sequence_)
+        {
+            on_control_sequence_(control_sequence);
+        }
+    }
+    
+    void operator()(string const &text)
+    {
+        if (on_text_)
+        {
+            on_text_(text);
+        }
+    }
+    
+    function<void (odin::ansi::control_sequence)> on_control_sequence_;
+    function<void (string)>                       on_text_;
+};
+
+}
+
 struct client::impl
-    : public boost::enable_shared_from_this<client::impl>
+    : public enable_shared_from_this<client::impl>
 {
     // ======================================================================
     // SCHEDULE_NEXT_READ
@@ -83,10 +145,26 @@ struct client::impl
     // ======================================================================
     void on_text(string const &text)
     {
-        if (on_text_)
+        input_buffer_.insert(
+            input_buffer_.end()
+          , text.begin()
+          , text.end());
+        
+        static odin::ansi::parser parse;
+        
+        BOOST_AUTO(begin, input_buffer_.begin());
+        BOOST_AUTO(end,   input_buffer_.end());
+        BOOST_AUTO(result, parse(begin, end));
+        
+        ansi_input_visitor visitor(on_control_sequence_, on_text_);
+
+        BOOST_FOREACH(odin::ansi::parser::element_type value, result)
         {
-            on_text_(text);
+            apply_visitor(visitor, value);
         }
+
+        // Erase any input that has been successfully parsed.
+        input_buffer_.erase(input_buffer_.begin(), begin);
     }
 
     // ======================================================================
@@ -114,7 +192,9 @@ struct client::impl
 
     function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     function<void (string)>                         on_text_;
-
+    function<void (odin::ansi::control_sequence)>   on_control_sequence_;
+   
+    deque<char>                                     input_buffer_;
 };
 
 client::client(
@@ -192,14 +272,20 @@ shared_ptr<window> client::get_window()
 }
 
 void client::on_window_size_changed(
-    boost::function<void (odin::u16, odin::u16)> callback)
+    function<void (odin::u16, odin::u16)> callback)
 {
     pimpl_->on_window_size_changed_ = callback;
 }
 
-void client::on_text(boost::function<void (string)> callback)
+void client::on_text(function<void (string)> callback)
 {
     pimpl_->on_text_ = callback;
+}
+
+void client::on_control_sequence(
+    function<void (odin::ansi::control_sequence)> callback)
+{
+    pimpl_->on_control_sequence_ = callback;
 }
 
 }

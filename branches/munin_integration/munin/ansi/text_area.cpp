@@ -231,7 +231,7 @@ private :
             // base.
             document_base_ = new_position.y;
             render();
-            cursor_position_ = munin::point(new_position.x, document_base_);
+            cursor_position_ = munin::point(new_position.x, 0);
             on_cursor_position_changed(cursor_position_);
         }
         else if (u32(new_position.y + 1) > document_base_ + get_size().height)

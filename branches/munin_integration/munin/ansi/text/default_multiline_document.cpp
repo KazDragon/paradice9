@@ -76,9 +76,13 @@ struct default_multiline_document::impl
         // the document, caching each start of each line.
         for (u32 index = current_line_index; index < text_.size(); ++index)
         {
-            if (text_[index].first == '\n'
-             || (index != current_line_index
-              && ((index - current_line_index) % width_ == 0)))
+            if (text_[index].first == '\n')
+            {
+                line_indices_.push_back(index + 1);
+                current_line_index = index + 1;
+            }
+            else if (index != current_line_index
+                 && ((index - current_line_index) % width_ == 0))
             {
                 line_indices_.push_back(index);
                 current_line_index = index;
@@ -141,7 +145,9 @@ struct default_multiline_document::impl
             
             for (; current_line < line_indices_.size(); ++current_line)
             {
-                if (line_indices_[current_line] > index)
+                BOOST_AUTO(line_index, line_indices_[current_line]);
+
+                if (line_index > index)
                 {
                     // The required index was the previous line.
                     --current_line;

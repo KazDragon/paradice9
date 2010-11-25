@@ -43,10 +43,31 @@ ui::ui()
            make_shared<munin::ansi::basic_container>())
 {
     get_container()->set_layout(
-        make_shared<munin::grid_layout<munin::ansi::element_type> >(2, 1));
+        make_shared<munin::grid_layout<munin::ansi::element_type> >(3, 1));
 
+    get_container()->add_component(make_shared<munin::ansi::edit>());
     get_container()->add_component(make_shared<munin::ansi::text_area>());
-    //get_container()->add_component(make_shared<munin::ansi::edit>());
+    get_container()->add_component(make_shared<munin::ansi::edit>());
+}
+
+void ui::do_event(any const &ev)
+{
+    char const *ch = any_cast<char>(&ev);
+   
+    if (ch)
+        printf("%d\n", int(*ch));
+    
+    if (ch && *ch == '\t')
+    {
+        focus_next();
+        
+        shared_ptr<munin::component<munin::ansi::element_type> > comp = get_focussed_component();
+        //*((char*)0) = 1;
+    }
+    else
+    {
+        munin::composite_component<munin::ansi::element_type>::do_event(ev);
+    }
 }
 
 }

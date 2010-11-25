@@ -33,6 +33,7 @@
 
 using namespace odin;
 using namespace std;
+using namespace boost;
 
 namespace munin { namespace ansi { namespace text {
 
@@ -44,7 +45,6 @@ struct default_singleline_document::impl
     }
 
     vector<default_singleline_document::character_type> text_;
-    boost::optional<u32>                                selection_index_;
     u32                                                 caret_index_;
 };
 
@@ -128,38 +128,19 @@ u32 default_singleline_document::do_get_caret_index() const
 }
 
 // ==========================================================================
-// DO_SELECT_TEXT 
+// DO_GET_TEXT_SIZE
 // ==========================================================================
-void default_singleline_document::do_select_text(
-    odin::u32                  from
-  , boost::optional<odin::u32> to)
+u32 default_singleline_document::do_get_text_size() const
 {
-    set_caret_index(from);
-    
-    if (to.is_initialized())
-    {
-        pimpl_->selection_index_ = (max)(u32(pimpl_->text_.size()), *to);
-    }
-    else
-    {
-        pimpl_->selection_index_ = u32(pimpl_->text_.size()); 
-    }
-}
-    
-// ==========================================================================
-// DO_GET_SELECTED_TEXT_REGION 
-// ==========================================================================
-boost::optional< std::pair<odin::u32, odin::u32> >
-    default_singleline_document::do_get_selected_text_region() const
-{
-    return boost::optional< std::pair<odin::u32, odin::u32> >();
+    return pimpl_->text_.size();
 }
 
 // ==========================================================================
 // DO_INSERT_TEXT
 // ==========================================================================
 void default_singleline_document::do_insert_text(
-    runtime_array<character_type> const& text)
+    runtime_array<character_type> const& text
+  , optional<u32>                        index)
 {
     BOOST_AUTO(old_index, pimpl_->caret_index_);
     
@@ -191,24 +172,45 @@ void default_singleline_document::do_insert_text(
 // ==========================================================================
 // DO_DELETE_TEXT 
 // ==========================================================================
-void default_singleline_document::do_delete_text()
+void default_singleline_document::do_delete_text(pair<u32, u32> range)
 {
-    if (pimpl_->selection_index_)
+    // Arrange the range in a start->end order.
+    if (range.first > range.second)
     {
+        swap(range.first, range.second);
     }
-    else if (pimpl_->caret_index_ != 0)
+    
+    // Discard nonexistent ranges.
+    if (range.first >= u32(pimpl_->text_.size()))
     {
-        pimpl_->text_.erase(
-            pimpl_->text_.begin() + (pimpl_->caret_index_ - 1)
-          , pimpl_->text_.begin() + pimpl_->caret_index_);
-        set_caret_index(pimpl_->caret_index_ - 1);
-        
-        vector<munin::rectangle> regions;
-        regions.push_back(munin::rectangle(
-            munin::point(pimpl_->caret_index_, 0)
-          , munin::extent(pimpl_->text_.size() - pimpl_->caret_index_, 0)));
-        on_redraw(regions);
+        return;
     }
+    
+    // Obtain the caret index, in case that has to move later. 
+    BOOST_AUTO(caret_index, get_caret_index());
+    
+    // Erase the text in question.
+    pimpl_->text_.erase(
+        pimpl_->text_.begin() + range.first
+      , pimpl_->text_.begin() + range.second);
+    
+    // Move the caret if necessary.
+    if (caret_index > range.first && caret_index <= range.second)
+    {
+        set_caret_index(range.first);
+    }
+    else if (caret_index > range.second)
+    {
+        set_caret_index(caret_index - (range.second - range.first));
+    }
+    
+    // Finally, notify that the document has changed.
+    munin::rectangle region(
+        munin::point(range.first, 0)
+      , munin::extent(pimpl_->text_.size() - range.first, 1));
+    vector<munin::rectangle> regions;
+    regions.push_back(region);
+    on_redraw(regions);
 }
 
 // ==========================================================================
@@ -222,12 +224,19 @@ u32 default_singleline_document::do_get_number_of_lines() const
 // ==========================================================================
 // DO_GET_TEXT_LINE
 // ==========================================================================
-odin::runtime_array<default_singleline_document::character_type> 
+runtime_array<default_singleline_document::character_type> 
     default_singleline_document::do_get_text_line(u32 index) const
 {
-    return odin::runtime_array<character_type>(
-        &*pimpl_->text_.begin()
-      , pimpl_->text_.size());
+    if (pimpl_->text_.empty())
+    {
+        return runtime_array<character_type>();
+    }
+    else
+    {
+        return runtime_array<character_type>(
+            &*pimpl_->text_.begin()
+          , pimpl_->text_.size());
+    }
 }
 
 }}}

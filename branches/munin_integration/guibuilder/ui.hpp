@@ -37,6 +37,9 @@ class ui
 {
 public :
     ui();
+    
+protected :
+    virtual void do_event(boost::any const &event);
 };
 
 }

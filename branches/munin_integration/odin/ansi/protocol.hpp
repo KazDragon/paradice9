@@ -99,6 +99,12 @@ namespace odin { namespace ansi {
     // Restore (unsave) cursor
     static char const RESTORE_CURSOR_POSITION          = odin::ascii::LOWERCASE_U;
     
+    // Erase Characters
+    static char const ERASE_CHARACTER                  = odin::ascii::UPPERCASE_X;
+    
+    // Tab backwards
+    static char const CURSOR_BACKWARD_TABULATION       = odin::ascii::UPPERCASE_Z;
+    
     // A number of undocumented extensions exist for PuTTY and other terminals
     static char const PUTTY_EXTENSION                  = odin::ascii::TILDE;    
 

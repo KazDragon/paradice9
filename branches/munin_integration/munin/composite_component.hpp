@@ -221,6 +221,34 @@ protected :
     }
     
     //* =====================================================================
+    /// \brief Called by enable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_enable()
+    {
+        container_->enable();
+    }
+    
+    //* =====================================================================
+    /// \brief Called by disable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_disable()
+    {
+        container_->disable();
+    }
+    
+    //* =====================================================================
+    /// \brief Called by is_enabled().  Derived classes must override this
+    /// function in order to return whether the component is disabled or not
+    /// in a custom manner.
+    //* =====================================================================
+    virtual bool do_is_enabled() const
+    {
+        return container_->is_enabled();
+    }
+
+    //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================

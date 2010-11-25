@@ -337,17 +337,26 @@ private :
     //* =====================================================================
     void do_character_event(char ch)
     {
-        if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
+        if (is_enabled())
         {
-            document_->delete_text();
-        }
-        else if (isprint(ch))
-        {
-            munin::ansi::element_type data[] = {
-                make_pair(ch, munin::ansi::attribute())
-            };
-        
-            document_->insert_text(data);
+            if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
+            {
+                BOOST_AUTO(caret_index, document_->get_caret_index());
+                
+                if (caret_index != 0)
+                {
+                    document_->delete_text(
+                        make_pair(caret_index - 1, caret_index));
+                }
+            }
+            else if (isprint(ch))
+            {
+                munin::ansi::element_type data[] = {
+                    make_pair(ch, munin::ansi::attribute())
+                };
+            
+                document_->insert_text(data, optional<u32>());
+            }
         }
     }
     

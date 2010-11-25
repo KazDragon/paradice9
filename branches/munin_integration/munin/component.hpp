@@ -185,6 +185,30 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Enables the component.
+    //* =====================================================================
+    void enable()
+    {
+        do_enable();
+    }
+    
+    //* =====================================================================
+    /// \brief Disables the component.
+    //* =====================================================================
+    void disable()
+    {
+        do_disable();
+    }
+    
+    //* =====================================================================
+    /// \brief Returns whether the component is enabled or not.
+    //* =====================================================================
+    bool is_enabled() const
+    {
+        return do_is_enabled();
+    }
+    
+    //* =====================================================================
     /// \brief Returns true if this component has a visible cursor, false
     /// otherwise.
     //* =====================================================================
@@ -369,6 +393,25 @@ protected :
     /// in a custom manner.
     //* =====================================================================
     virtual boost::shared_ptr<component_type> do_get_focussed_component() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by enable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_enable() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by disable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_disable() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by is_enabled().  Derived classes must override this
+    /// function in order to return whether the component is disabled or not
+    /// in a custom manner.
+    //* =====================================================================
+    virtual bool do_is_enabled() const = 0;
     
     //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override

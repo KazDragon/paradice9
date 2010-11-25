@@ -213,39 +213,7 @@ private :
     //* =====================================================================
     void on_document_changed(vector<munin::rectangle> regions)
     {
-        // TODO:
         render();
-        /*
-        // Search the regions, looking for regions that overlap with the
-        // text that we are displaying.
-        vector<munin::rectangle> overlapping_changes;
-        
-        // Determine the rectangle of the document that we are displaying.
-        munin::rectangle display_rectangle(
-            munin::point(document_base_, 0)
-          , munin::extent(get_size().width, 1));
-        
-        BOOST_FOREACH(munin::rectangle rectangle, regions)
-        {
-            optional<munin::rectangle> overlap = munin::intersection(
-                rectangle, display_rectangle);
-            
-            if (overlap)
-            {
-                overlapping_changes.push_back(overlap.get());
-            }
-        }
-
-        // If we have any overlapping regions, then we need to redraw those
-        // portions of the document, and also schedule redraws for this
-        // renderer.
-        
-        // First naive implementation: redraw the entire component.
-        if (!overlapping_changes.empty())
-        {
-            render();
-        }
-        */
     }
     
     //* =====================================================================
@@ -293,31 +261,6 @@ private :
     //* =====================================================================
     void render()
     {
-        // TODO: 
-        /*
-        document_view_.resize(get_size().width);
-        fill(document_view_.begin()
-           , document_view_.end()
-           , munin::ansi::element_type(' ', munin::ansi::attribute()));
-        
-        // Find the segment of the document that we will display
-        odin::runtime_array<document_type::character_type> line =
-            document_->get_text_line(0);
-        
-        BOOST_AUTO(
-            start_index
-          , (min)(line.size(), document_base_));
-        
-        BOOST_AUTO(
-            end_index
-          , (min)(line.size(), document_base_ + document_view_.size()));
-        
-        copy(
-            line.begin() + start_index
-          , line.begin() + end_index
-          , document_view_.begin());
-        */
-        
         munin::rectangle redraw_region(
             get_position()
           , get_size());
@@ -327,6 +270,36 @@ private :
         
     }
 
+    //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the up arrow
+    /// key has been pressed.
+    //* =====================================================================
+    void do_cursor_up_key_event(u32 times)
+    {
+        BOOST_AUTO(position, document_->get_caret_position());
+        
+        if (times > u32(position.y))
+        {
+            times = position.y;
+        }
+        
+        document_->set_caret_position(
+            munin::point(position.x, position.y - times));
+    }
+    
+    //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the down arrow
+    /// key has been pressed.
+    //* =====================================================================
+    void do_cursor_down_key_event(u32 times)
+    {
+        BOOST_AUTO(position, document_->get_caret_position());
+        
+        document_->set_caret_position(munin::point(
+            position.x
+          , position.y + times));
+    }
+    
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the <- key
     /// has been pressed.
@@ -349,29 +322,128 @@ private :
     }
     
     //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the PGUP key
+    /// has been pressed.
+    //* =====================================================================
+    void do_pgup_key_event()
+    {
+        // PgUp - shift the document base one page up, then shift the
+        // cursor one page up.  Then render.
+        BOOST_AUTO(size, get_size());
+        
+        if (document_base_ < u32(size.height))
+        {
+            document_base_ = 0;
+        }
+        else
+        {
+            document_base_ -= size.height;
+        }
+        
+        BOOST_AUTO(caret_position, document_->get_caret_position());
+        
+        if (caret_position.y < size.height)
+        {
+            caret_position.y = 0;
+        }
+        else
+        {
+            caret_position.y -= size.height;
+        }
+        
+        document_->set_caret_position(caret_position);
+        
+        render();
+    }
+    
+    //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the PGDN key
+    /// has been pressed.
+    //* =====================================================================
+    void do_pgdn_key_event()
+    {
+        // PgDn - shift the document base one page down, then shift the
+        // cursor one page down.  Then render.
+        BOOST_AUTO(size, get_size());
+        BOOST_AUTO(lines, document_->get_number_of_lines());
+        
+        // We don't want the document base to be more than one page before
+        // the end.
+        u32 maximum_base = lines <= u32(size.height)
+                         ? 0
+                         : lines - size.height;
+                         
+        document_base_ = 
+            (min)(u32(document_base_ + size.height), maximum_base);
+        
+        BOOST_AUTO(caret_position, document_->get_caret_position());
+        caret_position.y += size.height;
+        
+        document_->set_caret_position(caret_position);
+        
+        render();
+    }
+    
+    //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the DEL key
+    /// has been pressed.
+    //* =====================================================================
+    void do_del_key_event()
+    {
+        BOOST_AUTO(caret_index, document_->get_caret_index());
+        document_->delete_text(
+            make_pair(caret_index, caret_index + 1));
+    }
+
+    //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the META+HOME
+    /// key combination has been pressed.
+    //* =====================================================================
+    void do_meta_home_key_event()
+    {
+        // The META+HOME key combination will move the caret to the beginning
+        // of the document.
+        // Events called from this action should ensure that the view and
+        // the cursor position are correctly placed.
+        document_->set_caret_index(0); 
+    }
+    
+    //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the HOME key
     /// has been pressed.
     //* =====================================================================
     void do_home_key_event()
     {
-        // The HOME key will move the caret to the beginning of the document.
-        // Events called from this action should ensure that the view and
-        // the cursor position are correctly placed.
-        document_->set_caret_index(0); 
+        // The HOME key goes to the first character of the current line.
+        BOOST_AUTO(position, document_->get_caret_position());
+        document_->set_caret_position(munin::point(0, position.y));
     }
 
+    //* =====================================================================
+    /// \brief Called by do_ansi_control_sequence_event when the META+END
+    /// key combination has been pressed.
+    //* =====================================================================
+    void do_meta_end_key_event()
+    {
+        // The META+END key combination will move the caret to the end of the
+        // document.
+        // Events called from this action should ensure that the view and
+        // the cursor position are correctly placed.
+        document_->set_caret_index(
+            document_->get_width() * document_->get_height());
+    }
+    
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the END key
     /// has been pressed.
     //* =====================================================================
     void do_end_key_event()
     {
-        // The END key will move the caret to the end of the document.
-        // Events called from this action should ensure that the view and
-        // the cursor position are correctly placed.
-        document_->set_caret_index(
-            document_->get_width() 
-          * document_->get_height());
+        // The END key goes to the last character of the current line.
+        BOOST_AUTO(position, document_->get_caret_position());
+        document_->set_caret_position(munin::point(
+            document_->get_width() - 1
+          , position.y));
     }
     
     //* =====================================================================
@@ -401,19 +473,69 @@ private :
                           
                 do_cursor_forward_key_event(times);
             }
+            // Check for the up arrow key
+            else if (sequence.command_ == odin::ansi::CURSOR_UP)
+            {
+                u32 times = sequence.arguments_.empty()
+                          ? 1
+                          : atoi(sequence.arguments_.c_str());
+                          
+                do_cursor_up_key_event(times);
+            }
+            // Check for the up arrow key
+            else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
+            {
+                u32 times = sequence.arguments_.empty()
+                          ? 1
+                          : atoi(sequence.arguments_.c_str());
+                          
+                do_cursor_down_key_event(times);
+            }
             else if (sequence.command_ == odin::ansi::PUTTY_EXTENSION)
             {
                 // Check for the HOME key
                 if (sequence.arguments_.size() == 1
                  && sequence.arguments_[0] == '1')
                 {
-                    do_home_key_event();
+                    if (sequence.meta_)
+                    {
+                        do_meta_home_key_event();
+                    }
+                    else
+                    {
+                        do_home_key_event();
+                    }
                 }
                 // Check for the END key
                 if (sequence.arguments_.size() == 1
                  && sequence.arguments_[0] == '4')
                 {
-                    do_end_key_event();
+                    if (sequence.meta_)
+                    {
+                        do_meta_end_key_event();
+                    }
+                    else
+                    {
+                        do_end_key_event();
+                    }
+                }
+                // Check for the PGUP key
+                if (sequence.arguments_.size() == 1
+                 && sequence.arguments_[0] == '5')
+                {
+                    do_pgup_key_event();
+                }
+                // Check for the PGDN key
+                if (sequence.arguments_.size() == 1
+                 && sequence.arguments_[0] == '6')
+                {
+                    do_pgdn_key_event();
+                }
+                // Check for the DEL key
+                if (sequence.arguments_.size() == 1
+                 && sequence.arguments_[0] == '3')
+                {
+                    do_del_key_event();
                 }
             }
         }
@@ -424,17 +546,26 @@ private :
     //* =====================================================================
     void do_character_event(char ch)
     {
-        if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
+        if (is_enabled())
         {
-            document_->delete_text();
-        }
-        else if (isprint(ch))
-        {
-            munin::ansi::element_type data[] = {
-                make_pair(ch, munin::ansi::attribute())
-            };
-        
-            document_->insert_text(data);
+            if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
+            {
+                BOOST_AUTO(caret_index, document_->get_caret_index());
+                
+                if (caret_index != 0)
+                {
+                    document_->delete_text(
+                        make_pair(caret_index - 1, caret_index));
+                }
+            }
+            else if (isprint(ch) || ch == '\n')
+            {
+                munin::ansi::element_type data[] = {
+                    make_pair(ch, munin::ansi::attribute())
+                };
+            
+                document_->insert_text(data, optional<u32>());
+            }
         }
     }
     
@@ -443,9 +574,6 @@ private :
     bool                                              cursor_state_;
     
     u32                                               document_base_;
-    /*
-    vector<munin::ansi::element_type>                 document_view_;
-    */
 };
 
 class text_area_layout
@@ -505,16 +633,11 @@ private :
 
 }
 
-struct text_area::impl
-{
-};
-
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 text_area::text_area()
   : munin::composite_component<element_type>(make_shared<basic_container>())
-  , pimpl_(new impl)
 {
     get_container()->set_layout(
         make_shared<detail::text_area_layout>());

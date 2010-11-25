@@ -53,6 +53,7 @@ public :
     basic_component()
         : bounds_(point(0, 0), extent(0, 0))
         , has_focus_(false)
+        , enabled_(true)
     {
     }
     
@@ -150,6 +151,9 @@ protected :
     // ======================================================================
     void toggle_focus()
     {
+        printf("Toggling Focus: %s\n",
+            has_focus_ ? "Off" : "On");
+            
         if (has_focus_)
         {
             has_focus_ = false;
@@ -193,6 +197,34 @@ protected :
     }
 
     //* =====================================================================
+    /// \brief Called by enable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_enable()
+    {
+        enabled_ = true;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by disable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_disable()
+    {
+        enabled_ = false;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by is_enabled().  Derived classes must override this
+    /// function in order to return whether the component is disabled or not
+    /// in a custom manner.
+    //* =====================================================================
+    virtual bool do_is_enabled() const
+    {
+        return enabled_;
+    }
+
+    //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
@@ -221,6 +253,7 @@ protected :
 private :
     rectangle bounds_;
     bool      has_focus_;
+    bool      enabled_;
     
 };
     

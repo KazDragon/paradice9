@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/ansi/basic_container.hpp"
 #include "munin/canvas.hpp"
+#include <boost/typeof/typeof.hpp>
 
 namespace munin { namespace ansi {
 
@@ -37,12 +38,14 @@ void basic_container::do_initialise_region(
   , point const          &offset
   , rectangle const      &region)
 {
-    for (odin::s32 row = 0; row < region.size.width; ++row)
+    BOOST_AUTO(position, get_position());
+    
+    for (odin::s32 row = 0; row < region.size.height; ++row)
     {
-        for (odin::s32 column = 0; column < region.size.height; ++column)
+        for (odin::s32 column = 0; column < region.size.width; ++column)
         {
-            cvs[offset.x + region.origin.x + row   ]
-               [offset.y + region.origin.y + column] 
+            cvs[position.x + offset.x + region.origin.x + column]
+               [position.y + offset.y + region.origin.y + row   ] 
                     = element_type(' ', attribute());
         }
     }

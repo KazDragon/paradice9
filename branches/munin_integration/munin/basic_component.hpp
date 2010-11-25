@@ -151,9 +151,6 @@ protected :
     // ======================================================================
     void toggle_focus()
     {
-        printf("Toggling Focus: %s\n",
-            has_focus_ ? "Off" : "On");
-            
         if (has_focus_)
         {
             has_focus_ = false;

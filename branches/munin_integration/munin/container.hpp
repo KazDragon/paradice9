@@ -182,7 +182,7 @@ protected :
             // subcomponent within this container.
             point origin = subcomponent->get_position();
             
-            BOOST_FOREACH(rectangle rect, regions)
+            BOOST_FOREACH(rectangle &rect, regions)
             {
                 rect.origin.x += origin.x;
                 rect.origin.y += origin.y;

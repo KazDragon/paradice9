@@ -584,10 +584,21 @@ protected :
 
         if (number_of_components != 0)
         {
-            boost::shared_ptr<component_type> current_component =
-                this->get_component(0);
+            bool focused = false;
+            
+            for (odin::u32 current_component = 0; 
+                 current_component < number_of_components && !focused;
+                 ++current_component)
+            {
+                boost::shared_ptr<component_type> comp =
+                    this->get_component(current_component);
 
-            current_component->focus_next();
+                if (comp->can_focus())
+                {
+                    comp->focus_next();
+                    focused = true;
+                }
+            }
         }
     }
     

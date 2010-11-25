@@ -38,11 +38,8 @@ using namespace boost;
 namespace munin { namespace ansi { namespace text {
 
 namespace {
-
-typedef default_multiline_document::character_type character_type;
-    
+    typedef default_multiline_document::character_type character_type;
 }
-
 
 struct default_multiline_document::impl
 {
@@ -83,7 +80,7 @@ struct default_multiline_document::impl
              || (index != current_line_index
               && ((index - current_line_index) % width_ == 0)))
             {
-                line_indices_.push_back(index + 1);
+                line_indices_.push_back(index);
                 current_line_index = index;
             }
         }
@@ -298,9 +295,11 @@ u32 default_multiline_document::do_get_caret_index() const
 {
     BOOST_AUTO(caret_position, get_caret_position());
     
-    return (min)(
-        u32(pimpl_->line_indices_[caret_position.y] + caret_position.x)
-      , u32(pimpl_->text_.size()));
+    return u32(caret_position.y) >= u32(pimpl_->line_indices_.size())
+         ? u32(pimpl_->text_.size())
+         : (min)(
+               u32(pimpl_->line_indices_[caret_position.y] + caret_position.x)
+             , u32(pimpl_->text_.size()));
 }
 
 // ==========================================================================

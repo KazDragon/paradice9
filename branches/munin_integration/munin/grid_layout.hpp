@@ -176,16 +176,6 @@ protected :
                 munin::extent(
                     size.width  / columns_
                   , size.height / rows_));
-
-            printf("GRID LAYOUT: \n"
-                   "    Setting component %d to \n"
-                   "        position = (%d,%d)\n"
-                   "        size     = (%d,%d)\n",
-                   index,
-                   components_[index]->get_position().x,
-                   components_[index]->get_position().y,
-                   components_[index]->get_size().width,
-                   components_[index]->get_size().height);
         }
     }
 

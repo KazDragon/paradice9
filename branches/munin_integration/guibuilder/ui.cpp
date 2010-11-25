@@ -31,6 +31,7 @@
 #include "munin/ansi/edit.hpp"
 #include "munin/ansi/text_area.hpp"
 #include "munin/ansi/frame.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -53,7 +54,7 @@ ui::ui()
 void ui::do_event(any const &ev)
 {
     char const *ch = any_cast<char>(&ev);
-   
+    
     if (ch)
         printf("%d\n", int(*ch));
     
@@ -61,11 +62,30 @@ void ui::do_event(any const &ev)
     {
         focus_next();
         
-        shared_ptr<munin::component<munin::ansi::element_type> > comp = get_focussed_component();
-        //*((char*)0) = 1;
+        if (!has_focus())
+        {
+            focus_next();
+        }
     }
     else
     {
+        odin::ansi::control_sequence const *control_sequence = 
+            any_cast<odin::ansi::control_sequence>(&ev);
+
+        if (control_sequence)
+        {
+            if (control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+             && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
+            {
+                focus_previous();
+
+                if (!has_focus())
+                {
+                    focus_previous();
+                }
+            }
+        }
+
         munin::composite_component<munin::ansi::element_type>::do_event(ev);
     }
 }

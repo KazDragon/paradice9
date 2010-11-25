@@ -178,7 +178,7 @@ private :
           , document_view_.begin());
         
         munin::rectangle redraw_region(
-            get_position()
+            munin::point()
           , get_size());
         vector<munin::rectangle> redraw_regions;
         redraw_regions.push_back(redraw_region);

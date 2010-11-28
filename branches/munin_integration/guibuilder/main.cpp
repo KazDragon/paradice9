@@ -60,7 +60,7 @@ void on_repaint(
 {
     // TODO: This should take a client instead so that it can filter down the
     // stream chain rather than writing directly to the socket.
-    shared_ptr<guibuilder::socket> socket = weak_socket.lock();
+    BOOST_AUTO(socket, weak_socket.lock());
 
     if (socket)
     {
@@ -76,7 +76,7 @@ void on_keepalive(
   , shared_ptr<boost::asio::deadline_timer>  keepalive_timer
   , boost::system::error_code const         &error)
 {
-    boost::shared_ptr<guibuilder::socket> socket = weak_socket.lock();
+    BOOST_AUTO(socket, weak_socket.lock());
 
     if (socket)
     {
@@ -84,9 +84,7 @@ void on_keepalive(
             odin::telnet::IAC, odin::telnet::NOP
         };
 
-        odin::runtime_array<guibuilder::socket::output_value_type> data(values);
-
-        socket->async_write(data, NULL);
+        socket->async_write(values, NULL);
 
         schedule_keepalive(socket, keepalive_timer);
     }
@@ -94,7 +92,7 @@ void on_keepalive(
 
 void on_death(weak_ptr<guibuilder::client> weak_client)
 {
-    shared_ptr<guibuilder::client> client = weak_client.lock();
+    BOOST_AUTO(client, weak_client.lock());
 
     if (client)
     {
@@ -109,7 +107,7 @@ void on_window_size_changed(
     odin::u16                    width,
     odin::u16                    height)
 {
-    shared_ptr<guibuilder::client> client = weak_client.lock();
+    BOOST_AUTO(client, weak_client.lock());
 
     if (client)
     {
@@ -122,7 +120,7 @@ void on_text(
     weak_ptr<guibuilder::client>  weak_client
   , string const                 &text)
 {
-    shared_ptr<guibuilder::client> client = weak_client.lock();
+    BOOST_AUTO(client, weak_client.lock());
 
     if (client)
     {
@@ -139,7 +137,7 @@ void on_control_sequence(
     weak_ptr<guibuilder::client>        weak_client
   , odin::ansi::control_sequence const &control_sequence)
 {
-    shared_ptr<guibuilder::client> client = weak_client.lock();
+    BOOST_AUTO(client, weak_client.lock());
     
     if (client)
     {
@@ -177,8 +175,8 @@ void on_accept(shared_ptr<guibuilder::socket> socket)
           , boost::weak_ptr<guibuilder::client>(client)
           , _1));
     
-    boost::shared_ptr<munin::ansi::window>    window  = client->get_window();
-    boost::shared_ptr<munin::ansi::container> content = window->get_content();
+    BOOST_AUTO(window,  client->get_window());
+    BOOST_AUTO(content, window->get_content());
 
     window->on_repaint.connect(
         bind(&on_repaint, weak_ptr<guibuilder::socket>(socket), _1));

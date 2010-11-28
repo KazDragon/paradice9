@@ -29,6 +29,7 @@
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/ansi_canvas.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -74,11 +75,94 @@ bool canvas_region_compare(
 }
 
 //* =========================================================================
+/// \brief Returns a string that is an ANSI sequence that will change the
+/// output style from 'from' to 'to'.  Assigns the latter to the former.  
+//* =========================================================================
+string change_pen(
+    munin::ansi::attribute &from
+  , munin::ansi::attribute  to)
+{
+    string graphics_sequence;
+    
+    if (from.foreground_colour != to.foreground_colour)
+    {
+        graphics_sequence += string()
+                          + odin::ansi::ESCAPE
+                          + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+                       
+        graphics_sequence += str(format("%s")
+            % int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE
+                + to.foreground_colour));
+        
+        from.foreground_colour = to.foreground_colour;
+    }
+    
+    if (from.background_colour != to.background_colour)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s")
+            % int(odin::ansi::graphics::BACKGROUND_COLOUR_BASE
+                + to.background_colour));
+        
+        from.background_colour = to.background_colour;
+    }
+    
+    if (from.intensity != to.intensity)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s") % int(to.intensity));
+        
+        from.intensity = to.intensity;
+    }
+
+    if (!graphics_sequence.empty())
+    {
+        graphics_sequence += odin::ansi::SELECT_GRAPHICS_RENDITION;
+    }
+
+    string charset_sequence;
+    
+    if (from.locale != to.locale || from.character_set != to.character_set)
+    {
+        charset_sequence += string()
+                          + odin::ansi::ESCAPE
+                          + to.character_set
+                          + to.locale;
+                          
+        from.locale        = to.locale;
+        from.character_set = to.character_set;
+    }
+    
+    return graphics_sequence + charset_sequence;
+}
+
+//* =========================================================================
 /// \brief Returns a string which would paint the specified region on a
 /// canvas.
 //* =========================================================================
 string canvas_region_string(
-    munin::rectangle const &region
+    munin::ansi::attribute                   &pen
+  , munin::rectangle const                   &region
   , munin::canvas<munin::ansi::element_type> &cvs)
 {
     string output;
@@ -94,8 +178,12 @@ string canvas_region_string(
             munin::ansi::element_type const &element = 
                 cvs[column + region.origin.x]
                    [row    + region.origin.y];
-            
-            // TODO: apply graphics attributes here.
+
+            // Apply any attribute changes that are required.
+            if (!(pen == element.second))
+            {
+                output += change_pen(pen, element.second);
+            }
             
             // With the attributes set, output the actual character.
             output.push_back(element.first);
@@ -254,7 +342,7 @@ private :
             if (repaint_all
              || !canvas_region_compare(slice, canvas_, canvas_clone))
             {
-                output += canvas_region_string(slice, canvas_);
+                output += canvas_region_string(pen_, slice, canvas_);
             }
         }
 
@@ -300,6 +388,7 @@ private :
     boost::asio::io_service      &io_service_;
     boost::shared_ptr<container>  content_;
     ansi_canvas                   canvas_;
+    attribute                     pen_;
     
     point                         last_cursor_position_;
     bool                          last_cursor_state_;

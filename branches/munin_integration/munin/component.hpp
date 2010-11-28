@@ -226,6 +226,14 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Sets an implementation-specific attribute of the component.
+    //* =====================================================================
+    void set_attribute(std::string const &name, boost::any const &attr)
+    {
+        do_set_attribute(name, attr);
+    }
+    
+    //* =====================================================================
     /// \brief Draws the component.
     ///
     /// \param cvs the canvas in which the component should draw itself.
@@ -425,6 +433,13 @@ protected :
     /// a custom manner.
     //* =====================================================================
     virtual point do_get_cursor_position() const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr) = 0;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

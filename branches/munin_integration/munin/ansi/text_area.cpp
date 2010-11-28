@@ -43,68 +43,67 @@ using namespace std;
 
 namespace munin { namespace ansi {
 
-namespace detail {
-
-class text_area_renderer 
-    : public munin::basic_component<munin::ansi::element_type>
+// ==========================================================================
+// TEXT_AREA::IMPLEMENTATION STRUCTURE
+// ==========================================================================
+struct text_area::impl
 {
-public :
-    typedef munin::text::document<munin::ansi::element_type> document_type;
-    
-    //* =====================================================================
-    /// \brief Constructor
-    /// \param doc - the document that this renderer will be drawing
-    //* =====================================================================
-    text_area_renderer(
-        shared_ptr<document_type> doc)
-      : document_(doc)
-      , cursor_state_(false)
-      , document_base_(0)
+    impl(text_area &self)
+        : self_(self)
+        , document_(
+              make_shared<munin::ansi::text::default_multiline_document>())
+        , cursor_state_(true)
+        , document_base_(0)
     {
         document_->on_redraw.connect(
-            bind(&text_area_renderer::on_document_changed, this, _1));
+            bind(&impl::on_document_changed, this, _1));
         
         document_->on_caret_position_changed.connect(
-            bind(&text_area_renderer::on_caret_position_changed, this));
+            bind(&impl::on_caret_position_changed, this));
     }
 
     //* =====================================================================
-    /// \brief Sets the cursor state.
+    /// \brief Sets the size of the document
     //* =====================================================================
-    void set_cursor_state(bool state)
+    void set_size(extent const &size)
     {
-        do_set_cursor_state(state);
+        document_->set_width(size.width);
+        document_->set_height(size.height);
     }
-
-protected :    
+    
     //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
-    /// manner.
+    /// \brief Gets the preferred size of the document.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const
+    extent get_preferred_size() const
     {
-        return get_size();
+        return extent(document_->get_width(), document_->get_height());
+    }
+    
+    //* =====================================================================
+    /// \brief Returns the cursor state.
+    //* =====================================================================
+    bool get_cursor_state() const
+    {
+        return cursor_state_;
     }
 
     //* =====================================================================
-    /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw 
-    /// the part of itself specified by the region.
-    ///
-    /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.  That is, (0,0) to this component
-    ///        is actually (offset.x, offset.y) in the canvas.
-    /// \param region the region relative to this component's origin that
-    /// should be drawn.
+    /// \brief Returns the cursor position.
     //* =====================================================================
-    virtual void do_draw(
+    point get_cursor_position() const
+    {
+        return cursor_position_;
+    }
+    
+    //* =====================================================================
+    /// \brief Draws the document onto the canvas. 
+    //* =====================================================================
+    void draw(
         canvas<element_type> &cvs
       , point const          &offset
       , rectangle const      &region)
     {
-        BOOST_AUTO(position, get_position());
+        BOOST_AUTO(position, self_.get_position());
 
         for (u32 row_index = region.origin.y;
              row_index < u32(region.origin.y + region.size.height);
@@ -133,20 +132,17 @@ protected :
             {
                 cvs[position.x + column_index + offset.x]
                    [position.y + row_index    + offset.y] =
-                    munin::ansi::element_type(
-                        ' '
-                      , munin::ansi::attribute());
+                    element_type(' ', attribute());
             }
         }
     }
-
+    
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
+    /// \brief Processes events.
     //* =====================================================================
-    virtual void do_event(boost::any const &event)
+    virtual void do_event(any const &event)
     {
-        char const *ch = boost::any_cast<char>(&event);
+        char const *ch = any_cast<char>(&event);
         
         if (ch != NULL)
         {
@@ -154,64 +150,19 @@ protected :
         }
         
         odin::ansi::control_sequence const *sequence = 
-            boost::any_cast<odin::ansi::control_sequence>(&event);
+            any_cast<odin::ansi::control_sequence>(&event);
             
         if (sequence != NULL)
         {
             do_ansi_control_sequence_event(*sequence);
         }
     }
-
-    //* =====================================================================
-    /// \brief Called by get_cursor_state().  Derived classes must override
-    /// this function in order to return the cursor state in a custom manner.
-    //* =====================================================================
-    virtual bool do_get_cursor_state() const
-    {
-        return cursor_state_;
-    }
-
-    //* =====================================================================
-    /// \brief Set the cursor state of this component.
-    //* =====================================================================
-    virtual void do_set_cursor_state(bool state)
-    {
-        cursor_state_ = state;
-        on_cursor_state_changed(cursor_state_);
-    }
-
-    //* =====================================================================
-    /// \brief Called by get_cursor_position().  Derived classes must
-    /// override this function in order to return the cursor position in
-    /// a custom manner.
-    //* =====================================================================
-    virtual point do_get_cursor_position() const
-    {
-        return cursor_position_;
-    }
-    
-    //* =====================================================================
-    /// \brief Called by set_size().  Derived classes must override this 
-    /// function in order to set the size of the component in a custom 
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_size(extent const &size)
-    {
-        // On top of setting the size of this component, we also want to set
-        // the size of the document so that it can be rendered at the new
-        // size.
-        munin::basic_component<munin::ansi::element_type>::do_set_size(size);
-        
-        // TODO: Refactor this to set_size().
-        document_->set_width(size.width);
-        document_->set_height(size.height);
-    }
     
 private :
     //* =====================================================================
     /// \brief Called when the underlying document changes.
     //* =====================================================================
-    void on_document_changed(vector<munin::rectangle> regions)
+    void on_document_changed(vector<rectangle> regions)
     {
         render();
     }
@@ -231,45 +182,43 @@ private :
             // base.
             document_base_ = new_position.y;
             render();
-            cursor_position_ = munin::point(new_position.x, 0);
-            on_cursor_position_changed(cursor_position_);
+            cursor_position_ = point(new_position.x, 0);
+            self_.on_cursor_position_changed(cursor_position_);
         }
-        else if (u32(new_position.y + 1) > document_base_ + get_size().height)
+        else if (
+            u32(new_position.y + 1) > document_base_ + self_.get_size().height)
         {
             // The caret has gone off the bottom of our component.  Rebase
             // ourselves to that the caret will be at the bottom, and
             // repaint.
-            document_base_ = (new_position.y + 1) - get_size().height;
+            document_base_ = (new_position.y + 1) - self_.get_size().height;
             render();
-            cursor_position_ = munin::point(
+            cursor_position_ = point(
                 new_position.x
               , new_position.y - document_base_);
-            on_cursor_position_changed(cursor_position_);
+            self_.on_cursor_position_changed(cursor_position_);
         }
         else
         {
             // Simply set the cursor position.
-            cursor_position_ = munin::point(
+            cursor_position_ = point(
                 new_position.x
               , new_position.y - document_base_);
-            on_cursor_position_changed(cursor_position_);
+            self_.on_cursor_position_changed(cursor_position_);
         }
     }
-
+    
     //* =====================================================================
     /// \brief Called when we want to render the document.
     //* =====================================================================
     void render()
     {
-        munin::rectangle redraw_region(
-            munin::point()
-          , get_size());
-        vector<munin::rectangle> redraw_regions;
+        rectangle redraw_region(point(), self_.get_size());
+        vector<rectangle> redraw_regions;
         redraw_regions.push_back(redraw_region);
-        on_redraw(redraw_regions);
-        
+        self_.on_redraw(redraw_regions);
     }
-
+    
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the up arrow
     /// key has been pressed.
@@ -283,8 +232,7 @@ private :
             times = position.y;
         }
         
-        document_->set_caret_position(
-            munin::point(position.x, position.y - times));
+        document_->set_caret_position(point(position.x, position.y - times));
     }
     
     //* =====================================================================
@@ -295,7 +243,7 @@ private :
     {
         BOOST_AUTO(position, document_->get_caret_position());
         
-        document_->set_caret_position(munin::point(
+        document_->set_caret_position(point(
             position.x
           , position.y + times));
     }
@@ -329,7 +277,7 @@ private :
     {
         // PgUp - shift the document base one page up, then shift the
         // cursor one page up.  Then render.
-        BOOST_AUTO(size, get_size());
+        BOOST_AUTO(size, self_.get_size());
         
         if (document_base_ < u32(size.height))
         {
@@ -364,7 +312,7 @@ private :
     {
         // PgDn - shift the document base one page down, then shift the
         // cursor one page down.  Then render.
-        BOOST_AUTO(size, get_size());
+        BOOST_AUTO(size, self_.get_size());
         BOOST_AUTO(lines, document_->get_number_of_lines());
         
         // We don't want the document base to be more than one page before
@@ -416,7 +364,7 @@ private :
     {
         // The HOME key goes to the first character of the current line.
         BOOST_AUTO(position, document_->get_caret_position());
-        document_->set_caret_position(munin::point(0, position.y));
+        document_->set_caret_position(point(0, position.y));
     }
 
     //* =====================================================================
@@ -441,7 +389,7 @@ private :
     {
         // The END key goes to the last character of the current line.
         BOOST_AUTO(position, document_->get_caret_position());
-        document_->set_caret_position(munin::point(
+        document_->set_caret_position(point(
             document_->get_width() - 1
           , position.y));
     }
@@ -546,7 +494,7 @@ private :
     //* =====================================================================
     void do_character_event(char ch)
     {
-        if (is_enabled())
+        if (self_.is_enabled())
         {
             if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
             {
@@ -560,101 +508,25 @@ private :
             }
             else if (isprint(ch) || ch == '\n')
             {
-                munin::ansi::element_type data[] = {
-                    make_pair(ch, munin::ansi::attribute())
-                };
-            
+                element_type data[] = { make_pair(ch, attribute()) };
                 document_->insert_text(data, optional<u32>());
             }
         }
     }
     
-    shared_ptr< munin::text::document<element_type> > document_;
-    munin::point                                      cursor_position_;
-    bool                                              cursor_state_;
-    
-    u32                                               document_base_;
+    text_area                                         &self_;
+    shared_ptr< munin::text::document<element_type> >  document_;
+    point                                              cursor_position_;
+    bool                                               cursor_state_;
+    u32                                                document_base_;
 };
-
-class text_area_layout
-    : public munin::basic_layout<munin::ansi::element_type>
-{
-public :
-    enum hint_type
-    {
-        hint_type_frame
-      , hint_type_renderer
-    };
-
-private :
-    //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to retrieve the preferred size of the layout
-    /// in a custom manner.
-    //* =====================================================================
-    virtual extent do_get_preferred_size() const
-    {
-        return extent(0, 0);
-    }
-
-    //* =====================================================================
-    /// \brief Called by operator().  Derived classes must override this
-    /// function in order to lay a container's components out in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_layout(
-        boost::shared_ptr<container_type> const &cont)
-    {
-        // This layout expects only two subcomponents: a frame, and a central
-        // component.  It lays them out in the expected format.  In addition,
-        BOOST_AUTO(size, cont->get_size());
-
-        for (u32 index = 0; index < get_number_of_components(); ++index)
-        {
-            BOOST_AUTO(comp, get_component(index));
-            BOOST_AUTO(any_hint, get_hint(index));
-
-            BOOST_AUTO(hint, any_cast<hint_type>(any_hint));
-
-            if (hint == hint_type_frame)
-            {
-                comp->set_position(munin::point(0, 0));
-                comp->set_size(size);
-            }
-            else if (hint == hint_type_renderer)
-            {
-                comp->set_position(munin::point(1, 1));
-                comp->set_size(
-                    munin::extent(size.width - 2, size.height - 2));
-            }
-        }
-    }
-};
-
-}
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 text_area::text_area()
-  : munin::composite_component<element_type>(make_shared<basic_container>())
 {
-    get_container()->set_layout(
-        make_shared<detail::text_area_layout>());
-
-    BOOST_AUTO(border, make_shared<frame>());
-    get_container()->add_component(
-        border
-      , detail::text_area_layout::hint_type_frame);
-
-    BOOST_AUTO(renderer, make_shared<detail::text_area_renderer>(
-        make_shared<munin::ansi::text::default_multiline_document>()));
-
-    get_container()->add_component(
-        renderer
-      , detail::text_area_layout::hint_type_renderer);
-
-    renderer->set_cursor_state(true);
+    pimpl_.reset(new impl(*this));
 }
 
 // ==========================================================================
@@ -662,6 +534,61 @@ text_area::text_area()
 // ==========================================================================
 text_area::~text_area()
 {
+}
+
+// ==========================================================================
+// DO_SET_SIZE
+// ==========================================================================
+void text_area::do_set_size(extent const &size)
+{
+    // On top of setting the size of this component, we also want to set
+    // the size of the document so that it can be rendered at the new
+    // size.
+    basic_component<element_type>::do_set_size(size);
+    pimpl_->set_size(size);
+}
+
+// ==========================================================================
+// DO_GET_PREFERRED_SIZE
+// ==========================================================================
+extent text_area::do_get_preferred_size() const
+{
+    return pimpl_->get_preferred_size();
+}
+    
+// ==========================================================================
+// DO_GET_CURSOR_STATE
+// ==========================================================================
+bool text_area::do_get_cursor_state() const
+{
+    return pimpl_->get_cursor_state();
+}
+    
+// ==========================================================================
+// DO_GET_CURSOR_POSITION
+// ==========================================================================
+point text_area::do_get_cursor_position() const
+{
+    return pimpl_->get_cursor_position();
+}
+    
+// ==========================================================================
+// DO_DRAW
+// ==========================================================================
+void text_area::do_draw(
+    canvas<element_type> &cvs
+  , point const          &offset
+  , rectangle const      &region)
+{
+    pimpl_->draw(cvs, offset, region);
+}
+
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void text_area::do_event(any const &event)
+{
+    pimpl_->do_event(event);
 }
 
 }}

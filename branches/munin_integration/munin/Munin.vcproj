@@ -268,7 +268,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\protocol.cpp"
+				RelativePath=".\ansi\framed_component.hpp"
 				>
 			</File>
 			<File
@@ -277,10 +277,6 @@
 			</File>
 			<File
 				RelativePath=".\ansi\text_area.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 			<File
@@ -340,7 +336,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ansi\framed_component.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\protocol.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ansi\text_area.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 		</Filter>

@@ -27,12 +27,22 @@
 #ifndef MUNIN_COMPASS_LAYOUT_HPP_
 #define MUNIN_COMPASS_LAYOUT_HPP_
 
-#include "munin/layout.hpp"
+#include "munin/basic_layout.hpp"
+#include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <algorithm>
 #include <utility>
 #include <vector>
 
 namespace munin {
 
+    
+BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_CENTRE = 0);
+BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_NORTH  = 1);
+BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_EAST   = 2);
+BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_SOUTH  = 3);
+BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_WEST   = 4);
+    
 //* =========================================================================
 /// \brief A class that can lay out its components according to basic compass
 /// directions.  Components can be laid out to the north, east, south, west,
@@ -42,65 +52,14 @@ namespace munin {
 /// having the height of the containing component.
 //* =========================================================================
 template <class ElementType>
-class compass_layout : public layout<ElementType>
+class compass_layout : public basic_layout<ElementType>
 {
 public :
-    BOOST_STATIC_CONSTANT(odin::u32, CENTRE = 0);
-    BOOST_STATIC_CONSTANT(odin::u32, NORTH  = 1);
-    BOOST_STATIC_CONSTANT(odin::u32, EAST   = 2);
-    BOOST_STATIC_CONSTANT(odin::u32, SOUTH  = 3);
-    BOOST_STATIC_CONSTANT(odin::u32, WEST   = 4);
+    typedef ElementType             element_type;
+    typedef component<element_type> component_type;
+    typedef container<element_type> container_type;
 
-private :
-    //* =====================================================================
-    /// \brief Called by get_number_of_components().  Derived classes must
-    /// override this function in order to get the number of components in
-    /// a custom manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_number_of_components() const
-    {
-        return component_pairs_.size();
-    }
-    
-    //* =====================================================================
-    /// \brief Called by add_component().  Derived classes must override this
-    /// function in order to add a component in a custom manner.
-    //* =====================================================================
-    virtual void do_add_component(
-        boost::shared_ptr<component_type> const &comp
-      , boost::any                               hint)
-    {
-        component_pairs_.push_back(std::make_pair(comp, hint));
-    }
-    
-    //* =====================================================================
-    /// \brief Called by remove_component().  Derived classes must override 
-    /// this function in order to remove a component in a custom manner.
-    //* =====================================================================
-    virtual void do_remove_component(
-        boost::shared_ptr<component_type> const &comp)
-    {
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_component().  Derived classes must override this
-    /// function in order to retrieve a component in a custom manner.
-    //* =====================================================================
-    virtual boost::shared_ptr<component_type> 
-        do_get_component(odin::u32 index) const
-    {
-        return component_pairs_[index].first;
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_hint().  Derived classes must override this
-    /// function in order to retrieve a component's hint in a custom manner.
-    //* =====================================================================
-    virtual boost::any do_get_hint(odin::u32 index) const
-    {
-        return boost::any();
-    }
-
+protected :
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to retrieve the preferred size of the layout
@@ -119,14 +78,107 @@ private :
     virtual void do_layout(
         boost::shared_ptr<container_type> const &cont)
     {
+        BOOST_AUTO(size, cont->get_size());
+        
+        std::vector< boost::shared_ptr<component_type> > centre_components;
+        odin::u32 west_used = 0;
+        odin::u32 north_used = 0;
+        odin::u32 south_used = 0;
+        odin::u32 east_used = 0;
+        
+        for (odin::u32 index = 0;
+             index < this->get_number_of_components(); 
+             ++index)
+        {
+            boost::shared_ptr<component_type> comp = 
+                this->get_component(index);
+            boost::any hint = this->get_hint(index);
+
+            odin::u32 *direction = boost::any_cast<odin::u32>(&hint);
+            
+            if (direction == NULL
+             || *direction == COMPASS_LAYOUT_CENTRE)
+            {
+                centre_components.push_back(comp);
+            }
+            else if (*direction == COMPASS_LAYOUT_WEST)
+            {
+                BOOST_AUTO(comp_size, comp->get_preferred_size());
+                west_used = (std::max)(
+                    west_used, odin::u32(comp_size.width));
+                west_used = (std::min)(
+                    west_used, odin::u32(size.width - east_used));
+                
+                BOOST_AUTO(
+                    comp_height
+                  , (size.height - north_used) - south_used);
+                
+                comp->set_position(munin::point(0, north_used));
+                comp->set_size(munin::extent(west_used, comp_height));
+            }
+            else if (*direction == COMPASS_LAYOUT_EAST)
+            {
+                BOOST_AUTO(comp_size, comp->get_preferred_size());
+                east_used = (std::max)(
+                    east_used, odin::u32(comp_size.width));
+                east_used = (std::min)(
+                    east_used, odin::u32(size.width - west_used));
+                
+                BOOST_AUTO(
+                    comp_height
+                  , (size.height - north_used) - south_used);
+                
+                comp->set_position(munin::point(0, north_used));
+                comp->set_size(munin::extent(east_used, comp_height));
+            }
+            else if (*direction == COMPASS_LAYOUT_NORTH)
+            {
+                BOOST_AUTO(comp_size, comp->get_preferred_size());
+                north_used = (std::max)(
+                    north_used, odin::u32(comp_size.height));
+                north_used = (std::min)(
+                    north_used, odin::u32(size.height - south_used));
+                
+                BOOST_AUTO(
+                    comp_width
+                  , (size.width - west_used) - east_used);
+                
+                comp->set_position(munin::point(west_used, 0));
+                comp->set_size(munin::extent(comp_width, north_used));
+            }
+            else if (*direction == COMPASS_LAYOUT_SOUTH)
+            {
+                BOOST_AUTO(comp_size, comp->get_preferred_size());
+                south_used = (std::max)(
+                    south_used, odin::u32(comp_size.height));
+                south_used = (std::min)(
+                    south_used, odin::u32(size.height - north_used));
+                
+                BOOST_AUTO(
+                    comp_width
+                  , (size.width - west_used) - east_used);
+                
+                comp->set_position(munin::point(
+                    west_used
+                  , size.height - south_used));
+                comp->set_size(munin::extent(comp_width, south_used));
+            }
+            else
+            {
+                centre_components.push_back(comp);
+            }
+            
+            BOOST_FOREACH(
+                boost::shared_ptr<component_type> comp
+              , centre_components)
+            {
+                comp->set_position(munin::point(west_used, north_used));
+                comp->set_size(munin::extent(
+                    (size.width - west_used) - east_used
+                  , (size.height - north_used) - south_used));
+            }
+        }
     }
-
-    typedef std::pair<
-        boost::shared_ptr<component_type>
-      , boost::any
-    > component_pair_type;
-
-    std::vector<component_pair_type> component_pairs_;
 };
     
 }

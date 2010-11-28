@@ -44,7 +44,8 @@ namespace odin { namespace ansi {
     static char const ESCAPE                           = odin::ascii::ESC;
     static char const CONTROL_SEQUENCE_INTRODUCER      = odin::ascii::OPEN_SQUARE_BRACKET; 
     static char const OPERATING_SYSTEM_COMMAND         = odin::ascii::CLOSE_SQUARE_BRACKET;
-
+    static char const PARAMETER_SEPARATOR              = odin::ascii::SEMI_COLON;
+    
     // Move the cursor up N rows.
     static char const CURSOR_UP                        = odin::ascii::UPPERCASE_A;
     // Move the cursor down N rows.
@@ -116,7 +117,7 @@ namespace graphics {
     typedef char intensity;
     static char const INTENSITY_BOLD         = 1;
     static char const INTENSITY_FAINT        = 2;
-    static char const INTENSITY_NORMAL       = 13;
+    static char const INTENSITY_NORMAL       = 22;
 
     static char const FOREGROUND_COLOUR_BASE = 30;
     static char const BACKGROUND_COLOUR_BASE = 40;
@@ -131,6 +132,15 @@ namespace graphics {
     static colour const COLOUR_CYAN          = 6;
     static colour const COLOUR_WHITE         = 7;
     static colour const COLOUR_DEFAULT       = 9;
+}
+
+namespace character_set {
+    static char const LOCALE_DEC                   = odin::ascii::ZERO;
+    static char const LOCALE_UK                    = odin::ascii::UPPERCASE_A;
+    static char const LOCALE_US_ASCII              = odin::ascii::UPPERCASE_B;
+    
+    static char const CHARACTER_SET_G0             = odin::ascii::OPEN_BRACKET;
+    static char const CHARACTER_SET_G1             = odin::ascii::CLOSE_BRACKET;
 }
 
 // For ANSI sequences of the format: ESC[x;y;zC (e.g. "ESC[10;2H"

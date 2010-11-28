@@ -31,6 +31,8 @@
 
 using namespace munin;
 using namespace odin;
+using namespace boost;
+using namespace std;
 
 namespace munin { namespace ansi {
 
@@ -98,36 +100,28 @@ public :
         {
             cvs[position.x + topleft->origin.x + offset.x]
                [position.y + topleft->origin.y + offset.y] = 
-                munin::ansi::element_type(
-                    '+'
-                  , munin::ansi::attribute());
+                munin::ansi::element_type('+', pen_);
         }
         
         if (topright)
         {
             cvs[position.x + topright->origin.x + offset.x]
                [position.y + topright->origin.y + offset.y] = 
-                munin::ansi::element_type(
-                    '+'
-                  , munin::ansi::attribute());
+                munin::ansi::element_type('+', pen_);
         }
 
         if (bottomleft)
         {
             cvs[position.x + bottomleft->origin.x + offset.x]
                [position.y + bottomleft->origin.y + offset.y] = 
-                munin::ansi::element_type(
-                    '+'
-                  , munin::ansi::attribute());
+                munin::ansi::element_type('+', pen_);
         }
         
         if (bottomright)
         {
             cvs[position.x + bottomright->origin.x + offset.x]
                [position.y + bottomright->origin.y + offset.y] = 
-                munin::ansi::element_type(
-                    '+'
-                  , munin::ansi::attribute());
+                munin::ansi::element_type('+', pen_);
         }
     }
 
@@ -166,9 +160,7 @@ public :
             {
                 cvs[position.x + column + rect.origin.x + offset.x]
                    [position.y +          rect.origin.y + offset.y] =
-                    munin::ansi::element_type(
-                        '-'
-                      , munin::ansi::attribute());
+                    munin::ansi::element_type('-', pen_);
             }
         }
         
@@ -180,9 +172,7 @@ public :
             {
                 cvs[position.x + column + rect.origin.x + offset.x]
                    [position.y +          rect.origin.y + offset.y] =
-                    munin::ansi::element_type(
-                        '-'
-                      , munin::ansi::attribute());
+                    munin::ansi::element_type('-', pen_);
             }
         }
     }
@@ -221,9 +211,7 @@ public :
             {
                 cvs[position.x +       rect.origin.x + offset.x]
                    [position.y + row + rect.origin.y + offset.y] =
-                    munin::ansi::element_type(
-                        '|'
-                      , munin::ansi::attribute());
+                    munin::ansi::element_type('|', pen_);
             }
         }
 
@@ -235,15 +223,19 @@ public :
             {
                 cvs[position.x +       rect.origin.x + offset.x]
                    [position.y + row + rect.origin.y + offset.y] =
-                    munin::ansi::element_type(
-                        '|'
-                      , munin::ansi::attribute());
+                    munin::ansi::element_type('|', pen_);
             }
         }
     }
     
+    void set_pen(attribute const &pen)
+    {
+        pen_ = pen;
+    }
+    
 private :
-    frame &self_;
+    frame     &self_;
+    attribute  pen_;
 };
 
 // ==========================================================================
@@ -282,7 +274,9 @@ u32 frame::do_get_frame_height() const
 // ==========================================================================
 extent frame::do_get_preferred_size() const
 {
-    return extent(0,0);
+    return extent(
+        get_frame_width() * 2
+      , get_frame_height() * 2);
 }
 
 // ==========================================================================
@@ -303,4 +297,31 @@ void frame::do_event(boost::any const &event)
 {
 }
 
+// ==========================================================================
+// DO_SET_ATTRIBUTE
+// ==========================================================================
+void frame::do_set_attribute(string const &name, any const &attr)
+{
+    munin::frame<munin::ansi::element_type>::do_set_attribute(name, attr);
+    
+    if (name == ATTRIBUTE_PEN)
+    {
+        attribute const *pen = any_cast<attribute>(&attr);
+        
+        if (pen != NULL)
+        {
+            pimpl_->set_pen(*pen);
+            
+            // The frame requires a complete redraw as our pen has changed.
+            // TODO: This redraws everything inside the frame as well.  It
+            // probably shouldn't.
+            rectangle region(point(), get_size());
+            vector<rectangle> regions;
+            regions.push_back(region);
+            on_redraw(regions);
+        }
+    }
+}
+
 }}
+

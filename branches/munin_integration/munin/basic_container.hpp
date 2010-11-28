@@ -832,7 +832,30 @@ protected :
         return point(0, 0);
     }
 
+    //* =====================================================================
+    /// \brief Returns an attribute with a specified name.
+    //* =====================================================================
+    boost::any get_attribute(std::string const &name) const
+    {
+        BOOST_AUTO(attr_iterator, attributes_.find(name));
+        
+        return attr_iterator == attributes_.end()
+             ? boost::any()
+             : *attr_iterator;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr)
+    {
+        attributes_[name] = attr;
+    }
+    
 private :
+    std::map<std::string, boost::any>                attributes_;
     std::vector< boost::shared_ptr<component_type> > components_;
     std::vector< odin::u32 >                         component_layers_;
     boost::shared_ptr<layout_type>                   layout_;

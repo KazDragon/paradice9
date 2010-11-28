@@ -32,6 +32,8 @@
 
 namespace munin { namespace ansi {
 
+static const std::string ATTRIBUTE_PEN = "Pen";
+
 //* =========================================================================
 /// \brief An object that represents a frame, or frame.
 //* =========================================================================
@@ -92,6 +94,13 @@ protected :
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr);
     
 private :    
     struct impl;

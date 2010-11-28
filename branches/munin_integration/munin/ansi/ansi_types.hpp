@@ -28,7 +28,6 @@
 #define MUNIN_ANSI_TYPES_HPP_
 
 #include "munin/ansi/attribute.hpp"
-#include <boost/optional.hpp>
 #include <iosfwd>
 #include <utility>
 
@@ -40,12 +39,9 @@ namespace munin { namespace ansi {
 /// colour, font, etc.) applied to it.  A lack of an attribute indicates that
 /// the character has the "default" attribute.
 //* =========================================================================
-typedef std::pair<
-    char
-  , boost::optional<munin::ansi::attribute>
-> element_type;
+typedef std::pair<char, munin::ansi::attribute> element_type;
   
-bool operator==(element_type const &lhs, element_type const &rhs);
+//bool operator==(element_type const &lhs, element_type const &rhs);
 
 std::ostream &operator<<(std::ostream &out, element_type const &element);
 

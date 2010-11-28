@@ -30,6 +30,8 @@
 #include "munin/component.hpp"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/weak_ptr.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <map>
 
 namespace munin {
 
@@ -247,10 +249,33 @@ protected :
         return position;
     }
     
+    //* =====================================================================
+    /// \brief Returns an attribute with a specified name.
+    //* =====================================================================
+    boost::any get_attribute(std::string const &name) const
+    {
+        BOOST_AUTO(attr_iterator, attributes_.find(name));
+        
+        return attr_iterator == attributes_.end()
+             ? boost::any()
+             : *attr_iterator;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr)
+    {
+        attributes_[name] = attr;
+    }
+    
 private :
-    rectangle bounds_;
-    bool      has_focus_;
-    bool      enabled_;
+    std::map<std::string, boost::any> attributes_;
+    rectangle                         bounds_;
+    bool                              has_focus_;
+    bool                              enabled_;
     
 };
     

@@ -59,7 +59,7 @@ string cursor_position(munin::point const &position)
       : str(format("%s") % (position.y + 1));
                     
     string separator =
-        (position.y == 0)
+        (position.x == 0)
       ? ""
       : ";";
       

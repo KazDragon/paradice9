@@ -25,10 +25,13 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "ui.hpp"
-#include "munin/grid_layout.hpp"
+#include "munin/compass_layout.hpp"
 #include "munin/composite_component.hpp"
+#include "munin/grid_layout.hpp"
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/edit.hpp"
+#include "munin/ansi/framed_component.hpp"
+#include "munin/ansi/frame.hpp"
 #include "munin/ansi/text_area.hpp"
 #include "munin/ansi/frame.hpp"
 #include "odin/ansi/protocol.hpp"
@@ -43,20 +46,45 @@ ui::ui()
     : munin::composite_component<munin::ansi::element_type>(
            make_shared<munin::ansi::basic_container>())
 {
-    get_container()->set_layout(
-        make_shared<munin::grid_layout<munin::ansi::element_type> >(3, 1));
+    BOOST_AUTO(container, get_container());
+    
+    container->set_layout(
+        make_shared< munin::compass_layout<munin::ansi::element_type> >());
 
-    get_container()->add_component(make_shared<munin::ansi::edit>());
-    get_container()->add_component(make_shared<munin::ansi::text_area>());
-    get_container()->add_component(make_shared<munin::ansi::edit>());
+    container->add_component(
+        make_shared<munin::ansi::framed_component>(
+            make_shared<munin::ansi::frame>()
+          , make_shared<munin::ansi::edit>())
+      , munin::COMPASS_LAYOUT_NORTH);
+    
+    BOOST_AUTO(inner_container, make_shared<munin::ansi::basic_container>());
+    inner_container->set_layout(
+        make_shared< munin::grid_layout<munin::ansi::element_type> >(2, 1));
+    
+    inner_container->add_component(
+        make_shared<munin::ansi::framed_component>(
+            make_shared<munin::ansi::frame>()
+          , make_shared<munin::ansi::text_area>()));
+
+    inner_container->add_component(
+        make_shared<munin::ansi::framed_component>(
+            make_shared<munin::ansi::frame>()
+          , make_shared<munin::ansi::text_area>()));
+
+    container->add_component(
+        inner_container
+      , munin::COMPASS_LAYOUT_CENTRE);
+
+    container->add_component(
+        make_shared<munin::ansi::framed_component>(
+            make_shared<munin::ansi::frame>()
+          , make_shared<munin::ansi::edit>())
+      , munin::COMPASS_LAYOUT_SOUTH);
 }
 
 void ui::do_event(any const &ev)
 {
     char const *ch = any_cast<char>(&ev);
-    
-    if (ch)
-        printf("%d\n", int(*ch));
     
     if (ch && *ch == '\t')
     {

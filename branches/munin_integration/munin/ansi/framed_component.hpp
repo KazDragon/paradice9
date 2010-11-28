@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin ANSI Types.
+// Munin ANSI Framed Component.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,55 +24,45 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
+#ifndef MUNIN_ANSI_FRAMED_COMPONENT_HPP_
+#define MUNIN_ANSI_FRAMED_COMPONENT_HPP_
+
+#include "munin/composite_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
-#include <boost/format.hpp>
-#include <iostream>
-#include <cctype>
+#include "munin/frame.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace munin { namespace ansi {
 
-    /*
-bool operator==(element_type const &lhs, element_type const &rhs)
+//* =========================================================================
+/// \brief A class that models a multi-line text control with a frame
+/// bordering it.
+//* =========================================================================
+class framed_component 
+  : public munin::composite_component<munin::ansi::element_type>
 {
-    if (lhs.first != rhs.first)
-    {
-        return false;
-    }
-    
-    if (!lhs.second.is_initialized() && !rhs.second.is_initialized())
-    {
-        return true;
-    }
-    
-    if (lhs.second.is_initialized() != rhs.second.is_initialized())
-    {
-        return false;
-    }
-    
-    return lhs.second.get() == rhs.second.get();
-}
-*/
+public :
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    framed_component(
+        boost::shared_ptr< 
+            munin::frame<munin::ansi::element_type> 
+        > border
+      , boost::shared_ptr< 
+            munin::component<munin::ansi::element_type>
+        > interior); 
 
-std::ostream &operator<<(std::ostream &out, element_type const &element)
-{
-    out << "element['";
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~framed_component();
     
-    if (std::isprint(element.first))
-    {
-        out << element.first;
-    }
-    else
-    {
-        out << boost::format("0x%02X") % int(element.first);
-    }
-    
-    out << "', ";
-    
-    out << element.second;
-    
-    out << "]";
-    
-    return out;
-}
+private :    
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;    
+};
 
 }}
+
+#endif

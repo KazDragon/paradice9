@@ -295,7 +295,17 @@ protected :
     {
         container_->event(event);
     }
-
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr)
+    {
+        container_->set_attribute(name, attr);
+    }
+    
 private :
     boost::shared_ptr<container_type> container_;
 };

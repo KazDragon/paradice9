@@ -11,6 +11,8 @@ NAME_IS      = -o
 I_DIRS       = -I.
 NOLINK       = -c
 L_DIRS       = -L.
+G_LIBS       = -lmunin -lodin -lboost_program_options -lboost_system \
+               -lboost_signals -lws2_32 -lwsock32
 LIBS         = -lparadice -lmunin -lodin -lboost_program_options \
                -lboost_system -lboost_signals -lws2_32 -lwsock32
 E_NAME       = paradice.exe
@@ -38,6 +40,7 @@ MUNIN_NAMES       = algorithm \
                     ansi/basic_container \
                     ansi/edit \
                     ansi/frame \
+                    ansi/framed_component \
                     ansi/protocol \
                     ansi/text/default_multiline_document \
                     ansi/text/default_singleline_document \
@@ -108,8 +111,8 @@ TEST_EXE          = paradice_test.exe
 $(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(PARADICE_LIB) $(TEST_EXE) $(PARADICE9_O_FILES)
 	$(CC) $(NAME_IS) $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS)
     
-$(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(PARADICE_LIB) $(TEST_EXE) $(GUIBUILDER_O_FILES)
-	$(CC) $(NAME_IS) $@ $(GUIBUILDER_O_FILES) $(L_DIRS) $(LIBS)
+$(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(TEST_EXE) $(GUIBUILDER_O_FILES)
+	$(CC) $(NAME_IS) $@ $(GUIBUILDER_O_FILES) $(L_DIRS) $(G_LIBS)
 	
 clean: 
 	$(RM) $(E_NAME) $(PARADICE9_O_FILES) \

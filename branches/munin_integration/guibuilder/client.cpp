@@ -107,8 +107,64 @@ struct ansi_input_visitor
 }
 
 struct client::impl
-    : public enable_shared_from_this<client::impl>
 {
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl(shared_ptr<stream>       connection
+       , boost::asio::io_service &io_service)
+        : connection_(connection)
+    {
+        telnet_stream_ =
+            make_shared<odin::telnet::stream>(connection, ref(io_service));
+
+        telnet_command_router_ = 
+            make_shared<odin::telnet::command_router>();
+
+        telnet_negotiation_router_ = 
+            make_shared<odin::telnet::negotiation_router>();
+
+        telnet_subnegotiation_router_ = 
+            make_shared<odin::telnet::subnegotiation_router>();
+
+        telnet_input_visitor_ = make_shared<odin::telnet::input_visitor>(
+            telnet_command_router_
+          , telnet_negotiation_router_
+          , telnet_subnegotiation_router_
+          , boost::bind(&impl::on_text, this, _1));
+
+        telnet_echo_server_ = make_shared<odin::telnet::options::echo_server>(
+            telnet_stream_
+          , telnet_negotiation_router_
+          , telnet_subnegotiation_router_);
+        telnet_echo_server_->set_activatable(true);
+        telnet_echo_server_->activate();
+
+        telnet_suppress_ga_server_ = 
+            make_shared<odin::telnet::options::suppress_goahead_server>(
+                telnet_stream_
+              , telnet_negotiation_router_
+              , telnet_subnegotiation_router_);
+        telnet_suppress_ga_server_->set_activatable(true);
+        telnet_suppress_ga_server_->activate();
+
+        telnet_naws_client_ = make_shared<odin::telnet::options::naws_client>(
+            telnet_stream_
+          , telnet_negotiation_router_
+          , telnet_subnegotiation_router_);
+        telnet_naws_client_->set_activatable(true);
+        telnet_naws_client_->activate();
+        telnet_naws_client_->on_size(bind(
+            &impl::on_window_size_changed
+          , this
+          , _1
+          , _2));
+
+        window_  = make_shared<window>(ref(io_service));
+    
+        schedule_next_read();
+    }
+    
     // ======================================================================
     // SCHEDULE_NEXT_READ
     // ======================================================================
@@ -120,13 +176,13 @@ struct client::impl
         {
             telnet_stream_->async_read(
                 odin::telnet::stream::input_size_type(available.get())
-              , bind(&impl::data_read, shared_from_this(), _1));
+              , bind(&impl::data_read, this, _1));
         }
         else
         {
             telnet_stream_->async_read(
                 odin::telnet::stream::input_size_type(1)
-              , bind(&impl::data_read, shared_from_this(), _1));
+              , bind(&impl::data_read, this, _1));
         }
     }
     
@@ -200,66 +256,8 @@ struct client::impl
 client::client(
     shared_ptr<stream>       connection
   , boost::asio::io_service &io_service)
-    : pimpl_(new impl)
+    : pimpl_(new impl(connection, io_service))
 {
-    pimpl_->connection_ = connection;
-
-    pimpl_->telnet_stream_ = 
-        make_shared<odin::telnet::stream>(
-            pimpl_->connection_, ref(io_service));
-
-    pimpl_->telnet_command_router_ = 
-        make_shared<odin::telnet::command_router>();
-
-    pimpl_->telnet_negotiation_router_ =
-        make_shared<odin::telnet::negotiation_router>();
-
-    pimpl_->telnet_subnegotiation_router_ =
-        make_shared<odin::telnet::subnegotiation_router>();
-
-    pimpl_->telnet_input_visitor_ =
-        make_shared<odin::telnet::input_visitor>(
-            pimpl_->telnet_command_router_
-          , pimpl_->telnet_negotiation_router_
-          , pimpl_->telnet_subnegotiation_router_
-          , bind(&impl::on_text, pimpl_, _1));
-
-    pimpl_->telnet_echo_server_ = 
-        make_shared<odin::telnet::options::echo_server>(
-            pimpl_->telnet_stream_
-          , pimpl_->telnet_negotiation_router_
-          , pimpl_->telnet_subnegotiation_router_);
-
-    pimpl_->telnet_echo_server_->set_activatable(true);
-    pimpl_->telnet_echo_server_->activate();
-
-    pimpl_->telnet_naws_client_ =
-        make_shared<odin::telnet::options::naws_client>(
-            pimpl_->telnet_stream_
-          , pimpl_->telnet_negotiation_router_
-          , pimpl_->telnet_subnegotiation_router_);
-
-    pimpl_->telnet_naws_client_->set_activatable(true);
-    pimpl_->telnet_naws_client_->activate();
-    pimpl_->telnet_naws_client_->on_size(
-        bind(
-            &impl::on_window_size_changed
-          , pimpl_->shared_from_this()
-          , _1
-          , _2));
-
-    pimpl_->telnet_suppress_ga_server_ =
-        make_shared<odin::telnet::options::suppress_goahead_server>(
-            pimpl_->telnet_stream_
-          , pimpl_->telnet_negotiation_router_
-          , pimpl_->telnet_subnegotiation_router_);
-
-    pimpl_->telnet_suppress_ga_server_->set_activatable(true);
-    pimpl_->telnet_suppress_ga_server_->activate();
-
-    pimpl_->window_ = make_shared<window>(ref(io_service));
-
-    pimpl_->schedule_next_read();
 }
 
 client::~client()

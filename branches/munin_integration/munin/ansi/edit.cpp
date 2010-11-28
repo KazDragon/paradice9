@@ -25,15 +25,16 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/ansi/edit.hpp"
-#include "munin/ansi/basic_container.hpp"
-#include "munin/ansi/frame.hpp"
 #include "munin/ansi/text/default_singleline_document.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/basic_layout.hpp"
 #include "munin/canvas.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <cctype>
 #include <vector>
@@ -44,179 +45,69 @@ using namespace std;
 
 namespace munin { namespace ansi {
 
-namespace detail {
+namespace {
+    typedef munin::ansi::element_type             character_type;
+    typedef munin::text::document<character_type> document_type;
+}
 
-class edit_renderer 
-    : public munin::basic_component<munin::ansi::element_type>
+// ==========================================================================
+// EDIT::IMPLEMENTATION STRUCTURE
+// ==========================================================================
+struct edit::impl
 {
-public :
-    typedef munin::text::document<munin::ansi::element_type> document_type;
-    
     //* =====================================================================
     /// \brief Constructor
-    /// \param doc - the document that this renderer will be drawing
     //* =====================================================================
-    edit_renderer(
-        shared_ptr<document_type> doc)
-      : document_(doc)
-      , cursor_state_(false)
-      , document_base_(0)
+    impl(edit &self)
+        : self_(self)
+        , document_(
+              make_shared<munin::ansi::text::default_singleline_document>())
+        , cursor_state_(true)
+        , document_base_(0)
     {
         document_->on_redraw.connect(
-            bind(&edit_renderer::on_document_changed, this, _1));
+            bind(&impl::on_document_changed, this, _1));
         
         document_->on_caret_position_changed.connect(
-            bind(&edit_renderer::on_caret_position_changed, this));
-    }
-
-    //* =====================================================================
-    /// \brief Sets the cursor state.
-    //* =====================================================================
-    void set_cursor_state(bool state)
-    {
-        do_set_cursor_state(state);
-    }
-
-private :
-    //* =====================================================================
-    /// \brief Called when the underlying document changes.
-    //* =====================================================================
-    void on_document_changed(vector<munin::rectangle> regions)
-    {
-        // Search the regions, looking for regions that overlap with the
-        // text that we are displaying.
-        vector<munin::rectangle> overlapping_changes;
-        
-        // Determine the rectangle of the document that we are displaying.
-        munin::rectangle display_rectangle(
-            munin::point(document_base_, 0)
-          , munin::extent(get_size().width, 1));
-        
-        BOOST_FOREACH(munin::rectangle rectangle, regions)
-        {
-            optional<munin::rectangle> overlap = munin::intersection(
-                rectangle, display_rectangle);
-            
-            if (overlap)
-            {
-                overlapping_changes.push_back(overlap.get());
-            }
-        }
-
-        // If we have any overlapping regions, then we need to redraw those
-        // portions of the document, and also schedule redraws for this
-        // renderer.
-        
-        // First naive implementation: redraw the entire component.
-        if (!overlapping_changes.empty())
-        {
-            render();
-        }
+            bind(&impl::on_caret_position_changed, this));
     }
     
     //* =====================================================================
-    /// \brief Called when the position of the caret in the underlying 
-    /// document changes.
+    /// \brief Returns the preferred size of this component.
     //* =====================================================================
-    void on_caret_position_changed()
+    munin::extent get_preferred_size() const
     {
-        BOOST_AUTO(new_index, document_->get_caret_index());
-        
-        if  (new_index < document_base_)
-        {
-            // The caret has gone to the left of the document base.  Rebase
-            // ourselves, and repaint.  Also set the cursor position to
-            // the base.
-            document_base_ = new_index;
-            render();
-            cursor_position_ = munin::point(0, 0);
-            on_cursor_position_changed(cursor_position_);
-        }
-        else if (new_index + 1 > (document_base_ + get_size().width))
-        {
-            // The caret has gone beyond the right of the component.  Rebase
-            // ourselves so that the caret will be rightmost, and repaint.
-            // Also set the cursor position to the rightmost.
-            document_base_ = (new_index + 1) - get_size().width;
-            render();
-            cursor_position_ = munin::point(get_size().width - 1, 0);
-            on_cursor_position_changed(cursor_position_);
-        }
-        else
-        {
-            // Simply set the caret position.
-            cursor_position_ = munin::point(new_index - document_base_, 0);
-            on_cursor_position_changed(cursor_position_);
-        }
+        return munin::extent(document_->get_width(), 1);
     }
-
-    //* =====================================================================
-    /// \brief Called when we want to render the document.
-    //* =====================================================================
-    void render()
-    {
-        document_view_.resize(get_size().width);
-        fill(document_view_.begin()
-           , document_view_.end()
-           , munin::ansi::element_type(' ', munin::ansi::attribute()));
-        
-        // Find the segment of the document that we will display
-        odin::runtime_array<document_type::character_type> line =
-            document_->get_text_line(0);
-        
-        BOOST_AUTO(
-            start_index
-          , (min)(u32(line.size()), document_base_));
-        
-        BOOST_AUTO(
-            end_index
-          , (min)(u32(line.size()), u32(document_base_ + document_view_.size())));
-        
-        copy(
-            line.begin() + start_index
-          , line.begin() + end_index
-          , document_view_.begin());
-        
-        munin::rectangle redraw_region(
-            munin::point()
-          , get_size());
-        vector<munin::rectangle> redraw_regions;
-        redraw_regions.push_back(redraw_region);
-        on_redraw(redraw_regions);
-    }
-
     
     //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
-    /// manner.
+    /// \brief Returns the cursor state
     //* =====================================================================
-    virtual extent do_get_preferred_size() const
+    bool get_cursor_state() const
     {
-        return get_size();
+        return cursor_state_;
     }
 
     //* =====================================================================
-    /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw 
-    /// the part of itself specified by the region.
-    ///
-    /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.  That is, (0,0) to this component
-    ///        is actually (offset.x, offset.y) in the canvas.
-    /// \param region the region relative to this component's origin that
-    /// should be drawn.
+    /// \brief Returns the cursor position
     //* =====================================================================
-    virtual void do_draw(
+    munin::point get_cursor_position() const
+    {
+        return cursor_position_;
+    }
+    
+    //* =====================================================================
+    /// \brief Draws the component
+    //* =====================================================================
+    void draw(
         canvas<element_type> &cvs
       , point const          &offset
       , rectangle const      &region)
     {
-        munin::point position = get_position();
-
+        munin::point position = self_.get_position();
+    
         s32 index = 0;
-
+    
         // Write whatever characters are required.
         for (;
              (index + 1) < region.size.width
@@ -240,6 +131,136 @@ private :
         }
     }
 
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    void do_event(boost::any const &event)
+    {
+        char const *ch = boost::any_cast<char>(&event);
+        
+        if (ch != NULL)
+        {
+            do_character_event(*ch);
+        }
+        
+        odin::ansi::control_sequence const *sequence = 
+            boost::any_cast<odin::ansi::control_sequence>(&event);
+            
+        if (sequence != NULL)
+        {
+            do_ansi_control_sequence_event(*sequence);
+        }
+    }
+    
+private :
+    //* =====================================================================
+    /// \brief Called when the underlying document changes.
+    //* =====================================================================
+    void on_document_changed(vector<munin::rectangle> regions)
+    {
+        // Search the regions, looking for regions that overlap with the
+        // text that we are displaying.
+        vector<munin::rectangle> overlapping_changes;
+        
+        // Determine the rectangle of the document that we are displaying.
+        munin::rectangle display_rectangle(
+            munin::point(document_base_, 0)
+          , munin::extent(self_.get_size().width, 1));
+        
+        BOOST_FOREACH(munin::rectangle rectangle, regions)
+        {
+            optional<munin::rectangle> overlap = munin::intersection(
+                rectangle, display_rectangle);
+            
+            if (overlap)
+            {
+                overlapping_changes.push_back(overlap.get());
+            }
+        }
+
+        // If we have any overlapping regions, then we need to redraw those
+        // portions of the document, and also schedule redraws for this
+        // renderer.
+        
+        // First naive implementation: redraw the entire component.
+        if (!overlapping_changes.empty())
+        {
+            render();
+        }
+    }
+
+    //* =====================================================================
+    /// \brief Called when the position of the caret in the underlying 
+    /// document changes.
+    //* =====================================================================
+    void on_caret_position_changed()
+    {
+        BOOST_AUTO(new_index, document_->get_caret_index());
+        
+        if  (new_index < document_base_)
+        {
+            // The caret has gone to the left of the document base.  Rebase
+            // ourselves, and repaint.  Also set the cursor position to
+            // the base.
+            document_base_ = new_index;
+            render();
+            cursor_position_ = munin::point(0, 0);
+            self_.on_cursor_position_changed(cursor_position_);
+        }
+        else if (new_index + 1 > (document_base_ + self_.get_size().width))
+        {
+            // The caret has gone beyond the right of the component.  Rebase
+            // ourselves so that the caret will be rightmost, and repaint.
+            // Also set the cursor position to the rightmost.
+            document_base_ = (new_index + 1) - self_.get_size().width;
+            render();
+            cursor_position_ = munin::point(self_.get_size().width - 1, 0);
+            self_.on_cursor_position_changed(cursor_position_);
+        }
+        else
+        {
+            // Simply set the caret position.
+            cursor_position_ = munin::point(new_index - document_base_, 0);
+            self_.on_cursor_position_changed(cursor_position_);
+        }
+    }
+
+    //* =====================================================================
+    /// \brief Called when we want to render the document.
+    //* =====================================================================
+    void render()
+    {
+        document_view_.resize(self_.get_size().width);
+        fill(document_view_.begin()
+           , document_view_.end()
+           , munin::ansi::element_type(' ', munin::ansi::attribute()));
+        
+        // Find the segment of the document that we will display
+        odin::runtime_array<document_type::character_type> line =
+            document_->get_text_line(0);
+        
+        BOOST_AUTO(
+            start_index
+          , (min)(u32(line.size()), document_base_));
+        
+        BOOST_AUTO(
+            end_index
+          , (min)(u32(line.size()), u32(document_base_ + document_view_.size())));
+        
+        copy(
+            line.begin() + start_index
+          , line.begin() + end_index
+          , document_view_.begin());
+        
+        munin::rectangle redraw_region(
+            munin::point()
+          , self_.get_size());
+        vector<munin::rectangle> redraw_regions;
+        redraw_regions.push_back(redraw_region);
+        self_.on_redraw(redraw_regions);
+    }
+    
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the <- key
     /// has been pressed.
@@ -337,7 +358,7 @@ private :
     //* =====================================================================
     void do_character_event(char ch)
     {
-        if (is_enabled())
+        if (self_.is_enabled())
         {
             if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
             {
@@ -360,142 +381,21 @@ private :
         }
     }
     
-    //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
-    //* =====================================================================
-    virtual void do_event(boost::any const &event)
-    {
-        char const *ch = boost::any_cast<char>(&event);
-        
-        if (ch != NULL)
-        {
-            do_character_event(*ch);
-        }
-        
-        odin::ansi::control_sequence const *sequence = 
-            boost::any_cast<odin::ansi::control_sequence>(&event);
-            
-        if (sequence != NULL)
-        {
-            do_ansi_control_sequence_event(*sequence);
-        }
-    }
-
-    //* =====================================================================
-    /// \brief Called by get_cursor_state().  Derived classes must override
-    /// this function in order to return the cursor state in a custom manner.
-    //* =====================================================================
-    virtual bool do_get_cursor_state() const
-    {
-        return cursor_state_;
-    }
-
-    //* =====================================================================
-    /// \brief Set the cursor state of this component.
-    //* =====================================================================
-    virtual void do_set_cursor_state(bool state)
-    {
-        cursor_state_ = state;
-        on_cursor_state_changed(cursor_state_);
-    }
-
-    //* =====================================================================
-    /// \brief Called by get_cursor_position().  Derived classes must
-    /// override this function in order to return the cursor position in
-    /// a custom manner.
-    //* =====================================================================
-    virtual point do_get_cursor_position() const
-    {
-        return cursor_position_;
-    }
+    edit                                              &self_;
+    shared_ptr< munin::text::document<element_type> >  document_;
+    munin::point                                       cursor_position_;
+    bool                                               cursor_state_;
     
-    shared_ptr< munin::text::document<element_type> > document_;
-    munin::point                                      cursor_position_;
-    bool                                              cursor_state_;
-    
-    u32                                               document_base_;
-    vector<munin::ansi::element_type>                 document_view_;
+    u32                                                document_base_;
+    vector<munin::ansi::element_type>                  document_view_;
 };
-
-class edit_layout
-    : public munin::basic_layout<munin::ansi::element_type>
-{
-public :
-    enum hint_type
-    {
-        hint_type_frame
-      , hint_type_renderer
-    };
-
-private :
-    //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to retrieve the preferred size of the layout
-    /// in a custom manner.
-    //* =====================================================================
-    virtual extent do_get_preferred_size() const
-    {
-        return extent(0, 0);
-    }
-
-    //* =====================================================================
-    /// \brief Called by operator().  Derived classes must override this
-    /// function in order to lay a container's components out in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_layout(
-        boost::shared_ptr<container_type> const &cont)
-    {
-        // This layout expects only two subcomponents: a frame, and a central
-        // component.  It lays them out in the expected format.  In addition,
-        BOOST_AUTO(size, cont->get_size());
-
-        for (u32 index = 0; index < get_number_of_components(); ++index)
-        {
-            BOOST_AUTO(comp, get_component(index));
-            BOOST_AUTO(any_hint, get_hint(index));
-
-            BOOST_AUTO(hint, any_cast<hint_type>(any_hint));
-
-            if (hint == hint_type_frame)
-            {
-                comp->set_position(munin::point(0, 0));
-                comp->set_size(munin::extent(size.width, 3));
-            }
-            else if (hint == hint_type_renderer)
-            {
-                comp->set_position(munin::point(1, 1));
-                comp->set_size(munin::extent(size.width - 2, 1));
-            }
-        }
-    }
-};
-
-}
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 edit::edit()
-  : munin::composite_component<element_type>(make_shared<basic_container>())
 {
-    get_container()->set_layout(
-        make_shared<detail::edit_layout>());
-
-    BOOST_AUTO(border, make_shared<frame>());
-    get_container()->add_component(
-        border
-      , detail::edit_layout::hint_type_frame);
-
-    BOOST_AUTO(renderer, make_shared<detail::edit_renderer>(
-        make_shared<munin::ansi::text::default_singleline_document>()));
-
-    get_container()->add_component(
-        renderer
-      , detail::edit_layout::hint_type_renderer);
-
-    renderer->set_cursor_state(true);
+    pimpl_.reset(new impl(*this));
 }
 
 // ==========================================================================
@@ -503,6 +403,50 @@ edit::edit()
 // ==========================================================================
 edit::~edit()
 {
+}
+
+// ==========================================================================
+// DO_GET_PREFERRED_SIZE
+// ==========================================================================
+munin::extent edit::do_get_preferred_size() const
+{
+    return pimpl_->get_preferred_size();
+}
+
+// ==========================================================================
+// DO_GET_CURSOR_STATE
+// ==========================================================================
+bool edit::do_get_cursor_state() const
+{
+    return pimpl_->get_cursor_state();
+}
+
+
+// ==========================================================================
+// DO_GET_CURSOR_POSITION
+// ==========================================================================
+munin::point edit::do_get_cursor_position() const
+{
+    return pimpl_->get_cursor_position();
+}
+
+// ==========================================================================
+// DO_DRAW
+// ==========================================================================
+void edit::do_draw(
+    canvas<element_type> &cvs
+  , point const          &offset
+  , rectangle const      &region)
+{
+    pimpl_->draw(cvs, offset, region);
+}
+
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void edit::do_event(any const &event)
+{
+    pimpl_->do_event(event);
 }
 
 }}

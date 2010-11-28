@@ -27,7 +27,7 @@
 #ifndef MUNIN_ANSI_EDIT_HPP_
 #define MUNIN_ANSI_EDIT_HPP_
 
-#include "munin/composite_component.hpp"
+#include "munin/basic_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include <boost/shared_ptr.hpp>
 
@@ -37,8 +37,7 @@ namespace munin { namespace ansi {
 /// \brief A class that models a single-line text control with a frame
 /// bordering it.
 //* =========================================================================
-class edit 
-  : public munin::composite_component<munin::ansi::element_type>
+class edit : public munin::basic_component<munin::ansi::element_type>
 {
 public :
     //* =====================================================================
@@ -50,6 +49,54 @@ public :
     /// \brief Destructor
     //* =====================================================================
     virtual ~edit();
+
+protected :
+    //* =====================================================================
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual extent do_get_preferred_size() const;
+    
+    //* =====================================================================
+    /// \brief Called by get_cursor_state().  Derived classes must override
+    /// this function in order to return the cursor state in a custom manner.
+    //* =====================================================================
+    virtual bool do_get_cursor_state() const;
+    
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual point do_get_cursor_position() const;
+    
+    //* =====================================================================
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw 
+    /// the part of itself specified by the region.
+    ///
+    /// \param cvs the canvas in which the component should draw itself.
+    /// \param offset the position of the parent component (if there is one)
+    ///        relative to the canvas.  That is, (0,0) to this component
+    ///        is actually (offset.x, offset.y) in the canvas.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
+    //* =====================================================================
+    virtual void do_draw(
+        canvas<element_type> &cvs
+      , point const          &offset
+      , rectangle const      &region);
+
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event);
+    
+private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
 };
 
 }}

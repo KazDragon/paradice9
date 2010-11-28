@@ -53,7 +53,7 @@ void munin_ansi_canvas_fixture::test_array_indexing()
     // By default, the canvas should be full of unattributed spaces.
     munin::ansi::element_type element = make_pair(
         ' '
-      , optional<munin::ansi::attribute>());    
+      , munin::ansi::attribute());    
     
     for (odin::s32 row = 0; row < size.height; ++row)
     {
@@ -72,7 +72,7 @@ void munin_ansi_canvas_fixture::test_array_indexing()
         {
             canvas[column][row] = make_pair(
                 char(column * row)
-              , optional<munin::ansi::attribute>());
+              , munin::ansi::attribute());
         }
     }
     
@@ -84,7 +84,6 @@ void munin_ansi_canvas_fixture::test_array_indexing()
             element = canvas[column][row];
             
             CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
-            CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
         }
     }
 }
@@ -105,7 +104,7 @@ void munin_ansi_canvas_fixture::test_array_resizing()
         {
             canvas[column][row] = make_pair(
                 char(column * row)
-              , optional<munin::ansi::attribute>());
+              , munin::ansi::attribute());
         }
     }
     
@@ -117,7 +116,6 @@ void munin_ansi_canvas_fixture::test_array_resizing()
             munin::ansi::element_type element = canvas[column][row];
             
             CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
-            CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
         }
     }
     
@@ -142,8 +140,6 @@ void munin_ansi_canvas_fixture::test_array_resizing()
             {
                 CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
             }
-            
-            CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
         }
     }
     
@@ -160,7 +156,6 @@ void munin_ansi_canvas_fixture::test_array_resizing()
             munin::ansi::element_type element = canvas[column][row];
             
             CPPUNIT_ASSERT_EQUAL(char(column * row), element.first);
-            CPPUNIT_ASSERT_EQUAL(false, element.second.is_initialized());
         }
     }
 }

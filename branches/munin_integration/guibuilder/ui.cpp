@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "ui.hpp"
+#include "munin/aligned_layout.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/composite_component.hpp"
 #include "munin/grid_layout.hpp"
@@ -32,54 +33,115 @@
 #include "munin/ansi/edit.hpp"
 #include "munin/ansi/framed_component.hpp"
 #include "munin/ansi/frame.hpp"
+#include "munin/ansi/image.hpp"
 #include "munin/ansi/text_area.hpp"
 #include "munin/ansi/frame.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
+using namespace odin;
 using namespace boost;
+using namespace std;
 
 namespace guibuilder {
+
+static string main_image[] = {
+    
+    "             _"
+  , "    |/ _._  | \\.__. _  _ ._/ _"
+  , "    |\\(_|/_ |_/|(_|(_|(_)| |_>"
+  , "                    _|"
+  , " "
+  , "                   ___                   ___           ___"
+  , "                  / _ \\___ ________ ____/ (_)______   / _ \\"
+  , "                 / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\_, /"
+  , "                /_/   \\_,_/_/  \\_,_/\\_,_/_/\\__/\\__/  /___/"
+  , "                                                           v1.0"
+  , "                                                               "
+};
 
 ui::ui()
     : munin::composite_component<munin::ansi::element_type>(
            make_shared<munin::ansi::basic_container>())
 {
+    typedef munin::ansi::basic_container                     basic_container;
+    typedef munin::ansi::framed_component                    framed_component;
+    typedef munin::ansi::edit                                edit;
+    typedef munin::ansi::frame                               frame;
+    typedef munin::ansi::image                               image;
+    typedef munin::aligned_layout<munin::ansi::element_type> aligned_layout;
+    typedef munin::compass_layout<munin::ansi::element_type> compass_layout;
+    typedef munin::grid_layout<munin::ansi::element_type>    grid_layout;
+    
     BOOST_AUTO(container, get_container());
+ 
+    container->set_layout(make_shared<compass_layout>());
     
-    container->set_layout(
-        make_shared< munin::compass_layout<munin::ansi::element_type> >());
-
-    container->add_component(
-        make_shared<munin::ansi::framed_component>(
-            make_shared<munin::ansi::frame>()
-          , make_shared<munin::ansi::edit>())
-      , munin::COMPASS_LAYOUT_NORTH);
+    BOOST_AUTO(input_container, make_shared<basic_container>());
+    input_container->set_layout(make_shared<compass_layout>());
     
-    BOOST_AUTO(inner_container, make_shared<munin::ansi::basic_container>());
-    inner_container->set_layout(
-        make_shared< munin::grid_layout<munin::ansi::element_type> >(2, 1));
+    BOOST_AUTO(labels_container, make_shared<basic_container>());
+    labels_container->set_layout(make_shared<grid_layout>(2, 1));
     
-    inner_container->add_component(
-        make_shared<munin::ansi::framed_component>(
-            make_shared<munin::ansi::frame>()
-          , make_shared<munin::ansi::text_area>()));
-
-    inner_container->add_component(
-        make_shared<munin::ansi::framed_component>(
-            make_shared<munin::ansi::frame>()
-          , make_shared<munin::ansi::text_area>()));
-
-    container->add_component(
-        inner_container
-      , munin::COMPASS_LAYOUT_CENTRE);
-
-    container->add_component(
-        make_shared<munin::ansi::framed_component>(
-            make_shared<munin::ansi::frame>()
-          , make_shared<munin::ansi::edit>())
-      , munin::COMPASS_LAYOUT_SOUTH);
+    BOOST_AUTO(fields_container, make_shared<basic_container>());
+    fields_container->set_layout(make_shared<grid_layout>(2, 1));
+    fields_container->add_component(
+        make_shared<framed_component>(
+            make_shared<frame>(), make_shared<edit>()));
+    
+    BOOST_AUTO(password_field, make_shared<edit>());
+    munin::ansi::element_type password_element;
+    password_element.first = '*';
+    password_element.second.foreground_colour =
+        odin::ansi::graphics::COLOUR_RED;
+    password_field->set_attribute(
+        munin::ansi::EDIT_PASSWORD_ELEMENT
+      , password_element);
+    
+    fields_container->add_component(
+        make_shared<framed_component>(make_shared<frame>(), password_field));
+          
+    munin::alignment_data alignment = {
+        munin::HORIZONTAL_ALIGNMENT_RIGHT
+      , munin::VERTICAL_ALIGNMENT_CENTRE
+    };
+    
+    BOOST_AUTO(name_container, make_shared<basic_container>());
+    name_container->set_layout(make_shared<aligned_layout>());
+    
+    string name_image[] = { "name:" };
+    name_container->add_component(
+        make_shared<image>(munin::ansi::image_from_text(name_image))
+      , alignment);
+    
+    BOOST_AUTO(password_container, make_shared<basic_container>());
+    password_container->set_layout(make_shared<aligned_layout>());
+    
+    string password_image[] = { "password:" };
+    password_container->add_component(
+        make_shared<image>(munin::ansi::image_from_text(password_image))
+      , alignment);
+    
+    labels_container->add_component(name_container);
+    labels_container->add_component(password_container);
+    
+    input_container->add_component(
+        labels_container, munin::COMPASS_LAYOUT_WEST);
+    input_container->add_component(
+        fields_container, munin::COMPASS_LAYOUT_CENTRE);
+    
+    BOOST_AUTO(image_container, make_shared<basic_container>());
+    image_container->set_layout(make_shared<aligned_layout>());
+    
+    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_CENTRE;
+    alignment.vertical_alignment   = munin::VERTICAL_ALIGNMENT_CENTRE;
+    image_container->add_component(
+        make_shared<image>(munin::ansi::image_from_text(main_image))
+      , alignment);
+    
+    container->add_component(input_container, munin::COMPASS_LAYOUT_SOUTH);
+    container->add_component(image_container, munin::COMPASS_LAYOUT_CENTRE);
 }
 
 void ui::do_event(any const &ev)

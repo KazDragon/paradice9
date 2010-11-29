@@ -28,10 +28,18 @@
 #define MUNIN_ANSI_PROTOCOL_HPP_
 
 #include "munin/types.hpp"
+#include "munin/ansi/ansi_types.hpp"
+#include "odin/runtime_array.hpp"
 #include <string>
 
 namespace munin { namespace ansi {
     
+//* =========================================================================
+/// \brief Converts a string into a line of runtime_array<> of ANSI elements.
+//* =========================================================================
+odin::runtime_array<munin::ansi::element_type> elements_from_string(
+    std::string const &source_line);
+
 //* =========================================================================
 /// \brief Constructs a string that is used to move to a particular
 /// co-ordinate.  The passed in point is expected to be 0-based, while the

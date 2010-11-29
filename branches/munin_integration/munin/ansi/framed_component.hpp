@@ -34,6 +34,11 @@
 
 namespace munin { namespace ansi {
 
+BOOST_STATIC_CONSTANT(std::string, 
+    FOCUSSED_BORDER_PEN = "Focussed.Border.Pen");
+BOOST_STATIC_CONSTANT(std::string, 
+    UNFOCUSSED_BORDER_PEN = "Unfocussed.Border.Pen");
+
 //* =========================================================================
 /// \brief A class that models a multi-line text control with a frame
 /// bordering it.
@@ -57,6 +62,14 @@ public :
     /// \brief Destructor
     //* =====================================================================
     virtual ~framed_component();
+    
+protected :
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr);
     
 private :    
     struct impl;

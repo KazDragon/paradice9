@@ -41,6 +41,7 @@ MUNIN_NAMES       = algorithm \
                     ansi/edit \
                     ansi/frame \
                     ansi/framed_component \
+                    ansi/image \
                     ansi/protocol \
                     ansi/text/default_multiline_document \
                     ansi/text/default_singleline_document \

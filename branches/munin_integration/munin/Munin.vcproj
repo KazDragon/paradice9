@@ -272,6 +272,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ansi\image.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ansi\protocol.hpp"
 				>
 			</File>
@@ -337,6 +341,10 @@
 			</File>
 			<File
 				RelativePath=".\ansi\framed_component.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\image.cpp"
 				>
 			</File>
 			<File

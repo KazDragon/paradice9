@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Grid Layout.
+// Munin Aligned Layout.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,46 +24,60 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_GRID_LAYOUT_HPP_
-#define MUNIN_GRID_LAYOUT_HPP_
+#ifndef MUNIN_ALIGNED_LAYOUT_HPP_
+#define MUNIN_ALIGNED_LAYOUT_HPP_
 
 #include "munin/layout.hpp"
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <vector>
 
 namespace munin {
 
+BOOST_STATIC_CONSTANT(odin::u32, HORIZONTAL_ALIGNMENT_LEFT   = 0);    
+BOOST_STATIC_CONSTANT(odin::u32, HORIZONTAL_ALIGNMENT_CENTRE = 1);    
+BOOST_STATIC_CONSTANT(odin::u32, HORIZONTAL_ALIGNMENT_RIGHT  = 2);    
+
+BOOST_STATIC_CONSTANT(odin::u32, VERTICAL_ALIGNMENT_TOP    = 0);    
+BOOST_STATIC_CONSTANT(odin::u32, VERTICAL_ALIGNMENT_CENTRE = 1);    
+BOOST_STATIC_CONSTANT(odin::u32, VERTICAL_ALIGNMENT_BOTTOM = 2);
+
+struct alignment_data
+{
+    odin::u32 horizontal_alignment;
+    odin::u32 vertical_alignment;
+};
+
 //* =========================================================================
 /// \brief A class that knows how to lay components out in a container in
-/// a grid-like manner.  Each cell of the grid has an identical size.
-/// Components added to the grid will be displayed left-to-right, top-to-
+/// a aligned-like manner.  Each cell of the aligned has an identical size.
+/// Components added to the aligned will be displayed left-to-right, top-to-
 /// bottom.
 //* =========================================================================
 template <class ElementType>
-class grid_layout : public layout<ElementType>
+class aligned_layout : public layout<ElementType>
 {
 public :
+    
     typedef layout<ElementType> parent_type;
     typedef typename parent_type::component_type component_type;
     typedef typename parent_type::container_type container_type;
 
     //* =====================================================================
     /// \brief Constructor
-    /// \param rows The number of rows in this grid.
-    /// \param columns The number of columns in this grid.
+    /// \param rows The number of rows in this aligned.
+    /// \param columns The number of columns in this aligned.
     //* =====================================================================
-    grid_layout(odin::u32 rows, odin::u32 columns)
-        : rows_(rows)
-        , columns_(columns)
+    aligned_layout()
     {
     }
 
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~grid_layout()
+    virtual ~aligned_layout()
     {
     }
     
@@ -87,6 +101,7 @@ protected :
       , boost::any                               hint)
     {
         components_.push_back(comp);
+        hints_.push_back(hint);
     }
     
     //* =====================================================================
@@ -96,12 +111,19 @@ protected :
     virtual void do_remove_component(
         boost::shared_ptr<component_type> const &comp)
     {
-        components_.erase(
-            std::remove(
-                components_.begin()
-              , components_.end()
-              , comp)
-          , components_.end());
+        for (typename std::vector<
+                 boost::shared_ptr<component_type> >::size_type index = 0;
+             index < components_.size();
+             ++index)
+        {
+            if (components_[index] == comp)
+            {
+                components_.erase(components_.begin() + index);
+                hints_.erase(hints_.begin() + index);
+                
+                break;
+            }
+        }
     }
     
     //* =====================================================================
@@ -111,7 +133,7 @@ protected :
     virtual boost::shared_ptr<component_type> 
         do_get_component(odin::u32 index) const
     {
-        return boost::shared_ptr<component_type>();
+        return components_[index];
     }
     
     //* =====================================================================
@@ -120,7 +142,7 @@ protected :
     //* =====================================================================
     virtual boost::any do_get_hint(odin::u32 index) const
     {
-        return boost::any();
+        return hints_[index];
     }
 
     //* =====================================================================
@@ -130,9 +152,8 @@ protected :
     //* =====================================================================
     virtual extent do_get_preferred_size() const
     {
-        // The preferred size of the whole component is the maximum preferred
-        // width and the maximum preferred height of all components, 
-        // multiplied appropriately by the rows and columns
+        // The preferred size of this component is the largest preferred
+        // extents of all components.
         extent maximum_preferred_size(0, 0);
 
         BOOST_FOREACH(boost::shared_ptr<component_type> comp, components_)
@@ -147,9 +168,6 @@ protected :
                 maximum_preferred_size.height
               , preferred_size.height);
         }
-        
-        maximum_preferred_size.width  *= columns_;
-        maximum_preferred_size.height *= rows_;
 
         return maximum_preferred_size;
     }
@@ -162,31 +180,79 @@ protected :
     virtual void do_layout(
         boost::shared_ptr<container_type> const &cont)
     {
-        munin::extent size = cont->get_size();
-
+        BOOST_AUTO(size, cont->get_size());
+        
         for (size_t index = 0; index < components_.size(); ++index)
         {
-            // Work out the row/column of the current component.
-            odin::u32 row    = index / columns_;
-            odin::u32 column = index % columns_;
-
-            // Naive: will have missing pixels and off-by-one errors
-            components_[index]->set_position(
-                munin::point(
-                    (size.width / columns_) * column
-                  , (size.height / rows_) * row));
-
-            components_[index]->set_size(
-                munin::extent(
-                    size.width  / columns_
-                  , size.height / rows_));
+            boost::shared_ptr<component_type> comp = components_[index];
+            boost::any                        hint = hints_[index];
+            
+            alignment_data const *alignment_hint = 
+                boost::any_cast<alignment_data>(&hint);
+                
+            // By default, components are centre-aligned.
+            alignment_data alignment = {
+                HORIZONTAL_ALIGNMENT_CENTRE
+              , VERTICAL_ALIGNMENT_CENTRE
+            };
+            
+            if (alignment_hint != NULL)
+            {
+                alignment = *alignment_hint;
+            }
+            
+            BOOST_AUTO(comp_size, comp->get_preferred_size());
+            
+            munin::point position;
+            
+            switch (alignment.horizontal_alignment)
+            {
+            case HORIZONTAL_ALIGNMENT_LEFT :
+                position.x = 0;
+                break;
+                
+            case HORIZONTAL_ALIGNMENT_RIGHT :
+                position.x = comp_size.width > size.width
+                           ? 0
+                           : size.width - comp_size.width;
+                break;
+            
+            case HORIZONTAL_ALIGNMENT_CENTRE :
+            default :
+                position.x = comp_size.width > size.width
+                           ? 0
+                           : ((size.width - comp_size.width) / 2);
+                break;
+            };
+            
+            switch (alignment.vertical_alignment)
+            {
+            case VERTICAL_ALIGNMENT_TOP :
+                position.y = 0;
+                break;
+                
+            case VERTICAL_ALIGNMENT_BOTTOM :
+                position.y = comp_size.height > size.height
+                           ? 0
+                           : size.height - comp_size.height;
+                break;
+            
+            case VERTICAL_ALIGNMENT_CENTRE :
+            default :
+                position.y = comp_size.height > size.height
+                           ? 0
+                           : ((size.height - comp_size.height) / 2);
+                break;
+            };
+                    
+            comp->set_position(position);
+            comp->set_size(comp_size);
         }
     }
 
 private :    
     std::vector< boost::shared_ptr<component_type> > components_;
-    odin::u32                                        rows_;
-    odin::u32                                        columns_;
+    std::vector< boost::any                        > hints_;
 };
     
 }

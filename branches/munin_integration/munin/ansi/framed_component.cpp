@@ -34,6 +34,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace std;
 
 namespace munin { namespace ansi {
     
@@ -113,29 +114,33 @@ private :
 // ==========================================================================
 struct framed_component::impl
 {
-    void on_focus_change(
-        weak_ptr< munin::frame<munin::ansi::element_type> >     weak_border
-      , weak_ptr< munin::component<munin::ansi::element_type> > weak_interior)
+    impl(shared_ptr< munin::frame<munin::ansi::element_type> > border
+       , shared_ptr< munin::component<munin::ansi::element_type> > interior)
+        : border_(border)
+        , interior_(interior)
     {
-        BOOST_AUTO(border,   weak_border.lock());
-        BOOST_AUTO(interior, weak_interior.lock());
+    }
+        
+    void update_pen()
+    {
+        BOOST_AUTO(border,   border_.lock());
+        BOOST_AUTO(interior, interior_.lock());
         
         if (border != NULL && interior != NULL)
         {
-            BOOST_AUTO(focussed, interior->has_focus());
-            
-            attribute attr;
-            attr.foreground_colour = focussed
-                                   ? odin::ansi::graphics::COLOUR_CYAN
-                                   : odin::ansi::graphics::COLOUR_DEFAULT;
-            
-            attr.intensity = focussed
-                           ? odin::ansi::graphics::INTENSITY_BOLD
-                           : odin::ansi::graphics::INTENSITY_NORMAL;
-                           
-            border->set_attribute(ATTRIBUTE_PEN, attr);
+            border->set_attribute(
+                ATTRIBUTE_PEN
+              , interior->has_focus()
+                    ? focussed_pen_
+                    : unfocussed_pen_);
         }
     }
+    
+    weak_ptr< munin::frame<munin::ansi::element_type> >     border_;
+    weak_ptr< munin::component<munin::ansi::element_type> > interior_;
+    
+    attribute focussed_pen_;
+    attribute unfocussed_pen_;
 };
 
 // ==========================================================================
@@ -145,7 +150,7 @@ framed_component::framed_component(
     shared_ptr< munin::frame<munin::ansi::element_type> >     border
   , shared_ptr< munin::component<munin::ansi::element_type> > interior)
     : munin::composite_component<element_type>(make_shared<basic_container>())
-    , pimpl_(new impl)
+    , pimpl_(new impl(border, interior))
 {
     BOOST_AUTO(container, get_container());
     
@@ -155,19 +160,13 @@ framed_component::framed_component(
     container->add_component(
         interior, framed_component_layout::hint_type_interior);
     
-    interior->on_focus_set.connect(
-        bind(&impl::on_focus_change
-           , pimpl_.get()
-           , weak_ptr< munin::frame<munin::ansi::element_type> >(border)
-           , weak_ptr< munin::component<munin::ansi::element_type> >(interior)
-        ));
-             
-    interior->on_focus_lost.connect(
-        bind(&impl::on_focus_change
-           , pimpl_.get()
-           , weak_ptr< munin::frame<munin::ansi::element_type> >(border)
-           , weak_ptr< munin::component<munin::ansi::element_type> >(interior)
-        ));
+    interior->on_focus_set.connect(bind(&impl::update_pen, pimpl_.get()));
+    interior->on_focus_lost.connect(bind(&impl::update_pen, pimpl_.get()));
+    
+    pimpl_->focussed_pen_.foreground_colour = 
+        odin::ansi::graphics::COLOUR_CYAN;
+    pimpl_->focussed_pen_.intensity = 
+        odin::ansi::graphics::INTENSITY_BOLD;
 }
 
 // ==========================================================================
@@ -175,6 +174,33 @@ framed_component::framed_component(
 // ==========================================================================
 framed_component::~framed_component()
 {
+}
+
+// ==========================================================================
+// DO_SET_ATTRIBUTE
+// ==========================================================================
+void framed_component::do_set_attribute(string const &name, any const &attr)
+{
+    if (name == FOCUSSED_BORDER_PEN)
+    {
+        attribute const *pen = any_cast<attribute>(&attr);
+        
+        if (pen != NULL)
+        {
+            pimpl_->focussed_pen_ = *pen;
+            pimpl_->update_pen();
+        }
+    }
+    else if (name == UNFOCUSSED_BORDER_PEN)
+    {
+        attribute const *pen = any_cast<attribute>(&attr);
+        
+        if (pen != NULL)
+        {
+            pimpl_->unfocussed_pen_ = *pen;
+            pimpl_->update_pen();
+        }
+    }
 }
 
 }}

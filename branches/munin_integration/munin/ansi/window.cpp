@@ -310,12 +310,14 @@ private :
         // to update the window.         
         string output;
         
-        // If the canvas has been shrunk, then many things can happen.
-        // Since there's no way in that case to tell whether the client
-        // has clipped or scrolled or whatever, we must repaint everything
-        // in that case.
-        bool repaint_all = canvas_.get_size().width  > size.width
-                        || canvas_.get_size().height > size.height;
+        // If the canvas has changed size, then many things can happen.
+        // If it's shrunk, then there's no way to tell if the client has
+        // clipped or scrolled or whatever.  If it's grown, then the new
+        // regions of the screen may contain junk and need to be overwritten.
+        // Therefore, we forego detection of whether a region is similar
+        // to what it used to be and instead just repaint everything.
+        bool repaint_all = canvas_.get_size().width  != size.width
+                        || canvas_.get_size().height != size.height;
 
         // Ensure that our canvas is the correct size for the content that we
         // are going to paint.

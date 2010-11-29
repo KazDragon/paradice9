@@ -33,7 +33,6 @@
 #include "munin/algorithm.hpp"
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/utility.hpp>
 #include <boost/weak_ptr.hpp>
@@ -61,7 +60,6 @@ BOOST_STATIC_CONSTANT(
 template <class ElementType>
 class container 
     : public component<ElementType>
-    , public boost::enable_shared_from_this< container<ElementType> >
 {
 public :
     typedef ElementType            element_type;

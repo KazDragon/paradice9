@@ -29,6 +29,7 @@
 #include "client.hpp"
 #include "ui.hpp"
 #include "odin/telnet/protocol.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "munin/ansi/window.hpp"
 #include "munin/grid_layout.hpp"
 #include <boost/asio/deadline_timer.hpp>
@@ -189,6 +190,13 @@ void on_accept(shared_ptr<guibuilder::socket> socket)
 
     content->add_component(user_interface);
     content->set_focus();
+    
+    std::string string_data = munin::ansi::set_window_title(
+        "Paradice9 Sample");
+    
+    odin::runtime_array<odin::u8> data(string_data.size());
+    copy(string_data.begin(), string_data.end(), data.begin());
+    socket->async_write(data, NULL);
 }
 
 static void schedule_keepalive(

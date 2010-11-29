@@ -106,16 +106,37 @@ struct edit::impl
     {
         munin::point position = self_.get_position();
     
+        // TODO: Fix this so that only a certain number of password field
+        // characters are shown in password mode.
+        BOOST_AUTO(characters, 
+            (min)(u32(document_view_.size()), u32(document_->get_width())));
+        
         s32 index = 0;
     
         // Write whatever characters are required.
-        for (;
-             (index + 1) < region.size.width
-          && u32(region.origin.x + index) < document_view_.size();
-             ++index)
+        if (password_element_.is_initialized())
         {
-            cvs[position.x + index + offset.x]
-               [position.y + 0     + offset.y] = document_view_[index];
+            BOOST_AUTO(element, password_element_.get());
+            
+            for (;
+                 (index + 1) < region.size.width
+              && u32(region.origin.x + index) < characters;
+                 ++index)
+            {
+                cvs[position.x + index + offset.x]
+                   [position.y + 0     + offset.y] = element;
+            }
+        }
+        else
+        {
+            for (;
+                 (index + 1) < region.size.width
+              && u32(region.origin.x + index) < characters;
+                 ++index)
+            {
+                cvs[position.x + index + offset.x]
+                   [position.y + 0     + offset.y] = document_view_[index];
+            }
         }
         
         // Pad the rest with blanks.
@@ -151,6 +172,22 @@ struct edit::impl
         {
             do_ansi_control_sequence_event(*sequence);
         }
+    }
+
+    //* =====================================================================
+    /// \brief Sets the edit field to password mode, where every character
+    /// is replaced by the specified element.
+    //* =====================================================================
+    void set_password_element(element_type const &element)
+    {
+        password_element_ = element;
+        
+        // Changing the password element will completely change how this
+        // component is rendered.  Therefore, we will need to redraw the
+        // entire component.
+        vector<rectangle> regions;
+        regions.push_back(rectangle(point(), self_.get_size()));
+        self_.on_redraw(regions);
     }
     
 private :
@@ -387,7 +424,9 @@ private :
     bool                                               cursor_state_;
     
     u32                                                document_base_;
-    vector<munin::ansi::element_type>                  document_view_;
+    vector<element_type>                               document_view_;
+    
+    boost::optional<element_type>                      password_element_;
 };
 
 // ==========================================================================
@@ -449,4 +488,21 @@ void edit::do_event(any const &event)
     pimpl_->do_event(event);
 }
 
+// ==========================================================================
+// DO_SET_ATTRIBUTE
+// ==========================================================================
+void edit::do_set_attribute(string const &name, any const &attr)
+{
+    if (name == EDIT_PASSWORD_ELEMENT)
+    {
+        element_type const *element = any_cast<element_type>(&attr);
+        
+        if (element != NULL)
+        {
+            pimpl_->set_password_element(*element);
+        }
+    }
+}
+
 }}
+

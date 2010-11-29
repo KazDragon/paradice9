@@ -28,6 +28,7 @@
 #define MUNIN_BASIC_CONTAINER_HPP_
 
 #include "munin/container.hpp"
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
@@ -43,6 +44,7 @@ namespace munin {
 template <class ElementType>
 class basic_container 
     : public container<ElementType>
+    , public boost::enable_shared_from_this< basic_container<ElementType> >
 {
 public :
     typedef ElementType            element_type;

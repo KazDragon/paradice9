@@ -33,6 +33,9 @@
 
 namespace munin { namespace ansi {
 
+BOOST_STATIC_CONSTANT(
+    std::string, EDIT_PASSWORD_ELEMENT = "Edit.Password.Element");
+
 //* =========================================================================
 /// \brief A class that models a single-line text control with a frame
 /// bordering it.
@@ -93,6 +96,13 @@ protected :
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr);
     
 private :
     struct impl;

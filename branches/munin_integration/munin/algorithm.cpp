@@ -162,6 +162,10 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
     
                     second_slice = rectangles.erase(second_slice);
                 }
+                else
+                {
+                    ++second_slice;
+                }
             }
             else
             {

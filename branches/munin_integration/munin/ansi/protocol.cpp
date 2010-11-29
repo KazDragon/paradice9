@@ -31,9 +31,27 @@
 
 using namespace std;
 using namespace boost;
+using namespace odin;
 
 namespace munin { namespace ansi {
     
+// ==========================================================================
+// ELEMENTS_FROM_STRING
+// ==========================================================================
+runtime_array<element_type> elements_from_string(string const &source_line)
+{
+    runtime_array<munin::ansi::element_type> dest_line(source_line.size());
+    
+    for (u32 index = 0; index < source_line.size(); ++index)
+    {
+        dest_line[index] = munin::ansi::element_type(
+            source_line[index]
+          , attribute());
+    }
+    
+    return dest_line;
+}
+
 // ==========================================================================
 // CURSOR_POSITION
 // ==========================================================================    

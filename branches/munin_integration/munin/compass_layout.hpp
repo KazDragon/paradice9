@@ -67,7 +67,81 @@ protected :
     //* =====================================================================
     virtual extent do_get_preferred_size() const
     {
-        return extent();
+        // This isn't quite right as it doesn't take into account the order
+        // of insertion like do_draw does, but it will do for now.
+        odin::u32 north_widths   = 0;
+        odin::u32 south_widths   = 0;
+        odin::u32 east_widths    = 0;
+        odin::u32 centre_widths  = 0;
+        odin::u32 west_widths    = 0;
+        odin::u32 north_heights  = 0;
+        odin::u32 south_heights  = 0;
+        odin::u32 east_heights   = 0;
+        odin::u32 centre_heights = 0;
+        odin::u32 west_heights   = 0;
+        
+        for (odin::u32 index = 0; 
+             index < this->get_number_of_components();
+             ++index)
+        {
+            boost::shared_ptr<component_type> comp = 
+                this->get_component(index);
+                
+            boost::any hint = this->get_hint(index);
+            
+            odin::u32 *direction_hint = boost::any_cast<odin::u32>(&hint);
+            odin::u32 direction = COMPASS_LAYOUT_CENTRE;
+            
+            if (direction_hint != NULL)
+            {
+                direction = *direction_hint;
+            }
+            
+            BOOST_AUTO(comp_size, comp->get_preferred_size());
+            
+            switch (direction)
+            {
+            case COMPASS_LAYOUT_NORTH :
+                north_widths  += comp_size.width;
+                north_heights += comp_size.height; 
+                break;
+
+            case COMPASS_LAYOUT_EAST :
+                east_widths  += comp_size.width;
+                east_heights += comp_size.height; 
+                break;
+
+            case COMPASS_LAYOUT_SOUTH :
+                south_widths  += comp_size.width;
+                south_heights += comp_size.height; 
+                break;
+
+            case COMPASS_LAYOUT_WEST :
+                west_widths  += comp_size.width;
+                west_heights += comp_size.height; 
+                break;
+
+            case COMPASS_LAYOUT_CENTRE :
+            default :
+                centre_widths  += comp_size.width;
+                centre_heights += comp_size.height; 
+                break;
+            }
+        }
+        
+        munin::extent preferred_size;
+        
+        preferred_size.width = north_widths;
+        preferred_size.width = (std::max)(odin::u32(preferred_size.width), centre_widths);
+        preferred_size.width = (std::max)(odin::u32(preferred_size.width), south_widths);
+        preferred_size.width += (west_widths + east_widths);
+
+        preferred_size.height = west_heights;
+        preferred_size.height = (std::max)(odin::u32(preferred_size.height), centre_heights);
+        preferred_size.height = (std::max)(odin::u32(preferred_size.height), east_heights);
+        preferred_size.height += (north_heights + south_heights);
+        
+        return preferred_size;
     }
     
     //* =====================================================================

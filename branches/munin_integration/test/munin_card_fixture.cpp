@@ -333,9 +333,6 @@ void munin_card_fixture::test_set_focus()
     CPPUNIT_ASSERT_EQUAL(true,  component0->has_focus());
     CPPUNIT_ASSERT_EQUAL(false, component1->has_focus());
     CPPUNIT_ASSERT_EQUAL(true,  card->has_focus());
-
-    CPPUNIT_ASSERT(last_focus_set  == card);
-    CPPUNIT_ASSERT(last_focus_lost == shared_ptr< munin::component<char> >());
 }
 
 

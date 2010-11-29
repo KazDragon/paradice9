@@ -102,6 +102,7 @@ namespace {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(roll)
 {
+    /*
     static string const usage_message =
         "\r\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
         "\r\n Example: roll 2d6+3-20"
@@ -286,6 +287,7 @@ PARADICE_COMMAND_IMPL(roll)
                       % total_score
                       % ANSI_DEFAULT)))
       , player);
+      */
 }
 
 // ==========================================================================
@@ -293,6 +295,7 @@ PARADICE_COMMAND_IMPL(roll)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(rollprivate)
 {
+    /*
     static string const usage_message =
         "\r\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>]"
         "\r\n Example: rollprivate 2d6+3-20"
@@ -414,6 +417,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
                       % total_score
                       % ANSI_DEFAULT)))
       , player);
+      */
 }
 
 // ==========================================================================
@@ -421,6 +425,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(showrolls)
 {
+    /*
     pair<string, string> tokens = tokenise(arguments);
     string category             = tokens.first;
     
@@ -492,6 +497,7 @@ PARADICE_COMMAND_IMPL(showrolls)
     output += "\r\n\r\n";
 
     send_to_player(ctx, output, player);
+    */
 }
 
 // ==========================================================================
@@ -499,6 +505,7 @@ PARADICE_COMMAND_IMPL(showrolls)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(clearrolls)
 {
+    /*
     string category = tokenise(arguments).first;
     
     if (category == "")
@@ -525,6 +532,7 @@ PARADICE_COMMAND_IMPL(clearrolls)
           % player->get_name()
           % category)
       , player);
+      */
 }
 
 }

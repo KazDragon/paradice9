@@ -146,7 +146,7 @@ void on_control_sequence(
     }
 }
 
-void on_accept(shared_ptr<guibuilder::socket> socket)
+static void on_accept(shared_ptr<guibuilder::socket> socket)
 {
     schedule_keepalive(
         socket

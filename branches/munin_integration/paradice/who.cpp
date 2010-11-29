@@ -97,6 +97,7 @@ bool is_acceptible_name(string const &name)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(who)
 {
+    /*
     string argument = tokenise(arguments).first;
     
     BOOST_STATIC_CONSTANT(string, usage_message =
@@ -229,7 +230,7 @@ PARADICE_COMMAND_IMPL(who)
     u16 current_page_begin_index = current_page * names_per_page;
     u16 current_page_end_index   = (current_page + 1) * names_per_page;
     
-/*
+/ *
  +=== CURRENTLY PLAYING ======================================================+
  | <prefix> <    name1   > <  title  > || <prefix> <    name6   > <  title  > |
  | <prefix> <    name2   > <  title  > || <prefix> <    name7   > <  title  > |
@@ -239,7 +240,7 @@ PARADICE_COMMAND_IMPL(who)
  +====================================================================[1/2]===+
 
    ---8---- ------14------ -----11----    ---8---- ------14------ -----11---- 
-*/
+* /
     // Find the number of columns we will be displaying.  For example, if
     // we can support three columns of 6, but there are only 7 names to
     // display, we only need display two columns.
@@ -338,6 +339,7 @@ PARADICE_COMMAND_IMPL(who)
           + restore_cursor_position;
 
     player->get_connection()->write(text);
+    */
 }
 
 // ==========================================================================
@@ -345,6 +347,7 @@ PARADICE_COMMAND_IMPL(who)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(title)
 {
+    /*
     player->set_title(boost::algorithm::trim_copy(arguments));
 
     message_to_player(ctx, str(
@@ -362,6 +365,7 @@ PARADICE_COMMAND_IMPL(title)
     {
         INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
     }
+    */
 }
 
 // ==========================================================================
@@ -369,6 +373,7 @@ PARADICE_COMMAND_IMPL(title)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(prefix)
 {
+    /*
     player->set_prefix(boost::algorithm::trim_copy(arguments));
 
     message_to_player(ctx, str(
@@ -386,6 +391,7 @@ PARADICE_COMMAND_IMPL(prefix)
     {
         INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
     }
+    */
 }
 
 // ==========================================================================
@@ -393,6 +399,7 @@ PARADICE_COMMAND_IMPL(prefix)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(rename)
 {
+    /*
     string name = tokenise(arguments).first;
     
     if (!is_acceptible_name(name))
@@ -424,7 +431,7 @@ PARADICE_COMMAND_IMPL(rename)
             INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
         }
     }
+    */
 }
-
 
 }

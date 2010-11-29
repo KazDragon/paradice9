@@ -54,6 +54,7 @@ public :
     //* =====================================================================
     basic_component()
         : bounds_(point(0, 0), extent(0, 0))
+        , can_focus_(true)
         , has_focus_(false)
         , enabled_(true)
     {
@@ -104,15 +105,15 @@ protected :
     }
 
     //* =====================================================================
-    /// \brief Called by has_focus().  Derived classes must override this
-    /// function in order to return whether this component has focus in a
-    /// custom manner.
+    /// \brief Called by set_can_focus().  Derived classes must override this
+    /// function in order to set whether this component can be focussed in
+    /// a custom manner.
     //* =====================================================================
-    virtual bool do_has_focus() const
+    virtual void do_set_can_focus(bool focus)
     {
-        return has_focus_;
+        can_focus_ = focus;
     }
-    
+
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
@@ -120,7 +121,17 @@ protected :
     //* =====================================================================
     virtual bool do_can_focus() const
     {
-        return true;
+        return can_focus_;
+    }
+
+    //* =====================================================================
+    /// \brief Called by has_focus().  Derived classes must override this
+    /// function in order to return whether this component has focus in a
+    /// custom manner.
+    //* =====================================================================
+    virtual bool do_has_focus() const
+    {
+        return has_focus_;
     }
     
     //* =====================================================================
@@ -274,6 +285,7 @@ protected :
 private :
     std::map<std::string, boost::any> attributes_;
     rectangle                         bounds_;
+    bool                              can_focus_;
     bool                              has_focus_;
     bool                              enabled_;
     

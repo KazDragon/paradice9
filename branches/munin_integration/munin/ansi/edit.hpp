@@ -28,6 +28,7 @@
 #define MUNIN_ANSI_EDIT_HPP_
 
 #include "munin/basic_component.hpp"
+#include "munin/text/document.hpp"
 #include "munin/ansi/ansi_types.hpp"
 #include <boost/shared_ptr.hpp>
 
@@ -52,6 +53,12 @@ public :
     /// \brief Destructor
     //* =====================================================================
     virtual ~edit();
+
+    //* =====================================================================
+    /// \brief Retrieves the document that this text area is using.
+    //* =====================================================================
+    boost::shared_ptr< munin::text::document<munin::ansi::element_type> > 
+        get_document();
 
 protected :
     //* =====================================================================

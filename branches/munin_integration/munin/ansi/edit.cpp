@@ -71,6 +71,14 @@ struct edit::impl
         document_->on_caret_position_changed.connect(
             bind(&impl::on_caret_position_changed, this));
     }
+
+    //* =====================================================================
+    /// \brief Returns the document associated with this component.
+    //* =====================================================================
+    shared_ptr< munin::text::document<element_type> > get_document()
+    {
+        return document_;
+    }
     
     //* =====================================================================
     /// \brief Returns the preferred size of this component.
@@ -442,6 +450,14 @@ edit::edit()
 // ==========================================================================
 edit::~edit()
 {
+}
+
+// ==========================================================================
+// GET_DOCUMENT
+// ==========================================================================
+shared_ptr< munin::text::document<element_type> > edit::get_document()
+{
+    return pimpl_->get_document();
 }
 
 // ==========================================================================

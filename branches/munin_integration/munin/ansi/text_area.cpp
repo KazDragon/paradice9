@@ -148,7 +148,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Processes events.
     //* =====================================================================
-    virtual void do_event(any const &event)
+    void do_event(any const &event)
     {
         char const *ch = any_cast<char>(&event);
         

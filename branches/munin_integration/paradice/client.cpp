@@ -39,12 +39,13 @@ using namespace std;
 namespace paradice {
 
 vector< shared_ptr<client> > clients;
-    
+
 // ==========================================================================
 // CLIENT IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct client::impl
 {
+
     shared_ptr<connection> connection_;
     client::level          level_;
     client::command_mode   command_mode_;
@@ -114,9 +115,12 @@ void client::set_level(level new_level)
 void client::set_name(string const &name)
 {
     pimpl_->name_ = name;
+
+    /*
     get_connection()->write(
         munin::ansi::set_window_title(
             pimpl_->name_ + " - Paradice"));
+    */
 }
 
 // ==========================================================================

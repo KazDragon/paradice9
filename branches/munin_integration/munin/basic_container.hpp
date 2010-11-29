@@ -456,6 +456,17 @@ protected :
     }
     
     //* =====================================================================
+    /// \brief Called by set_can_focus().  Derived classes must override this
+    /// function in order to set whether this component can be focussed in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_can_focus(bool focus)
+    {
+        // As this is controlled by contained components, this is
+        // completely ignored.
+    }
+
+    //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
     /// a custom manner.

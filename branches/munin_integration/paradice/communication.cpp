@@ -41,6 +41,7 @@ using namespace odin;
 
 namespace paradice {
     
+    /*
 // ==========================================================================
 // MESSAGE_TO_ALL
 // ==========================================================================
@@ -248,5 +249,5 @@ PARADICE_COMMAND_IMPL(backtrace)
     send_to_player(ctx, backtrace + player->get_backtrace(), player);
 }
 
-
+*/
 }

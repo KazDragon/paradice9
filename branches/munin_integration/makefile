@@ -13,8 +13,8 @@ NOLINK       = -c
 L_DIRS       = -L.
 G_LIBS       = -lmunin -lodin -lboost_program_options -lboost_system \
                -lboost_signals -lws2_32 -lwsock32
-LIBS         = -lparadice -lmunin -lodin -lboost_program_options \
-               -lboost_system -lboost_signals -lws2_32 -lwsock32
+LIBS         = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
+               -lboost_system -lboost_signals -lws2_32 -lwsock32 
 E_NAME       = paradice.exe
 G_NAME       = guibuilder.exe
 
@@ -50,6 +50,10 @@ MUNIN_NAMES       = algorithm \
                     types
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
 MUNIN_LIB         = libmunin.a
+
+HUGIN_NAMES       = user_interface
+HUGIN_O_FILES     = $(HUGIN_NAMES:%=hugin/%.o)
+HUGIN_LIB         = libhugin.a
 
 GUIBUILDER_NAMES  = client \
                     main \
@@ -109,7 +113,8 @@ TEST_NAMES        = paradice_test $(TEST_FIXTURES:%=%_fixture)
 TEST_O_FILES      = $(TEST_NAMES:%=test/%.o)
 TEST_EXE          = paradice_test.exe
 
-$(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(PARADICE_LIB) $(TEST_EXE) $(PARADICE9_O_FILES)
+$(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(HUGIN_LIB) $(PARADICE_LIB) \
+           $(TEST_EXE) $(PARADICE9_O_FILES)
 	$(CC) $(NAME_IS) $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS)
     
 $(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(TEST_EXE) $(GUIBUILDER_O_FILES)
@@ -119,6 +124,7 @@ clean:
 	$(RM) $(E_NAME) $(PARADICE9_O_FILES) \
 	      $(G_NAME) $(GUIBUILDER_O_FILES) \
           $(PARADICE_LIB) $(PARADICE_O_FILES) \
+          $(HUGIN_LIB) $(HUGIN_O_FILES) \
           $(MUNIN_LIB) $(MUNIN_O_FILES) \
           $(ODIN_LIB) $(ODIN_O_FILES) \
           $(TEST_EXE) $(TEST_O_FILES)
@@ -129,10 +135,14 @@ libodin.a: $(ODIN_O_FILES)
 libmunin.a: $(MUNIN_O_FILES)
 	$(AR) $@ $(MUNIN_O_FILES)
 
+libhugin.a: $(HUGIN_O_FILES)
+	$(AR) $@ $(HUGIN_O_FILES)
+
 libparadice.a: $(PARADICE_O_FILES)
 	$(AR) $@ $(PARADICE_O_FILES)
 
-$(TEST_EXE): $(TEST_O_FILES) $(ODIN_LIB) $(PARADICE_LIB) $(MUNIN_LIB)
+$(TEST_EXE): $(TEST_O_FILES) $(ODIN_LIB) $(PARADICE_LIB) \
+             $(MUNIN_LIB) $(HUGIN_LIB)
 	$(CC) $(NAME_IS) $@ $(TEST_O_FILES) $(TEST_L_DIRS) $(TEST_LIBS)
 	./$@    
     

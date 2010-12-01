@@ -30,6 +30,8 @@
 #include "connection.hpp"
 #include "context.hpp"
 #include "utility.hpp"
+#include "hugin/user_interface.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
 #include <boost/algorithm/string/trim.hpp>
@@ -347,25 +349,18 @@ PARADICE_COMMAND_IMPL(who)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(title)
 {
-    /*
     player->set_title(boost::algorithm::trim_copy(arguments));
 
-    message_to_player(ctx, str(
+    send_to_player(ctx, str(
         format("\r\nYou are now %s.\r\n")
             % get_player_address(player))
       , player);
     
-    message_to_room(ctx, str(
+    send_to_room(ctx, str(
         format("\r\n%s is now %s.\r\n")
             % player->get_name()
             % get_player_address(player))
       , player);
-
-    BOOST_FOREACH(shared_ptr<client> current_player, ctx->get_clients())
-    {
-        INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
-    }
-    */
 }
 
 // ==========================================================================
@@ -373,25 +368,18 @@ PARADICE_COMMAND_IMPL(title)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(prefix)
 {
-    /*
     player->set_prefix(boost::algorithm::trim_copy(arguments));
 
-    message_to_player(ctx, str(
+    send_to_player(ctx, str(
         format("\r\nYou are now %s.\r\n")
             % get_player_address(player))
       , player);
     
-    message_to_room(ctx, str(
+    send_to_room(ctx, str(
         format("\r\n%s is now %s.\r\n")
             % player->get_name()
             % get_player_address(player))
       , player);
-
-    BOOST_FOREACH(shared_ptr<client> current_player, ctx->get_clients())
-    {
-        INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
-    }
-    */
 }
 
 // ==========================================================================
@@ -399,14 +387,15 @@ PARADICE_COMMAND_IMPL(prefix)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(rename)
 {
-    /*
     string name = tokenise(arguments).first;
     
     if (!is_acceptible_name(name))
     {
-        player->get_connection()->write(
-            "Your name must be at least three characters long and be composed"
-            "of only alphabetical characters.\r\n");
+        // Colour in red?
+        player->get_user_interface()->add_output_text(
+            munin::ansi::elements_from_string(
+                "\nYour name must be at least three characters long and be "
+                "composed of only alphabetical characters.\n"));
     }
     else
     {
@@ -415,23 +404,17 @@ PARADICE_COMMAND_IMPL(rename)
         string old_name = player->get_name();
         player->set_name(name);
         
-        message_to_player(ctx, str(
+        send_to_player(ctx, str(
             format("\r\nYou are now %s.\r\n")
                 % get_player_address(player))
           , player);
         
-        message_to_room(ctx, str(
+        send_to_room(ctx, str(
             format("\r\n%s is now %s.\r\n")
                 % old_name
                 % get_player_address(player))
           , player);
-    
-        BOOST_FOREACH(shared_ptr<client> current_player, ctx->get_clients())
-        {
-            INVOKE_PARADICE_COMMAND(who, ctx, "auto", current_player);
-        }
     }
-    */
 }
 
 }

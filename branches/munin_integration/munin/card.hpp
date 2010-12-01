@@ -130,28 +130,28 @@ public :
             {
                 if (new_focussed)
                 {
-                    on_focus_set();
+                    this->on_focus_set();
                 }
                 else
                 {
-                    on_focus_lost();
+                    this->on_focus_lost();
                 }
             }
 
             if (old_cursor_state != new_cursor_state)
             {
-                on_cursor_state_changed(new_cursor_state);
+                this->on_cursor_state_changed(new_cursor_state);
             }
 
-            on_cursor_position_changed(cursor_position);
+            this->on_cursor_position_changed(cursor_position);
 
             // The face of the card has changed.  Fire an on_redraw event for
             // the entire component.
             munin::rectangle region(munin::point(), this->get_size());
-            vector<munin::rectangle> regions;
+            std::vector<munin::rectangle> regions;
             regions.push_back(region);
 
-            on_redraw(regions);
+            this->on_redraw(regions);
         }
     }
 
@@ -236,11 +236,12 @@ protected :
         {
             std::string current_face = current_face_.get();
 
-            face_map_type::const_iterator face_iter = faces_.find(current_face);
+            typename face_map_type::const_iterator face_iter = 
+                faces_.find(current_face);
 
             if (face_iter != faces_.end())
             {
-                BOOST_AUTO(position, get_position());
+                munin::point position = this->get_position();
                 face_iter->second->draw(cvs, position + offset, region);
             }
         }
@@ -256,7 +257,8 @@ protected :
         {
             std::string current_face = current_face_.get();
 
-            face_map_type::const_iterator face_iter = faces_.find(current_face);
+            typename face_map_type::const_iterator face_iter = 
+                faces_.find(current_face);
 
             if (face_iter != faces_.end())
             {
@@ -427,7 +429,7 @@ protected :
     {
         if (current_face_.is_initialized())
         {
-            face_map_type::const_iterator face_iter =
+            typename face_map_type::const_iterator face_iter =
                 faces_.find(current_face_.get());
 
             if (face_iter != faces_.end())

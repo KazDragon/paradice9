@@ -29,11 +29,16 @@
 #include "paradice/socket.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/client.hpp"
+#include "paradice/communication.hpp"
+#include "paradice/configuration.hpp"
+#include "paradice/rules.hpp"
+#include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/ansi/window.hpp"
 #include "munin/grid_layout.hpp"
 #include "odin/telnet/protocol.hpp"
+#include "odin/tokenise.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
@@ -50,22 +55,6 @@ using namespace std;
 using namespace odin;
 
 namespace po = program_options;
-
-/*
-static string const intro =
-munin::ansi::set_window_title("Kaz Dragon's Paradice") +
-"             _                                                         \r\n"
-"    |/ _._  | \\.__. _  _ ._/ _                                        \r\n"
-"    |\\(_|/_ |_/|(_|(_|(_)| |_>                                        \r\n"
-"                    _|                                                 \r\n"
-"                                                                       \r\n"
-"                   ___                   ___           ___             \r\n"
-"                  / _ \\___ ________ ____/ (_)______   / _ \\          \r\n"
-"                 / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\_, /           \r\n"
-"                /_/   \\_,_/_/  \\_,_/\\_,_/_/\\__/\\__/  /___/        \r\n"
-"                                                           v0.2        \r\n"
-"                                                                       \r\n"
-"Enter a name by which you wish to be known: ";
 
 #define PARADICE_CMD_ENTRY_NOP(name) \
     { name,        NULL                                   }
@@ -98,10 +87,7 @@ static struct command
   , PARADICE_CMD_ENTRY(emote)
   , PARADICE_CMD_ALIAS(emote, ":")
 
-  , PARADICE_CMD_ENTRY(who)
-  
   , PARADICE_CMD_ENTRY(set)
-  , PARADICE_CMD_ENTRY(backtrace)
   , PARADICE_CMD_ENTRY(title)
   , PARADICE_CMD_ALIAS(title, "surname")
   , PARADICE_CMD_ENTRY(rename)
@@ -111,18 +97,214 @@ static struct command
   , PARADICE_CMD_ENTRY(rollprivate)
   , PARADICE_CMD_ENTRY(showrolls)
   , PARADICE_CMD_ENTRY(clearrolls)
-  
+
   , PARADICE_CMD_ENTRY(quit)
 };
 
-*/
+void update_wholists(shared_ptr<paradice::context> ctx)
+{
+    vector<string> names;
+    
+    BOOST_AUTO(clients, ctx->get_clients());
+    
+    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients)
+    {
+        BOOST_AUTO(name, cur_client->get_name());
+        
+        if (!name.empty())
+        {
+            names.push_back(name);
+        }
+    }
+    
+    runtime_array<string> names_array(names.size());
+    copy(names.begin(), names.end(), names_array.begin());
+    
+    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients)
+    {
+        BOOST_AUTO(user_interface, cur_client->get_user_interface());
+
+        if (user_interface != NULL)
+        {
+            user_interface->update_wholist(names_array);
+        }
+    }
+}
+
+void on_input_entered(
+    weak_ptr<paradice::context>  weak_context
+  , weak_ptr<paradice::client>   weak_client
+  , string const                &input);
+
+void on_command(
+    shared_ptr<paradice::context>  ctx
+  , shared_ptr<paradice::client>   client
+  , string const                  &input)
+{
+    BOOST_AUTO(arg, odin::tokenise(input));
+
+    // Transform the command to lower case.
+    for (string::iterator ch = arg.first.begin();
+         ch != arg.first.end();
+         ++ch)
+    {
+        *ch = tolower(*ch);
+    }
+
+    if (arg.first == "!")
+    {
+        weak_ptr<paradice::client> weak_client(client);
+        on_input_entered(ctx, client, client->get_last_command());
+        return;
+    }
+
+    // Echo the command to the output screen.
+    BOOST_AUTO(
+        command_echo
+      , munin::ansi::elements_from_string("\n" + input + "\n"));
+    
+    BOOST_FOREACH(munin::ansi::element_type &element, command_echo)
+    {
+        element.second.foreground_colour = odin::ansi::graphics::COLOUR_YELLOW;
+    }
+    
+    client->get_user_interface()->add_output_text(command_echo);
+    
+    // Search through the list for commands
+    BOOST_FOREACH(command const &cur_command, command_list)
+    {
+        if (cur_command.command_ == arg.first)
+        {
+            cur_command.function_(ctx, arg.second, client);
+            client->set_last_command(input);
+            return;
+        }
+    }
+
+    string text = 
+        "\nDidn't understand that.  Available commands are:\n";
+
+    BOOST_FOREACH(command const &cur_command, command_list)
+    {
+        text += cur_command.command_ + " ";
+    }
+
+    text += "\n";
+
+    paradice::send_to_player(ctx, text, client);
+}
+    
+void on_input_entered(
+    weak_ptr<paradice::context>      weak_context
+  , weak_ptr<paradice::client>       weak_client
+  , string const                    &input)
+{
+    BOOST_AUTO(client, weak_client.lock());
+    BOOST_AUTO(ctx, weak_context.lock());
+    
+    if (client != NULL && ctx != NULL)
+    {
+        if (input.empty())
+        {
+            return;
+        }
+        
+        if (client->get_command_mode() == paradice::client::command_mode_mud)
+        {
+            on_command(ctx, client, input);
+        }
+        else
+        {
+            if (input[0] == '/')
+            {
+                if (input.size() >= 2 && input[1] == '!')
+                {
+                    on_input_entered(
+                        weak_context
+                      , weak_client
+                      , "/" + client->get_last_command());
+                }
+                else
+                {
+                    on_command(ctx, client, input.substr(1));
+                }
+            }
+            else
+            {
+                INVOKE_PARADICE_COMMAND(say, ctx, input, client);
+            }
+        }
+    }
+}
+
+void capitalise(string &name)
+{
+    if (!name.empty())
+    {
+        name[0] = toupper(name[0]);
+        
+        for (string::size_type index = 1; index < name.size(); ++index)
+        {
+            name[index] = tolower(name[index]);
+        }
+    }
+}
 
 void on_username_entered(
     weak_ptr<paradice::context> weak_context
   , weak_ptr<paradice::client>  weak_client
-  , string const               &username)
+  , string                      username)
 {
-    printf("%s\n", username.c_str());
+    BOOST_AUTO(ctx, weak_context.lock());
+    BOOST_AUTO(client, weak_client.lock());
+    
+    if (ctx != NULL && client != NULL)
+    {
+        BOOST_AUTO(user_interface, client->get_user_interface());
+        BOOST_AUTO(arg, odin::tokenise(username).first);
+        capitalise(arg);
+        
+        if (!paradice::is_acceptible_name(arg))
+        {
+            munin::ansi::attribute pen;
+            pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+
+            client->get_user_interface()->set_statusbar_text(
+                munin::ansi::elements_from_string(
+                    "Name must be over two characters long and "
+                    "comprise only alphabetical characters"
+                  , pen));
+        }
+        else
+        {
+            BOOST_AUTO(clients, ctx->get_clients());
+            munin::ansi::attribute pen;
+            pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+            
+            BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients)
+            {
+                if (cur_client->get_name() == arg)
+                {
+                    client->get_user_interface()->set_statusbar_text(
+                        munin::ansi::elements_from_string(
+                            "A user with that name is already online."
+                          , pen));
+                    return;
+                }
+            }
+
+            client->set_name(arg);
+            
+            user_interface->select_face(hugin::FACE_MAIN);
+            user_interface->set_focus();
+            
+            paradice::send_to_all(
+                ctx
+              , "#SERVER: " 
+              + client->get_name()
+              + " has entered Paradice!\n");
+        }
+    }
 }
 
 void on_repaint(
@@ -196,6 +378,13 @@ static void on_death(
     if (ctx != NULL && client != NULL)
     {
         ctx->remove_client(client);
+        update_wholists(ctx);
+        
+        paradice::send_to_all(
+            ctx
+          , "#SERVER: "
+          + client->get_name()
+          + " has left Paradice.\n");
     }
 }
 
@@ -247,7 +436,6 @@ static void on_accept(
     BOOST_AUTO(connection, make_shared<paradice::connection>(socket));
     BOOST_AUTO(client, make_shared<paradice::client>());
     BOOST_AUTO(ctx, weak_context.lock());
-    ctx->add_client(client);    
     
     client->set_connection(connection);
 
@@ -288,6 +476,14 @@ static void on_accept(
       , weak_ptr<paradice::client>(client)
       , _1));
 
+    user_interface->on_input_entered(bind(
+        &on_input_entered
+      , weak_context
+      , weak_ptr<paradice::client>(client)
+      , _1));
+    
+    client->set_user_interface(user_interface);
+    
     content->set_size(munin::extent(80, 24));
     content->set_layout(
         make_shared< munin::grid_layout<munin::ansi::element_type> >(1, 1));
@@ -300,6 +496,9 @@ static void on_accept(
     runtime_array<u8> data(string_data.size());
     copy(string_data.begin(), string_data.end(), data.begin());
     socket->async_write(data, NULL);
+
+    ctx->add_client(client);
+    update_wholists(ctx);
 }
 
 int main(int argc, char *argv[])

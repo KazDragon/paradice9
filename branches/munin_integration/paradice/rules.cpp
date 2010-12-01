@@ -43,30 +43,6 @@ using namespace odin;
 namespace paradice {
 
 namespace {
-    static string const ANSI_DEFAULT = str(format("%c%c%c")
-        % odin::ansi::ESCAPE
-        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        // No argument = 0, which is DEFAULT_ATTRIBUTES.
-        % odin::ansi::SELECT_GRAPHICS_RENDITION);
-
-    static string const ANSI_BOLD = str(format("%c%c%d%c")
-        % odin::ansi::ESCAPE
-        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        % int(odin::ansi::graphics::INTENSITY_BOLD)
-        % odin::ansi::SELECT_GRAPHICS_RENDITION);
-    
-    static string const ANSI_GREEN = str(format("%c%c%d%c")
-        % odin::ansi::ESCAPE
-        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        % int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE
-            + odin::ansi::graphics::COLOUR_GREEN)
-        % odin::ansi::SELECT_GRAPHICS_RENDITION);
-    
-    static string const MAX_ROLL_INDICATOR = str(format("%s%s!%s")
-        % ANSI_BOLD
-        % ANSI_GREEN
-        % ANSI_DEFAULT);
-    
     struct roll_data
     {
         weak_ptr<client> roller;
@@ -102,13 +78,12 @@ namespace {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(roll)
 {
-    /*
     static string const usage_message =
-        "\r\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
-        "\r\n Example: roll 2d6+3-20"
-        "\r\n Example: roll 20*2d6"
-        "\r\n Example: roll 1d10+4 initiative"
-        "\r\n\r\n";
+        "\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
+        "\n Example: roll 2d6+3-20"
+        "\n Example: roll 20*2d6"
+        "\n Example: roll 1d10+4 initiative"
+        "\n";
 
     string::const_iterator begin = arguments.begin();
     string::const_iterator end   = arguments.end();
@@ -117,7 +92,7 @@ PARADICE_COMMAND_IMPL(roll)
 
     if (!rolls)
     {
-        player->get_connection()->write(usage_message);
+        send_to_player(ctx, usage_message, player);
         return;
     }
 
@@ -131,13 +106,13 @@ PARADICE_COMMAND_IMPL(roll)
     {
         send_to_player(
             ctx
-          , "You roll no dice and score nothing.\r\n"
+          , "You roll no dice and score nothing.\n"
           , player);
         
         send_to_room(
             ctx
           , str(format(
-                "%s rolls no dice and scores nothing.\r\n")
+                "%s rolls no dice and scores nothing.\n")
               % player->get_name())
           , player);
         
@@ -149,14 +124,14 @@ PARADICE_COMMAND_IMPL(roll)
         send_to_player(
             ctx
           , "You fumble your roll and spill all your zero-sided dice on "
-            "the floor.\r\n"
+            "the floor.\n"
           , player);
         
         send_to_room(
             ctx
           , str(format(
                 "%s fumbles their roll and spills a pile of zero-"
-                "sided dice on the floor.\r\n")
+                "sided dice on the floor.\n")
               % player->get_name())
           , player);
         
@@ -167,7 +142,7 @@ PARADICE_COMMAND_IMPL(roll)
     {
         send_to_player(
             ctx
-          , "You can only roll at most 200 dice at once.\r\n"
+          , "You can only roll at most 200 dice at once.\n"
           , player);
         
         return;
@@ -201,25 +176,21 @@ PARADICE_COMMAND_IMPL(roll)
         if (dice_roll.bonus_ == 0)
         {
             total_description +=
-                str(format("%s%s%d%s%s")
+                str(format("%s%d%s")
                     % (repetition == 0 ? "" : ", ")
-                    % ANSI_BOLD
                     % total
-                    % (max_roll ? MAX_ROLL_INDICATOR : "")
-                    % ANSI_DEFAULT);
+                    % (max_roll ? "!" : ""));
 
 
         }
         else
         {
             total_description +=
-                str(format("%s%s%d%s [%s%s]")
+                str(format("%s%d [%s%s]")
                     % (repetition == 0 ? "" : ", ")
-                    % ANSI_BOLD
                     % total
-                    % ANSI_DEFAULT
                     % roll_description
-                    % (max_roll ? MAX_ROLL_INDICATOR : ""));
+                    % (max_roll ? "!" : ""));
         }
 
         total_score += total;
@@ -243,9 +214,9 @@ PARADICE_COMMAND_IMPL(roll)
         }
     }
 
-    message_to_player(
+    send_to_player(
         ctx
-      , str(format("\r\nYou roll %dd%d%s%d %s%sand score %s%s\r\n\r\n")
+      , str(format("You roll %dd%d%s%d %s%sand score %s%s\n")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -259,15 +230,13 @@ PARADICE_COMMAND_IMPL(roll)
             % total_description
             % (dice_roll.repetitions_ == 1
                 ? ""
-                : str(format(" for a grand total of %s%d%s") 
-                      % ANSI_BOLD
-                      % total_score
-                      % ANSI_DEFAULT)))
+                : str(format(" for a grand total of %d") 
+                      % total_score)))
       , player);
           
-    message_to_room(
+    send_to_room(
         ctx
-      , str(format("\r\n%s rolls %dd%d%s%d %s%sand scores %s%s\r\n\r\n")
+      , str(format("%s rolls %dd%d%s%d %s%sand scores %s%s\n")
             % player->get_name()
             % dice_roll.amount_
             % dice_roll.sides_
@@ -282,12 +251,9 @@ PARADICE_COMMAND_IMPL(roll)
             % total_description
             % (dice_roll.repetitions_ == 1
                 ? ""
-                : str(format(" for a grand total of %s%d%s") 
-                      % ANSI_BOLD
-                      % total_score
-                      % ANSI_DEFAULT)))
+                : str(format(" for a grand total of %d") 
+                      % total_score)))
       , player);
-      */
 }
 
 // ==========================================================================
@@ -295,12 +261,11 @@ PARADICE_COMMAND_IMPL(roll)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(rollprivate)
 {
-    /*
     static string const usage_message =
-        "\r\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>]"
-        "\r\n Example: rollprivate 2d6+3-20"
-        "\r\n Example: rollprivate 20*2d6"
-        "\r\n\r\n";
+        "\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>]"
+        "\n Example: rollprivate 2d6+3-20"
+        "\n Example: rollprivate 20*2d6"
+        "\n";
 
     string::const_iterator begin = arguments.begin();
     string::const_iterator end   = arguments.end();
@@ -309,7 +274,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
 
     if (!rolls)
     {
-        player->get_connection()->write(usage_message);
+        send_to_player(ctx, usage_message, player);
         return;
     }
 
@@ -320,7 +285,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
     {
         send_to_player(
             ctx
-          , "You roll no dice and score nothing.\r\n"
+          , "You roll no dice and score nothing.\n"
           , player);
         
         return;
@@ -331,7 +296,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
         send_to_player(
             ctx
           , "You fumble your roll and spill all your zero-sided dice on "
-            "the floor.\r\n"
+            "the floor.\n"
           , player);
         
         return;
@@ -341,7 +306,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
     {
         send_to_player(
             ctx
-          , "You can only roll at most 200 dice at once.\r\n"
+          , "You can only roll at most 200 dice at once.\n"
           , player);
         
         return;
@@ -375,33 +340,29 @@ PARADICE_COMMAND_IMPL(rollprivate)
         if (dice_roll.bonus_ == 0)
         {
             total_description +=
-                str(format("%s%s%d%s%s")
+                str(format("%s%d%s")
                     % (repetition == 0 ? "" : ", ")
-                    % ANSI_BOLD
                     % total
-                    % (max_roll ? MAX_ROLL_INDICATOR : "")
-                    % ANSI_DEFAULT);
+                    % (max_roll ? "!" : ""));
 
 
         }
         else
         {
             total_description +=
-                str(format("%s%s%d%s [%s%s]")
+                str(format("%s%d [%s%s]")
                     % (repetition == 0 ? "" : ", ")
-                    % ANSI_BOLD
                     % total
-                    % ANSI_DEFAULT
                     % roll_description
-                    % (max_roll ? MAX_ROLL_INDICATOR : ""));
+                    % (max_roll ? "!" : ""));
         }
 
         total_score += total;
     }
 
-    message_to_player(
+    send_to_player(
         ctx
-      , str(format("\r\nYou privately roll %dd%d%s%d %sand score %s%s\r\n\r\n")
+      , str(format("You privately roll %dd%d%s%d %sand score %s%s\n")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -412,12 +373,9 @@ PARADICE_COMMAND_IMPL(rollprivate)
             % total_description
             % (dice_roll.repetitions_ == 1
                 ? ""
-                : str(format(" for a grand total of %s%d%s") 
-                      % ANSI_BOLD
-                      % total_score
-                      % ANSI_DEFAULT)))
+                : str(format(" for a grand total of %d") 
+                      % total_score)))
       , player);
-      */
 }
 
 // ==========================================================================
@@ -425,7 +383,6 @@ PARADICE_COMMAND_IMPL(rollprivate)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(showrolls)
 {
-    /*
     pair<string, string> tokens = tokenise(arguments);
     string category             = tokens.first;
     
@@ -435,12 +392,12 @@ PARADICE_COMMAND_IMPL(showrolls)
     if (category == "")
     {
         static string const usage_message = 
-            "\r\n USAGE:   showrolls <category> [desc|asc]"
-            "\r\n EXAMPLE: showrolls initiative"
-            "\r\n EXAMPLE: showrolls combat desc"
-            "\r\n\r\n";
+            "\n USAGE:   showrolls <category> [desc|asc]"
+            "\n EXAMPLE: showrolls initiative"
+            "\n EXAMPLE: showrolls combat desc"
+            "\n";
               
-        player->get_connection()->write(usage_message);
+        send_to_player(ctx, usage_message, player);
         return;
     }
     
@@ -450,7 +407,7 @@ PARADICE_COMMAND_IMPL(showrolls)
     {
         send_to_player(
             ctx
-          , str(format("There are no rolls in the %s category\r\n\r\n")
+          , str(format("There are no rolls in the %s category\n")
                 % category)
           , player);
         return;
@@ -473,7 +430,7 @@ PARADICE_COMMAND_IMPL(showrolls)
     
     string output = str(format(
         "===== Rolls in the %s category ====="
-        "\r\n")
+        "\n")
         % category);
     
     for (u32 index = 0; index < rolls.size(); ++index)
@@ -484,20 +441,17 @@ PARADICE_COMMAND_IMPL(showrolls)
         string name = (roller == NULL ? data.name : roller->get_name());
         
         output += str(format(
-            "\r\n%s rolled %s and scored %s%d%s [%d%s]")
+            "\n%s rolled %s and scored %d [%d%s]")
             % name
             % data.roll_text
-            % ANSI_BOLD
             % data.score
-            % ANSI_DEFAULT
             % data.raw_score
-            % (data.max_roll ? MAX_ROLL_INDICATOR : ""));
+            % (data.max_roll ? "!" : ""));
     }
     
-    output += "\r\n\r\n";
+    output += "\n";
 
     send_to_player(ctx, output, player);
-    */
 }
 
 // ==========================================================================
@@ -505,34 +459,32 @@ PARADICE_COMMAND_IMPL(showrolls)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(clearrolls)
 {
-    /*
     string category = tokenise(arguments).first;
     
     if (category == "")
     {
         static string const usage_message = 
-            "\r\n USAGE:   clearrolls <category>"
-            "\r\n EXAMPLE: clearrolls initiative"
-            "\r\n\r\n";
+            "\n USAGE:   clearrolls <category>"
+            "\n EXAMPLE: clearrolls initiative"
+            "\n";
               
-        player->get_connection()->write(usage_message);
+        send_to_player(ctx, usage_message, player);
         return;
     }
     
     roll_category[category].clear();
 
-    message_to_player(
+    send_to_player(
         ctx
-      , str(format("You clear the rolls for the %s category\r\n\r\n") % category)
+      , str(format("You clear the rolls for the %s category\n") % category)
       , player);
     
-    message_to_room(
+    send_to_room(
         ctx
-      , str(format("%s clears the rolls for the %s category\r\n\r\n")
+      , str(format("%s clears the rolls for the %s category\n")
           % player->get_name()
           % category)
       , player);
-      */
 }
 
 }

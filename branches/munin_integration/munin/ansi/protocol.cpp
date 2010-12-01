@@ -38,7 +38,9 @@ namespace munin { namespace ansi {
 // ==========================================================================
 // ELEMENTS_FROM_STRING
 // ==========================================================================
-runtime_array<element_type> elements_from_string(string const &source_line)
+runtime_array<element_type> elements_from_string(
+    string const &source_line
+  , attribute     attr)
 {
     runtime_array<munin::ansi::element_type> dest_line(source_line.size());
     
@@ -46,7 +48,7 @@ runtime_array<element_type> elements_from_string(string const &source_line)
     {
         dest_line[index] = munin::ansi::element_type(
             source_line[index]
-          , attribute());
+          , attr);
     }
     
     return dest_line;

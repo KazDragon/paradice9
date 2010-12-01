@@ -29,10 +29,15 @@
 
 #include "munin/composite_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
+#include <odin/runtime_array.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <string>
 
 namespace hugin {
+
+BOOST_STATIC_CONSTANT(std::string, FACE_INTRO = "Intro");
+BOOST_STATIC_CONSTANT(std::string, FACE_MAIN  = "Main");
 
 class user_interface
     : public munin::composite_component<munin::ansi::element_type>
@@ -43,6 +48,20 @@ public :
     void on_username_entered(
         boost::function<void (std::string)> callback);
 
+    void on_input_entered(
+        boost::function<void (std::string)> callback);
+    
+    void select_face(std::string const &face_name);
+    
+    void add_output_text(
+        odin::runtime_array<munin::ansi::element_type> const &text);
+    
+    void set_statusbar_text(
+        odin::runtime_array<munin::ansi::element_type> const &text);
+    
+    void update_wholist(
+        odin::runtime_array<std::string> const &names);
+    
 protected :
     virtual void do_event(boost::any const &event);
 

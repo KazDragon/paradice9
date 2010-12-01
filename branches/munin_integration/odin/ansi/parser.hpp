@@ -52,6 +52,7 @@ class parser
 public :
     typedef boost::variant<
         std::string
+      , odin::ansi::mouse_report
       , odin::ansi::control_sequence
     > element_type;
     
@@ -108,6 +109,15 @@ public :
         // command sequence.  It is not special.
         ansi_char_ = ~char_(odin::ascii::ESC);
         
+        // A mouse report is in the format: ESC [ M B X Y
+        mouse_report_ =
+            esc_
+         >> lit('[')
+         >> lit('M')
+         >> char_
+         >> char_
+         >> char_;
+         
         // A control sequence is an escape, optionally followed by another
         // escape to indicate that the 'meta' key was held down.  This is
         // then followed by the initiator character for the sequence
@@ -126,7 +136,8 @@ public :
         ansi_chars_ = +ansi_char_;
         
         elements_ = 
-         +( ansi_control_sequence_
+         +( mouse_report_
+          | ansi_control_sequence_
           | ansi_chars_
           );
           
@@ -138,6 +149,8 @@ private :
     boost::spirit::qi::rule<Iterator, char()>        ansi_char_;
     boost::spirit::qi::rule<Iterator, std::string()> ansi_chars_;
     
+    boost::spirit::qi::rule<Iterator, odin::ansi::mouse_report()>
+                                                     mouse_report_;
     boost::spirit::qi::rule<Iterator, odin::ansi::control_sequence()>
                                                      ansi_control_sequence_;
     boost::spirit::qi::rule<

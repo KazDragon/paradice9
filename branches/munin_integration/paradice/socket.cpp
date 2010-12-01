@@ -235,7 +235,8 @@ runtime_array<u8> socket::read(input_size_type size)
 {
     runtime_array<u8> data(size);
 
-    pimpl_->socket_->read_some(boost::asio::buffer(data.begin(), size));
+    boost::system::error_code ec;
+    pimpl_->socket_->read_some(boost::asio::buffer(data.begin(), size), ec);
 
     return data;
 }

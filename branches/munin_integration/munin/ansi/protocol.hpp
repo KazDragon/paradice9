@@ -37,8 +37,9 @@ namespace munin { namespace ansi {
 //* =========================================================================
 /// \brief Converts a string into a line of runtime_array<> of ANSI elements.
 //* =========================================================================
-odin::runtime_array<munin::ansi::element_type> elements_from_string(
-    std::string const &source_line);
+odin::runtime_array<munin::ansi::element_type>elements_from_string(
+    std::string const &source_line
+  , attribute attr = attribute());
 
 //* =========================================================================
 /// \brief Constructs a string that is used to move to a particular

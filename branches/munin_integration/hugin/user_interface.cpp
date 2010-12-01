@@ -78,10 +78,13 @@ static string main_image[] = {
 // ==========================================================================
 struct user_interface::impl
 {
-    boost::shared_ptr<component> create_intro_screen()
+    // ======================================================================
+    // CREATE_INTRO_SCREEN
+    // ======================================================================
+    shared_ptr<component> create_intro_screen()
     {
-        BOOST_AUTO(content, make_shared<basic_container>());
-        content->set_layout(make_shared<compass_layout>());
+        BOOST_AUTO(inner_content, make_shared<basic_container>());
+        inner_content->set_layout(make_shared<compass_layout>());
 
         BOOST_AUTO(image_container, make_shared<basic_container>());
         image_container->set_layout(make_shared<aligned_layout>());
@@ -91,11 +94,11 @@ struct user_interface::impl
           , make_shared<image>(munin::ansi::image_from_text(main_image)));
         image_container->add_component(greetings_image);
 
-        content->add_component(
+        inner_content->add_component(
             image_container
           , munin::COMPASS_LAYOUT_CENTRE);
 
-        std::string name_label_elements[] = { "Name: " };
+        string name_label_elements[] = { "Name: " };
 
         BOOST_AUTO(
             name_label
@@ -124,13 +127,57 @@ struct user_interface::impl
               , intro_name_field_)
           , munin::COMPASS_LAYOUT_CENTRE);
 
-        content->add_component(
+        inner_content->add_component(
             bottom_container
           , munin::COMPASS_LAYOUT_SOUTH);
 
+        BOOST_AUTO(outer_content, make_shared<basic_container>());
+        outer_content->set_layout(make_shared<compass_layout>());
+        
+        statusbar_ = make_shared<edit>();
+        statusbar_->set_can_focus(false);
+        
+        outer_content->add_component(
+            inner_content
+          , munin::COMPASS_LAYOUT_CENTRE);
+        outer_content->add_component(
+            statusbar_
+          , munin::COMPASS_LAYOUT_SOUTH);
+        
+        return outer_content;
+    }
+    
+    // ======================================================================
+    // CREATE_MAIN_SCREEN
+    // ======================================================================
+    shared_ptr<component> create_main_screen()
+    {
+        // TODO: Implement the Who-List and place it in the north section
+        // of the screen.
+        BOOST_AUTO(content, make_shared<basic_container>());
+        content->set_layout(make_shared<compass_layout>());
+        
+        input_field_ = make_shared<edit>();
+        content->add_component(
+            make_shared<framed_component>(
+                make_shared<frame>()
+              , input_field_)
+          , munin::COMPASS_LAYOUT_SOUTH);
+        
+        output_field_ = make_shared<text_area>();
+        output_field_->disable();
+        content->add_component(
+            make_shared<framed_component>(
+                make_shared<frame>()
+              , output_field_)
+          , munin::COMPASS_LAYOUT_CENTRE);
+        
         return content;
     }
 
+    // ======================================================================
+    // ON_USERNAME_ENTERED
+    // ======================================================================
     void on_username_entered()
     {
         if (on_username_entered_)
@@ -138,7 +185,7 @@ struct user_interface::impl
             BOOST_AUTO(document, intro_name_field_->get_document());
             BOOST_AUTO(elements, document->get_text_line(0));
 
-            std::string username;
+            string username;
 
             BOOST_FOREACH(munin::ansi::element_type element, elements)
             {
@@ -149,10 +196,43 @@ struct user_interface::impl
         }
     }
 
-    std::string                    face_name_;
-    boost::shared_ptr<card>        active_screen_;
-    boost::shared_ptr<edit>        intro_name_field_;
-    boost::function<void (string)> on_username_entered_;
+    // ======================================================================
+    // ON_INPUT_ENTERED
+    // ======================================================================
+    void on_input_entered()
+    {
+        if (on_input_entered_)
+        {
+            BOOST_AUTO(document, input_field_->get_document());
+            BOOST_AUTO(elements, document->get_text_line(0));
+
+            document->delete_text(
+                make_pair(u32(0), document->get_text_size()));
+            
+            string input;
+
+            BOOST_FOREACH(munin::ansi::element_type element, elements)
+            {
+                input += element.first;
+            }
+
+            on_input_entered_(input);
+        }
+    }
+
+    string                  face_name_;
+    shared_ptr<card>        active_screen_;
+    
+    // Intro Screen components
+    shared_ptr<edit>        intro_name_field_;
+    shared_ptr<edit>        statusbar_;
+    function<void (string)> on_username_entered_;
+    
+    // Main Screen components
+    //shared_ptr<wholist>   wholist_;
+    shared_ptr<edit>        input_field_;
+    shared_ptr<text_area>   output_field_;
+    function<void (string)> on_input_entered_;
 };
 
 // ==========================================================================
@@ -164,12 +244,14 @@ user_interface::user_interface()
     , pimpl_(new impl)
 {
     pimpl_->active_screen_ = make_shared<card>();
-
+    pimpl_->face_name_ = hugin::FACE_INTRO;
     
-    pimpl_->face_name_ = "intro";
     pimpl_->active_screen_->add_face(
-        pimpl_->create_intro_screen(), pimpl_->face_name_);
-    pimpl_->active_screen_->select_face(pimpl_->face_name_);
+        pimpl_->create_intro_screen(), hugin::FACE_INTRO);
+    pimpl_->active_screen_->add_face(
+        pimpl_->create_main_screen(), hugin::FACE_MAIN);
+    
+    pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
 
     BOOST_AUTO(container, get_container());
     container->set_layout(make_shared<grid_layout>(1, 1));
@@ -185,6 +267,53 @@ void user_interface::on_username_entered(function<void (string)> callback)
 }
 
 // ==========================================================================
+// ON_INPUT_ENTERED
+// ==========================================================================
+void user_interface::on_input_entered(function<void (string)> callback)
+{
+    pimpl_->on_input_entered_ = callback;
+}
+
+// ==========================================================================
+// SELECT_FACE
+// ==========================================================================
+void user_interface::select_face(string const &face_name)
+{
+    pimpl_->active_screen_->select_face(face_name);
+    pimpl_->face_name_ = face_name;
+}
+
+// ==========================================================================
+// ADD_OUTPUT_TEXT
+// ==========================================================================
+void user_interface::add_output_text(
+    runtime_array<munin::ansi::element_type> const &text)
+{
+    pimpl_->output_field_->get_document()->insert_text(
+        text
+      , pimpl_->output_field_->get_document()->get_text_size());
+}
+
+// ==========================================================================
+// SET_STATUSBAR_TEXT
+// ==========================================================================
+void user_interface::set_statusbar_text(
+    runtime_array<munin::ansi::element_type> const &text)
+{
+    BOOST_AUTO(document, pimpl_->statusbar_->get_document());
+    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    document->insert_text(text);
+}
+
+// ==========================================================================
+// UPDATE_WHOLIST
+// ==========================================================================
+void user_interface::update_wholist(runtime_array<string> const &names)
+{
+    // pimpl_->wholist_->set_names(names);
+}
+
+// ==========================================================================
 // DO_EVENT
 // ==========================================================================
 void user_interface::do_event(any const &ev)
@@ -193,7 +322,7 @@ void user_interface::do_event(any const &ev)
     odin::ansi::control_sequence const *control_sequence = 
         any_cast<odin::ansi::control_sequence>(&ev);
 
-    if (pimpl_->face_name_ == "intro" 
+    if (pimpl_->face_name_ == hugin::FACE_INTRO 
      && pimpl_->intro_name_field_->has_focus()
      && ch != NULL)
     {
@@ -204,6 +333,40 @@ void user_interface::do_event(any const &ev)
         else if (*ch == ' ')
         {
             // Do nothing - we don't allow spaces in names.
+        }
+        else
+        {
+            munin::composite_component<munin::ansi::element_type>::do_event(ev);
+        }
+    }
+    else if (pimpl_->face_name_ == hugin::FACE_MAIN
+          && pimpl_->input_field_->has_focus()
+          && ch != NULL
+          && *ch == '\n')
+    {
+        pimpl_->on_input_entered();
+    }
+    else if (pimpl_->face_name_ == hugin::FACE_MAIN)
+    {
+        if (ch != NULL && *ch == '\t')
+        {
+            focus_next();
+            
+            if (!has_focus())
+            {
+                focus_next();
+            }
+        }
+        else if (control_sequence != NULL
+              && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+              && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
+        {
+            focus_previous();
+
+            if (!has_focus())
+            {
+                focus_previous();
+            }
         }
         else
         {

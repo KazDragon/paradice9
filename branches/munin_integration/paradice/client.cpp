@@ -27,6 +27,7 @@
 #include "client.hpp"
 #include "connection.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "hugin/user_interface.hpp"
 #include <boost/foreach.hpp>
 #include <deque>
 #include <string>
@@ -46,17 +47,15 @@ vector< shared_ptr<client> > clients;
 struct client::impl
 {
 
-    shared_ptr<connection> connection_;
-    client::level          level_;
-    client::command_mode   command_mode_;
+    shared_ptr<connection>            connection_;
+    shared_ptr<hugin::user_interface> user_interface_;
+    client::command_mode              command_mode_;
 
-    u16                    who_page_;
-    string                 prefix_;
-    string                 name_;
-    string                 title_;
+    string                            prefix_;
+    string                            name_;
+    string                            title_;
 
-    string                 last_command_;
-    deque<string>          backtrace_;
+    string                            last_command_;
 };
 
 // ==========================================================================
@@ -65,9 +64,7 @@ struct client::impl
 client::client()
     : pimpl_(new impl)
 {
-    pimpl_->level_        = level_intro_screen;
     pimpl_->command_mode_ = command_mode_mud;
-    pimpl_->who_page_     = 0;
 }
     
 // ==========================================================================
@@ -94,19 +91,20 @@ shared_ptr<connection> client::get_connection()
 }
 
 // ==========================================================================
-// GET_LEVEL
+// SET_USER_INTERFACE
 // ==========================================================================
-client::level client::get_level() const
+void client::set_user_interface(
+    shared_ptr<hugin::user_interface> user_interface)
 {
-    return pimpl_->level_;
+    pimpl_->user_interface_ = user_interface;
 }
 
 // ==========================================================================
-// SET_LEVEL
+// GET_USER_INTERFACE
 // ==========================================================================
-void client::set_level(level new_level)
+shared_ptr<hugin::user_interface> client::get_user_interface()
 {
-    pimpl_->level_ = new_level;
+    return pimpl_->user_interface_;
 }
 
 // ==========================================================================
@@ -164,22 +162,6 @@ string client::get_prefix() const
 }
 
 // ==========================================================================
-// SET_WHO_PAGE
-// ==========================================================================
-void client::set_who_page(u16 page)
-{
-    pimpl_->who_page_ = page;
-}
-
-// ==========================================================================
-// GET_WHO_PAGE
-// ==========================================================================
-u16 client::get_who_page() const
-{
-    return pimpl_->who_page_;
-}
-
-// ==========================================================================
 // SET_LAST_COMMAND
 // ==========================================================================
 void client::set_last_command(string const &cmd)
@@ -209,34 +191,6 @@ void client::set_command_mode(command_mode mode)
 client::command_mode client::get_command_mode() const
 {
     return pimpl_->command_mode_;
-}
-
-// ==========================================================================
-// ADD_BACKTRACE
-// ==========================================================================
-void client::add_backtrace(string const &text)
-{
-    pimpl_->backtrace_.push_back(text);
-
-    if (pimpl_->backtrace_.size() > 40)
-    {
-        pimpl_->backtrace_.pop_front();
-    }
-}
-
-// ==========================================================================
-// GET_BACKTRACE
-// ==========================================================================
-string client::get_backtrace() const
-{
-    string text;
-
-    BOOST_FOREACH(string trace, pimpl_->backtrace_)
-    {
-        text += trace + "\r\n";
-    }
-
-    return text;
 }
 
 }

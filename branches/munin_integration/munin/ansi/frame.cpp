@@ -27,6 +27,7 @@
 #include "munin/ansi/frame.hpp"
 #include "munin/ansi/ansi_canvas.hpp"
 #include "munin/algorithm.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/typeof/typeof.hpp>
 
 using namespace munin;
@@ -68,8 +69,8 @@ public :
       , point const          &offset
       , rectangle const      &region)
     {
-        point  position = self_.get_position();
-        extent size     = self_.get_size();
+        BOOST_AUTO(position, self_.get_position());
+        BOOST_AUTO(size,     self_.get_size());
         
         // Define the co-ordinates of the corners.
         rectangle topleft_rectangle(
@@ -95,33 +96,37 @@ public :
         BOOST_AUTO(
             bottomright, munin::intersection(bottomright_rectangle, region));
         
+        attribute pen = pen_;
+        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
+        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
+        
         // If so, paint them.
         if (topleft)
         {
             cvs[position.x + topleft->origin.x + offset.x]
                [position.y + topleft->origin.y + offset.y] = 
-                munin::ansi::element_type('+', pen_);
+                munin::ansi::element_type(char(201), pen);
         }
         
         if (topright)
         {
             cvs[position.x + topright->origin.x + offset.x]
                [position.y + topright->origin.y + offset.y] = 
-                munin::ansi::element_type('+', pen_);
+                munin::ansi::element_type(char(187), pen);
         }
 
         if (bottomleft)
         {
             cvs[position.x + bottomleft->origin.x + offset.x]
                [position.y + bottomleft->origin.y + offset.y] = 
-                munin::ansi::element_type('+', pen_);
+                munin::ansi::element_type(char(200), pen);
         }
         
         if (bottomright)
         {
             cvs[position.x + bottomright->origin.x + offset.x]
                [position.y + bottomright->origin.y + offset.y] = 
-                munin::ansi::element_type('+', pen_);
+                munin::ansi::element_type(char(188), pen);
         }
     }
 
@@ -133,8 +138,8 @@ public :
       , point const          &offset
       , rectangle const      &region)
     {
-        point  position = self_.get_position();
-        extent size     = self_.get_size();
+        BOOST_AUTO(position, self_.get_position());
+        BOOST_AUTO(size,     self_.get_size());
         
         // Define a rectangle that stretches across the top border.
         rectangle top_border_rectangle(
@@ -151,6 +156,10 @@ public :
             bottom_border
           , munin::intersection(bottom_border_rectangle, region));
         
+        attribute pen = pen_;
+        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
+        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
+        
         // If so, paint it.
         if (top_border)
         {
@@ -160,7 +169,7 @@ public :
             {
                 cvs[position.x + column + rect.origin.x + offset.x]
                    [position.y +          rect.origin.y + offset.y] =
-                    munin::ansi::element_type('-', pen_);
+                    munin::ansi::element_type(char(205), pen);
             }
         }
         
@@ -172,7 +181,7 @@ public :
             {
                 cvs[position.x + column + rect.origin.x + offset.x]
                    [position.y +          rect.origin.y + offset.y] =
-                    munin::ansi::element_type('-', pen_);
+                    munin::ansi::element_type(char(205), pen);
             }
         }
     }
@@ -185,8 +194,8 @@ public :
       , point const          &offset
       , rectangle const      &region)
     {
-        point  position = self_.get_position();
-        extent size     = self_.get_size();
+        BOOST_AUTO(position, self_.get_position());
+        BOOST_AUTO(size,     self_.get_size());
         
         // Define rectangles that stretches across the left and right borders.
         rectangle left_border_rectangle(
@@ -202,6 +211,10 @@ public :
         BOOST_AUTO(
             right_border, munin::intersection(right_border_rectangle, region));
         
+        attribute pen = pen_;
+        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
+        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
+        
         // If so, paint them.
         if (left_border)
         {
@@ -211,7 +224,7 @@ public :
             {
                 cvs[position.x +       rect.origin.x + offset.x]
                    [position.y + row + rect.origin.y + offset.y] =
-                    munin::ansi::element_type('|', pen_);
+                    munin::ansi::element_type(char(186), pen);
             }
         }
 
@@ -223,7 +236,7 @@ public :
             {
                 cvs[position.x +       rect.origin.x + offset.x]
                    [position.y + row + rect.origin.y + offset.y] =
-                    munin::ansi::element_type('|', pen_);
+                    munin::ansi::element_type(char(186), pen);
             }
         }
     }

@@ -38,4 +38,11 @@ BOOST_FUSION_ADAPT_STRUCT(
     (char,        command_)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    odin::ansi::mouse_report,
+    (odin::u8, button_)
+    (odin::u8, x_position_)
+    (odin::u8, y_position_)
+)
+
 #endif

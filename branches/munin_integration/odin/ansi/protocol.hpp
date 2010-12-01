@@ -44,6 +44,7 @@ namespace odin { namespace ansi {
     static char const ESCAPE                           = odin::ascii::ESC;
     static char const CONTROL_SEQUENCE_INTRODUCER      = odin::ascii::OPEN_SQUARE_BRACKET; 
     static char const OPERATING_SYSTEM_COMMAND         = odin::ascii::CLOSE_SQUARE_BRACKET;
+    static char const PRIVATE_MODE_SET                 = odin::ascii::QUESTION_MARK;
     static char const PARAMETER_SEPARATOR              = odin::ascii::SEMI_COLON;
     
     // Move the cursor up N rows.
@@ -135,9 +136,12 @@ namespace graphics {
 }
 
 namespace character_set {
+    // Note: For extended ASCII, both PuTTY and TeraTerm support
+    // SCO+G0.
     static char const LOCALE_DEC                   = odin::ascii::ZERO;
     static char const LOCALE_UK                    = odin::ascii::UPPERCASE_A;
     static char const LOCALE_US_ASCII              = odin::ascii::UPPERCASE_B;
+    static char const LOCALE_SCO                   = odin::ascii::UPPERCASE_U;
     
     static char const CHARACTER_SET_G0             = odin::ascii::OPEN_BRACKET;
     static char const CHARACTER_SET_G1             = odin::ascii::CLOSE_BRACKET;
@@ -152,6 +156,14 @@ struct control_sequence
     bool        meta_;      
     char        initiator_;
     char        command_;
+};
+
+// Mouse
+struct mouse_report
+{
+    odin::u8 button_;
+    odin::u8 x_position_;
+    odin::u8 y_position_;
 };
 
 bool operator==(control_sequence const& lhs, control_sequence const& rhs);

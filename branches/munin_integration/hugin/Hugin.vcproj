@@ -151,6 +151,10 @@
 				RelativePath=".\user_interface.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\user_interface.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -158,7 +162,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\user_interface.hpp"
+				RelativePath=".\wholist.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\wholist.hpp"
 				>
 			</File>
 		</Filter>

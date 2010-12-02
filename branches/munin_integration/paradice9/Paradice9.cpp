@@ -101,36 +101,6 @@ static struct command
   , PARADICE_CMD_ENTRY(quit)
 };
 
-void update_wholists(shared_ptr<paradice::context> ctx)
-{
-    vector<string> names;
-    
-    BOOST_AUTO(clients, ctx->get_clients());
-    
-    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients)
-    {
-        BOOST_AUTO(name, cur_client->get_name());
-        
-        if (!name.empty())
-        {
-            names.push_back(name);
-        }
-    }
-    
-    runtime_array<string> names_array(names.size());
-    copy(names.begin(), names.end(), names_array.begin());
-    
-    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients)
-    {
-        BOOST_AUTO(user_interface, cur_client->get_user_interface());
-
-        if (user_interface != NULL)
-        {
-            user_interface->update_wholist(names_array);
-        }
-    }
-}
-
 void on_input_entered(
     weak_ptr<paradice::context>  weak_context
   , weak_ptr<paradice::client>   weak_client
@@ -158,18 +128,6 @@ void on_command(
         return;
     }
 
-    // Echo the command to the output screen.
-    BOOST_AUTO(
-        command_echo
-      , munin::ansi::elements_from_string("\n" + input + "\n"));
-    
-    BOOST_FOREACH(munin::ansi::element_type &element, command_echo)
-    {
-        element.second.foreground_colour = odin::ansi::graphics::COLOUR_YELLOW;
-    }
-    
-    client->get_user_interface()->add_output_text(command_echo);
-    
     // Search through the list for commands
     BOOST_FOREACH(command const &cur_command, command_list)
     {
@@ -294,6 +252,7 @@ void on_username_entered(
             }
 
             client->set_name(arg);
+            ctx->update_names();
             
             user_interface->select_face(hugin::FACE_MAIN);
             user_interface->set_focus();
@@ -378,13 +337,18 @@ static void on_death(
     if (ctx != NULL && client != NULL)
     {
         ctx->remove_client(client);
-        update_wholists(ctx);
+        ctx->update_names();
+
+        BOOST_AUTO(name, client->get_name());
         
-        paradice::send_to_all(
-            ctx
-          , "#SERVER: "
-          + client->get_name()
-          + " has left Paradice.\n");
+        if (!name.empty())
+        {
+            paradice::send_to_all(
+                ctx
+              , "#SERVER: "
+              + name
+              + " has left Paradice.\n");
+        }
     }
 }
 
@@ -436,7 +400,6 @@ static void on_accept(
     BOOST_AUTO(connection, make_shared<paradice::connection>(socket));
     BOOST_AUTO(client, make_shared<paradice::client>());
     BOOST_AUTO(ctx, weak_context.lock());
-    
     client->set_connection(connection);
 
     socket->on_death(bind(
@@ -483,6 +446,8 @@ static void on_accept(
       , _1));
     
     client->set_user_interface(user_interface);
+    ctx->add_client(client);
+    ctx->update_names();
     
     content->set_size(munin::extent(80, 24));
     content->set_layout(
@@ -496,9 +461,6 @@ static void on_accept(
     runtime_array<u8> data(string_data.size());
     copy(string_data.begin(), string_data.end(), data.begin());
     socket->async_write(data, NULL);
-
-    ctx->add_client(client);
-    update_wholists(ctx);
 }
 
 int main(int argc, char *argv[])

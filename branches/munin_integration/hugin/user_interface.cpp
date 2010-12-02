@@ -1,5 +1,5 @@
 // ==========================================================================
-// GuiBuilder UI
+// Hugin User Interface
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "user_interface.hpp"
+#include "hugin/wholist.hpp"
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/edit.hpp"
 #include "munin/ansi/frame.hpp"
@@ -152,8 +153,6 @@ struct user_interface::impl
     // ======================================================================
     shared_ptr<component> create_main_screen()
     {
-        // TODO: Implement the Who-List and place it in the north section
-        // of the screen.
         BOOST_AUTO(content, make_shared<basic_container>());
         content->set_layout(make_shared<compass_layout>());
         
@@ -163,6 +162,11 @@ struct user_interface::impl
                 make_shared<frame>()
               , input_field_)
           , munin::COMPASS_LAYOUT_SOUTH);
+        
+        wholist_ = make_shared<wholist>();
+        content->add_component(
+            wholist_
+          , munin::COMPASS_LAYOUT_NORTH);
         
         output_field_ = make_shared<text_area>();
         output_field_->disable();
@@ -205,16 +209,10 @@ struct user_interface::impl
         {
             BOOST_AUTO(document, input_field_->get_document());
             BOOST_AUTO(elements, document->get_text_line(0));
+            BOOST_AUTO(input,   string_from_elements(elements)); 
 
             document->delete_text(
                 make_pair(u32(0), document->get_text_size()));
-            
-            string input;
-
-            BOOST_FOREACH(munin::ansi::element_type element, elements)
-            {
-                input += element.first;
-            }
 
             on_input_entered_(input);
         }
@@ -229,7 +227,7 @@ struct user_interface::impl
     function<void (string)> on_username_entered_;
     
     // Main Screen components
-    //shared_ptr<wholist>   wholist_;
+    shared_ptr<wholist>     wholist_;
     shared_ptr<edit>        input_field_;
     shared_ptr<text_area>   output_field_;
     function<void (string)> on_input_entered_;
@@ -310,7 +308,7 @@ void user_interface::set_statusbar_text(
 // ==========================================================================
 void user_interface::update_wholist(runtime_array<string> const &names)
 {
-    // pimpl_->wholist_->set_names(names);
+    pimpl_->wholist_->set_names(names);
 }
 
 // ==========================================================================

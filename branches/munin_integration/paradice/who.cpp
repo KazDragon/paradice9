@@ -48,7 +48,7 @@ namespace paradice {
 // ==========================================================================
 // GET_PLAYER_ADDRESS
 // ==========================================================================
-string get_player_address(shared_ptr<client> &client)
+static string get_player_address(shared_ptr<client> &client)
 {
     string prefix = client->get_prefix();
     string name   = client->get_name();
@@ -361,6 +361,8 @@ PARADICE_COMMAND_IMPL(title)
             % player->get_name()
             % get_player_address(player))
       , player);
+    
+    ctx->update_names();
 }
 
 // ==========================================================================
@@ -380,6 +382,8 @@ PARADICE_COMMAND_IMPL(prefix)
             % player->get_name()
             % get_player_address(player))
       , player);
+
+    ctx->update_names();
 }
 
 // ==========================================================================
@@ -415,6 +419,9 @@ PARADICE_COMMAND_IMPL(rename)
                 % get_player_address(player))
           , player);
     }
+
+    ctx->update_names();
 }
 
 }
+

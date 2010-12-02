@@ -78,12 +78,35 @@ bool canvas_region_compare(
 /// \brief Returns a string that is an ANSI sequence that will change the
 /// output style from 'from' to 'to'.  Assigns the latter to the former.  
 //* =========================================================================
-string change_pen(
+static string change_pen(
     munin::ansi::attribute &from
   , munin::ansi::attribute  to)
 {
-    string graphics_sequence;
+    // Some terminal clients are particularly bad at handling colour changes
+    // using the 'default', and leave the pen as whatever it was last.  We
+    // can work around this by using the 'reset attributes' key in advance.
+    // However, this will also mean that we need to send all other attributes
+    // afterwards.  We can do that by making the 'from' attribute default in
+    // all cases.
+    string default_sequence;
     
+    if ((from.foreground_colour != to.foreground_colour
+      && to.foreground_colour == odin::ansi::graphics::COLOUR_DEFAULT)
+     || (from.background_colour != to.background_colour
+      && to.background_colour == odin::ansi::graphics::COLOUR_DEFAULT))
+    {
+        default_sequence = string()
+            + odin::ansi::ESCAPE
+            + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+            + str(format("%s") % odin::ansi::graphics::NO_ATTRIBUTES)
+            + odin::ansi::SELECT_GRAPHICS_RENDITION;
+            
+        // Clear the attribute so that it can be rewritten entirely.
+        from = munin::ansi::attribute();
+    }
+
+    string graphics_sequence;
+
     if (from.foreground_colour != to.foreground_colour)
     {
         graphics_sequence += string()
@@ -153,7 +176,7 @@ string change_pen(
         from.character_set = to.character_set;
     }
     
-    return graphics_sequence + charset_sequence;
+    return default_sequence + graphics_sequence + charset_sequence;
 }
 
 //* =========================================================================
@@ -351,6 +374,13 @@ private :
         // Finally, deal with the cursor.
         bool cursor_state = content_->get_cursor_state();
         
+        if (cursor_state != last_cursor_state_)
+        {
+            output += cursor_state
+                    ? show_cursor()
+                    : hide_cursor();
+        }
+        
         if (cursor_state)
         {
             point current_cursor_position = content_->get_cursor_position();
@@ -374,6 +404,8 @@ private :
                     point(size.width - 1, size.height - 1));
             }
         }
+        
+        last_cursor_state_ = cursor_state;
         
         // Finally, only if anything has been repainted, send the notification 
         // to any observers, telling them how it is done.

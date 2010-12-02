@@ -24,8 +24,8 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef GUIBUILDER_UI_HPP_
-#define GUIBUILDER_UI_HPP_
+#ifndef HUGIN_USER_INTERFACE_HPP_
+#define HUGIN_USER_INTERFACE_HPP_
 
 #include "munin/composite_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
@@ -39,30 +39,61 @@ namespace hugin {
 BOOST_STATIC_CONSTANT(std::string, FACE_INTRO = "Intro");
 BOOST_STATIC_CONSTANT(std::string, FACE_MAIN  = "Main");
 
+//* =========================================================================
+/// \brief An abstraction of the primary user interface for the Paradice
+/// application.
+//* =========================================================================
 class user_interface
     : public munin::composite_component<munin::ansi::element_type>
 {
 public :
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
     user_interface();
     
+    //* =====================================================================
+    /// \brief Set a function to be called when the user inputs a name
+    /// on the intro screen.
+    //* =====================================================================
     void on_username_entered(
         boost::function<void (std::string)> callback);
 
+    //* =====================================================================
+    /// \brief Set a function to be called when the user inputs a command
+    /// on the main screen.
+    //* =====================================================================
     void on_input_entered(
         boost::function<void (std::string)> callback);
     
+    //* =====================================================================
+    /// \brief Select a user interface screen to be shown.
+    //* =====================================================================
     void select_face(std::string const &face_name);
     
+    //* =====================================================================
+    /// \brief Adds output to the output text area on the main screen.
+    //* =====================================================================
     void add_output_text(
         odin::runtime_array<munin::ansi::element_type> const &text);
     
+    //* =====================================================================
+    /// \brief Sets the content of the status bar on the intro screen.
+    //* =====================================================================
     void set_statusbar_text(
         odin::runtime_array<munin::ansi::element_type> const &text);
     
+    //* =====================================================================
+    /// \brief Updates the who list on the main screen.
+    //* =====================================================================
     void update_wholist(
         odin::runtime_array<std::string> const &names);
     
 protected :
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
     virtual void do_event(boost::any const &event);
 
 private :

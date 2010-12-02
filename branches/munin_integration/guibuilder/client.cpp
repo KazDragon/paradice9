@@ -92,6 +92,14 @@ struct ansi_input_visitor
         }
     }
     
+    void operator()(odin::ansi::mouse_report const &report)
+    {
+        printf("[BUTTON=%d, X=%d, Y=%d]\n",
+            int(report.button_), 
+            int(report.x_position_),
+            int(report.y_position_));
+    }
+    
     void operator()(string const &text)
     {
         if (on_text_)

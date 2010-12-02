@@ -116,8 +116,13 @@ struct edit::impl
     
         // TODO: Fix this so that only a certain number of password field
         // characters are shown in password mode.
-        BOOST_AUTO(characters, 
-            (min)(u32(document_view_.size()), u32(document_->get_width())));
+        BOOST_AUTO(
+            characters
+          , document_->get_width() - document_base_);
+        
+        BOOST_AUTO(
+            text
+          , document_->get_text_line(0));
         
         s32 index = 0;
     
@@ -143,7 +148,8 @@ struct edit::impl
                  ++index)
             {
                 cvs[position.x + index + offset.x]
-                   [position.y + 0     + offset.y] = document_view_[index];
+                   [position.y + 0     + offset.y] = 
+                       text[document_base_ + index];
             }
         }
         
@@ -276,14 +282,15 @@ private :
     //* =====================================================================
     void render()
     {
-        document_view_.resize(self_.get_size().width);
-        fill(document_view_.begin()
-           , document_view_.end()
+        odin::runtime_array<element_type> document_view(
+            self_.get_size().width);
+        
+        fill(document_view.begin()
+           , document_view.end()
            , munin::ansi::element_type(' ', munin::ansi::attribute()));
         
         // Find the segment of the document that we will display
-        odin::runtime_array<document_type::character_type> line =
-            document_->get_text_line(0);
+        BOOST_AUTO(line, document_->get_text_line(0));
         
         BOOST_AUTO(
             start_index
@@ -291,12 +298,13 @@ private :
         
         BOOST_AUTO(
             end_index
-          , (min)(u32(line.size()), u32(document_base_ + document_view_.size())));
+          , (min)(u32(line.size())
+                , u32(document_base_ + document_view.size())));
         
         copy(
             line.begin() + start_index
           , line.begin() + end_index
-          , document_view_.begin());
+          , document_view.begin());
         
         munin::rectangle redraw_region(
             munin::point()
@@ -432,7 +440,6 @@ private :
     bool                                               cursor_state_;
     
     u32                                                document_base_;
-    vector<element_type>                               document_view_;
     
     boost::optional<element_type>                      password_element_;
 };

@@ -28,6 +28,7 @@
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 
 using namespace std;
 using namespace boost;
@@ -52,6 +53,48 @@ runtime_array<element_type> elements_from_string(
     }
     
     return dest_line;
+}
+
+// ==========================================================================
+// STRING_FROM_ELEMENTS
+// ==========================================================================
+string string_from_elements(
+    runtime_array<munin::ansi::element_type> const &elements)
+{
+    string text(elements.size(), ' ');
+    
+    for (u32 index = 0; index < elements.size(); ++index)
+    {
+        text[index] = elements[index].first;
+    }
+    
+    return text;
+}
+
+// ==========================================================================
+// HIDE_CURSOR
+// ==========================================================================
+string hide_cursor()
+{
+    return string()
+        + odin::ansi::ESCAPE
+        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        + odin::ansi::PRIVATE_MODE_SET
+        + "25"
+        + odin::ascii::LOWERCASE_L;
+}
+
+// ==========================================================================
+// SHOW_CURSOR
+// ==========================================================================
+string show_cursor()
+{
+    return string()
+        + odin::ansi::ESCAPE
+        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        + odin::ansi::PRIVATE_MODE_SET
+        + "25"
+        + odin::ascii::LOWERCASE_H;
 }
 
 // ==========================================================================

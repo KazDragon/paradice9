@@ -61,6 +61,11 @@ public :
     /// connected to Paradice.
     //* =====================================================================
     virtual void remove_client(boost::shared_ptr<client> const &cli) = 0;
+
+    //* =====================================================================
+    /// \brief For all clients, updates their lists of names.
+    //* =====================================================================
+    virtual void update_names() = 0;
 };
 
 }

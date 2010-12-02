@@ -28,6 +28,8 @@
 #define PARADICE_COMMUNICATION_HPP_
 
 #include "command.hpp"
+#include "munin/ansi/protocol.hpp"
+#include "odin/runtime_array.hpp"
 #include <boost/shared_ptr.hpp>
 #include <string>
 
@@ -37,42 +39,21 @@ class client;
 class context;
 
 //* =========================================================================
-/// \brief Send a text message to all connected players that will appear in
-/// their backtrace logs.
-//* =========================================================================
-void message_to_all(
-    boost::shared_ptr<context> &ctx
-  , std::string const          &text);
-
-//* =========================================================================
-/// \brief Send a text message to a single player that will appear in their
-/// backtrace log.
-//* =========================================================================
-void message_to_player(
-    boost::shared_ptr<context> &ctx
-  , std::string const          &text
-  , boost::shared_ptr<client>  &player);
-
-//* =========================================================================
-/// \brief Send a text message to all players in the same room as player,
-/// but not to player, and will appear in their backtrace logs.
-//* =========================================================================
-void message_to_room(
-    boost::shared_ptr<context> &ctx
-  , std::string const          &text
-  , boost::shared_ptr<client>  &player);
-
-//* =========================================================================
-/// \brief Send a text message to all connected players that will not appear
-/// in their backtrace logs.
+/// \brief Send a text message to all connected players.
 //* =========================================================================
 void send_to_all(
     boost::shared_ptr<context> &ctx
   , std::string const          &text);
 
 //* =========================================================================
-/// \brief Send a text message to a single player that will not appear in
-/// their backtrace log.
+/// \brief Send a text message to all connected players.
+//* =========================================================================
+void send_to_all(
+    boost::shared_ptr<context>                           &ctx
+  , odin::runtime_array<munin::ansi::element_type> const &text);
+
+//* =========================================================================
+/// \brief Send a text message to a single player.
 //* =========================================================================
 void send_to_player(
     boost::shared_ptr<context> &ctx
@@ -80,19 +61,34 @@ void send_to_player(
   , boost::shared_ptr<client>  &player);
 
 //* =========================================================================
+/// \brief Send a text message to a single player.
+//* =========================================================================
+void send_to_player(
+    boost::shared_ptr<context>                           &ctx
+  , odin::runtime_array<munin::ansi::element_type> const &text
+  , boost::shared_ptr<client>                            &player);
+ 
+//* =========================================================================
 /// \brief Send a text message to all players in the same room as player,
-/// but not to player, and will not appear in their backtrace logs.
+/// but not to player.
 //* =========================================================================
 void send_to_room(
     boost::shared_ptr<context> &ctx
   , std::string const          &text
   , boost::shared_ptr<client>  &player);
 
+//* =========================================================================
+/// \brief Send a text message to all players in the same room as player,
+/// but not to player.
+//* =========================================================================
+void send_to_room(
+    boost::shared_ptr<context>                           &ctx
+  , odin::runtime_array<munin::ansi::element_type> const &text
+  , boost::shared_ptr<client>                            &player);
 
 PARADICE_COMMAND_DECL(say);
 PARADICE_COMMAND_DECL(sayto);
 PARADICE_COMMAND_DECL(emote);
-PARADICE_COMMAND_DECL(backtrace);
 
 }
 

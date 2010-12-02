@@ -87,7 +87,8 @@ public :
     /// \brief Sets the size of this component.  This does not cause a
     /// redraw, on the basis that the entity performing the resize (usually
     /// a layout manager) knows about it, and is better informed about all
-    /// regions redrawn.
+    /// regions redrawn.  It does, however, inform an active layout to lay
+    /// the components out.
     //* =====================================================================
     void set_size(extent const &size)
     {
@@ -120,27 +121,19 @@ public :
     }
     
     //* =====================================================================
-    /// \brief Sets the parent of the component
-    //* =====================================================================
-    void set_parent(boost::shared_ptr< container<element_type> > const &parent)
-    {
-        do_set_parent(parent);
-    }
-    
-    //* =====================================================================
-    /// \brief Retrieves the parent of this component.
-    //* =====================================================================
-    boost::shared_ptr< container<element_type> > get_parent() const
-    {
-        return do_get_parent();
-    }
-    
-    //* =====================================================================
     /// \brief Returns whether this component currently has focus.
     //* =====================================================================
     bool has_focus() const
     {
         return do_has_focus();
+    }
+    
+    //* =====================================================================
+    /// \brief Sets whether this component can take focus.
+    //* =====================================================================
+    void set_can_focus(bool focus)
+    {
+        do_set_can_focus(focus);
     }
     
     //* =====================================================================
@@ -150,7 +143,7 @@ public :
     {
         return do_can_focus();
     }
-    
+
     //* =====================================================================
     /// \brief Sets this component to have the focus.
     //* =====================================================================
@@ -200,6 +193,30 @@ public :
     }
     
     //* =====================================================================
+    /// \brief Enables the component.
+    //* =====================================================================
+    void enable()
+    {
+        do_enable();
+    }
+    
+    //* =====================================================================
+    /// \brief Disables the component.
+    //* =====================================================================
+    void disable()
+    {
+        do_disable();
+    }
+    
+    //* =====================================================================
+    /// \brief Returns whether the component is enabled or not.
+    //* =====================================================================
+    bool is_enabled() const
+    {
+        return do_is_enabled();
+    }
+    
+    //* =====================================================================
     /// \brief Returns true if this component has a visible cursor, false
     /// otherwise.
     //* =====================================================================
@@ -214,6 +231,14 @@ public :
     point get_cursor_position() const
     {
         return do_get_cursor_position();
+    }
+    
+    //* =====================================================================
+    /// \brief Sets an implementation-specific attribute of the component.
+    //* =====================================================================
+    void set_attribute(std::string const &name, boost::any const &attr)
+    {
+        do_set_attribute(name, attr);
     }
     
     //* =====================================================================
@@ -302,7 +327,7 @@ public :
         void (point)
     > on_cursor_position_changed;
     
-private :
+protected :
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
     /// function in order to set the position of the component in a custom
@@ -339,29 +364,19 @@ private :
     virtual extent do_get_preferred_size() const = 0;
     
     //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< container<element_type> > const &parent) = 0;
-    
-    //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual boost::shared_ptr< 
-        container<element_type> 
-    > do_get_parent() const = 0;
-    
-    //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
     /// custom manner.
     //* =====================================================================
     virtual bool do_has_focus() const = 0;
     
+    //* =====================================================================
+    /// \brief Called by set_can_focus().  Derived classes must override this
+    /// function in order to set whether this component can be focussed in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_can_focus(bool focus) = 0;
+
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
@@ -403,6 +418,25 @@ private :
     virtual boost::shared_ptr<component_type> do_get_focussed_component() = 0;
     
     //* =====================================================================
+    /// \brief Called by enable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_enable() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by disable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_disable() = 0;
+    
+    //* =====================================================================
+    /// \brief Called by is_enabled().  Derived classes must override this
+    /// function in order to return whether the component is disabled or not
+    /// in a custom manner.
+    //* =====================================================================
+    virtual bool do_is_enabled() const = 0;
+    
+    //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
@@ -414,6 +448,13 @@ private :
     /// a custom manner.
     //* =====================================================================
     virtual point do_get_cursor_position() const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr) = 0;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

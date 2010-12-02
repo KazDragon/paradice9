@@ -25,13 +25,30 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/ansi/attribute.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <iostream>
 
 namespace munin { namespace ansi {
 
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+attribute::attribute()
+    : foreground_colour(odin::ansi::graphics::COLOUR_DEFAULT)
+    , background_colour(odin::ansi::graphics::COLOUR_DEFAULT)
+    , intensity(odin::ansi::graphics::INTENSITY_NORMAL)
+    , character_set(odin::ansi::character_set::CHARACTER_SET_G0)
+    , locale(odin::ansi::character_set::LOCALE_US_ASCII)
+{
+}
+
 bool operator==(attribute const &lhs, attribute const &rhs)
 {
-    return true;
+    return lhs.foreground_colour == rhs.foreground_colour
+        && lhs.background_colour == rhs.background_colour
+        && lhs.intensity         == rhs.intensity
+        && lhs.locale            == rhs.locale
+        && lhs.character_set     == rhs.character_set;
 }
 
 std::ostream &operator<<(std::ostream &out, attribute const &attr)

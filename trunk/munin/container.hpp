@@ -33,8 +33,8 @@
 #include "munin/algorithm.hpp"
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
+#include <boost/utility.hpp>
 #include <boost/weak_ptr.hpp>
 #include <numeric>
 
@@ -47,11 +47,11 @@
 namespace munin {
     
 BOOST_STATIC_CONSTANT(
-    odin::u32, HIGHEST_LAYER = std::numeric_limits<odin::u32>::max());
+    odin::u32, HIGHEST_LAYER = (std::numeric_limits<odin::u32>::max)());
 BOOST_STATIC_CONSTANT(
-    odin::u32, LOWEST_LAYER = std::numeric_limits<odin::u32>::min());
+    odin::u32, LOWEST_LAYER = (std::numeric_limits<odin::u32>::min)());
 BOOST_STATIC_CONSTANT(
-    odin::u32, DEFAULT_LAYER = std::numeric_limits<odin::u32>::max() / 2);
+    odin::u32, DEFAULT_LAYER = (std::numeric_limits<odin::u32>::max)() / 2);
 
 //* =========================================================================
 /// \brief A graphical element capable of containing and arranging other
@@ -60,7 +60,6 @@ BOOST_STATIC_CONSTANT(
 template <class ElementType>
 class container 
     : public component<ElementType>
-    , public boost::enable_shared_from_this< container<ElementType> >
 {
 public :
     typedef ElementType            element_type;
@@ -88,12 +87,18 @@ public :
       , odin::u32                                layer = DEFAULT_LAYER)
     {
         do_add_component(component, layer);
-        component->set_parent(this->shared_from_this());
 
         // Subscribe to the component's redraw event.
         component->on_redraw.connect(
             boost::bind(
                 &container::subcomponent_redraw_handler
+              , this
+              , boost::weak_ptr<component_type>(component)
+              , _1));
+        
+        component->on_cursor_position_changed.connect(
+            boost::bind(
+                &container::subcomponent_cursor_position_change_handler
               , this
               , boost::weak_ptr<component_type>(component)
               , _1));
@@ -121,7 +126,6 @@ public :
     void remove_component(boost::shared_ptr<component_type> const &component)
     {
         do_remove_component(component);
-        component->set_parent(boost::shared_ptr< container<ElementType> >());
     }
     
     //* =====================================================================
@@ -156,7 +160,7 @@ public :
         return do_get_layout();
     }
     
-private :
+protected :    
     //* =====================================================================
     /// \brief Called when a component within the container requests a
     /// redraw.
@@ -176,7 +180,7 @@ private :
             // subcomponent within this container.
             point origin = subcomponent->get_position();
             
-            BOOST_FOREACH(rectangle rect, regions)
+            BOOST_FOREACH(rectangle &rect, regions)
             {
                 rect.origin.x += origin.x;
                 rect.origin.y += origin.y;
@@ -187,6 +191,23 @@ private :
         }
     }
 
+    //* =====================================================================
+    /// \brief Called when the cursor position of a component within the 
+    /// container changes.
+    //* =====================================================================
+    void subcomponent_cursor_position_change_handler(
+        boost::weak_ptr<component_type> weak_subcomponent
+      , munin::point                    position)
+    {
+        boost::shared_ptr<component_type> subcomponent = 
+            weak_subcomponent.lock();
+            
+        if (subcomponent != NULL && subcomponent->has_focus())
+        {
+            this->on_cursor_position_changed(this->get_position() + position);
+        }
+    }
+    
     //* =====================================================================
     /// \brief Initialises a region prior to drawing.
     //* =====================================================================
@@ -404,7 +425,6 @@ private :
         
         return components;
     }
-    
 };
     
 }

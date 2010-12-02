@@ -43,7 +43,7 @@ boost::optional<rectangle> intersection(
 
 //* =========================================================================
 /// \fn rectangular_slice
-/// \brief Returns an array o sliced rectangles.
+/// \brief Returns an array of sliced rectangles.
 /// \par
 /// A rectangular slice takes an array of rectangles, and returns an array
 /// of the fewest number of rectangles, each of height 1, that describes the

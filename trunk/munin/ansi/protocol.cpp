@@ -25,13 +25,78 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/ansi/protocol.hpp"
+#include "odin/ansi/protocol.hpp"
+#include "odin/ascii/protocol.hpp"
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 
 using namespace std;
 using namespace boost;
+using namespace odin;
 
 namespace munin { namespace ansi {
     
+// ==========================================================================
+// ELEMENTS_FROM_STRING
+// ==========================================================================
+runtime_array<element_type> elements_from_string(
+    string const &source_line
+  , attribute     attr)
+{
+    runtime_array<munin::ansi::element_type> dest_line(source_line.size());
+    
+    for (u32 index = 0; index < source_line.size(); ++index)
+    {
+        dest_line[index] = munin::ansi::element_type(
+            source_line[index]
+          , attr);
+    }
+    
+    return dest_line;
+}
+
+// ==========================================================================
+// STRING_FROM_ELEMENTS
+// ==========================================================================
+string string_from_elements(
+    runtime_array<munin::ansi::element_type> const &elements)
+{
+    string text(elements.size(), ' ');
+    
+    for (u32 index = 0; index < elements.size(); ++index)
+    {
+        text[index] = elements[index].first;
+    }
+    
+    return text;
+}
+
+// ==========================================================================
+// HIDE_CURSOR
+// ==========================================================================
+string hide_cursor()
+{
+    return string()
+        + odin::ansi::ESCAPE
+        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        + odin::ansi::PRIVATE_MODE_SET
+        + "25"
+        + odin::ascii::LOWERCASE_L;
+}
+
+// ==========================================================================
+// SHOW_CURSOR
+// ==========================================================================
+string show_cursor()
+{
+    return string()
+        + odin::ansi::ESCAPE
+        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        + odin::ansi::PRIVATE_MODE_SET
+        + "25"
+        + odin::ascii::LOWERCASE_H;
+}
+
 // ==========================================================================
 // CURSOR_POSITION
 // ==========================================================================    
@@ -57,17 +122,17 @@ string cursor_position(munin::point const &position)
       : str(format("%s") % (position.y + 1));
                     
     string separator =
-        (position.y == 0)
+        (position.x == 0)
       ? ""
       : ";";
       
     return str(format("%c%c%s%s%s%c")
-        % ESCAPE
-        % CONTROL_SEQUENCE_INTRODUCER
-        % x_coordinate
-        % separator
+        % odin::ansi::ESCAPE
+        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
         % y_coordinate
-        % CURSOR_POSITION);
+        % separator
+        % x_coordinate
+        % odin::ansi::CURSOR_POSITION);
 }
 
 // ==========================================================================
@@ -76,10 +141,10 @@ string cursor_position(munin::point const &position)
 string set_window_title(string const &text)
 {
     return str(format("%c%c0;%s%c")
-        % ESCAPE
-        % OPERATING_SYSTEM_COMMAND
+        % odin::ansi::ESCAPE
+        % odin::ansi::OPERATING_SYSTEM_COMMAND
         % text
-        % BEL);
+        % odin::ansi::BEL);
 }
 
 }}

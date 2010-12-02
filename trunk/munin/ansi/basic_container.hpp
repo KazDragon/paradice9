@@ -37,7 +37,7 @@ namespace munin { namespace ansi {
 //* =========================================================================
 class basic_container : public munin::basic_container<element_type>
 {
-private :
+protected :
     //* =====================================================================
     /// \brief Initialises a region prior to drawing.
     //* =====================================================================

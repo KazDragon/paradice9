@@ -37,18 +37,8 @@ void munin_container_fixture::test_add_component()
     CPPUNIT_ASSERT_EQUAL(u32(1), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component0);
     
-    shared_ptr< munin::component<char> > parent_of_component0 =
-        component0->get_parent();
-        
-    CPPUNIT_ASSERT(parent_of_component0 == container);
-
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     container->add_component(component1);
-    
-    shared_ptr< munin::component<char> > parent_of_component1 =
-        component1->get_parent();
-        
-    CPPUNIT_ASSERT(parent_of_component1 == container);
     
     CPPUNIT_ASSERT_EQUAL(u32(2), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component0);
@@ -66,18 +56,8 @@ void munin_container_fixture::test_remove_component()
     CPPUNIT_ASSERT_EQUAL(u32(1), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component0);
     
-    shared_ptr< munin::component<char> > parent_of_component0 =
-        component0->get_parent();
-        
-    CPPUNIT_ASSERT(parent_of_component0 == container);
-
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     container->add_component(component1);
-    
-    shared_ptr< munin::component<char> > parent_of_component1 =
-        component1->get_parent();
-
-    CPPUNIT_ASSERT(parent_of_component1 == container);
     
     CPPUNIT_ASSERT_EQUAL(u32(2), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component0);
@@ -85,10 +65,6 @@ void munin_container_fixture::test_remove_component()
     
     container->remove_component(component0);
     
-    parent_of_component0 = component0->get_parent();
-    CPPUNIT_ASSERT(
-        parent_of_component0 == shared_ptr< munin::component<char> >());
-
     CPPUNIT_ASSERT_EQUAL(u32(1), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component1);
 }
@@ -934,8 +910,9 @@ void munin_container_fixture::test_cursor_position()
     component0->set_cursor_position(new_position);
     
     CPPUNIT_ASSERT_EQUAL(
-        component0_position + new_position, container->get_cursor_position());
-    CPPUNIT_ASSERT_EQUAL(component0_position + new_position, cursor_position);
+        new_position + container->get_position() + component0->get_position()
+      , container->get_cursor_position());
+    CPPUNIT_ASSERT_EQUAL(new_position, cursor_position);
         
 }
 

@@ -37,8 +37,8 @@ template <class ElementType>
 class component;
 
 //* =========================================================================
-/// \brief A default implementation of a layout.  Only do_layout() remains
-/// unimplemented.
+/// \brief A default implementation of a layout.  Only do_layout() and
+/// do_get_preferred_size() remain unimplemented.
 //* =========================================================================
 template <class ElementType>
 class basic_layout : public layout<ElementType>
@@ -46,7 +46,7 @@ class basic_layout : public layout<ElementType>
 public :
     typedef component<ElementType> component_type;
     
-private :
+protected :    
     //* =====================================================================
     /// \brief Called by get_number_of_components().  Derived classes must
     /// override this function in order to get the number of components in
@@ -112,6 +112,7 @@ private :
         return components_[index].second;
     }
 
+private :
     typedef typename std::vector<
         std::pair<
             boost::shared_ptr<component_type>

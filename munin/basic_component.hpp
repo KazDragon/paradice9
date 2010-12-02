@@ -30,12 +30,14 @@
 #include "munin/component.hpp"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/weak_ptr.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <map>
 
 namespace munin {
 
 //* =========================================================================
 /// \brief A default implementation of a component.  Only do_draw()
-/// do_get_preferred_size() remain unimplemented.
+/// do_get_preferred_size() and do_event() remain unimplemented.
 //* =========================================================================
 template <class ElementType>
 class basic_component 
@@ -52,15 +54,13 @@ public :
     //* =====================================================================
     basic_component()
         : bounds_(point(0, 0), extent(0, 0))
+        , can_focus_(true)
         , has_focus_(false)
+        , enabled_(true)
     {
     }
     
-private :
-    rectangle                                  bounds_;
-    boost::weak_ptr< container<element_type> > parent_;
-    bool                                       has_focus_;
-    
+protected :
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
     /// function in order to set the position of the component in a custom
@@ -105,24 +105,23 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
+    /// \brief Called by set_can_focus().  Derived classes must override this
+    /// function in order to set whether this component can be focussed in
+    /// a custom manner.
     //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< container<element_type> > const &parent)
+    virtual void do_set_can_focus(bool focus)
     {
-        parent_ = parent;
+        can_focus_ = focus;
     }
-    
+
     //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
+    /// \brief Called by can_focus().  Derived classes must override this
+    /// function in order to return whether this component can be focused in
+    /// a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr< container<element_type> > do_get_parent() const
+    virtual bool do_can_focus() const
     {
-        return parent_.lock();
+        return can_focus_;
     }
 
     //* =====================================================================
@@ -133,16 +132,6 @@ private :
     virtual bool do_has_focus() const
     {
         return has_focus_;
-    }
-    
-    //* =====================================================================
-    /// \brief Called by can_focus().  Derived classes must override this
-    /// function in order to return whether this component can be focused in
-    /// a custom manner.
-    //* =====================================================================
-    virtual bool do_can_focus() const
-    {
-        return true;
     }
     
     //* =====================================================================
@@ -218,6 +207,34 @@ private :
     }
 
     //* =====================================================================
+    /// \brief Called by enable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_enable()
+    {
+        enabled_ = true;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by disable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_disable()
+    {
+        enabled_ = false;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by is_enabled().  Derived classes must override this
+    /// function in order to return whether the component is disabled or not
+    /// in a custom manner.
+    //* =====================================================================
+    virtual bool do_is_enabled() const
+    {
+        return enabled_;
+    }
+
+    //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
@@ -242,6 +259,36 @@ private :
         
         return position;
     }
+    
+    //* =====================================================================
+    /// \brief Returns an attribute with a specified name.
+    //* =====================================================================
+    boost::any get_attribute(std::string const &name) const
+    {
+        BOOST_AUTO(attr_iterator, attributes_.find(name));
+        
+        return attr_iterator == attributes_.end()
+             ? boost::any()
+             : *attr_iterator;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr)
+    {
+        attributes_[name] = attr;
+    }
+    
+private :
+    std::map<std::string, boost::any> attributes_;
+    rectangle                         bounds_;
+    bool                              can_focus_;
+    bool                              has_focus_;
+    bool                              enabled_;
+    
 };
     
 }

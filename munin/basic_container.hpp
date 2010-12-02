@@ -28,6 +28,7 @@
 #define MUNIN_BASIC_CONTAINER_HPP_
 
 #include "munin/container.hpp"
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
@@ -43,6 +44,7 @@ namespace munin {
 template <class ElementType>
 class basic_container 
     : public container<ElementType>
+    , public boost::enable_shared_from_this< basic_container<ElementType> >
 {
 public :
     typedef ElementType            element_type;
@@ -54,18 +56,11 @@ public :
         : bounds_(point(0, 0), extent(0, 0))
         , has_focus_(false)
         , cursor_state_(false)
+        , enabled_(true)
     {
     }
     
-private :
-    std::vector< boost::shared_ptr<component_type> > components_;
-    std::vector< odin::u32 >                         component_layers_;
-    boost::weak_ptr<container_type>                  parent_;
-    boost::shared_ptr<layout_type>                   layout_;
-    rectangle                                        bounds_;
-    bool                                             has_focus_;
-    bool                                             cursor_state_;
-    
+protected :    
     //* =====================================================================
     /// \brief Called when a subcomponent's focus is gained.
     //* =====================================================================
@@ -275,7 +270,23 @@ private :
     //* =====================================================================
     virtual void do_set_size(extent const &size)
     {
+        // After changing the size, the larger region of the two will need
+        // redrawing.  For now, we can just put both regions in and let the
+        // pruner take care of it.
+        std::vector<rectangle> redraw_regions;
+        redraw_regions.push_back(bounds_);
+
         bounds_.size = size;
+        redraw_regions.push_back(bounds_);
+
+        boost::shared_ptr<layout_type> layout = this->get_layout();
+
+        if (layout)
+        {
+            (*layout)(this->shared_from_this());
+        }
+
+        this->on_redraw(redraw_regions);
     }
 
     //* =====================================================================
@@ -435,17 +446,6 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_parent(
-        boost::shared_ptr< container<ElementType> > const &parent)
-    {
-        parent_ = parent;
-    }
-    
-    //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
     /// custom manner.
@@ -455,6 +455,17 @@ private :
         return has_focus_;
     }
     
+    //* =====================================================================
+    /// \brief Called by set_can_focus().  Derived classes must override this
+    /// function in order to set whether this component can be focussed in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_can_focus(bool focus)
+    {
+        // As this is controlled by contained components, this is
+        // completely ignored.
+    }
+
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
@@ -586,10 +597,21 @@ private :
 
         if (number_of_components != 0)
         {
-            boost::shared_ptr<component_type> current_component =
-                this->get_component(0);
+            bool focused = false;
+            
+            for (odin::u32 current_component = 0; 
+                 current_component < number_of_components && !focused;
+                 ++current_component)
+            {
+                boost::shared_ptr<component_type> comp =
+                    this->get_component(current_component);
 
-            current_component->focus_next();
+                if (comp->can_focus())
+                {
+                    comp->focus_next();
+                    focused = true;
+                }
+            }
         }
     }
     
@@ -728,17 +750,35 @@ private :
         
         return boost::shared_ptr<component_type>();
     }
-        
-    //* =====================================================================
-    /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom
-    /// manner.
-    //* =====================================================================
-    boost::shared_ptr< container<ElementType> > do_get_parent() const
-    {
-        return parent_.lock();
-    }
 
+    //* =====================================================================
+    /// \brief Called by enable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_enable()
+    {
+        enabled_ = true;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by disable().  Derived classes must override this
+    /// function in order to disable the component in a custom manner.
+    //* =====================================================================
+    virtual void do_disable()
+    {
+        enabled_ = false;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by is_enabled().  Derived classes must override this
+    /// function in order to return whether the component is disabled or not
+    /// in a custom manner.
+    //* =====================================================================
+    virtual bool do_is_enabled() const
+    {
+        return enabled_;
+    }
+    
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 
     /// function in order to handle events in a custom manner.
@@ -804,6 +844,39 @@ private :
         // does not have a cursor.  Return the default position.
         return point(0, 0);
     }
+
+    //* =====================================================================
+    /// \brief Returns an attribute with a specified name.
+    //* =====================================================================
+    boost::any get_attribute(std::string const &name) const
+    {
+        BOOST_AUTO(attr_iterator, attributes_.find(name));
+        
+        return attr_iterator == attributes_.end()
+             ? boost::any()
+             : *attr_iterator;
+    }
+    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr)
+    {
+        attributes_[name] = attr;
+    }
+    
+private :
+    std::map<std::string, boost::any>                attributes_;
+    std::vector< boost::shared_ptr<component_type> > components_;
+    std::vector< odin::u32 >                         component_layers_;
+    boost::shared_ptr<layout_type>                   layout_;
+    rectangle                                        bounds_;
+    bool                                             has_focus_;
+    bool                                             cursor_state_;
+    bool                                             enabled_;
+    
 };
     
 }

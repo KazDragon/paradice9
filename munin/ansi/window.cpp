@@ -29,6 +29,7 @@
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/ansi_canvas.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -62,9 +63,9 @@ bool canvas_region_compare(
              ++column)
         {
             munin::ansi::element_type const &lhs_element =
-                lhs[row + region.origin.y][column + region.origin.x];
+                lhs[column + region.origin.x][row + region.origin.y];
             munin::ansi::element_type const &rhs_element =
-                rhs[row + region.origin.y][column + region.origin.x];
+                rhs[column + region.origin.x][row + region.origin.y];
                 
             compare_equal = lhs_element == rhs_element;
         }
@@ -74,11 +75,117 @@ bool canvas_region_compare(
 }
 
 //* =========================================================================
+/// \brief Returns a string that is an ANSI sequence that will change the
+/// output style from 'from' to 'to'.  Assigns the latter to the former.  
+//* =========================================================================
+static string change_pen(
+    munin::ansi::attribute &from
+  , munin::ansi::attribute  to)
+{
+    // Some terminal clients are particularly bad at handling colour changes
+    // using the 'default', and leave the pen as whatever it was last.  We
+    // can work around this by using the 'reset attributes' key in advance.
+    // However, this will also mean that we need to send all other attributes
+    // afterwards.  We can do that by making the 'from' attribute default in
+    // all cases.
+    string default_sequence;
+    
+    if ((from.foreground_colour != to.foreground_colour
+      && to.foreground_colour == odin::ansi::graphics::COLOUR_DEFAULT)
+     || (from.background_colour != to.background_colour
+      && to.background_colour == odin::ansi::graphics::COLOUR_DEFAULT))
+    {
+        default_sequence = string()
+            + odin::ansi::ESCAPE
+            + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+            + str(format("%s") % odin::ansi::graphics::NO_ATTRIBUTES)
+            + odin::ansi::SELECT_GRAPHICS_RENDITION;
+            
+        // Clear the attribute so that it can be rewritten entirely.
+        from = munin::ansi::attribute();
+    }
+
+    string graphics_sequence;
+
+    if (from.foreground_colour != to.foreground_colour)
+    {
+        graphics_sequence += string()
+                          + odin::ansi::ESCAPE
+                          + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+                       
+        graphics_sequence += str(format("%s")
+            % int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE
+                + to.foreground_colour));
+        
+        from.foreground_colour = to.foreground_colour;
+    }
+    
+    if (from.background_colour != to.background_colour)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s")
+            % int(odin::ansi::graphics::BACKGROUND_COLOUR_BASE
+                + to.background_colour));
+        
+        from.background_colour = to.background_colour;
+    }
+    
+    if (from.intensity != to.intensity)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s") % int(to.intensity));
+        
+        from.intensity = to.intensity;
+    }
+
+    if (!graphics_sequence.empty())
+    {
+        graphics_sequence += odin::ansi::SELECT_GRAPHICS_RENDITION;
+    }
+
+    string charset_sequence;
+    
+    if (from.locale != to.locale || from.character_set != to.character_set)
+    {
+        charset_sequence += string()
+                          + odin::ansi::ESCAPE
+                          + to.character_set
+                          + to.locale;
+                          
+        from.locale        = to.locale;
+        from.character_set = to.character_set;
+    }
+    
+    return default_sequence + graphics_sequence + charset_sequence;
+}
+
+//* =========================================================================
 /// \brief Returns a string which would paint the specified region on a
 /// canvas.
 //* =========================================================================
 string canvas_region_string(
-    munin::rectangle const &region
+    munin::ansi::attribute                   &pen
+  , munin::rectangle const                   &region
   , munin::canvas<munin::ansi::element_type> &cvs)
 {
     string output;
@@ -94,8 +201,12 @@ string canvas_region_string(
             munin::ansi::element_type const &element = 
                 cvs[column + region.origin.x]
                    [row    + region.origin.y];
-            
-            // TODO: apply graphics attributes here.
+
+            // Apply any attribute changes that are required.
+            if (!(pen == element.second))
+            {
+                output += change_pen(pen, element.second);
+            }
             
             // With the attributes set, output the actual character.
             output.push_back(element.first);
@@ -183,10 +294,34 @@ private :
     // ======================================================================
     void do_repaint()
     {
-        // First, prune out any regions with dimensions zero.
+        // First, trim any redraw regions to the expected size of the canvas.
+        extent size = content_->get_size();
+
+        vector<rectangle> trimmed_regions;
+
+        BOOST_FOREACH(rectangle region, redraw_regions_)
+        {
+            if (region.origin.x < size.width
+             && region.origin.y < size.height)
+            {
+                if (region.origin.x + region.size.width >= size.width)
+                {
+                    region.size.width = size.width - region.origin.x;
+                }
+
+                if (region.origin.y + region.size.height >= size.height)
+                {
+                    region.size.height = size.height - region.origin.y;
+                }
+
+                trimmed_regions.push_back(region);
+            }
+        }
+
+        // Then, prune out any regions with dimensions zero.
         vector<rectangle> pruned_regions;
         
-        BOOST_FOREACH(rectangle const &region, redraw_regions_)
+        BOOST_FOREACH(rectangle region, trimmed_regions)
         {
             if (region.size.width != 0 && region.size.height != 0)
             {
@@ -198,35 +333,53 @@ private :
         // to update the window.         
         string output;
         
-        // Next, cut the regions into horizontal slices.
-        vector<rectangle> slices = rectangular_slice(pruned_regions);
-        
-        // Ensure that our canvas is the correct size.
-        extent size = content_->get_size();
+        // If the canvas has changed size, then many things can happen.
+        // If it's shrunk, then there's no way to tell if the client has
+        // clipped or scrolled or whatever.  If it's grown, then the new
+        // regions of the screen may contain junk and need to be overwritten.
+        // Therefore, we forego detection of whether a region is similar
+        // to what it used to be and instead just repaint everything.
+        bool repaint_all = canvas_.get_size().width  != size.width
+                        || canvas_.get_size().height != size.height;
+
+        // Ensure that our canvas is the correct size for the content that we
+        // are going to paint.
         canvas_.set_size(size);
-        
+
+        // Since we are going to repaint as little as possible, cut the 
+        // regions into horizontal slices.
+        vector<rectangle> slices = rectangular_slice(pruned_regions);
+    
         // Take a copy of the canvas.  We will want to check against this
         // after the draw operations to see if anything has changed.
         ansi_canvas canvas_clone = canvas_;
-        
+
         // Draw each slice on the canvas.
-        BOOST_FOREACH(rectangle const &region, slices)
+        BOOST_FOREACH(rectangle region, slices)
         {
             content_->draw(canvas_, point(0,0), region);
         }
         
         // For each slice, see if it has changed between the canvas that was
         // updated and the clone of the original.
-        BOOST_FOREACH(rectangle const &slice, slices)
+        BOOST_FOREACH(rectangle slice, slices)
         {
-            if (!canvas_region_compare(slice, canvas_, canvas_clone))
+            if (repaint_all
+             || !canvas_region_compare(slice, canvas_, canvas_clone))
             {
-                output += canvas_region_string(slice, canvas_);
+                output += canvas_region_string(pen_, slice, canvas_);
             }
         }
-        
+
         // Finally, deal with the cursor.
         bool cursor_state = content_->get_cursor_state();
+        
+        if (cursor_state != last_cursor_state_)
+        {
+            output += cursor_state
+                    ? show_cursor()
+                    : hide_cursor();
+        }
         
         if (cursor_state)
         {
@@ -252,6 +405,8 @@ private :
             }
         }
         
+        last_cursor_state_ = cursor_state;
+        
         // Finally, only if anything has been repainted, send the notification 
         // to any observers, telling them how it is done.
         if (!output.empty())
@@ -267,6 +422,7 @@ private :
     boost::asio::io_service      &io_service_;
     boost::shared_ptr<container>  content_;
     ansi_canvas                   canvas_;
+    attribute                     pen_;
     
     point                         last_cursor_position_;
     bool                          last_cursor_state_;

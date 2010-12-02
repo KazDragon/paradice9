@@ -27,6 +27,7 @@
 #include "tokenise.hpp"
 #include <boost/typeof/typeof.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <algorithm>
 
 using namespace std;
 
@@ -34,7 +35,7 @@ namespace odin {
 
 pair<string, string> tokenise(string const &text)
 {
-    BOOST_AUTO(space_pos, find(text.begin(), text.end(), ' '));
+    BOOST_AUTO(space_pos, std::find(text.begin(), text.end(), ' '));
 
     return make_pair(
         boost::algorithm::trim_copy(string(text.begin(), space_pos))

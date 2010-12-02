@@ -64,6 +64,10 @@ public :
     //* =====================================================================
     virtual void remove_client(boost::shared_ptr<paradice::client> const &cli);
     
+    //* =====================================================================
+    /// \brief For all clients, updates their lists of names.
+    //* =====================================================================
+    virtual void update_names();
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

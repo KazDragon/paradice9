@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Text Area.
+// Munin ANSI Text Area Component.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,44 +24,54 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_TEXT_AREA_HPP_
-#define MUNIN_TEXT_AREA_HPP_
+#ifndef MUNIN_ANSI_TEXT_AREA_HPP_
+#define MUNIN_ANSI_TEXT_AREA_HPP_
 
 #include "munin/basic_component.hpp"
+#include "munin/text/document.hpp"
 #include "munin/ansi/ansi_types.hpp"
+#include <boost/shared_ptr.hpp>
 
-namespace munin { 
+namespace munin { namespace ansi {
 
 //* =========================================================================
-/// \brief An object that represents a text_area, or text_area.
+/// \brief A class that models a multi-line text control with a frame
+/// bordering it.
 //* =========================================================================
-class text_area : public munin::basic_component<munin::ansi::element_type>  
+class text_area : public munin::basic_component<munin::ansi::element_type>
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
     text_area();
-    
+
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
     virtual ~text_area();
     
     //* =====================================================================
-    /// \brief Inserts the specified text into the text area at the cursor
-    /// position.
+    /// \brief Retrieves the document that this text area is using.
     //* =====================================================================
-    void insert_text(std::string const &text);
+    boost::shared_ptr< munin::text::document<munin::ansi::element_type> > 
+        get_document();
     
-private :
+protected :
+    //* =====================================================================
+    /// \brief Called by set_size().  Derived classes must override this 
+    /// function in order to set the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual void do_set_size(extent const &size);
+    
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to get the size of the component in a custom 
     /// manner.
     //* =====================================================================
-    virtual munin::extent do_get_preferred_size() const;
-
+    virtual extent do_get_preferred_size() const;
+    
     //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
@@ -73,7 +83,7 @@ private :
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual munin::point do_get_cursor_position() const;
+    virtual point do_get_cursor_position() const;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -88,9 +98,9 @@ private :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        munin::canvas<element_type> &cvs
-      , munin::point const          &offset
-      , munin::rectangle const      &region);
+        canvas<element_type> &cvs
+      , point const          &offset
+      , rectangle const      &region);
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 
@@ -98,10 +108,11 @@ private :
     //* =====================================================================
     virtual void do_event(boost::any const &event);
     
+private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
 
-}
+}}
 
 #endif

@@ -31,6 +31,7 @@
 
 namespace munin { namespace ansi {
 
+    /*
 bool operator==(element_type const &lhs, element_type const &rhs)
 {
     if (lhs.first != rhs.first)
@@ -50,6 +51,7 @@ bool operator==(element_type const &lhs, element_type const &rhs)
     
     return lhs.second.get() == rhs.second.get();
 }
+*/
 
 std::ostream &operator<<(std::ostream &out, element_type const &element)
 {
@@ -66,14 +68,7 @@ std::ostream &operator<<(std::ostream &out, element_type const &element)
     
     out << "', ";
     
-    if (element.second.is_initialized())
-    {
-        out << element.second.get();
-    }
-    else
-    {
-        out << "(default)";
-    }
+    out << element.second;
     
     out << "]";
     

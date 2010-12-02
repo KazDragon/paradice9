@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;.."
+				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -103,7 +103,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=".;.."
+				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SCL_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -152,14 +152,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\frame.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\text_area.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\types.cpp"
 				>
 			</File>
@@ -190,7 +182,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\card.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\compass_layout.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\component.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\composite_component.hpp"
 				>
 			</File>
 			<File
@@ -206,17 +210,25 @@
 				>
 			</File>
 			<File
-				RelativePath=".\layout.hpp"
+				RelativePath=".\grid_layout.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\text_area.hpp"
+				RelativePath=".\layout.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\types.hpp"
 				>
 			</File>
+			<Filter
+				Name="Text"
+				>
+				<File
+					RelativePath=".\text\document.hpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -248,7 +260,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\protocol.cpp"
+				RelativePath=".\ansi\edit.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\frame.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\framed_component.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\image.hpp"
 				>
 			</File>
 			<File
@@ -256,13 +280,37 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\window.cpp"
+				RelativePath=".\ansi\text_area.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\ansi\window.hpp"
 				>
 			</File>
+			<Filter
+				Name="Text Header Files"
+				>
+				<File
+					RelativePath=".\ansi\text\default_multiline_document.hpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ansi\text\default_singleline_document.hpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Text Source Files"
+				>
+				<File
+					RelativePath=".\ansi\text\default_multiline_document.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ansi\text\default_singleline_document.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Ansi Source Files"
@@ -281,6 +329,34 @@
 			</File>
 			<File
 				RelativePath=".\ansi\basic_container.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\edit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\frame.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\framed_component.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\image.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\protocol.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\text_area.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\window.cpp"
 				>
 			</File>
 		</Filter>

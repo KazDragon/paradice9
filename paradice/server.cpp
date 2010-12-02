@@ -26,11 +26,9 @@ struct server::impl
           , asio::ip::tcp::endpoint(
                 asio::ip::tcp::v4()
               , port))
-        , keepalive_timer_(io_service)
         , on_accept_(on_accept)
     {
         schedule_accept();
-        schedule_keepalive_timer();
     }
        
     void handle_accept(
@@ -44,22 +42,6 @@ struct server::impl
             on_accept_(paradice_socket);
 
             schedule_accept();
-        }
-    }
-
-    void handle_keepalive_timer(
-        boost::system::error_code const &error)
-    {
-        shared_ptr<context> ctx(context_.lock());
-        
-        if (ctx)
-        {
-            BOOST_FOREACH(shared_ptr<client> cur_client, ctx->get_clients())
-            {
-                cur_client->get_connection()->keepalive();
-            }
-            
-            schedule_keepalive_timer();
         }
     }
 
@@ -77,20 +59,9 @@ struct server::impl
             , asio::placeholders::error));
     }
     
-    void schedule_keepalive_timer()
-    {
-        keepalive_timer_.expires_from_now(boost::posix_time::seconds(30));
-        keepalive_timer_.async_wait(
-            bind(
-                &impl::handle_keepalive_timer
-              , this
-              , asio::placeholders::error));
-    }
-
     asio::io_service                   &io_service_;
     weak_ptr<context>                  &context_;
     asio::ip::tcp::acceptor             acceptor_;
-    asio::deadline_timer                keepalive_timer_;
     
     function<void (shared_ptr<socket>)> on_accept_;
 };

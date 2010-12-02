@@ -36,6 +36,8 @@ namespace munin {
 // POINT CONSTRUCTOR
 // ==========================================================================
 point::point()
+    : x(0)
+    , y(0)
 {
 }
 
@@ -113,6 +115,8 @@ ostream &operator<<(ostream &out, point const &pt)
 // EXTENT CONSTRUCTOR
 // ==========================================================================
 extent::extent()
+    : width(0)
+    , height(0)
 {
 }
 

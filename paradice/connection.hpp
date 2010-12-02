@@ -28,10 +28,19 @@
 #define PARADICE_CONNECTION_HPP_
 
 #include "odin/types.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <string>
 #include <utility>
+
+namespace boost { namespace asio {
+    class io_service;
+}}
+
+namespace munin { namespace ansi {
+    class window;
+}}
 
 namespace paradice {
 
@@ -49,9 +58,7 @@ public :
     /// a communications point, and calls the passed function whenever data
     /// is received.
     //* =====================================================================
-    connection(
-        boost::shared_ptr<socket>           connection_socket
-      , boost::function<void (std::string)> data_callback);
+    connection(boost::shared_ptr<socket> sock);
     
     //* =====================================================================
     /// \brief Destructor.
@@ -59,28 +66,30 @@ public :
     ~connection();
     
     //* =====================================================================
-    /// \brief Write some text to the connection.
+    /// \brief Returns the window that this connection maintains.
     //* =====================================================================
-    void write(std::string const &text);
+    boost::shared_ptr<munin::ansi::window> get_window();
 
     //* =====================================================================
-    /// \brief Returns the window size of the client that is connected.
+    /// \brief Set a function to be called when the window size changes.
     //* =====================================================================
-    std::pair<odin::u16, odin::u16> get_window_size() const;
+    void on_window_size_changed(
+        boost::function<void (odin::u16, odin::u16)> callback);
 
     //* =====================================================================
-    /// \brief Sets a callback function to be called if the window size
-    /// of the client changes.
+    /// \brief Set a function to be called when text is received from the
+    /// connection.
     //* =====================================================================
-    void on_window_size_changed(boost::function<
-        void (odin::u16 width, odin::u16 height)> const &callback);
-    
+    void on_text(
+        boost::function< void (std::string)> callback);
+
     //* =====================================================================
-    /// \brief Sends a pulse of no data.  Useful for keeping a connection
-    /// from dropping due to inactivity.
+    /// \brief Set a function to be called when an ANSI control sequence
+    /// is received from the client.
     //* =====================================================================
-    void keepalive();
-    
+    void on_control_sequence(
+        boost::function<void (odin::ansi::control_sequence)> callback);
+
     //* =====================================================================
     /// \brief Disconnects the socket.
     //* =====================================================================

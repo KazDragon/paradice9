@@ -29,11 +29,14 @@
 #include "connection.hpp"
 #include "context.hpp"
 #include "utility.hpp"
+#include "hugin/user_interface.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/typeof/typeof.hpp>
 
 using namespace std;
 using namespace boost;
@@ -42,71 +45,27 @@ using namespace odin;
 namespace paradice {
     
 // ==========================================================================
-// MESSAGE_TO_ALL
-// ==========================================================================
-void message_to_all(
-    shared_ptr<context> &ctx
-  , string const        &text)
-{
-    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
-    
-    BOOST_FOREACH(shared_ptr<client> cur_client, clients)
-    {
-        cur_client->get_connection()->write(text);
-        cur_client->add_backtrace(
-            boost::algorithm::trim_copy(text));
-    }
-}
-
-// ==========================================================================
-// MESSAGE_TO_PLAYER
-// ==========================================================================
-void message_to_player(
-    shared_ptr<context> &ctx
-  , string const        &text
-  , shared_ptr<client>  &conn)
-{
-    conn->get_connection()->write(text);
-    conn->add_backtrace(
-        boost::algorithm::trim_copy(text));
-}
-
-// ==========================================================================
-// MESSAGE_TO_ROOM
-// ==========================================================================
-void message_to_room(
-    shared_ptr<context> &ctx
-  , string const        &text 
-  , shared_ptr<client>  &conn)
-{
-    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
-
-    BOOST_FOREACH(shared_ptr<client> cur_client, clients)
-    {
-        if (cur_client != conn)
-        {
-            if (cur_client->get_level() == client::level_in_game)
-            {
-                cur_client->get_connection()->write(text);
-                cur_client->add_backtrace(
-                    boost::algorithm::trim_copy(text));
-            }
-        }
-    }
-}
-
-// ==========================================================================
 // SEND_TO_ALL
 // ==========================================================================
 void send_to_all(
     shared_ptr<context> &ctx
   , string const        &text)
 {
-    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+    send_to_all(ctx, munin::ansi::elements_from_string(text));
+}
 
+// ==========================================================================
+// SEND_TO_ALL
+// ==========================================================================
+void send_to_all(
+    shared_ptr<context>                            &ctx
+  , runtime_array<munin::ansi::element_type> const &text)
+{
+    BOOST_AUTO(clients, ctx->get_clients());
+    
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
-        cur_client->get_connection()->write(text);
+        cur_client->get_user_interface()->add_output_text(text);
     }
 }
 
@@ -118,7 +77,18 @@ void send_to_player(
   , string const        &text
   , shared_ptr<client>  &conn)
 {
-    conn->get_connection()->write(text);
+    send_to_player(ctx, munin::ansi::elements_from_string(text), conn);
+}
+
+// ==========================================================================
+// SEND_TO_PLAYER
+// ==========================================================================
+void send_to_player(
+    shared_ptr<context>                            &ctx
+  , runtime_array<munin::ansi::element_type> const &text
+  , shared_ptr<client>                             &conn)
+{
+    conn->get_user_interface()->add_output_text(text);
 }
 
 // ==========================================================================
@@ -126,19 +96,27 @@ void send_to_player(
 // ==========================================================================
 void send_to_room(
     shared_ptr<context> &ctx
-  , string const        &text, 
-    shared_ptr<client>  &conn)
+  , string const        &text 
+  , shared_ptr<client>  &conn)
 {
-    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+    send_to_room(ctx, munin::ansi::elements_from_string(text), conn);
+}
 
+// ==========================================================================
+// SEND_TO_ROOM
+// ==========================================================================
+void send_to_room(
+    shared_ptr<context> &ctx
+  , runtime_array<munin::ansi::element_type> const &text
+  , shared_ptr<client>  &conn)
+{
+    BOOST_AUTO(clients, ctx->get_clients());
+    
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         if (cur_client != conn)
         {
-            if (cur_client->get_level() == client::level_in_game)
-            {
-                cur_client->get_connection()->write(text);
-            }
+            cur_client->get_user_interface()->add_output_text(text);
         }
     }
 }
@@ -148,14 +126,14 @@ void send_to_room(
 // ==========================================================================
 PARADICE_COMMAND_IMPL(say)
 {
-    message_to_player(ctx, str(
-        format("\r\nYou say, \"%s\"\r\n")
+    send_to_player(ctx, str(
+        format("You say, \"%s\"\n")
             % arguments)
       , player);
 
 
-    message_to_room(ctx, str(
-        format("\r\n%s says, \"%s\"\r\n")
+    send_to_room(ctx, str(
+        format("%s says, \"%s\"\n")
             % player->get_name()
             % arguments)
       , player);
@@ -172,10 +150,10 @@ PARADICE_COMMAND_IMPL(sayto)
     {
         send_to_player(
             ctx
-          , "\r\n Usage: sayto [player] [message]"
-            "\r\n     or"
-            "\r\n Usage: > [player] [message]"
-            "\r\n"
+          , "\n Usage: sayto [player] [message]"
+            "\n     or"
+            "\n Usage: > [player] [message]"
+            "\n"
           , player);
 
         return;
@@ -187,14 +165,14 @@ PARADICE_COMMAND_IMPL(sayto)
     {
         if(is_iequal(cur_client->get_name(), arg.first))
         {
-            message_to_player(ctx, str(
-                format("\r\nYou say to %s, \"%s\"\r\n")
+            send_to_player(ctx, str(
+                format("You say to %s, \"%s\"\n")
                     % cur_client->get_name()
                     % arg.second)
               , player);
 
-            message_to_player(ctx, str(
-                format("\r\n%s says to you, \"%s\"\r\n")
+            send_to_player(ctx, str(
+                format("%s says to you, \"%s\"\n")
                     % player->get_name()
                     % arg.second)
               , cur_client);
@@ -204,7 +182,7 @@ PARADICE_COMMAND_IMPL(sayto)
     }
 
     send_to_player(
-        ctx, "\r\nCouldn't find anyone by that name to talk to.\r\n", player);
+        ctx, "\nCouldn't find anyone by that name to talk to.\n", player);
 }
 
 // ==========================================================================
@@ -215,38 +193,17 @@ PARADICE_COMMAND_IMPL(emote)
     if (arguments.empty())
     {
         static string const usage_message =
-            "\r\n USAGE:   emote <some action>"
-            "\r\n EXAMPLE: emote bounces off the walls."
-            "\r\n\r\n";
+            "\n USAGE:   emote <some action>"
+            "\n EXAMPLE: emote bounces off the walls."
+            "\n\n";
 
         send_to_player(ctx, usage_message, player);
     }
 
-    message_to_all(ctx, str(
-        format("\r\n%s %s\r\n")
+    send_to_all(ctx, str(
+        format("%s %s\n")
             % player->get_name()
             % arguments));
 }
-
-// ==========================================================================
-// PARADICE COMMAND: BACKTRACE
-// ==========================================================================
-PARADICE_COMMAND_IMPL(backtrace)
-{
-    pair<u16, u16> window_size = player->get_connection()->get_window_size();
-    u16 window_width = window_size.first;
-    
-    string backtrace = "=== Backtrace: ";
-    
-    if (window_width > u16(backtrace.size()))
-    {
-        backtrace += string((window_width - 1) - backtrace.size(), '='); 
-    }
-    
-    backtrace = "\r\n" + backtrace + "\r\n";
-    
-    send_to_player(ctx, backtrace + player->get_backtrace(), player);
-}
-
 
 }

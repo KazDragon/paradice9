@@ -102,7 +102,7 @@ public :
                     // This co-ordinate is a new element.  Create a default
                     // character.
                     new_elements[(row * size.width) + column] =
-                        make_pair(' ', optional<attribute>());
+                        make_pair(' ', attribute());
                 }
             }
         }

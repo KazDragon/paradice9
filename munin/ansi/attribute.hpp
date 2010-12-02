@@ -33,6 +33,16 @@ namespace munin { namespace ansi {
 
 struct attribute
 {
+    attribute();
+    
+    // Graphics Attributes
+    char foreground_colour;
+    char background_colour;
+    char intensity;
+    
+    // Character Set Attributes
+    char character_set;
+    char locale;
 };
 
 bool operator==(attribute const &lhs, attribute const &rhs);

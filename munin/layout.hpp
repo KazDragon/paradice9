@@ -122,7 +122,7 @@ public :
         do_layout(cont);
     }
     
-private :
+protected :
     //* =====================================================================
     /// \brief Called by get_number_of_components().  Derived classes must
     /// override this function in order to get the number of components in

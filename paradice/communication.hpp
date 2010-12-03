@@ -87,7 +87,7 @@ void send_to_room(
   , boost::shared_ptr<client>                            &player);
 
 PARADICE_COMMAND_DECL(say);
-PARADICE_COMMAND_DECL(sayto);
+PARADICE_COMMAND_DECL(whisper);
 PARADICE_COMMAND_DECL(emote);
 
 }

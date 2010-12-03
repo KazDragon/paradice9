@@ -218,11 +218,10 @@ void default_multiline_document::do_set_width(u32 width)
         pimpl_->reindex(0);
         
         // The entire document may well have changed.  Redraw it all.    
-        munin::rectangle region(
-            munin::point(0, 0)
-          , munin::extent(get_width(), get_height()));
         vector<munin::rectangle> regions;
-        regions.push_back(region);
+        regions.push_back(munin::rectangle(
+            munin::point()
+          , munin::extent(get_width(), get_height())));
         on_redraw(regions);
         
         // Update the caret position based on the caret index before the

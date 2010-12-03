@@ -37,6 +37,8 @@ attribute::attribute()
     : foreground_colour(odin::ansi::graphics::COLOUR_DEFAULT)
     , background_colour(odin::ansi::graphics::COLOUR_DEFAULT)
     , intensity(odin::ansi::graphics::INTENSITY_NORMAL)
+    , underlining(odin::ansi::graphics::UNDERLINING_NOT_UNDERLINED)
+    , polarity(odin::ansi::graphics::POLARITY_POSITIVE)
     , character_set(odin::ansi::character_set::CHARACTER_SET_G0)
     , locale(odin::ansi::character_set::LOCALE_US_ASCII)
 {
@@ -47,6 +49,8 @@ bool operator==(attribute const &lhs, attribute const &rhs)
     return lhs.foreground_colour == rhs.foreground_colour
         && lhs.background_colour == rhs.background_colour
         && lhs.intensity         == rhs.intensity
+        && lhs.underlining       == rhs.underlining
+        && lhs.polarity          == rhs.polarity
         && lhs.locale            == rhs.locale
         && lhs.character_set     == rhs.character_set;
 }

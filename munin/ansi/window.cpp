@@ -157,7 +157,43 @@ static string change_pen(
         
         from.intensity = to.intensity;
     }
+    
+    if (from.polarity != to.polarity)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s") % int(to.polarity));
+        
+        from.polarity = to.polarity;
+    }
 
+    if (from.underlining != to.underlining)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s") % int(to.underlining));
+        
+        from.underlining = to.underlining;
+    }
+    
     if (!graphics_sequence.empty())
     {
         graphics_sequence += odin::ansi::SELECT_GRAPHICS_RENDITION;
@@ -235,12 +271,11 @@ public :
         , content_(new basic_container)
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
-        , repaint_scheduled_(false)
     {
         content_->on_redraw.connect(
             bind(&impl::redraw_handler, this, _1));
         
-        content_->on_cursor_state_changed.connect(
+        repaint_connection_ = content_->on_cursor_state_changed.connect(
             bind(&impl::schedule_repaint, this));
         
         content_->on_cursor_position_changed.connect(
@@ -269,12 +304,12 @@ private :
     // ======================================================================
     void schedule_repaint()
     {
-        // Schedules a repaint only if one has not already been scheduled.
-        if (!repaint_scheduled_)
-        {
-            io_service_.post(bind(&impl::do_repaint, this));
-            repaint_scheduled_ = true;
-        }
+        io_service_.post(bind(&impl::do_repaint, this));
+        
+        // Once a repaint has been scheduled, there is no need to schedule
+        // any more until the repaint request has been fulfilled.  Ignore
+        // any further repaint requests.
+        repaint_connection_.block();
     }
     
     // ======================================================================
@@ -415,7 +450,9 @@ private :
         }
         
         redraw_regions_.clear();
-        repaint_scheduled_ = false;
+        
+        // We are once again interested in repaint requests.
+        repaint_connection_.unblock();
     }
 
     window                       &self_;    
@@ -428,7 +465,7 @@ private :
     bool                          last_cursor_state_;
     
     vector<rectangle>             redraw_regions_;
-    bool                          repaint_scheduled_;
+    boost::signals::connection    repaint_connection_;
 };
     
 // ==========================================================================

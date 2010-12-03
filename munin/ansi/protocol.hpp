@@ -39,7 +39,7 @@ namespace munin { namespace ansi {
 /// \param source_line a string of text to be converted
 /// \param attr the default attribute given to each element.
 //* =========================================================================
-odin::runtime_array<munin::ansi::element_type>elements_from_string(
+odin::runtime_array<munin::ansi::element_type> elements_from_string(
     std::string const &source_line
   , attribute attr = attribute());
 

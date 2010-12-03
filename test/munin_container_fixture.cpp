@@ -49,21 +49,48 @@ void munin_container_fixture::test_remove_component()
 {
     shared_ptr< fake_container<char> > container(new fake_container<char>(' '));
     CPPUNIT_ASSERT_EQUAL(u32(0), container->get_number_of_components());
+
+    vector<munin::rectangle> regions;
+    regions.push_back(munin::rectangle(munin::point(), munin::extent()));
+    
+    odin::u32 redraw_count = 0;
+    boost::function<void (vector<munin::rectangle>)> callback = (
+        ++bll::var(redraw_count)
+    );
+
+    container->on_redraw.connect(callback);
+    CPPUNIT_ASSERT_EQUAL(u32(0), redraw_count);
     
     shared_ptr< fake_component<char> > component0(new fake_component<char>);
     container->add_component(component0);
+    CPPUNIT_ASSERT_EQUAL(u32(1), redraw_count);
     
     CPPUNIT_ASSERT_EQUAL(u32(1), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component0);
     
     shared_ptr< fake_component<char> > component1(new fake_component<char>);
     container->add_component(component1);
+    CPPUNIT_ASSERT_EQUAL(u32(2), redraw_count);
     
     CPPUNIT_ASSERT_EQUAL(u32(2), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component0);
     CPPUNIT_ASSERT(container->get_component(1) == component1);
+
+    component0->on_redraw(regions);
+    CPPUNIT_ASSERT_EQUAL(u32(3), redraw_count);
+    
+    component1->on_redraw(regions);
+    CPPUNIT_ASSERT_EQUAL(u32(4), redraw_count);
     
     container->remove_component(component0);
+    CPPUNIT_ASSERT_EQUAL(u32(5), redraw_count);
+    
+    component0->on_redraw(regions);
+    // IMPORTANT: This must not redraw
+    CPPUNIT_ASSERT_EQUAL(u32(5), redraw_count);
+    
+    component1->on_redraw(regions);
+    CPPUNIT_ASSERT_EQUAL(u32(6), redraw_count);
     
     CPPUNIT_ASSERT_EQUAL(u32(1), container->get_number_of_components());
     CPPUNIT_ASSERT(container->get_component(0) == component1);

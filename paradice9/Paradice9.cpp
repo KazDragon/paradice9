@@ -81,8 +81,8 @@ static struct command
   , PARADICE_CMD_ENTRY(say)    
   , PARADICE_CMD_ALIAS(say, ".")
   
-  , PARADICE_CMD_ENTRY(sayto)
-  , PARADICE_CMD_ALIAS(sayto, ">")
+  , PARADICE_CMD_ENTRY(whisper)
+  , PARADICE_CMD_ALIAS(whisper, ">")
   
   , PARADICE_CMD_ENTRY(emote)
   , PARADICE_CMD_ALIAS(emote, ":")

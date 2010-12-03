@@ -37,7 +37,6 @@ namespace paradice {
 BOOST_STATIC_CONSTANT(odin::u16, minimum_name_size = 3);
 BOOST_STATIC_CONSTANT(odin::u16, maximum_name_size = 36);
     
-PARADICE_COMMAND_DECL(who);
 PARADICE_COMMAND_DECL(title);
 PARADICE_COMMAND_DECL(prefix);
 PARADICE_COMMAND_DECL(rename);

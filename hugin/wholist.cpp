@@ -30,6 +30,7 @@
 #include "odin/ansi/protocol.hpp"
 #include "odin/runtime_array.hpp"
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <vector>
 
@@ -39,20 +40,18 @@ using namespace odin;
 using namespace boost;
 using namespace std;
 
-/*
-typedef munin::component<munin::ansi::element_type>       component;
-typedef munin::container<munin::ansi::element_type>       container;
-typedef munin::card<munin::ansi::element_type>            card;
-typedef munin::aligned_layout<munin::ansi::element_type>  aligned_layout;
-typedef munin::compass_layout<munin::ansi::element_type>  compass_layout;
-typedef munin::grid_layout<munin::ansi::element_type>     grid_layout;
-typedef munin::ansi::basic_container                      basic_container;
-typedef munin::ansi::edit                                 edit;
-typedef munin::ansi::image                                image;
-typedef munin::ansi::text_area                            text_area;
-typedef munin::ansi::frame                                frame;
-typedef munin::ansi::framed_component                     framed_component;
-*/
+BOOST_STATIC_CONSTANT(u16, MIN_COLUMN_WIDTH           = 36);
+BOOST_STATIC_CONSTANT(u16, NUMBER_OF_ROWS             = 3);
+BOOST_STATIC_CONSTANT(u16, TOP_BORDER_HEIGHT          = 1);
+BOOST_STATIC_CONSTANT(u16, BOTTOM_BORDER_HEIGHT       = 1);
+BOOST_STATIC_CONSTANT(u16, LEFT_BORDER_WIDTH          = 2);
+BOOST_STATIC_CONSTANT(u16, RIGHT_BORDER_WIDTH         = 2);
+BOOST_STATIC_CONSTANT(u16, TOTAL_BORDER_WIDTH         =
+    LEFT_BORDER_WIDTH + RIGHT_BORDER_WIDTH); 
+BOOST_STATIC_CONSTANT(u16, TOTAL_BORDER_HEIGHT        = 
+    TOP_BORDER_HEIGHT + BOTTOM_BORDER_HEIGHT); 
+BOOST_STATIC_CONSTANT(u16,    COLUMN_SEPERATOR_WIDTH  = 3);
+
 namespace hugin {
 
 // ==========================================================================
@@ -66,6 +65,7 @@ struct wholist::impl
     impl(wholist &self)
         : self_(self)
         , name_index_(0)
+        , current_selection_(0)
     {
     }
     
@@ -103,12 +103,74 @@ struct wholist::impl
     }
     
     // ======================================================================
+    // SET_NAMES
+    // ======================================================================
+    void set_names(runtime_array<string> const &names)
+    {
+        names_ = names; 
+        check_selected_index();
+    }
+    
+    // ======================================================================
+    // GET_NAMES
+    // ======================================================================
+    runtime_array<string> get_names() const
+    {
+        return names_;
+    }
+    
+    // ======================================================================
+    // GET_NUMBER_OF_COLUMNS
+    // ======================================================================
+    u32 get_number_of_columns() const
+    {
+        return columns_;
+    }
+    
+    // ======================================================================
+    // GET_SELECTED_INDEX
+    // ======================================================================
+    u32 get_selected_index() const
+    {
+        return current_selection_;
+    }
+    
+    // ======================================================================
+    // SET_SELECTED_INDEX
+    // ======================================================================
+    void set_selected_index(u32 index)
+    {
+        current_selection_ = index;
+        check_selected_index();
+    }
+    
+    // ======================================================================
+    // RENDER
+    // ======================================================================
+    void render()
+    {
+        cache_constants();
+        initialise_view();
+        render_names();
+        render_border();
+        repaint();
+    }
+    
+private :
+    // ======================================================================
     // RENDER_BORDER
     // ======================================================================
     void render_border()
     {
         BOOST_AUTO(size, self_.get_size());
 
+        if (size.width  < (LEFT_BORDER_WIDTH + RIGHT_BORDER_WIDTH)
+         || size.height < (TOP_BORDER_HEIGHT + BOTTOM_BORDER_HEIGHT))
+        {
+            // We cannot draw anything.
+            return;
+        }
+        
         BOOST_AUTO(focussed, self_.has_focus());
         attribute pen;
         pen.foreground_colour = focussed
@@ -136,27 +198,118 @@ struct wholist::impl
             view_[column][size.height - 1] = element_type(char(205), pen);
         }
         
-        BOOST_AUTO(title, elements_from_string(" CURRENTLY PLAYING "));
+        BOOST_AUTO(header, elements_from_string(" CURRENTLY PLAYING "));
         
-        if (size.width >= s32(title.size() + 4))
+        if (size.width >= s32(header.size() + TOTAL_BORDER_WIDTH))
         {
-            for (s32 column = 2; column < s32(title.size() + 2); ++column)
+            for (s32 column = LEFT_BORDER_WIDTH; 
+                 column < s32(header.size() + LEFT_BORDER_WIDTH);
+                 ++column)
             {
-                view_[column][0] = title[column - 2];
+                view_[column][0] = header[column - LEFT_BORDER_WIDTH];
             }
         }
-
-        // TODO: some kind of visualisation of whether there is more to see.
         
-        vector<rectangle> regions;
-        regions.push_back(rectangle(point(), size));
-        self_.on_redraw(regions);
+        u32 page_number = (name_index_ / names_per_page_) + 1;
+        u32 pages       = (names_.size() / names_per_page_);
+        
+        if ((names_.size() % names_per_page_) != 0)
+        {
+            ++pages;
+        }
+        
+        BOOST_AUTO(
+            footer
+          , elements_from_string(str(format(" [%d/%d] ")
+                % page_number
+                % pages)));
+        
+        if (size.width >= s32(footer.size() + RIGHT_BORDER_WIDTH))
+        {
+            s32 starting_column =
+                (size.width - footer.size()) - RIGHT_BORDER_WIDTH;
+                
+            for (u32 index = 0; index < footer.size(); ++index)
+            {
+                view_[starting_column + index][size.height - 1] = footer[index];
+            }
+        }
     }
     
     // ======================================================================
-    // RENDER
+    // RENDER_NAMES
     // ======================================================================
-    void render()
+    void render_names()
+    {
+        BOOST_AUTO(size, self_.get_size());
+
+        // Find the begin and end indices of this page.
+        u32 current_page_begin_index = u32(name_index_);
+        u32 current_page_end_index   = u32(name_index_ + names_per_page_);
+
+        // Loop through all the players in the current page.
+        for (u32 current_cell_index = current_page_begin_index;
+             current_cell_index < current_page_end_index;
+             ++current_cell_index)
+        {
+            // Work out the current column and row.
+            u32 column = current_cell_index % columns_;
+
+            u32 row    = (current_cell_index - current_page_begin_index)
+                       / columns_;
+
+            // Because we are displaying vertically and not horizontally, 
+            // the name being displayed here is a matrix rotation of the 
+            // cell row/col.
+            u32 const current_name_index =
+                name_index_ + (column * rows_) + (row);
+
+            if (current_name_index < names_.size())
+            {
+                attribute pen;
+                pen.underlining = 
+                    current_name_index == current_selection_
+                 && self_.has_focus()
+                    ? odin::ansi::graphics::UNDERLINING_UNDERLINED
+                    : odin::ansi::graphics::UNDERLINING_NOT_UNDERLINED;
+                
+                // Trim down the name if it is too long.
+                BOOST_AUTO(
+                    current_name
+                  , names_[current_name_index]);
+                
+                current_name = current_name.substr(
+                    0, (min)(current_name.size(), size_t(MIN_COLUMN_WIDTH)));
+                
+                // Convert this to elements.
+                BOOST_AUTO(
+                    name_elements
+                  , elements_from_string(current_name, pen));
+                
+                // Find the x coordinate of this cell.
+                u32 cell_x_coordinate = 
+                    LEFT_BORDER_WIDTH
+                  + (column * MIN_COLUMN_WIDTH)
+                  + (column == 0 ? 0 : (column * COLUMN_SEPERATOR_WIDTH))
+                  + (column == 0 ? 0 : padding_per_column_);
+                
+                // Find the y coordinate of this cell.
+                u32 cell_y_coordinate = row + TOP_BORDER_HEIGHT;
+                  
+                // Copy these into the correct location.
+                for (u32 index = 0; index < name_elements.size(); ++index)
+                {
+                    view_[cell_x_coordinate + index]
+                         [cell_y_coordinate        ] = name_elements[index];
+                }
+            }
+        }
+    }
+    
+    // ======================================================================
+    // INITIALISE_VIEW
+    // ======================================================================
+    void initialise_view()
     {
         BOOST_AUTO(size, self_.get_size());
         
@@ -173,237 +326,126 @@ struct wholist::impl
 
         current_size_ = size;
         
+        attribute pen;
+        
         // Blank out the view.
         for (s32 column = 0; column < size.width; ++column)
         {
             for (s32 row = 0; row < size.height; ++row)
             {
-                view_[column][row] = 
-                    element_type(' ', munin::ansi::attribute());
+                view_[column][row] = element_type(' ', pen);
             }
         }
-        
-        BOOST_STATIC_CONSTANT(u16, min_column_width           = 36);
-        BOOST_STATIC_CONSTANT(u16, top_border_height          = 1);
-        BOOST_STATIC_CONSTANT(u16, bottom_border_height       = 1);
-        BOOST_STATIC_CONSTANT(u16, left_border_width          = 2);
-        BOOST_STATIC_CONSTANT(u16, right_border_width         = 2);
-        BOOST_STATIC_CONSTANT(u16, total_border_width         =
-            left_border_width + right_border_width); 
-        BOOST_STATIC_CONSTANT(u16, total_border_height        = 
-            top_border_height + bottom_border_height); 
-        BOOST_STATIC_CONSTANT(u16,    column_seperator_width  = 3);
-        
-        // If there is insufficient space to draw anything, repaint and
-        // return.
-        if (size.width < (min_column_width + total_border_width)
-         || size.height < 2)
-        {
-            vector<rectangle> regions;
-            regions.push_back(rectangle(point(), size));
-            self_.on_redraw(regions);
-            return;            
-        }
-        
-/*
- +=== CURRENTLY PLAYING ======================================================+
- | <prefix> <    name1   > <  title  > || <prefix> <    name6   > <  title  > |
- | <prefix> <    name2   > <  title  > || <prefix> <    name7   > <  title  > |
- | <prefix> <    name3   > <  title  > || <prefix> <    name8   > <  title  > |
- | <prefix> <    name4   > <  title  > || <prefix> <    name9   > <  title  > |
- +====================================================================[1/2]===+
-
-*/
-        // We have enough space; draw some stuff.
-        u16 const rows = u16(size.height - 2);
-                   
-        // Find the number of columns the client can currently support
-        u16 columns = 0;
-    
-        do
-        {
-            ++columns;
-        } 
-        while ((total_border_width 
-             + ((columns + 1) * min_column_width)
-             + (columns * column_seperator_width))
-            < size.width);
-        
-        // This is the number of names we can display per row.
-        u16 const names_per_row = columns; 
-
-        // The padding necessary per row to make the columns flush with the 
-        // border.
-        u16 const padding_per_row = u16(
-            ((size.width - total_border_width) - (columns * min_column_width))
-          - ((columns - 1) * column_seperator_width));
-       
-        u16 const padding_per_column = u16(padding_per_row / columns);
-        
-        // This is the number of names we can display per page.
-        u16 const names_per_page = u16(rows * names_per_row);
-        
-        // This is the number of pages required to see all names.
-        u16 const pages = u16(
-            (names_.size() / names_per_page)
-          + ((names_.size() % names_per_page) != 0 ? 1 : 0));
-
-        // Make sure that name_index_ doesn't fall off the last page.
-        name_index_ = (min)(name_index_, u32((pages - 1) * names_per_page));
-        
-        // Find the begin and end indices of this page.
-        u16 current_page_begin_index = u16(name_index_);
-        u16 current_page_end_index   = u16(name_index_ + names_per_page);
-
-        // Find the number of columns we will be displaying.  For example,
-        // if we can support three columns of 6, but there are only 7 
-        // names to display, we only need display two columns.
-        u16 names_on_page = names_.size() >= current_page_end_index
-                          ? names_per_page
-                          : names_.size() % names_per_page; 
-
-        // Find the number of columns that will have names in this page.
-        u16 columns_with_names = 
-            (names_on_page + (rows - 1)) / rows;
-        
-        // Loop through all the players in the current page.
-        for (u16 current_cell_index = current_page_begin_index;
-             current_cell_index < current_page_end_index;
-             ++current_cell_index)
-        {
-            // Work out the current column and row.
-            u16 const column = current_cell_index % columns;
-
-            u16 const row    = 
-                (current_cell_index - current_page_begin_index)
-              / columns;
-
-            // Because we are displaying vertically and not horizontally, 
-            // the name being displayed here is a matrix rotation of the 
-            // cell row/col.
-            u16 const current_name_index = u16(
-                name_index_
-              + (column * rows)
-              + (row));
-
-            if (current_name_index < names_.size())
-            {
-                // Trim down the name if it is too long.
-                BOOST_AUTO(current_name, names_[current_name_index]);
-                current_name = current_name.substr(
-                    0, (min)(current_name.size(), size_t(min_column_width)));
-                
-                // Convert this to elements.
-                BOOST_AUTO(name_elements, elements_from_string(current_name));
-                
-                // Find the x coordinate of this cell.
-                u16 cell_x_coordinate = 
-                    left_border_width
-                  + (column * min_column_width)
-                  + (column == 0 ? 0 : (column * column_seperator_width))
-                  + (column == 0 ? 0 : padding_per_column);
-                
-                // Find the y coordinate of this cell.
-                u16 cell_y_coordinate =
-                    row
-                  + top_border_height;
-                  
-                // Copy these into the correct location.
-                for (u32 index = 0; index < name_elements.size(); ++index)
-                {
-                    view_[cell_x_coordinate + index]
-                         [cell_y_coordinate        ] = name_elements[index];
-                }
-            }
-        }
-
-        render_border();
-
-        /*
-        
-        // Pad the name out to the standard column width
-        current_name += string(column_width - current_name.size(), ' ');
-        
-        // Add this text to the cell.
-        cell_text += current_name;
-
-        // Add padding if necessary
-        // First, mandatory padding for each cell.
-        string column_padding(padding_per_row / columns, ' ');
-        
-        // Next, any padding that only applies to some cells.
-        column_padding += (padding_per_row % columns) > column ? " " : "";
-        
-        cell_text += column_padding;
-        
-        // Add the right border if necessary
-        if (((current_cell_index + 1) % names_per_row) == 0)
-        {
-            cell_text += "|" + newline;
-        }
-        else
-        {
-            if (column + 1 < columns_with_names)
-            {
-                cell_text += " | ";
-            }
-            else
-            {
-                cell_text += "   ";
-            }
-        }
-        
-        // Finally, append this junk onto the main text.
-        text += cell_text;
     }
-    
-    string page_descriptor = str(
-        format("[%d/%d]") 
-            % (current_page + 1) 
-            % pages);
-    
-    text += "+="
-          + string((screen_width - 6) - page_descriptor.size(), '=')
-          + page_descriptor
-          + "==+"
-          + newline
-          + restore_cursor_position;
 
-    player->get_connection()->write(text);
-    */
-        /*
-        // Discover number of columns
-        BOOST_STATIC_CONSTANT(u32, left_border_width = 1);
-        BOOST_STATIC_CONSTANT(u32, right_border_width = 1);
-        BOOST_STATIC_CONSTANT(u32, top_border_width = 1);
-        BOOST_STATIC_CONSTANT(u32, bottom_border_width = 1);
-        BOOST_STATIC_CONSTANT(u32, seperator_size = 3);
-        BOOST_STATIC_CONSTANT(u32, min_name_width = 37);
-        
-        u32 columns = 0;
-        
-        u32 width_remaining = u32(size.width);
-        
-        
-        if (size.width < left_border_width 
-        
-        // Correct page_ if necessary
-    
-        // Draw Borders
-        
-        // Draw contents
-        */
-        // Repaint
+    // ======================================================================
+    // REPAINT
+    // ======================================================================
+    void repaint()
+    {
         vector<rectangle> regions;
-        regions.push_back(rectangle(point(), size));
+        regions.push_back(rectangle(point(), self_.get_size()));
         self_.on_redraw(regions);
     }
     
+    // ======================================================================
+    // CHECK_SELECTED_INDEX
+    // ======================================================================
+    void check_selected_index()
+    {
+        if (current_selection_ != 0)
+        {
+            current_selection_ = 
+                (min)(current_selection_, u32(names_.size() - 1));
+        }
+
+        // Scroll up if necessary.
+        while (current_selection_ < name_index_)
+        {
+            if (name_index_ < names_per_page_)
+            {
+                name_index_ = 0;
+            }
+            else
+            {
+                name_index_ -= names_per_page_;
+            }
+        }
+        
+        // Scroll down if necessary.
+        if (names_per_page_ != 0)
+        {
+            while (current_selection_ >= name_index_ + names_per_page_)
+            {
+                name_index_ += names_per_page_;
+            }
+        }
+    }
+    
+    // ======================================================================
+    // CACHE_CONSTANTS
+    // ======================================================================
+    void cache_constants()
+    {
+        BOOST_AUTO(size, self_.get_size());
+        
+        rows_    = size.height < TOTAL_BORDER_HEIGHT
+                 ? 0
+                 : size.height - TOTAL_BORDER_HEIGHT;
+        
+        columns_ = 0;
+        
+        if (size.width >= (MIN_COLUMN_WIDTH + TOTAL_BORDER_WIDTH))
+        {
+            do
+            {
+                ++columns_;
+            } 
+            while ((TOTAL_BORDER_WIDTH 
+                 + ((columns_ + 1) * MIN_COLUMN_WIDTH)
+                 + (columns_ * COLUMN_SEPERATOR_WIDTH))
+                < u32(size.width));
+        }
+
+        if (columns_ == 0)
+        {
+            padding_per_row_    = 0;
+            padding_per_column_ = 0;
+            names_per_page_     = 0;
+            pages_              = 0;
+        }
+        else
+        {
+            // The padding necessary per row to make the columns flush 
+            // with the border.
+            padding_per_row_ =
+                ((size.width - TOTAL_BORDER_WIDTH) - (columns_ * MIN_COLUMN_WIDTH))
+              - ((columns_ - 1) * COLUMN_SEPERATOR_WIDTH);
+
+            padding_per_column_ = padding_per_row_ / columns_;
+            
+            names_per_page_ = columns_ * rows_;
+            
+            pages_ = 
+                (names_.size() / names_per_page_)
+              + ((names_.size() % names_per_page_) != 0 ? 1 : 0);
+        }
+    }
+
     wholist                                      &self_;
     runtime_array<string>                         names_;
     runtime_array< runtime_array<element_type> >  view_;
     munin::extent                                 current_size_;
     u32                                           name_index_;
+    u32                                           current_selection_;
+    
+    // A selection of cached constants to ease rendering
+    u32                                           rows_;
+    u32                                           columns_;
+    u32                                           padding_per_row_;
+    u32                                           padding_per_column_;
+    u32                                           names_per_page_;
+    u32                                           pages_;
 };
 
 // ==========================================================================
@@ -412,8 +454,8 @@ struct wholist::impl
 wholist::wholist()
 {
     pimpl_.reset(new impl(*this));
-    on_focus_set.connect(bind(&impl::render_border, pimpl_.get()));
-    on_focus_lost.connect(bind(&impl::render_border, pimpl_.get()));
+    on_focus_set.connect(bind(&impl::render, pimpl_.get()));
+    on_focus_lost.connect(bind(&impl::render, pimpl_.get()));
 }
 
 // ==========================================================================
@@ -421,7 +463,7 @@ wholist::wholist()
 // ==========================================================================
 void wholist::set_names(runtime_array<string> const &names)
 {
-    pimpl_->names_ = names;
+    pimpl_->set_names(names);
     pimpl_->render();
 }
 
@@ -430,7 +472,9 @@ void wholist::set_names(runtime_array<string> const &names)
 // ==========================================================================
 munin::extent wholist::do_get_preferred_size() const
 {
-    return munin::extent(get_size().width, 6);
+    return munin::extent(
+        get_size().width
+      , NUMBER_OF_ROWS + TOTAL_BORDER_HEIGHT);
 }
 
 // ==========================================================================
@@ -458,6 +502,42 @@ void wholist::do_draw(
 // ==========================================================================
 void wholist::do_event(any const &ev)
 {
+    BOOST_AUTO(sequence, any_cast<odin::ansi::control_sequence>(&ev));
+    
+    if (sequence != NULL)
+    {
+        if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+         && sequence->command_   == odin::ansi::CURSOR_UP)
+        {
+            u32 times = sequence->arguments_.empty()
+                      ? 1
+                      : atoi(sequence->arguments_.c_str());
+                      
+            BOOST_AUTO(selected_index, pimpl_->get_selected_index());
+            
+            pimpl_->set_selected_index(
+                selected_index < times
+              ? 0
+              : selected_index - times);
+            
+            pimpl_->render();
+        }
+
+        if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+         && sequence->command_   == odin::ansi::CURSOR_DOWN)
+        {
+            u32 times = sequence->arguments_.empty()
+                      ? 1
+                      : atoi(sequence->arguments_.c_str());
+                      
+            BOOST_AUTO(selected_index, pimpl_->get_selected_index());
+            
+            pimpl_->set_selected_index(selected_index + times);
+            
+            pimpl_->render();            
+        }
+    }
 }
 
 }
+

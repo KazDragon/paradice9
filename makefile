@@ -2,8 +2,8 @@ CC           = g++
 AR           = ar -r
 RM           = rm -f
 MAKE         = make -C
-DEBUG        = -ggdb
-OPTIM        = #-O2 -DNDEBUG
+DEBUG        = #-ggdb
+OPTIM        = -O2 -DNDEBUG
 PROF         = #-pg
 D_FLAGS      = -D_WIN32_WINNT=0x0501 -D__USE_W32_SOCKETS
 C_FLAGS      = -ansi -pedantic -Wall $(D_FLAGS) $(DEBUG) $(OPTIM) $(PROF)

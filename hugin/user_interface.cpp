@@ -214,7 +214,10 @@ struct user_interface::impl
             document->delete_text(
                 make_pair(u32(0), document->get_text_size()));
 
-            on_input_entered_(input);
+            if (!input.empty())
+            {
+                on_input_entered_(input);
+            }
         }
     }
 
@@ -324,7 +327,7 @@ void user_interface::do_event(any const &ev)
      && pimpl_->intro_name_field_->has_focus()
      && ch != NULL)
     {
-        if (*ch == '\n')
+        if (*ch == '\n' || *ch == '\r')
         {
             pimpl_->on_username_entered();
         }
@@ -340,7 +343,7 @@ void user_interface::do_event(any const &ev)
     else if (pimpl_->face_name_ == hugin::FACE_MAIN
           && pimpl_->input_field_->has_focus()
           && ch != NULL
-          && *ch == '\n')
+          && (*ch == '\n' || *ch == '\r'))
     {
         pimpl_->on_input_entered();
     }

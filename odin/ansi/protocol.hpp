@@ -113,26 +113,34 @@ namespace odin { namespace ansi {
 // Namespace for Select Graphics Rendition parameters
 namespace graphics {
 
-    static char const NO_ATTRIBUTES          = 0;
+    static char const NO_ATTRIBUTES                     = 0;
     
     typedef char intensity;
-    static char const INTENSITY_BOLD         = 1;
-    static char const INTENSITY_FAINT        = 2;
-    static char const INTENSITY_NORMAL       = 22;
+    static intensity const INTENSITY_BOLD               = 1;
+    static intensity const INTENSITY_FAINT              = 2;
+    static intensity const INTENSITY_NORMAL             = 22;
 
-    static char const FOREGROUND_COLOUR_BASE = 30;
-    static char const BACKGROUND_COLOUR_BASE = 40;
+    typedef char underlining;
+    static underlining const UNDERLINING_UNDERLINED     = 4;
+    static underlining const UNDERLINING_NOT_UNDERLINED = 24;
+    
+    static char const FOREGROUND_COLOUR_BASE            = 30;
+    static char const BACKGROUND_COLOUR_BASE            = 40;
     
     typedef char colour;
-    static colour const COLOUR_BLACK         = 0;
-    static colour const COLOUR_RED           = 1;
-    static colour const COLOUR_GREEN         = 2;
-    static colour const COLOUR_YELLOW        = 3;
-    static colour const COLOUR_BLUE          = 4;
-    static colour const COLOUR_MAGENTA       = 5;
-    static colour const COLOUR_CYAN          = 6;
-    static colour const COLOUR_WHITE         = 7;
-    static colour const COLOUR_DEFAULT       = 9;
+    static colour const COLOUR_BLACK                    = 0;
+    static colour const COLOUR_RED                      = 1;
+    static colour const COLOUR_GREEN                    = 2;
+    static colour const COLOUR_YELLOW                   = 3;
+    static colour const COLOUR_BLUE                     = 4;
+    static colour const COLOUR_MAGENTA                  = 5;
+    static colour const COLOUR_CYAN                     = 6;
+    static colour const COLOUR_WHITE                    = 7;
+    static colour const COLOUR_DEFAULT                  = 9;
+    
+    typedef char polarity;
+    static polarity const POLARITY_NEGATIVE  = 7;
+    static polarity const POLARITY_POSITIVE  = 27;
 }
 
 namespace character_set {

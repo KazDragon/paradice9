@@ -30,6 +30,7 @@
 #include "paradice/random.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/ansi/protocol.hpp"
+#include "munin/ansi/protocol.hpp"
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/weak_ptr.hpp>
@@ -148,13 +149,24 @@ PARADICE_COMMAND_IMPL(roll)
         return;
     }
 
-    string total_description;
-    s32    total_score = 0;
+    using namespace munin::ansi;
+    
+    attribute normal_pen;
+    attribute max_roll_pen;
+    attribute total_pen;
+    
+    max_roll_pen.intensity         = odin::ansi::graphics::INTENSITY_BOLD;
+    max_roll_pen.foreground_colour = odin::ansi::graphics::COLOUR_GREEN;
+    
+    total_pen.intensity = odin::ansi::graphics::INTENSITY_BOLD;
+    
+    runtime_array<munin::ansi::element_type> total_description;    
+    s32                                      total_score = 0;
     
     for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
     {
-        string roll_description;
-        s32    total = dice_roll.bonus_;
+        runtime_array<munin::ansi::element_type> roll_description;
+        s32                                      total = dice_roll.bonus_;
 
         for (u32 current_roll = 0; 
              current_roll < dice_roll.amount_; 
@@ -162,9 +174,13 @@ PARADICE_COMMAND_IMPL(roll)
         {
             s32 score = s32(random_number(1, dice_roll.sides_));
     
-            roll_description += str(format("%s%d") 
-                % (current_roll == 0 ? "" : ", ")
-                % score);
+            roll_description += elements_from_string(
+                current_roll == 0 ? "" : ", "
+              , normal_pen);
+            
+            roll_description += elements_from_string(
+                str(format("%d") % score)
+              , dice_roll.bonus_ == 0 ? total_pen : normal_pen);
     
             total += score;
         }
@@ -175,22 +191,34 @@ PARADICE_COMMAND_IMPL(roll)
             
         if (dice_roll.bonus_ == 0)
         {
-            total_description +=
-                str(format("%s%d%s")
-                    % (repetition == 0 ? "" : ", ")
-                    % total
-                    % (max_roll ? "!" : ""));
-
-
+            total_description += elements_from_string(
+                repetition == 0 ? "" : ", "
+              , normal_pen);
+            total_description += elements_from_string(
+                str(format("%d") % total)
+              , total_pen);
+            total_description += elements_from_string(
+                max_roll ? "!" : ""
+              , max_roll_pen);
         }
         else
         {
-            total_description +=
-                str(format("%s%d [%s%s]")
-                    % (repetition == 0 ? "" : ", ")
-                    % total
-                    % roll_description
-                    % (max_roll ? "!" : ""));
+            total_description += elements_from_string(
+                repetition == 0 ? "" : ", "
+              , normal_pen);
+            total_description += elements_from_string(
+                str(format("%d") % total)
+              , total_pen);
+            total_description += elements_from_string(
+                " ["
+              , normal_pen);
+            total_description += roll_description;
+            total_description += elements_from_string(
+                max_roll ? "!" : ""
+              , max_roll_pen);
+            total_description += elements_from_string(
+                "]"
+              , normal_pen);
         }
 
         total_score += total;
@@ -214,9 +242,9 @@ PARADICE_COMMAND_IMPL(roll)
         }
     }
 
-    send_to_player(
-        ctx
-      , str(format("You roll %dd%d%s%d %s%sand score %s%s\n")
+    runtime_array<munin::ansi::element_type> player_output;
+    player_output += elements_from_string(
+        str(format("You roll %dd%d%s%d %s%sand score ")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -226,18 +254,29 @@ PARADICE_COMMAND_IMPL(roll)
                 : str(format("(category: %s) ") % category))
             % (dice_roll.repetitions_ == 1 
                 ? ""
-                : str(format("%d times ") % dice_roll.repetitions_))
-            % total_description
-            % (dice_roll.repetitions_ == 1
-                ? ""
-                : str(format(" for a grand total of %d") 
-                      % total_score)))
-      , player);
-          
-    send_to_room(
-        ctx
-      , str(format("%s rolls %dd%d%s%d %s%sand scores %s%s\n")
-            % player->get_name()
+                : str(format("%d times ") % dice_roll.repetitions_)))
+      , normal_pen);
+    player_output += total_description;
+    player_output += elements_from_string(
+        dice_roll.repetitions_ == 1
+      ? ""
+      : " for a grand total of "
+      , normal_pen);
+    player_output += elements_from_string(
+        dice_roll.repetitions_ == 1
+      ? ""
+      : str(format("%d") % total_score)
+      , total_pen);
+    player_output += elements_from_string("\n", normal_pen);
+    
+    send_to_player(ctx, player_output, player);
+
+    runtime_array<munin::ansi::element_type> room_output;
+    room_output += elements_from_string(
+        player->get_name()
+      , normal_pen);
+    room_output += elements_from_string(
+        str(format(" rolls %dd%d%s%d %s%sand scores ")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -247,22 +286,31 @@ PARADICE_COMMAND_IMPL(roll)
                 : str(format("(category: %s) ") % category))
             % (dice_roll.repetitions_ == 1 
                 ? ""
-                : str(format("%d times ") % dice_roll.repetitions_))
-            % total_description
-            % (dice_roll.repetitions_ == 1
-                ? ""
-                : str(format(" for a grand total of %d") 
-                      % total_score)))
-      , player);
+                : str(format("%d times ") % dice_roll.repetitions_)))
+      , normal_pen);
+    room_output += total_description;
+    room_output += elements_from_string(
+        dice_roll.repetitions_ == 1
+      ? ""
+      : " for a grand total of "
+      , normal_pen);
+    room_output += elements_from_string(
+        dice_roll.repetitions_ == 1
+      ? ""
+      : str(format("%d") % total_score)
+      , total_pen);
+    room_output += elements_from_string("\n", normal_pen);
+    
+    send_to_room(ctx, room_output, player);
 }
 
 // ==========================================================================
-// PARADICE COMMAND: ROLL
+// PARADICE COMMAND: ROLLPRIVATE
 // ==========================================================================
 PARADICE_COMMAND_IMPL(rollprivate)
 {
     static string const usage_message =
-        "\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>]"
+        "\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>] [<category>]"
         "\n Example: rollprivate 2d6+3-20"
         "\n Example: rollprivate 20*2d6"
         "\n";
@@ -312,13 +360,24 @@ PARADICE_COMMAND_IMPL(rollprivate)
         return;
     }
 
-    string total_description;
-    s32    total_score = 0;
+    using namespace munin::ansi;
+    
+    attribute normal_pen;
+    attribute max_roll_pen;
+    attribute total_pen;
+    
+    max_roll_pen.intensity         = odin::ansi::graphics::INTENSITY_BOLD;
+    max_roll_pen.foreground_colour = odin::ansi::graphics::COLOUR_GREEN;
+    
+    total_pen.intensity = odin::ansi::graphics::INTENSITY_BOLD;
+    
+    runtime_array<munin::ansi::element_type> total_description;    
+    s32                                      total_score = 0;
     
     for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
     {
-        string roll_description;
-        s32    total = dice_roll.bonus_;
+        runtime_array<munin::ansi::element_type> roll_description;
+        s32                                      total = dice_roll.bonus_;
 
         for (u32 current_roll = 0; 
              current_roll < dice_roll.amount_; 
@@ -326,9 +385,13 @@ PARADICE_COMMAND_IMPL(rollprivate)
         {
             s32 score = s32(random_number(1, dice_roll.sides_));
     
-            roll_description += str(format("%s%d") 
-                % (current_roll == 0 ? "" : ", ")
-                % score);
+            roll_description += elements_from_string(
+                current_roll == 0 ? "" : ", "
+              , normal_pen);
+            
+            roll_description += elements_from_string(
+                str(format("%d") % score)
+              , dice_roll.bonus_ == 0 ? total_pen : normal_pen);
     
             total += score;
         }
@@ -339,43 +402,64 @@ PARADICE_COMMAND_IMPL(rollprivate)
             
         if (dice_roll.bonus_ == 0)
         {
-            total_description +=
-                str(format("%s%d%s")
-                    % (repetition == 0 ? "" : ", ")
-                    % total
-                    % (max_roll ? "!" : ""));
-
-
+            total_description += elements_from_string(
+                repetition == 0 ? "" : ", "
+              , normal_pen);
+            total_description += elements_from_string(
+                str(format("%d") % total)
+              , total_pen);
+            total_description += elements_from_string(
+                max_roll ? "!" : ""
+              , max_roll_pen);
         }
         else
         {
-            total_description +=
-                str(format("%s%d [%s%s]")
-                    % (repetition == 0 ? "" : ", ")
-                    % total
-                    % roll_description
-                    % (max_roll ? "!" : ""));
+            total_description += elements_from_string(
+                repetition == 0 ? "" : ", "
+              , normal_pen);
+            total_description += elements_from_string(
+                str(format("%d") % total)
+              , total_pen);
+            total_description += elements_from_string(
+                " ["
+              , normal_pen);
+            total_description += roll_description;
+            total_description += elements_from_string(
+                max_roll ? "!" : ""
+              , max_roll_pen);
+            total_description += elements_from_string(
+                "]"
+              , normal_pen);
         }
 
         total_score += total;
     }
 
-    send_to_player(
-        ctx
-      , str(format("You privately roll %dd%d%s%d %sand score %s%s\n")
+    runtime_array<munin::ansi::element_type> player_output;
+    player_output += elements_from_string(
+        str(format("You roll privately %dd%d%s%d %sand score ")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
             % dice_roll.bonus_
             % (dice_roll.repetitions_ == 1 
                 ? ""
-                : str(format("%d times ") % dice_roll.repetitions_))
-            % total_description
-            % (dice_roll.repetitions_ == 1
-                ? ""
-                : str(format(" for a grand total of %d") 
-                      % total_score)))
-      , player);
+                : str(format("%d times ") % dice_roll.repetitions_)))
+      , normal_pen);
+    player_output += total_description;
+    player_output += elements_from_string(
+        dice_roll.repetitions_ == 1
+      ? ""
+      : " for a grand total of "
+      , normal_pen);
+    player_output += elements_from_string(
+        dice_roll.repetitions_ == 1
+      ? ""
+      : str(format("%d") % total_score)
+      , total_pen);
+    player_output += elements_from_string("\n", normal_pen);
+    
+    send_to_player(ctx, player_output, player);
 }
 
 // ==========================================================================

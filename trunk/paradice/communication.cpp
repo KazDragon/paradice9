@@ -140,9 +140,9 @@ PARADICE_COMMAND_IMPL(say)
 }
 
 // ==========================================================================
-// PARADICE COMMAND: SAYTO
+// PARADICE COMMAND: WHISPER
 // ==========================================================================
-PARADICE_COMMAND_IMPL(sayto)
+PARADICE_COMMAND_IMPL(whisper)
 {
     pair<string, string> arg = odin::tokenise(arguments);
 
@@ -150,7 +150,7 @@ PARADICE_COMMAND_IMPL(sayto)
     {
         send_to_player(
             ctx
-          , "\n Usage: sayto [player] [message]"
+          , "\n Usage: whisper [player] [message]"
             "\n     or"
             "\n Usage: > [player] [message]"
             "\n"

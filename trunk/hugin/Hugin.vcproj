@@ -152,7 +152,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\user_interface.hpp"
+				RelativePath=".\wholist.cpp"
 				>
 			</File>
 		</Filter>
@@ -162,7 +162,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\wholist.cpp"
+				RelativePath=".\user_interface.hpp"
 				>
 			</File>
 			<File

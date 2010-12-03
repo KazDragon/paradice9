@@ -37,6 +37,8 @@
 #include <boost/utility.hpp>
 #include <boost/weak_ptr.hpp>
 #include <numeric>
+#include <vector>
+#include <utility>
 
 //#define DEBUG_CONTAINER
 
@@ -88,20 +90,27 @@ public :
     {
         do_add_component(component, layer);
 
-        // Subscribe to the component's redraw event.
-        component->on_redraw.connect(
-            boost::bind(
-                &container::subcomponent_redraw_handler
-              , this
-              , boost::weak_ptr<component_type>(component)
-              , _1));
+        component_connections_type component_connections;
+        component_connections.first = component;
         
-        component->on_cursor_position_changed.connect(
-            boost::bind(
-                &container::subcomponent_cursor_position_change_handler
-              , this
-              , boost::weak_ptr<component_type>(component)
-              , _1));
+        // Subscribe to the component's redraw event.
+        component_connections.second.push_back(
+            component->on_redraw.connect(
+                boost::bind(
+                    &container::subcomponent_redraw_handler
+                  , this
+                  , boost::weak_ptr<component_type>(component)
+                  , _1)));
+        
+        component_connections.second.push_back(
+            component->on_cursor_position_changed.connect(
+                boost::bind(
+                    &container::subcomponent_cursor_position_change_handler
+                  , this
+                  , boost::weak_ptr<component_type>(component)
+                  , _1)));
+        
+        component_connections_.push_back(component_connections);
         
         boost::shared_ptr<layout_type> current_layout = get_layout();
         
@@ -110,13 +119,9 @@ public :
             current_layout->add_component(component, layout_hint);
         }
         
-        // A redraw of the region which the component occupies is required.
-        rectangle region;
-        region.origin = component->get_position();
-        region.size   = component->get_size();
-        
+        // A redraw of the container is required.
         std::vector<rectangle> regions;
-        regions.push_back(region);
+        regions.push_back(rectangle(point(), this->get_size()));
         this->on_redraw(regions);
     }
     
@@ -125,6 +130,39 @@ public :
     //* =====================================================================
     void remove_component(boost::shared_ptr<component_type> const &component)
     {
+        // Disconnect any signals for the component.
+        for (typename std::vector<component_connections_type>::iterator cur =
+                 component_connections_.begin();
+             cur != component_connections_.end();
+             )
+        {
+            if (cur->first == component)
+            {
+                BOOST_FOREACH(boost::signals::connection& cnx, cur->second)
+                {
+                    cnx.disconnect();
+                }
+                
+                cur = component_connections_.erase(cur);
+            }
+            else
+            {
+                ++cur;
+            }
+        }
+
+        boost::shared_ptr<layout_type> current_layout = get_layout();
+        
+        if (current_layout != NULL)
+        {
+            current_layout->remove_component(component);
+        }
+        
+        // A redraw of the container is required.
+        std::vector<rectangle> regions;
+        regions.push_back(rectangle(point(), this->get_size()));
+        this->on_redraw(regions);
+        
         do_remove_component(component);
     }
     
@@ -425,6 +463,14 @@ protected :
         
         return components;
     }
+    
+private :
+    typedef std::pair<
+        boost::shared_ptr<component_type>
+      , std::vector<boost::signals::connection>
+    > component_connections_type;
+    
+    std::vector<component_connections_type> component_connections_;
 };
     
 }

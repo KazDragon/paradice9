@@ -39,6 +39,8 @@ struct attribute
     char foreground_colour;
     char background_colour;
     char intensity;
+    char underlining;
+    char polarity;
     
     // Character Set Attributes
     char character_set;

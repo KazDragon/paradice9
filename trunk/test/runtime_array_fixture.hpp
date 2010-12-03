@@ -21,6 +21,7 @@ public :
         CPPUNIT_TEST(test_copy_constructor);
         CPPUNIT_TEST(test_swap);
         CPPUNIT_TEST(test_assignment);
+        CPPUNIT_TEST(test_concatenation);
         CPPUNIT_TEST(test_vector_storage);
         CPPUNIT_TEST(test_stream_out);
     CPPUNIT_TEST_SUITE_END();
@@ -39,6 +40,7 @@ public :
     void test_copy_constructor();
     void test_swap();
     void test_assignment();
+    void test_concatenation();
     void test_vector_storage();
     void test_stream_out();
 };

@@ -96,7 +96,7 @@ public :
         BOOST_AUTO(
             bottomright, munin::intersection(bottomright_rectangle, region));
         
-        attribute pen = pen_;
+        BOOST_AUTO(pen, pen_);
         pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
         pen.locale        = odin::ansi::character_set::LOCALE_SCO;
         
@@ -156,14 +156,14 @@ public :
             bottom_border
           , munin::intersection(bottom_border_rectangle, region));
         
-        attribute pen = pen_;
+        BOOST_AUTO(pen, pen_);
         pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
         pen.locale        = odin::ansi::character_set::LOCALE_SCO;
         
         // If so, paint it.
         if (top_border)
         {
-            rectangle &rect = top_border.get();
+            BOOST_AUTO(rect, top_border.get());
             
             for (s32 column = 0; column < rect.size.width; ++column)
             {
@@ -175,7 +175,7 @@ public :
         
         if (bottom_border)
         {
-            rectangle &rect = bottom_border.get();
+            BOOST_AUTO(rect, bottom_border.get());
             
             for (s32 column = 0; column < rect.size.width; ++column)
             {
@@ -211,14 +211,14 @@ public :
         BOOST_AUTO(
             right_border, munin::intersection(right_border_rectangle, region));
         
-        attribute pen = pen_;
+        BOOST_AUTO(pen, pen_);
         pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
         pen.locale        = odin::ansi::character_set::LOCALE_SCO;
         
         // If so, paint them.
         if (left_border)
         {
-            rectangle &rect = left_border.get();
+            BOOST_AUTO(rect, left_border.get());
             
             for (s32 row = 0; row < rect.size.height; ++row)
             {
@@ -230,7 +230,7 @@ public :
 
         if (right_border)
         {
-            rectangle &rect = right_border.get();
+            BOOST_AUTO(rect, right_border.get());
             
             for (s32 row = 0; row < rect.size.height; ++row)
             {
@@ -328,9 +328,8 @@ void frame::do_set_attribute(string const &name, any const &attr)
             // The frame requires a complete redraw as our pen has changed.
             // TODO: This redraws everything inside the frame as well.  It
             // probably shouldn't.
-            rectangle region(point(), get_size());
             vector<rectangle> regions;
-            regions.push_back(region);
+            regions.push_back(rectangle(point(), get_size()));
             on_redraw(regions);
         }
     }

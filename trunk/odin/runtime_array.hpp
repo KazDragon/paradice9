@@ -26,6 +26,7 @@
 #define ODIN_RUNTIME_ARRAY_HPP_
 
 #include "small_buffer.hpp"
+#include <algorithm>
 
 namespace odin {
 
@@ -216,6 +217,23 @@ public :
     }
 
     //* =====================================================================
+    /// \brief Concatenation operator
+    //* =====================================================================
+    template <class OtherStorage>
+    runtime_array<T, Storage> &operator+=(
+        runtime_array<T, OtherStorage> const &rhs)
+    {
+        Storage new_storage(size() + rhs.size());
+        typename Storage::iterator middle =
+            std::copy(begin(), end(), new_storage.begin());
+        std::copy(rhs.begin(), rhs.end(), middle);
+        
+        storage_.swap(new_storage);
+        
+        return *this;
+    }
+    
+    //* =====================================================================
     /// \brief Less-than operator
     /// \return true if lhs compares less than rhs, false otherwise.
     //* =====================================================================
@@ -338,6 +356,18 @@ template <class ValueType, size_t Size>
 runtime_array<ValueType> make_runtime_array(ValueType (&array)[Size])
 {
     return runtime_array<ValueType>(array);
+}
+
+//* =========================================================================
+/// \brief Concatenates two runtime_array<>s.
+//* =========================================================================
+template <class ValueType, class StorageLhs, class StorageRhs>
+runtime_array<ValueType, StorageLhs> operator+(
+    runtime_array<ValueType, StorageLhs>        lhs
+  , runtime_array<ValueType, StorageRhs> const &rhs)
+{
+    lhs += rhs;
+    return lhs;
 }
 
 }

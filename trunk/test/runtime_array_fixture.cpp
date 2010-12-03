@@ -208,6 +208,23 @@ void runtime_array_fixture::test_assignment()
     CPPUNIT_ASSERT(!(array0 == array1));
 }
 
+void runtime_array_fixture::test_concatenation()
+{
+    odin::u8 array0[] = {0x00, 0x01};
+    odin::u8 array1[] = {0x02, 0x03};
+    
+    odin::runtime_array<odin::u8> rarray0(array0);
+    odin::runtime_array<odin::u8> rarray1(array1);
+    
+    odin::u8 expected_array[] = {0x00, 0x01, 0x02, 0x03};
+    odin::runtime_array<odin::u8> expected_rarray(expected_array);
+    
+    CPPUNIT_ASSERT(expected_rarray == rarray0 + rarray1);
+    
+    rarray0 += rarray1;
+    CPPUNIT_ASSERT(expected_rarray == rarray0);
+}
+
 void runtime_array_fixture::test_vector_storage()
 {
     odin::u8 array[] = {0x00, 0x01, 0x02};

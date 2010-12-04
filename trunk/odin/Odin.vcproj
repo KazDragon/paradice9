@@ -359,6 +359,38 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Ansi Header Files"
+			>
+			<File
+				RelativePath=".\ansi\adapt_protocol.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\parser.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ansi\protocol.hpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Ansi Source Files"
+			>
+			<File
+				RelativePath=".\ansi\protocol.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Ascii Header Files"
+			>
+			<File
+				RelativePath=".\ascii\protocol.hpp"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

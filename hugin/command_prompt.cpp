@@ -40,10 +40,11 @@ using namespace odin;
 using namespace boost;
 using namespace std;
 
-typedef munin::ansi::element_type           element_type;
-typedef munin::ansi::edit                   edit;
-typedef munin::text::document<element_type> document;
-typedef munin::compass_layout<element_type> compass_layout;
+typedef munin::ansi::element_type                element_type;
+typedef munin::ansi::edit                        edit;
+typedef munin::text::document<element_type>      document;
+typedef munin::compass_layout<element_type>      compass_layout;
+typedef munin::composite_component<element_type> composite_component;
 
 BOOST_STATIC_CONSTANT(u32, MAX_HISTORY = 50);
 
@@ -67,8 +68,7 @@ struct command_prompt::impl
 // CONSTRUCTOR
 // ==========================================================================
 command_prompt::command_prompt()
-    : composite_component<munin::ansi::element_type>(
-          make_shared<munin::ansi::basic_container>())
+    : composite_component(make_shared<munin::ansi::basic_container>())
     ,  pimpl_(new impl)
 {
     pimpl_->edit_ = make_shared<edit>();
@@ -175,12 +175,12 @@ void command_prompt::do_event(any const &ev)
         }
         else
         {
-            composite_component<munin::ansi::element_type>::do_event(ev);
+            composite_component::do_event(ev);
         }
     }
     else
     {
-        composite_component<munin::ansi::element_type>::do_event(ev);
+        composite_component::do_event(ev);
     }
 }
 

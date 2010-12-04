@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin User Interface
+// Hugin Command Prompt
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,75 +24,38 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_USER_INTERFACE_HPP_
-#define HUGIN_USER_INTERFACE_HPP_
+#ifndef HUGIN_COMMAND_PROMPT_HPP_
+#define HUGIN_COMMAND_PROMPT_HPP_
 
-#include "munin/composite_component.hpp"
 #include "munin/ansi/ansi_types.hpp"
-#include <odin/runtime_array.hpp>
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include "munin/text/document.hpp"
+#include "munin/composite_component.hpp"
 #include <string>
 
 namespace hugin {
 
-BOOST_STATIC_CONSTANT(std::string, FACE_INTRO = "Intro");
-BOOST_STATIC_CONSTANT(std::string, FACE_MAIN  = "Main");
-
 //* =========================================================================
-/// \brief An abstraction of the primary user interface for the Paradice
-/// application.
+/// \brief An abstraction of a tabular list of names
 //* =========================================================================
-class user_interface
+class command_prompt
     : public munin::composite_component<munin::ansi::element_type>
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    user_interface();
+    command_prompt();
     
     //* =====================================================================
-    /// \brief Set a function to be called when the user inputs a name
-    /// on the intro screen.
+    /// \brief Retrieves the document that models this command prompt.
     //* =====================================================================
-    void on_username_entered(
-        boost::function<void (std::string)> callback);
+    boost::shared_ptr< munin::text::document<munin::ansi::element_type> >
+        get_document();
 
     //* =====================================================================
-    /// \brief Set a function to be called when the user inputs a command
-    /// on the main screen.
+    /// \brief Adds a history element to the command prompt
     //* =====================================================================
-    void on_input_entered(
-        boost::function<void (std::string)> callback);
-    
-    //* =====================================================================
-    /// \brief Select a user interface screen to be shown.
-    //* =====================================================================
-    void select_face(std::string const &face_name);
-    
-    //* =====================================================================
-    /// \brief Adds output to the output text area on the main screen.
-    //* =====================================================================
-    void add_output_text(
-        odin::runtime_array<munin::ansi::element_type> const &text);
-    
-    //* =====================================================================
-    /// \brief Sets the content of the status bar on the intro screen.
-    //* =====================================================================
-    void set_statusbar_text(
-        odin::runtime_array<munin::ansi::element_type> const &text);
-    
-    //* =====================================================================
-    /// \brief Updates the who list on the main screen.
-    //* =====================================================================
-    void update_wholist(
-        odin::runtime_array<std::string> const &names);
-    
-    //* =====================================================================
-    /// \brief Adds a line of command history to the input pane.
-    //* =====================================================================
-    void add_command_history(std::string const &history);
+    void add_history(std::string const &history);
 
 protected :
     //* =====================================================================

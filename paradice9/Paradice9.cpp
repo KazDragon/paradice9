@@ -111,6 +111,8 @@ void on_command(
   , shared_ptr<paradice::client>   client
   , string const                  &input)
 {
+    client->get_user_interface()->add_command_history(input);
+
     BOOST_AUTO(arg, odin::tokenise(input));
 
     // Transform the command to lower case.

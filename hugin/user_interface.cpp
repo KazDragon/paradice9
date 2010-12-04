@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "user_interface.hpp"
+#include "hugin/command_prompt.hpp"
 #include "hugin/wholist.hpp"
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/edit.hpp"
@@ -156,7 +157,7 @@ struct user_interface::impl
         BOOST_AUTO(content, make_shared<basic_container>());
         content->set_layout(make_shared<compass_layout>());
         
-        input_field_ = make_shared<edit>();
+        input_field_ = make_shared<command_prompt>();
         content->add_component(
             make_shared<framed_component>(
                 make_shared<frame>()
@@ -221,19 +222,19 @@ struct user_interface::impl
         }
     }
 
-    string                  face_name_;
-    shared_ptr<card>        active_screen_;
+    string                     face_name_;
+    shared_ptr<card>           active_screen_;
     
     // Intro Screen components
-    shared_ptr<edit>        intro_name_field_;
-    shared_ptr<edit>        statusbar_;
-    function<void (string)> on_username_entered_;
+    shared_ptr<edit>           intro_name_field_;
+    shared_ptr<edit>           statusbar_;
+    function<void (string)>    on_username_entered_;
     
     // Main Screen components
-    shared_ptr<wholist>     wholist_;
-    shared_ptr<edit>        input_field_;
-    shared_ptr<text_area>   output_field_;
-    function<void (string)> on_input_entered_;
+    shared_ptr<wholist>        wholist_;
+    shared_ptr<command_prompt> input_field_;
+    shared_ptr<text_area>      output_field_;
+    function<void (string)>    on_input_entered_;
 };
 
 // ==========================================================================
@@ -312,6 +313,14 @@ void user_interface::set_statusbar_text(
 void user_interface::update_wholist(runtime_array<string> const &names)
 {
     pimpl_->wholist_->set_names(names);
+}
+
+// ==========================================================================
+// ADD_COMMAND_HISTORY
+// ==========================================================================
+void user_interface::add_command_history(string const &history)
+{
+    pimpl_->input_field_->add_history(history);
 }
 
 // ==========================================================================

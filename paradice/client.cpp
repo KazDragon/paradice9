@@ -27,6 +27,7 @@
 #include "client.hpp"
 #include "connection.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "munin/ansi/window.hpp"
 #include "hugin/user_interface.hpp"
 #include <boost/foreach.hpp>
 #include <deque>
@@ -113,12 +114,8 @@ shared_ptr<hugin::user_interface> client::get_user_interface()
 void client::set_name(string const &name)
 {
     pimpl_->name_ = name;
-
-    /*
-    get_connection()->write(
-        munin::ansi::set_window_title(
-            pimpl_->name_ + " - Paradice"));
-    */
+    get_connection()->get_window()->set_title(
+        name + " - Paradice9");
 }
 
 // ==========================================================================

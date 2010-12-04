@@ -458,11 +458,7 @@ static void on_accept(
     content->add_component(user_interface);
     content->set_focus();
 
-    std::string string_data = munin::ansi::set_window_title("Paradice9");
-    
-    runtime_array<u8> data(string_data.size());
-    copy(string_data.begin(), string_data.end(), data.begin());
-    socket->async_write(data, NULL);
+    window->set_title("Paradice9");
 }
 
 int main(int argc, char *argv[])

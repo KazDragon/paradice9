@@ -29,7 +29,6 @@
 #include "odin/telnet/detail/parser.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <functional>
@@ -44,7 +43,6 @@ namespace odin { namespace telnet {
 // STREAM IMPLEMENTATION STRUCTURE
 // ==========================================================================
 class stream::impl
-    : public enable_shared_from_this<impl>
 {
 public :
     typedef odin::io::byte_stream::input_value_type     underlying_input_value_type;
@@ -264,9 +262,7 @@ private :
     void schedule_read_request()
     {
         // Schedules a call to look at the read requests asynchronously.
-        io_service_.post(boost::bind(
-            &impl::check_async_read_requests
-          , shared_from_this()));
+        io_service_.post(boost::bind(&impl::check_async_read_requests, this));
     }
     
     // ======================================================================
@@ -332,7 +328,7 @@ private :
                     amount
                   , bind(
                         &impl::async_read_complete
-                      , shared_from_this()
+                      , this
                       , _1));
                 
                 read_request_active_ = true;
@@ -370,9 +366,8 @@ private :
     void schedule_write_request()
     {
         // Schedules a call to look at the write requests asynchronously.
-        io_service_.post(boost::bind(
-            &impl::check_async_write_requests
-          , shared_from_this()));
+        io_service_.post(
+            boost::bind(&impl::check_async_write_requests, this));
     }
     
     // ======================================================================
@@ -410,7 +405,7 @@ private :
                 output_values
               , bind(
                     &impl::async_write_complete
-                  , shared_from_this()
+                  , this
                   , _1));
             
             write_request_active_ = true;

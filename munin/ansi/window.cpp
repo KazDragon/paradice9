@@ -98,7 +98,7 @@ static string change_pen(
         default_sequence = string()
             + odin::ansi::ESCAPE
             + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-            + str(format("%s") % odin::ansi::graphics::NO_ATTRIBUTES)
+            + str(format("%s") % int(odin::ansi::graphics::NO_ATTRIBUTES))
             + odin::ansi::SELECT_GRAPHICS_RENDITION;
             
         // Clear the attribute so that it can be rewritten entirely.
@@ -271,6 +271,7 @@ public :
         , content_(new basic_container)
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
+        , repaint_scheduled_(false)
     {
         content_->on_redraw.connect(
             bind(&impl::redraw_handler, this, _1));
@@ -304,12 +305,14 @@ private :
     // ======================================================================
     void schedule_repaint()
     {
-        io_service_.post(bind(&impl::do_repaint, this));
-        
         // Once a repaint has been scheduled, there is no need to schedule
         // any more until the repaint request has been fulfilled.  Ignore
         // any further repaint requests.
-        repaint_connection_.block();
+        if (!repaint_scheduled_)
+        {
+            io_service_.post(bind(&impl::do_repaint, this));
+            repaint_scheduled_ = true;
+        }
     }
     
     // ======================================================================
@@ -452,7 +455,7 @@ private :
         redraw_regions_.clear();
         
         // We are once again interested in repaint requests.
-        repaint_connection_.unblock();
+        repaint_scheduled_ = false;
     }
 
     window                       &self_;    
@@ -466,6 +469,7 @@ private :
     
     vector<rectangle>             redraw_regions_;
     boost::signals::connection    repaint_connection_;
+    bool                          repaint_scheduled_;
 };
     
 // ==========================================================================

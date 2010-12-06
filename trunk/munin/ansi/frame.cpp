@@ -325,11 +325,30 @@ void frame::do_set_attribute(string const &name, any const &attr)
         {
             pimpl_->set_pen(*pen);
             
-            // The frame requires a complete redraw as our pen has changed.
-            // TODO: This redraws everything inside the frame as well.  It
-            // probably shouldn't.
+            BOOST_AUTO(size, get_size());
+
             vector<rectangle> regions;
-            regions.push_back(rectangle(point(), get_size()));
+
+            // Upper border
+            regions.push_back(rectangle(
+                point()
+              , extent(size.width, get_frame_height())));
+
+            // Lower border
+            regions.push_back(rectangle(
+                point(0, size.height - get_frame_height())
+              , extent(size.width, get_frame_height())));
+
+            // Left border
+            regions.push_back(rectangle(
+                point()
+              , extent(get_frame_width(), size.height)));
+
+            // Right border
+            regions.push_back(rectangle(
+                point(size.width - get_frame_width(), 0)
+              , extent(get_frame_width(), size.height)));
+
             on_redraw(regions);
         }
     }

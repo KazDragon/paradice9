@@ -68,7 +68,7 @@ public :
         wont_negotiation_content.option_id_ = option_id_;
         wont_negotiation_[0] = wont_negotiation_content;
     }
-    
+
     void register_routes(
         function<void (subnegotiation_type)> const &subnegotiation_callback)
     {
@@ -94,8 +94,8 @@ public :
             option_id_
           , bind(&impl::on_subnegotiation, shared_from_this(), _1));
     }
-    
-    ~impl()
+
+    void unregister_routes()
     {
         negotiation_type do_negotiation;
         do_negotiation.request_   = DO;
@@ -111,7 +111,7 @@ public :
         
         subnegotiation_router_->unregister_route(option_id_);
     }
-
+    
     option_id_type get_option_id() const
     {
         return option_id_;
@@ -285,6 +285,7 @@ server_option::server_option(
 // ==========================================================================
 server_option::~server_option()
 {
+    pimpl_->unregister_routes();
 }
 
 // ==========================================================================

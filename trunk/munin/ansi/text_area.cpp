@@ -75,8 +75,7 @@ struct text_area::impl
     //* =====================================================================
     void set_size(extent const &size)
     {
-        document_->set_width(size.width);
-        document_->set_height(size.height);
+        document_->set_size(size);
     }
     
     //* =====================================================================
@@ -84,7 +83,7 @@ struct text_area::impl
     //* =====================================================================
     extent get_preferred_size() const
     {
-        return extent(document_->get_width(), document_->get_height());
+        return document_->get_size();
     }
     
     //* =====================================================================
@@ -385,8 +384,10 @@ private :
         // document.
         // Events called from this action should ensure that the view and
         // the cursor position are correctly placed.
+        BOOST_AUTO(document_size, document_->get_size());
         document_->set_caret_index(
-            document_->get_width() * document_->get_height());
+            document_size.width
+          * document_size.height);
     }
     
     //* =====================================================================
@@ -397,8 +398,10 @@ private :
     {
         // The END key goes to the last character of the current line.
         BOOST_AUTO(position, document_->get_caret_position());
+        BOOST_AUTO(document_size, document_->get_size());
+
         document_->set_caret_position(point(
-            document_->get_width() - 1
+            document_size.width - 1
           , position.y));
     }
     

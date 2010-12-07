@@ -58,32 +58,18 @@ private :
     boost::shared_ptr<impl> pimpl_;
 
     //* =====================================================================
-    /// \brief Called by set_width().  Derived classes must override this
-    /// function in order to set the width of the document in a custom 
+    /// \brief Called by set_size().  Derived classes must override this
+    /// function in order to set the size of the document in a custom 
     /// manner.
     //* =====================================================================
-    virtual void do_set_width(odin::u32 width);
+    virtual void do_set_size(munin::extent size);
 
     //* =====================================================================
-    /// \brief Called by get_width().  Derived classes must override this
-    /// function in order to retrieve the width of the document in a
+    /// \brief Called by get_size().  Derived classes must override this
+    /// function in order to retrieve the size of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_width() const;
-
-    //* =====================================================================
-    /// \brief Called by set_height().  Derived classes must override this
-    /// function in order to set the height of the document in a custom 
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_height(odin::u32 height);
-
-    //* =====================================================================
-    /// \brief Called by get_height().  Derived classes must override this
-    /// function in order to retrieve the height of the document in a
-    /// custom manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_height() const;
+    virtual munin::extent do_get_size() const;
 
     //* =====================================================================
     /// \brief Called by set_caret_position().  Derived classes must

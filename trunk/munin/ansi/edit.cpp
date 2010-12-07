@@ -85,7 +85,7 @@ struct edit::impl
     //* =====================================================================
     munin::extent get_preferred_size() const
     {
-        return munin::extent(document_->get_width(), 1);
+        return document_->get_size();
     }
     
     //* =====================================================================
@@ -114,11 +114,11 @@ struct edit::impl
     {
         munin::point position = self_.get_position();
     
-        // TODO: Fix this so that only a certain number of password field
-        // characters are shown in password mode.
+        BOOST_AUTO(document_size, document_->get_size());
+
         BOOST_AUTO(
             characters
-          , document_->get_width() - document_base_);
+          , document_size.width - document_base_);
         
         BOOST_AUTO(
             text
@@ -356,9 +356,11 @@ private :
         // The END key will move the caret to the end of the document.
         // Events called from this action should ensure that the view and
         // the cursor position are correctly placed.
+        BOOST_AUTO(document_size, document_->get_size());
+
         document_->set_caret_index(
-            document_->get_width() 
-          * document_->get_height());
+            document_size.width
+          * document_size.height);
     }
     
     //* =====================================================================

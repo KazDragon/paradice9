@@ -200,18 +200,18 @@ default_multiline_document::~default_multiline_document()
 }
 
 // ==========================================================================
-// DO_SET_WIDTH
+// DO_SET_SIZE
 // ==========================================================================
-void default_multiline_document::do_set_width(u32 width)
+void default_multiline_document::do_set_size(munin::extent size)
 {
     // Re-indexing and redrawing a document is potentially a lot of work.
     // Avoid it if we can by only reindexing and redrawing if the width has
     // actually changed.
-    if (pimpl_->width_ != width)
+    if (pimpl_->width_ != size.width)
     {
         BOOST_AUTO(caret_index, get_caret_index());
 
-        pimpl_->width_ = width;
+        pimpl_->width_ = size.width;
     
         // This will require that the entire document is reindexed to
         // discover all the new line ends.
@@ -219,43 +219,32 @@ void default_multiline_document::do_set_width(u32 width)
         
         // The entire document may well have changed.  Redraw it all.    
         vector<munin::rectangle> regions;
-        regions.push_back(munin::rectangle(
-            munin::point()
-          , munin::extent(get_width(), get_height())));
+        regions.push_back(munin::rectangle(munin::point(), get_size()));
         on_redraw(regions);
         
         // Update the caret position based on the caret index before the
         // resize.
         set_caret_index(caret_index);
     }
-}
 
-// ==========================================================================
-// DO_GET_WIDTH
-// ==========================================================================
-u32 default_multiline_document::do_get_width() const
-{
-    return pimpl_->width_;
-}
-
-// ==========================================================================
-// DO_SET_HEIGHT
-// ==========================================================================
-void default_multiline_document::do_set_height(u32 height)
-{
     // Height is ignored.  It is always the number of lines in the document.
     // However, since this may indicate a caret position change (due to the
     // document being shrunk vertically, for example), update the caret
     // position.
-    set_caret_position(get_caret_position());
+    if (pimpl_->line_indices_.size() != size.height)
+    {
+        set_caret_position(get_caret_position());
+    }
 }
 
 // ==========================================================================
-// DO_GET_HEIGHT
+// DO_GET_SIZE
 // ==========================================================================
-u32 default_multiline_document::do_get_height() const
+munin::extent default_multiline_document::do_get_size() const
 {
-    return u32(pimpl_->line_indices_.size());
+    return munin::extent(
+        pimpl_->width_
+      , pimpl_->line_indices_.size());
 }
 
 // ==========================================================================
@@ -378,7 +367,7 @@ void default_multiline_document::do_insert_text(
     vector<munin::rectangle> regions;
     regions.push_back(munin::rectangle(
         munin::point(0, insert_position.y)
-      , munin::extent(get_width(), get_height())));
+      , get_size()));
     
     on_redraw(regions);
 }
@@ -441,7 +430,7 @@ void default_multiline_document::do_delete_text(pair<u32, u32> range)
 // ==========================================================================
 u32 default_multiline_document::do_get_number_of_lines() const
 {
-    return get_height();
+    return u32(pimpl_->line_indices_.size());
 }
 
 // ==========================================================================

@@ -64,35 +64,19 @@ default_singleline_document::~default_singleline_document()
 }
 
 // ==========================================================================
-// DO_SET_WIDTH
+// DO_SET_SIZE
 // ==========================================================================
-void default_singleline_document::do_set_width(u32 width)
+void default_singleline_document::do_set_size(munin::extent)
 {
-    // Width is ignored.  The width is the length of the document.
+    // This is ignored.
 }
 
 // ==========================================================================
-// DO_GET_WIDTH
+// DO_GET_SIZE
 // ==========================================================================
-u32 default_singleline_document::do_get_width() const
+munin::extent default_singleline_document::do_get_size() const
 {
-    return u32(pimpl_->text_.size());
-}
-
-// ==========================================================================
-// DO_SET_HEIGHT
-// ==========================================================================
-void default_singleline_document::do_set_height(u32 height)
-{
-    // Height is ignored.  It is always 1.
-}
-
-// ==========================================================================
-// DO_GET_HEIGHT
-// ==========================================================================
-u32 default_singleline_document::do_get_height() const
-{
-    return u32(1);
+    return munin::extent(u32(pimpl_->text_.size()), u32(1));
 }
 
 // ==========================================================================

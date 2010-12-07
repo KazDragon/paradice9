@@ -54,37 +54,20 @@ public :
     }
 
     //* =====================================================================
-    /// \brief Sets the document's width.
+    /// \brief Sets the document's size.
     //* =====================================================================
-    void set_width(odin::u32 width)
+    void set_size(munin::extent size)
     {
-        do_set_width(width);
+        do_set_size(size);
         on_caret_position_changed();
     }
 
     //* =====================================================================
-    /// \brief Gets the document's width.
+    /// \brief Gets the document's size.
     //* =====================================================================
-    odin::u32 get_width() const
+    munin::extent get_size() const
     {
-        return do_get_width();
-    }
-
-    //* =====================================================================
-    /// \brief Sets the document's height.
-    //* =====================================================================
-    void set_height(odin::u32 height)
-    {
-        do_set_height(height);
-        on_caret_position_changed();
-    }
-
-    //* =====================================================================
-    /// \brief Gets the document's height.
-    //* =====================================================================
-    odin::u32 get_height() const
-    {
-        return do_get_height();
+        return do_get_size();
     }
 
     //* =====================================================================
@@ -191,32 +174,18 @@ public :
     
 private :
     //* =====================================================================
-    /// \brief Called by set_width().  Derived classes must override this
-    /// function in order to set the width of the document in a custom 
+    /// \brief Called by set_size().  Derived classes must override this
+    /// function in order to set the size of the document in a custom 
     /// manner.
     //* =====================================================================
-    virtual void do_set_width(odin::u32 width) = 0;
+    virtual void do_set_size(munin::extent size) = 0;
 
     //* =====================================================================
-    /// \brief Called by get_width().  Derived classes must override this
-    /// function in order to retrieve the width of the document in a
+    /// \brief Called by get_size().  Derived classes must override this
+    /// function in order to retrieve the size of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_width() const = 0;
-
-    //* =====================================================================
-    /// \brief Called by set_height().  Derived classes must override this
-    /// function in order to set the height of the document in a custom 
-    /// manner.
-    //* =====================================================================
-    virtual void do_set_height(odin::u32 height) = 0;
-
-    //* =====================================================================
-    /// \brief Called by get_height().  Derived classes must override this
-    /// function in order to retrieve the height of the document in a
-    /// custom manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_height() const = 0;
+    virtual munin::extent do_get_size() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_caret_position().  Derived classes must

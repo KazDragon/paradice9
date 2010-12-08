@@ -112,6 +112,11 @@ struct socket::impl : enable_shared_from_this<impl>
         error_code const &error
       , size_t            bytes_transferred)
     {
+        if (!is_alive_)
+        {
+            return;
+        }
+
         if (!error)
         {
             if (write_requests_.front().callback_)
@@ -141,6 +146,11 @@ struct socket::impl : enable_shared_from_this<impl>
         error_code const &error
       , size_t            bytes_transferred)
     {
+        if (!is_alive_)
+        {
+            return;
+        }
+
         if (!error)
         {
             if (bytes_transferred >= read_requests_.front().values_.size())

@@ -29,7 +29,6 @@
 #include "munin/ansi/frame.hpp"
 #include "munin/ansi/text/default_multiline_document.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/basic_layout.hpp"
 #include "munin/canvas.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"

@@ -65,100 +65,25 @@ public :
     typedef typename parent_type::component_type component_type;
     typedef typename parent_type::container_type container_type;
 
-    //* =====================================================================
-    /// \brief Constructor
-    /// \param rows The number of rows in this aligned.
-    /// \param columns The number of columns in this aligned.
-    //* =====================================================================
-    aligned_layout()
-    {
-    }
-
-    //* =====================================================================
-    /// \brief Destructor
-    //* =====================================================================
-    virtual ~aligned_layout()
-    {
-    }
-    
 protected :
-    //* =====================================================================
-    /// \brief Called by get_number_of_components().  Derived classes must
-    /// override this function in order to get the number of components in
-    /// a custom manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_number_of_components() const
-    {
-        return odin::u32(components_.size());
-    }
-    
-    //* =====================================================================
-    /// \brief Called by add_component().  Derived classes must override this
-    /// function in order to add a component in a custom manner.
-    //* =====================================================================
-    virtual void do_add_component(
-        boost::shared_ptr<component_type> const &comp
-      , boost::any                               hint)
-    {
-        components_.push_back(comp);
-        hints_.push_back(hint);
-    }
-    
-    //* =====================================================================
-    /// \brief Called by remove_component().  Derived classes must override 
-    /// this function in order to remove a component in a custom manner.
-    //* =====================================================================
-    virtual void do_remove_component(
-        boost::shared_ptr<component_type> const &comp)
-    {
-        for (typename std::vector<
-                 boost::shared_ptr<component_type> >::size_type index = 0;
-             index < components_.size();
-             ++index)
-        {
-            if (components_[index] == comp)
-            {
-                components_.erase(components_.begin() + index);
-                hints_.erase(hints_.begin() + index);
-                
-                break;
-            }
-        }
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_component().  Derived classes must override this
-    /// function in order to retrieve a component in a custom manner.
-    //* =====================================================================
-    virtual boost::shared_ptr<component_type> 
-        do_get_component(odin::u32 index) const
-    {
-        return components_[index];
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_hint().  Derived classes must override this
-    /// function in order to retrieve a component's hint in a custom manner.
-    //* =====================================================================
-    virtual boost::any do_get_hint(odin::u32 index) const
-    {
-        return hints_[index];
-    }
-
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const
+    virtual extent do_get_preferred_size(
+        boost::shared_ptr< munin::container<ElementType> const > const &cont) const
     {
         // The preferred size of this component is the largest preferred
         // extents of all components.
         extent maximum_preferred_size(0, 0);
 
-        BOOST_FOREACH(boost::shared_ptr<component_type> comp, components_)
+        for (odin::u32 index = 0;
+             index < cont->get_number_of_components();
+             ++index)
         {
-            extent preferred_size = comp->get_preferred_size();
+            BOOST_AUTO(comp,           cont->get_component(index));
+            BOOST_AUTO(preferred_size, comp->get_preferred_size());
 
             maximum_preferred_size.width = (std::max)(
                 maximum_preferred_size.width
@@ -182,11 +107,13 @@ protected :
     {
         BOOST_AUTO(size, cont->get_size());
         
-        for (size_t index = 0; index < components_.size(); ++index)
+        for (odin::u32 index = 0;
+             index < cont->get_number_of_components();
+             ++index)
         {
-            boost::shared_ptr<component_type> comp = components_[index];
-            boost::any                        hint = hints_[index];
-            
+            BOOST_AUTO(comp, cont->get_component(index));
+            BOOST_AUTO(hint, cont->get_component_hint(index));
+
             alignment_data const *alignment_hint = 
                 boost::any_cast<alignment_data>(&hint);
                 
@@ -249,10 +176,6 @@ protected :
             comp->set_size(comp_size);
         }
     }
-
-private :    
-    std::vector< boost::shared_ptr<component_type> > components_;
-    std::vector< boost::any                        > hints_;
 };
     
 }

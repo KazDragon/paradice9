@@ -33,6 +33,7 @@
 #include "munin/algorithm.hpp"
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/utility.hpp>
 #include <boost/weak_ptr.hpp>
@@ -62,6 +63,7 @@ BOOST_STATIC_CONSTANT(
 template <class ElementType>
 class container 
     : public component<ElementType>
+    , public boost::enable_shared_from_this< container<ElementType> >
 {
 public :
     typedef ElementType            element_type;
@@ -88,7 +90,7 @@ public :
       , boost::any                        const &layout_hint = boost::any()
       , odin::u32                                layer = DEFAULT_LAYER)
     {
-        do_add_component(component, layer);
+        do_add_component(component, layout_hint, layer);
 
         component_connections_type component_connections;
         component_connections.first = component;
@@ -116,7 +118,7 @@ public :
         
         if (current_layout != NULL)
         {
-            current_layout->add_component(component, layout_hint);
+            (*current_layout)(this->shared_from_this());
         }
         
         // A redraw of the container is required.
@@ -155,7 +157,7 @@ public :
         
         if (current_layout != NULL)
         {
-            current_layout->remove_component(component);
+            (*current_layout)(this->shared_from_this());
         }
         
         // A redraw of the container is required.
@@ -172,6 +174,14 @@ public :
     boost::shared_ptr<component_type> get_component(odin::u32 index) const
     {
         return do_get_component(index);
+    }
+
+    //* =====================================================================
+    /// \brief Retrieves a component's hint from the container.
+    //* =====================================================================
+    boost::any get_component_hint(odin::u32 index) const
+    {
+        return do_get_component_hint(index);
     }
     
     //* =====================================================================
@@ -268,6 +278,7 @@ protected :
     //* =====================================================================
     virtual void do_add_component(
         boost::shared_ptr<component_type> const &component
+      , boost::any                        const &hint
       , odin::u32                                layer) = 0;
     
     //* =====================================================================
@@ -284,7 +295,14 @@ protected :
     //* =====================================================================
     virtual boost::shared_ptr<component_type> do_get_component(
         odin::u32 index) const = 0;
-    
+
+    //* =====================================================================
+    /// \brief Called by get_component_hint().  Derived classes must
+    /// override this function in order to retrieve a component hint in a
+    /// custom manner.
+    //* =====================================================================
+    virtual boost::any do_get_component_hint(odin::u32 index) const = 0;
+
     //* =====================================================================
     /// \brief Called by get_component_layer().  Derived classes must
     /// override this function in order to retrieve a component layer in a

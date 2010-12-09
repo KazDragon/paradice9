@@ -27,7 +27,7 @@
 #include "munin/ansi/framed_component.hpp"
 #include "munin/ansi/basic_container.hpp"
 #include "munin/ansi/frame.hpp"
-#include "munin/basic_layout.hpp"
+#include "munin/layout.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/typeof/typeof.hpp>
 #include <boost/make_shared.hpp>
@@ -45,7 +45,7 @@ namespace {
 /// inside the frame's borders.
 //* =========================================================================
 class framed_component_layout
-    : public munin::basic_layout<munin::ansi::element_type>
+    : public munin::layout<munin::ansi::element_type>
 {
 public :
     enum hint_type
@@ -60,13 +60,14 @@ private :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const
+    virtual extent do_get_preferred_size(
+        boost::shared_ptr<container_type const> const &cont) const
     {
         extent preferred_size;
         
-        for (u32 index = 0; index < get_number_of_components(); ++index)
+        for (u32 index = 0; index < cont->get_number_of_components(); ++index)
         {
-            BOOST_AUTO(comp, get_component(index));
+            BOOST_AUTO(comp, cont->get_component(index));
             
             preferred_size += comp->get_preferred_size();
         }
@@ -85,10 +86,10 @@ private :
         // component.  It lays them out in the expected format.  In addition,
         BOOST_AUTO(size, cont->get_size());
 
-        for (u32 index = 0; index < get_number_of_components(); ++index)
+        for (u32 index = 0; index < cont->get_number_of_components(); ++index)
         {
-            BOOST_AUTO(comp, get_component(index));
-            BOOST_AUTO(any_hint, get_hint(index));
+            BOOST_AUTO(comp, cont->get_component(index));
+            BOOST_AUTO(any_hint, cont->get_component_hint(index));
 
             BOOST_AUTO(hint, any_cast<hint_type>(any_hint));
 

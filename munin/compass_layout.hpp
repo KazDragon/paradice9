@@ -27,7 +27,7 @@
 #ifndef MUNIN_COMPASS_LAYOUT_HPP_
 #define MUNIN_COMPASS_LAYOUT_HPP_
 
-#include "munin/basic_layout.hpp"
+#include "munin/layout.hpp"
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
@@ -52,7 +52,7 @@ BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_WEST   = 4);
 /// having the height of the containing component.
 //* =========================================================================
 template <class ElementType>
-class compass_layout : public basic_layout<ElementType>
+class compass_layout : public layout<ElementType>
 {
 public :
     typedef ElementType             element_type;
@@ -65,7 +65,8 @@ protected :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const
+    virtual extent do_get_preferred_size(
+        boost::shared_ptr<container_type const> const &cont) const
     {
         // This isn't quite right as it doesn't take into account the order
         // of insertion like do_draw does, but it will do for now.
@@ -81,13 +82,11 @@ protected :
         odin::u32 west_heights   = 0;
         
         for (odin::u32 index = 0; 
-             index < this->get_number_of_components();
+             index < cont->get_number_of_components();
              ++index)
         {
-            boost::shared_ptr<component_type> comp = 
-                this->get_component(index);
-                
-            boost::any hint = this->get_hint(index);
+            BOOST_AUTO(comp, cont->get_component(index));
+            BOOST_AUTO(hint, cont->get_component_hint(index));
             
             odin::u32 *direction_hint = boost::any_cast<odin::u32>(&hint);
             odin::u32 direction = COMPASS_LAYOUT_CENTRE;
@@ -161,12 +160,11 @@ protected :
         odin::u32 east_used = 0;
         
         for (odin::u32 index = 0;
-             index < this->get_number_of_components(); 
+             index < cont->get_number_of_components(); 
              ++index)
         {
-            boost::shared_ptr<component_type> comp = 
-                this->get_component(index);
-            boost::any hint = this->get_hint(index);
+            BOOST_AUTO(comp, cont->get_component(index));
+            BOOST_AUTO(hint, cont->get_component_hint(index));
 
             odin::u32 *direction = boost::any_cast<odin::u32>(&hint);
             

@@ -1,7 +1,7 @@
-#include "munin/basic_layout.hpp"
+#include "munin/layout.hpp"
 
 template <class ElementType>
-class fake_layout : public munin::basic_layout<ElementType>
+class fake_layout : public munin::layout<ElementType>
 {
 public :
     fake_layout()
@@ -20,12 +20,13 @@ public :
     
 private :
     void do_layout(
-        boost::shared_ptr< munin::container<ElementType> > const &container)
+        boost::shared_ptr< munin::container<ElementType> > const &cont)
     {
         do_layout_called = true;
     }
     
-    munin::extent do_get_preferred_size() const
+    munin::extent do_get_preferred_size(
+        boost::shared_ptr< munin::container<ElementType> const> const &cont) const
     {
         return preferred_size_;
     }

@@ -28,8 +28,8 @@
 #define MUNIN_GRID_LAYOUT_HPP_
 
 #include "munin/layout.hpp"
-#include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <vector>
 
@@ -60,84 +60,26 @@ public :
     {
     }
 
-    //* =====================================================================
-    /// \brief Destructor
-    //* =====================================================================
-    virtual ~grid_layout()
-    {
-    }
-    
 protected :
-    //* =====================================================================
-    /// \brief Called by get_number_of_components().  Derived classes must
-    /// override this function in order to get the number of components in
-    /// a custom manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_number_of_components() const
-    {
-        return odin::u32(components_.size());
-    }
-    
-    //* =====================================================================
-    /// \brief Called by add_component().  Derived classes must override this
-    /// function in order to add a component in a custom manner.
-    //* =====================================================================
-    virtual void do_add_component(
-        boost::shared_ptr<component_type> const &comp
-      , boost::any                               hint)
-    {
-        components_.push_back(comp);
-    }
-    
-    //* =====================================================================
-    /// \brief Called by remove_component().  Derived classes must override 
-    /// this function in order to remove a component in a custom manner.
-    //* =====================================================================
-    virtual void do_remove_component(
-        boost::shared_ptr<component_type> const &comp)
-    {
-        components_.erase(
-            std::remove(
-                components_.begin()
-              , components_.end()
-              , comp)
-          , components_.end());
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_component().  Derived classes must override this
-    /// function in order to retrieve a component in a custom manner.
-    //* =====================================================================
-    virtual boost::shared_ptr<component_type> 
-        do_get_component(odin::u32 index) const
-    {
-        return boost::shared_ptr<component_type>();
-    }
-    
-    //* =====================================================================
-    /// \brief Called by get_hint().  Derived classes must override this
-    /// function in order to retrieve a component's hint in a custom manner.
-    //* =====================================================================
-    virtual boost::any do_get_hint(odin::u32 index) const
-    {
-        return boost::any();
-    }
-
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const
+    virtual extent do_get_preferred_size(
+        boost::shared_ptr< munin::container<ElementType> const> const &cont) const
     {
         // The preferred size of the whole component is the maximum preferred
         // width and the maximum preferred height of all components, 
         // multiplied appropriately by the rows and columns
         extent maximum_preferred_size(0, 0);
 
-        BOOST_FOREACH(boost::shared_ptr<component_type> comp, components_)
+        for (odin::u32 index = 0;
+             index < cont->get_number_of_components();
+             ++index)
         {
-            extent preferred_size = comp->get_preferred_size();
+            BOOST_AUTO(comp,           cont->get_component(index));
+            BOOST_AUTO(preferred_size, comp->get_preferred_size());
 
             maximum_preferred_size.width = (std::max)(
                 maximum_preferred_size.width
@@ -164,19 +106,23 @@ protected :
     {
         munin::extent size = cont->get_size();
 
-        for (size_t index = 0; index < components_.size(); ++index)
+        for (odin::u32 index = 0;
+             index < cont->get_number_of_components();
+             ++index)
         {
+            BOOST_AUTO(comp, cont->get_component(index));
+
             // Work out the row/column of the current component.
             odin::u32 row    = index / columns_;
             odin::u32 column = index % columns_;
 
             // Naive: will have missing pixels and off-by-one errors
-            components_[index]->set_position(
+            comp->set_position(
                 munin::point(
                     (size.width / columns_) * column
                   , (size.height / rows_) * row));
 
-            components_[index]->set_size(
+            comp->set_size(
                 munin::extent(
                     size.width  / columns_
                   , size.height / rows_));
@@ -184,9 +130,8 @@ protected :
     }
 
 private :    
-    std::vector< boost::shared_ptr<component_type> > components_;
-    odin::u32                                        rows_;
-    odin::u32                                        columns_;
+    odin::u32 rows_;
+    odin::u32 columns_;
 };
     
 }

@@ -11,7 +11,6 @@ public :
         CPPUNIT_TEST(test_remove_component);
         CPPUNIT_TEST(test_draw);
         CPPUNIT_TEST(test_contained_container);
-        CPPUNIT_TEST(test_layout);
         CPPUNIT_TEST(test_overlap_same_layer);
         CPPUNIT_TEST(test_overlap_different_layer);
         CPPUNIT_TEST(test_set_focus);
@@ -30,7 +29,6 @@ private :
     void test_remove_component();
     void test_draw();
     void test_contained_container();
-    void test_layout();
     void test_overlap_same_layer();
     void test_overlap_different_layer();
     void test_set_focus();

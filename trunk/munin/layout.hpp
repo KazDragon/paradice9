@@ -57,50 +57,6 @@ public :
     virtual ~layout()
     {
     }
-    
-    //* =====================================================================
-    /// \brief Retrieves the number of components that this layout is in
-    /// charge of laying out.
-    //* =====================================================================
-    odin::u32 get_number_of_components() const
-    {
-        return do_get_number_of_components();
-    }
-    
-    //* =====================================================================
-    /// \brief Adds a component to this layout, with a specified hint whose
-    /// purpose is defined by the derived layout type.
-    //* =====================================================================
-    void add_component(
-        boost::shared_ptr<component_type> const &comp
-      , boost::any                               hint)
-    {
-        do_add_component(comp, hint);
-    }
-    
-    //* =====================================================================
-    /// \brief Removes a component from this layout.
-    //* =====================================================================
-    void remove_component(boost::shared_ptr<component_type> const &comp)
-    {
-        do_remove_component(comp);
-    }
-    
-    //* =====================================================================
-    /// \brief Retrieves the indexth component
-    //* =====================================================================
-    boost::shared_ptr<component_type> get_component(odin::u32 index) const
-    {
-        return do_get_component(index);
-    }
-        
-    //* =====================================================================
-    /// \brief Retrieves the indexth component's hint.
-    //* =====================================================================
-    boost::any get_hint(odin::u32 index) const
-    {
-        return do_get_hint(index);
-    }
 
     //* =====================================================================
     /// \brief Returns the preferred size of this layout.
@@ -108,9 +64,10 @@ public :
     /// The preferred size of the layout is the size that the layout would be
     /// if all components in it were at their preferred sizes.
     //* =====================================================================
-    extent get_preferred_size() const
+    extent get_preferred_size(
+        boost::shared_ptr<container_type const> const &cont) const
     {
-        return do_get_preferred_size();
+        return do_get_preferred_size(cont);
     }
     
     //* =====================================================================
@@ -124,46 +81,12 @@ public :
     
 protected :
     //* =====================================================================
-    /// \brief Called by get_number_of_components().  Derived classes must
-    /// override this function in order to get the number of components in
-    /// a custom manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_number_of_components() const = 0;
-    
-    //* =====================================================================
-    /// \brief Called by add_component().  Derived classes must override this
-    /// function in order to add a component in a custom manner.
-    //* =====================================================================
-    virtual void do_add_component(
-        boost::shared_ptr<component_type> const &comp
-      , boost::any                               hint) = 0;
-    
-    //* =====================================================================
-    /// \brief Called by remove_component().  Derived classes must override 
-    /// this function in order to remove a component in a custom manner.
-    //* =====================================================================
-    virtual void do_remove_component(
-        boost::shared_ptr<component_type> const &comp) = 0;
-    
-    //* =====================================================================
-    /// \brief Called by get_component().  Derived classes must override this
-    /// function in order to retrieve a component in a custom manner.
-    //* =====================================================================
-    virtual boost::shared_ptr<component_type> 
-        do_get_component(odin::u32 index) const = 0;
-    
-    //* =====================================================================
-    /// \brief Called by get_hint().  Derived classes must override this
-    /// function in order to retrieve a component's hint in a custom manner.
-    //* =====================================================================
-    virtual boost::any do_get_hint(odin::u32 index) const = 0;
-
-    //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const = 0;
+    virtual extent do_get_preferred_size(
+        boost::shared_ptr<container_type const> const &cont) const = 0;
     
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this

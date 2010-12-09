@@ -207,10 +207,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\munin_layout_fixture.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\paradice_test.cpp"
 				>
 			</File>
@@ -342,10 +338,6 @@
 			</File>
 			<File
 				RelativePath=".\munin_container_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\munin_layout_fixture.hpp"
 				>
 			</File>
 			<File

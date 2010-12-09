@@ -28,7 +28,6 @@
 #define MUNIN_BASIC_CONTAINER_HPP_
 
 #include "munin/container.hpp"
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
@@ -44,7 +43,6 @@ namespace munin {
 template <class ElementType>
 class basic_container 
     : public container<ElementType>
-    , public boost::enable_shared_from_this< basic_container<ElementType> >
 {
 public :
     typedef ElementType            element_type;
@@ -310,7 +308,7 @@ protected :
         // container should be.  Otherwise, we are happy with the size that
         // we currently have.
         return layout_ != NULL
-             ? layout_->get_preferred_size()
+             ? layout_->get_preferred_size(this->shared_from_this())
              : this->get_size();
     }
     
@@ -331,10 +329,12 @@ protected :
     //* =====================================================================
     virtual void do_add_component(
         boost::shared_ptr<component_type> const &component
+      , boost::any                        const &hint
       , odin::u32                                layer)
     {
         // Store the component and the layer in which it is to be drawn.
         components_.push_back(component);
+        component_hints_.push_back(hint);
         component_layers_.push_back(layer);
         
         // Register for callbacks for when the new subcomponent either gains
@@ -388,19 +388,23 @@ protected :
         boost::shared_ptr<component_type> const &component)
     {
         BOOST_AUTO(current_component, components_.begin());
+        BOOST_AUTO(current_hint, component_hints_.begin());
         BOOST_AUTO(current_layer, component_layers_.begin());
         
         while (current_component != components_.end()
+            && current_hint != component_hints_.end()
             && current_layer != component_layers_.end())
         {
             if (*current_component == component)
             {
                 current_component  = components_.erase(current_component);
+                current_hint       = component_hints_.erase(current_hint);
                 current_layer      = component_layers_.erase(current_layer);
             }
             else
             {
                 ++current_component;
+                ++current_hint;
                 ++current_layer;
             }
         }
@@ -416,6 +420,16 @@ protected :
         return components_[index];
     }
     
+    //* =====================================================================
+    /// \brief Called by get_component_hint().  Derived classes must
+    /// override this function in order to retrieve a component hint in a
+    /// custom manner.
+    //* =====================================================================
+    virtual boost::any do_get_component_hint(odin::u32 index) const
+    {
+        return component_hints_[index];
+    }
+
     //* =====================================================================
     /// \brief Called by get_component_layer().  Derived classes must
     /// override this function in order to retrieve a component layer in a
@@ -870,6 +884,7 @@ protected :
 private :
     std::map<std::string, boost::any>                attributes_;
     std::vector< boost::shared_ptr<component_type> > components_;
+    std::vector< boost::any >                        component_hints_;
     std::vector< odin::u32 >                         component_layers_;
     boost::shared_ptr<layout_type>                   layout_;
     rectangle                                        bounds_;

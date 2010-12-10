@@ -389,7 +389,7 @@ private :
                           
                 do_cursor_forward_key_event(times);
             }
-            else if (sequence.command_ == odin::ansi::PUTTY_EXTENSION)
+            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
             {
                 // Check for the HOME key
                 if (sequence.arguments_.size() == 1

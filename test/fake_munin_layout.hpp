@@ -18,15 +18,15 @@ public :
         preferred_size_ = extent;
     }
     
-private :
-    void do_layout(
-        boost::shared_ptr< munin::container<ElementType> > const &cont)
+protected :
+    virtual void do_layout(
+        boost::shared_ptr< munin::container<ElementType> > const &container)
     {
         do_layout_called = true;
     }
     
-    munin::extent do_get_preferred_size(
-        boost::shared_ptr< munin::container<ElementType> const> const &cont) const
+    virtual munin::extent do_get_preferred_size(
+        boost::shared_ptr<munin::container<ElementType> const> const &cont) const
     {
         return preferred_size_;
     }

@@ -75,6 +75,24 @@ struct text_area::impl
     void set_size(extent const &size)
     {
         document_->set_size(size);
+        
+        // If the size has shrunk, then it may mean that our document base is 
+        // far too low, leaving only one line at the top, and many blank lines
+        // below.  Therefore, we check that our document base is as low as
+        // possible.
+        BOOST_AUTO(height,          self_.get_size().height);
+        BOOST_AUTO(document_height, document_->get_size().height);
+        BOOST_AUTO(
+            highest_document_base,
+            document_height < height
+          ? 0
+          : document_height - height);
+        
+        if (document_base_ > u32(highest_document_base))
+        {
+            document_base_ = highest_document_base;
+            document_->set_caret_index(document_->get_caret_index());
+        }
     }
     
     //* =====================================================================
@@ -385,8 +403,7 @@ private :
         // the cursor position are correctly placed.
         BOOST_AUTO(document_size, document_->get_size());
         document_->set_caret_index(
-            document_size.width
-          * document_size.height);
+            document_size.width * document_size.height);
     }
     
     //* =====================================================================
@@ -397,10 +414,8 @@ private :
     {
         // The END key goes to the last character of the current line.
         BOOST_AUTO(position, document_->get_caret_position());
-        BOOST_AUTO(document_size, document_->get_size());
-
         document_->set_caret_position(point(
-            document_size.width - 1
+            document_->get_size().width - 1
           , position.y));
     }
     
@@ -449,7 +464,7 @@ private :
                           
                 do_cursor_down_key_event(times);
             }
-            else if (sequence.command_ == odin::ansi::PUTTY_EXTENSION)
+            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
             {
                 // Check for the HOME key
                 if (sequence.arguments_.size() == 1

@@ -107,8 +107,14 @@ namespace odin { namespace ansi {
     // Tab backwards
     static char const CURSOR_BACKWARD_TABULATION       = odin::ascii::UPPERCASE_Z;
     
-    // A number of undocumented extensions exist for PuTTY and other terminals
-    static char const PUTTY_EXTENSION                  = odin::ascii::TILDE;    
+    // Keypad buttons / Function keys
+    static char const KEYPAD_FUNCTION                  = odin::ascii::TILDE;    
+
+    // DEC Private Mode Set
+    static char const DECSET                           = odin::ascii::LOWERCASE_H;
+    
+    // DEC Private Mode Reset
+    static char const DECRST                           = odin::ascii::LOWERCASE_L;
 
 // Namespace for Select Graphics Rendition parameters
 namespace graphics {

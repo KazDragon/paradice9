@@ -94,6 +94,22 @@ public :
     //* =====================================================================
     void add_command_history(std::string const &history);
 
+    //* =====================================================================
+    /// \brief Shows the Help window.
+    //* =====================================================================
+    void show_help_window();
+    
+    //* =====================================================================
+    /// \brief Hides the Help window.
+    //* =====================================================================
+    void hide_help_window();
+    
+    //* =====================================================================
+    /// \brief Sets the text contained in the Help window.
+    //* =====================================================================
+    void set_help_window_text(
+        odin::runtime_array<munin::ansi::element_type> const &text);
+
 protected :
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

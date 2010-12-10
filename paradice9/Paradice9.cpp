@@ -31,6 +31,7 @@
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
 #include "paradice/configuration.hpp"
+#include "paradice/help.hpp"
 #include "paradice/rules.hpp"
 #include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
@@ -98,6 +99,8 @@ static struct command
   , PARADICE_CMD_ENTRY(showrolls)
   , PARADICE_CMD_ENTRY(clearrolls)
 
+  , PARADICE_CMD_ENTRY(help)
+  
   , PARADICE_CMD_ENTRY(quit)
 };
 
@@ -459,6 +462,7 @@ static void on_accept(
     content->set_focus();
 
     window->set_title("Paradice9");
+    window->on_repaint(munin::ansi::set_normal_cursor_keys());
 }
 
 int main(int argc, char *argv[])

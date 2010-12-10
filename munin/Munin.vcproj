@@ -166,15 +166,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\aligned_layout.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\basic_component.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\basic_container.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\basic_layout.hpp"
 				>
 			</File>
 			<File

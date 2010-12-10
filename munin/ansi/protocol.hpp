@@ -72,6 +72,11 @@ std::string cursor_position(munin::point const &position);
 //* =========================================================================
 std::string set_window_title(std::string const &text);
 
+//* =========================================================================
+/// \brief Sets the 'normal cursor keys' mode.
+//* =========================================================================
+std::string set_normal_cursor_keys();
+
 }}
 
 #endif

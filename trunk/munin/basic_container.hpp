@@ -408,6 +408,13 @@ protected :
                 ++current_layer;
             }
         }
+
+        boost::shared_ptr<layout_type> layout = this->get_layout();
+
+        if (layout)
+        {
+            (*layout)(this->shared_from_this());
+        }
     }
     
     //* =====================================================================

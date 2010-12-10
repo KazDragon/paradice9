@@ -147,5 +147,17 @@ string set_window_title(string const &text)
         % odin::ansi::BEL);
 }
 
+// ==========================================================================
+// SET_NORMAL_CURSOR_KEYS
+// ==========================================================================
+string set_normal_cursor_keys()
+{
+    return str(format("%c%c%c1%c")
+         % odin::ansi::ESCAPE
+         % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+         % odin::ansi::PRIVATE_MODE_SET
+         % odin::ansi::DECRST);
+}
+
 }}
 

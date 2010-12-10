@@ -51,7 +51,7 @@ MUNIN_NAMES       = algorithm \
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
 MUNIN_LIB         = libmunin.a
 
-HUGIN_NAMES       = user_interface wholist
+HUGIN_NAMES       = command_prompt user_interface wholist
 HUGIN_O_FILES     = $(HUGIN_NAMES:%=hugin/%.o)
 HUGIN_LIB         = libhugin.a
 
@@ -67,6 +67,7 @@ PARADICE_NAMES    = client \
                     configuration \
                     connection \
                     dice_roll_parser \
+                    help \
                     random \
                     rules \
                     server \

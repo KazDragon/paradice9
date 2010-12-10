@@ -38,6 +38,7 @@
 #include "munin/grid_layout.hpp"
 #include "munin/card.hpp"
 #include "munin/compass_layout.hpp"
+#include "munin/vertical_squeeze_layout.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -46,18 +47,20 @@ using namespace odin;
 using namespace boost;
 using namespace std;
 
-typedef munin::component<munin::ansi::element_type>       component;
-typedef munin::container<munin::ansi::element_type>       container;
-typedef munin::card<munin::ansi::element_type>            card;
-typedef munin::aligned_layout<munin::ansi::element_type>  aligned_layout;
-typedef munin::compass_layout<munin::ansi::element_type>  compass_layout;
-typedef munin::grid_layout<munin::ansi::element_type>     grid_layout;
-typedef munin::ansi::basic_container                      basic_container;
-typedef munin::ansi::edit                                 edit;
-typedef munin::ansi::image                                image;
-typedef munin::ansi::text_area                            text_area;
-typedef munin::ansi::frame                                frame;
-typedef munin::ansi::framed_component                     framed_component;
+typedef munin::ansi::element_type                    element_type;
+typedef munin::component<element_type>               component;
+typedef munin::container<element_type>               container;
+typedef munin::card<element_type>                    card;
+typedef munin::aligned_layout<element_type>          aligned_layout;
+typedef munin::compass_layout<element_type>          compass_layout;
+typedef munin::grid_layout<element_type>             grid_layout;
+typedef munin::vertical_squeeze_layout<element_type> vertical_squeeze_layout; 
+typedef munin::ansi::basic_container                 basic_container;
+typedef munin::ansi::edit                            edit;
+typedef munin::ansi::image                           image;
+typedef munin::ansi::text_area                       text_area;
+typedef munin::ansi::frame                           frame;
+typedef munin::ansi::framed_component                framed_component;
 
 namespace hugin {
 
@@ -80,6 +83,14 @@ static string main_image[] = {
 // ==========================================================================
 struct user_interface::impl
 {
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl()
+        : help_field_visible_(false)
+    {
+    } 
+    
     // ======================================================================
     // CREATE_INTRO_SCREEN
     // ======================================================================
@@ -169,12 +180,24 @@ struct user_interface::impl
             wholist_
           , munin::COMPASS_LAYOUT_NORTH);
         
+        output_container_ = make_shared<basic_container>();
+        output_container_->set_layout(make_shared<vertical_squeeze_layout>());
+        
         output_field_ = make_shared<text_area>();
         output_field_->disable();
-        content->add_component(
+        output_container_->add_component(
             make_shared<framed_component>(
                 make_shared<frame>()
-              , output_field_)
+              , output_field_));
+        
+        help_field_ = make_shared<text_area>();
+        help_field_->disable();
+        help_field_frame_ = make_shared<framed_component>(
+            make_shared<frame>()
+          , help_field_);
+        
+        content->add_component(
+            output_container_
           , munin::COMPASS_LAYOUT_CENTRE);
         
         return content;
@@ -222,19 +245,24 @@ struct user_interface::impl
         }
     }
 
-    string                     face_name_;
-    shared_ptr<card>           active_screen_;
+    string                       face_name_;
+    shared_ptr<card>             active_screen_;
     
     // Intro Screen components
-    shared_ptr<edit>           intro_name_field_;
-    shared_ptr<edit>           statusbar_;
-    function<void (string)>    on_username_entered_;
+    shared_ptr<edit>             intro_name_field_;
+    shared_ptr<edit>             statusbar_;
+    function<void (string)>      on_username_entered_;
     
     // Main Screen components
-    shared_ptr<wholist>        wholist_;
-    shared_ptr<command_prompt> input_field_;
-    shared_ptr<text_area>      output_field_;
-    function<void (string)>    on_input_entered_;
+    shared_ptr<wholist>          wholist_;
+    shared_ptr<command_prompt>   input_field_;
+    shared_ptr<container>        output_container_;
+    shared_ptr<text_area>        output_field_;
+    shared_ptr<text_area>        help_field_;
+    shared_ptr<framed_component> help_field_frame_;
+    bool                         help_field_visible_;
+    
+    function<void (string)>      on_input_entered_;
 };
 
 // ==========================================================================
@@ -321,6 +349,41 @@ void user_interface::update_wholist(runtime_array<string> const &names)
 void user_interface::add_command_history(string const &history)
 {
     pimpl_->input_field_->add_history(history);
+}
+
+// ==========================================================================
+// SHOW_HELP_WINDOW
+// ==========================================================================
+void user_interface::show_help_window()
+{
+    if (!pimpl_->help_field_visible_)
+    {
+        pimpl_->output_container_->add_component(pimpl_->help_field_frame_);
+        pimpl_->help_field_visible_ = true;
+    }
+}
+
+// ==========================================================================
+// HIDE_HELP_WINDOW
+// ==========================================================================
+void user_interface::hide_help_window()
+{
+    if (pimpl_->help_field_visible_)
+    {
+        pimpl_->output_container_->remove_component(pimpl_->help_field_frame_);
+        pimpl_->help_field_visible_ = false;
+    }
+}
+
+// ==========================================================================
+// SET_HELP_WINDOW_TEXT
+// ==========================================================================
+void user_interface::set_help_window_text(
+    odin::runtime_array<munin::ansi::element_type> const &text)
+{
+    BOOST_AUTO(document, pimpl_->help_field_->get_document());
+    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    document->insert_text(text);
 }
 
 // ==========================================================================

@@ -395,7 +395,7 @@ private :
         // Draw each slice on the canvas.
         BOOST_FOREACH(rectangle region, slices)
         {
-            content_->draw(canvas_, point(0,0), region);
+            content_->draw(canvas_, region);
         }
         
         // For each slice, see if it has changed between the canvas that was

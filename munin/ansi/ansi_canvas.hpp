@@ -94,6 +94,15 @@ private :
         odin::s32 column
       , odin::s32 row) const;
     
+    //* =====================================================================
+    /// \brief Offsets the canvas.
+    /// Offsets the canvas so that drawing operations take place at a new
+    /// location.  For example, if a canvas is offset by (1, 2) and
+    /// receives a set_value(3, 4, x), then this will be identical to a
+    /// set_value(4, 6, x) of an unoffset canvas.  Offsets are cumulative.
+    //* =====================================================================
+    virtual void do_apply_offset(odin::s32 columns, odin::s32 rows);
+    
     class impl;
     boost::shared_ptr<impl> pimpl_;
 };

@@ -142,17 +142,13 @@ void munin_container_fixture::test_draw()
     region.size.width  = 3;
     region.size.height = 3;
     
-    munin::point offset;
-    offset.x = 0;
-    offset.y = 0;
-    
     // With the components specified, the container should draw onto the
     // canvas as follows:
     //
     // "XX "    "   "    "XX "
     // "XX " -> " YY" -> "XYY"
     // "XX "    " YY"    "XYY"
-    container->draw(canvas, offset, region);
+    container->draw(canvas, region);
     
     CPPUNIT_ASSERT_EQUAL('X', canvas.values_[0][0]);
     CPPUNIT_ASSERT_EQUAL('X', canvas.values_[1][0]);
@@ -228,11 +224,7 @@ void munin_container_fixture::test_contained_container()
         region.size.width  = 5;
         region.size.height = 5;
         
-        munin::point offset;
-        offset.x = 0;
-        offset.y = 0;
-        
-        outer_container->draw(canvas, offset, region);
+        outer_container->draw(canvas, region);
     }
     
     // The outer container is from (1,1)->(5,5).  Inside that,
@@ -327,7 +319,7 @@ void munin_container_fixture::test_overlap_same_layer()
     region.origin = container->get_position();
 
     fake_canvas<char> canvas;
-    container->draw(canvas, container->get_position(), region);
+    container->draw(canvas, region);
     
     CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][0]));
     CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][1]));
@@ -388,7 +380,7 @@ void munin_container_fixture::test_overlap_different_layer()
     region.origin = container->get_position();
 
     fake_canvas<char> canvas;
-    container->draw(canvas, container->get_position(), region);
+    container->draw(canvas, region);
     
     CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][0]));
     CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][1]));

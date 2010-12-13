@@ -43,7 +43,6 @@ protected :
     //* =====================================================================
     virtual void do_initialise_region(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region);
 };
 

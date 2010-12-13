@@ -53,12 +53,11 @@ public :
     // ======================================================================
     void draw(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
-        draw_corners(cvs, offset, region);
-        draw_horizontal_borders(cvs, offset, region);
-        draw_vertical_borders(cvs, offset, region);
+        draw_corners(cvs, region);
+        draw_horizontal_borders(cvs, region);
+        draw_vertical_borders(cvs, region);
     }
     
     // ======================================================================
@@ -66,7 +65,6 @@ public :
     // ======================================================================
     void draw_corners(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
         BOOST_AUTO(position, self_.get_position());
@@ -103,29 +101,29 @@ public :
         // If so, paint them.
         if (topleft)
         {
-            cvs[position.x + topleft->origin.x + offset.x]
-               [position.y + topleft->origin.y + offset.y] = 
+            cvs[position.x + topleft->origin.x]
+               [position.y + topleft->origin.y] = 
                 munin::ansi::element_type(char(201), pen);
         }
         
         if (topright)
         {
-            cvs[position.x + topright->origin.x + offset.x]
-               [position.y + topright->origin.y + offset.y] = 
+            cvs[position.x + topright->origin.x]
+               [position.y + topright->origin.y] = 
                 munin::ansi::element_type(char(187), pen);
         }
 
         if (bottomleft)
         {
-            cvs[position.x + bottomleft->origin.x + offset.x]
-               [position.y + bottomleft->origin.y + offset.y] = 
+            cvs[position.x + bottomleft->origin.x]
+               [position.y + bottomleft->origin.y] = 
                 munin::ansi::element_type(char(200), pen);
         }
         
         if (bottomright)
         {
-            cvs[position.x + bottomright->origin.x + offset.x]
-               [position.y + bottomright->origin.y + offset.y] = 
+            cvs[position.x + bottomright->origin.x]
+               [position.y + bottomright->origin.y] = 
                 munin::ansi::element_type(char(188), pen);
         }
     }
@@ -135,7 +133,6 @@ public :
     // ======================================================================
     void draw_horizontal_borders(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
         BOOST_AUTO(position, self_.get_position());
@@ -167,8 +164,8 @@ public :
             
             for (s32 column = 0; column < rect.size.width; ++column)
             {
-                cvs[position.x + column + rect.origin.x + offset.x]
-                   [position.y +          rect.origin.y + offset.y] =
+                cvs[position.x + column + rect.origin.x]
+                   [position.y +          rect.origin.y] =
                     munin::ansi::element_type(char(205), pen);
             }
         }
@@ -179,8 +176,8 @@ public :
             
             for (s32 column = 0; column < rect.size.width; ++column)
             {
-                cvs[position.x + column + rect.origin.x + offset.x]
-                   [position.y +          rect.origin.y + offset.y] =
+                cvs[position.x + column + rect.origin.x]
+                   [position.y +          rect.origin.y] =
                     munin::ansi::element_type(char(205), pen);
             }
         }
@@ -191,7 +188,6 @@ public :
     // ======================================================================
     void draw_vertical_borders(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
         BOOST_AUTO(position, self_.get_position());
@@ -222,8 +218,8 @@ public :
             
             for (s32 row = 0; row < rect.size.height; ++row)
             {
-                cvs[position.x +       rect.origin.x + offset.x]
-                   [position.y + row + rect.origin.y + offset.y] =
+                cvs[position.x +       rect.origin.x]
+                   [position.y + row + rect.origin.y] =
                     munin::ansi::element_type(char(186), pen);
             }
         }
@@ -234,8 +230,8 @@ public :
             
             for (s32 row = 0; row < rect.size.height; ++row)
             {
-                cvs[position.x +       rect.origin.x + offset.x]
-                   [position.y + row + rect.origin.y + offset.y] =
+                cvs[position.x +       rect.origin.x]
+                   [position.y + row + rect.origin.y] =
                     munin::ansi::element_type(char(186), pen);
             }
         }
@@ -297,10 +293,9 @@ extent frame::do_get_preferred_size() const
 // ==========================================================================
 void frame::do_draw(
     canvas<element_type> &cvs
-  , point const          &offset
   , rectangle const      &region)
 {
-    pimpl_->draw(cvs, offset, region);
+    pimpl_->draw(cvs, region);
 }
 
 // ==========================================================================

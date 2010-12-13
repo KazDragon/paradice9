@@ -35,7 +35,6 @@ namespace munin { namespace ansi {
 // ==========================================================================
 void basic_container::do_initialise_region(
     canvas<element_type> &cvs
-  , point const          &offset
   , rectangle const      &region)
 {
     BOOST_AUTO(position, get_position());
@@ -44,8 +43,8 @@ void basic_container::do_initialise_region(
     {
         for (odin::s32 column = 0; column < region.size.width; ++column)
         {
-            cvs[position.x + offset.x + region.origin.x + column]
-               [position.y + offset.y + region.origin.y + row   ] 
+            cvs[position.x + region.origin.x + column]
+               [position.y + region.origin.y + row   ] 
                     = element_type(' ', attribute());
         }
     }

@@ -112,7 +112,6 @@ munin::extent image::do_get_preferred_size() const
 // ==========================================================================
 void image::do_draw(
     canvas<element_type> &cvs
-  , point const          &offset
   , rectangle const      &region)
 {
     BOOST_AUTO(position, get_position());
@@ -129,22 +128,19 @@ void image::do_draw(
             {
                 if (column < pimpl_->elements_[row].size())
                 {
-                    cvs[position.x + column + offset.x]
-                       [position.y + row    + offset.y]
-                        = pimpl_->elements_[row][column];
+                    cvs[position.x + column]
+                       [position.y + row   ] = pimpl_->elements_[row][column];
                 }
                 else
                 {
-                    cvs[position.x + column + offset.x]
-                       [position.y + row    + offset.y]
-                        = element_type(' ', attribute());
+                    cvs[position.x + column]
+                       [position.y + row   ] = element_type(' ', attribute());
                 }
             }
             else
             {
-                cvs[position.x + column + offset.x]
-                   [position.y + row    + offset.y]
-                    = element_type(' ', attribute());
+                cvs[position.x + column]
+                   [position.y + row   ] = element_type(' ', attribute());
             }
         }
     }

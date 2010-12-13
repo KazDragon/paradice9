@@ -68,7 +68,6 @@ void munin_card_fixture::test_draw_no_faces()
 
     card->draw(
         canvas,
-        munin::point(0, 0),
         munin::rectangle(munin::point(0, 0), size));
 
     CPPUNIT_ASSERT_EQUAL('@', char(canvas[0][0]));
@@ -107,7 +106,6 @@ void munin_card_fixture::test_draw_first_face()
 
     card->draw(
         canvas,
-        munin::point(0, 0),
         munin::rectangle(munin::point(0, 0), size));
 
     CPPUNIT_ASSERT_EQUAL('#', char(canvas[0][0]));
@@ -146,7 +144,6 @@ void munin_card_fixture::test_draw_second_face()
 
     card->draw(
         canvas,
-        munin::point(0, 0),
         munin::rectangle(munin::point(0, 0), size));
 
     CPPUNIT_ASSERT_EQUAL('%', char(canvas[0][0]));

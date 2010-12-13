@@ -75,15 +75,11 @@ protected :
     /// the part of itself specified by the region.
     ///
     /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.  That is, (0,0) to this component
-    ///        is actually (offset.x, offset.y) in the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region);
 
     //* =====================================================================

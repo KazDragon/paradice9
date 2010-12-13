@@ -124,7 +124,6 @@ struct text_area::impl
     //* =====================================================================
     void draw(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
         BOOST_AUTO(position, self_.get_position());
@@ -145,8 +144,8 @@ struct text_area::impl
               && column_index < u32(line.size());
                  ++column_index)
             {
-                cvs[position.x + column_index + offset.x]
-                   [position.y + row_index    + offset.y] = line[column_index];
+                cvs[position.x + column_index]
+                   [position.y + row_index   ] = line[column_index];
             }
             
             // Pad the rest with blanks
@@ -154,8 +153,8 @@ struct text_area::impl
                 column_index < u32(region.size.width);
                 ++column_index)
             {
-                cvs[position.x + column_index + offset.x]
-                   [position.y + row_index    + offset.y] =
+                cvs[position.x + column_index]
+                   [position.y + row_index   ] =
                     element_type(' ', attribute());
             }
         }
@@ -610,10 +609,9 @@ point text_area::do_get_cursor_position() const
 // ==========================================================================
 void text_area::do_draw(
     canvas<element_type> &cvs
-  , point const          &offset
   , rectangle const      &region)
 {
-    pimpl_->draw(cvs, offset, region);
+    pimpl_->draw(cvs, region);
 }
 
 // ==========================================================================

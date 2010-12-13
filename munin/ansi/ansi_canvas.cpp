@@ -46,16 +46,18 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl()
+        : offset_columns_(0)
+        , offset_rows_(0)
     {
-        size_.width  = 0;
-        size_.height = 0;
     }
     
     // ======================================================================
     // COPY CONSTRUCTOR
     // ======================================================================
     impl(impl const &other)
-        : size_(other.size_)
+        : offset_columns_(other.offset_columns_)
+        , offset_rows_(other.offset_rows_)
+        , size_(other.size_)
         , elements_(other.elements_)
     {
     }
@@ -132,8 +134,11 @@ public :
     // ======================================================================
     // SET_VALUE
     // ======================================================================
-    void set_value(odin::s32 column, odin::s32 row, element_type const &element)
+    void set_value(s32 column, s32 row, element_type const &element)
     {
+        column += offset_columns_;
+        row    += offset_rows_;
+        
         if (column >= size_.width || row >= size_.height)
         {
             throw std::out_of_range(str(format(
@@ -151,8 +156,11 @@ public :
     // ======================================================================
     // GET_VALUE
     // ======================================================================
-    element_type get_value(odin::s32 column, odin::s32 row) const
+    element_type get_value(s32 column, s32 row) const
     {
+        column += offset_columns_;
+        row    += offset_rows_;
+        
         if (column >= size_.width || row >= size_.height)
         {
             throw std::out_of_range(str(format(
@@ -167,7 +175,18 @@ public :
         return elements_[(row * size_.width) + column];
     }
     
+    // ======================================================================
+    // APPLY_OFFSET
+    // ======================================================================
+    void apply_offset(odin::s32 columns, odin::s32 rows)
+    {
+        offset_columns_ += columns;
+        offset_rows_    += rows;
+    }
+    
 private :
+    s32                  offset_columns_;
+    s32                  offset_rows_;
     extent               size_;
     vector<element_type> elements_;
 };
@@ -250,4 +269,13 @@ ansi_canvas::element_type ansi_canvas::get_value(
     return pimpl_->get_value(column, row);
 }
 
+// ==========================================================================
+// DO_APPLY_OFFSET
+// ==========================================================================
+void ansi_canvas::do_apply_offset(odin::s32 columns, odin::s32 rows)
+{
+    pimpl_->apply_offset(columns, rows);
+}
+
 }}
+

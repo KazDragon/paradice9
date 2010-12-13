@@ -31,10 +31,12 @@
 #include "munin/component.hpp"
 #include "munin/layout.hpp"
 #include "munin/algorithm.hpp"
+#include "munin/canvas.hpp"
 #include <boost/any.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
+#include <boost/scope_exit.hpp>
 #include <boost/utility.hpp>
 #include <boost/weak_ptr.hpp>
 #include <numeric>
@@ -261,7 +263,6 @@ protected :
     //* =====================================================================
     virtual void do_initialise_region(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region) = 0;
 
     //* =====================================================================
@@ -329,18 +330,15 @@ protected :
     /// the part of itself specified by the region.
     ///
     /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
         // First, initialise that region to an undrawn state.
-        do_initialise_region(cvs, offset, region);
+        do_initialise_region(cvs, region);
         
 #ifdef DEBUG_CONTAINER
         std::cout << "munin::container::do_draw\n"
@@ -348,8 +346,6 @@ protected :
                                     << region.origin.y << ") -> ["
                                     << region.size.width << ", "
                                     << region.size.height << "]\n"
-                  << "  offset = [" << offset.x << ", "
-                                    << offset.y << "]"
                   << std::endl;
 #endif
 
@@ -401,9 +397,19 @@ protected :
                 // origin.  It should be relative to the child's origin.
                 draw_region->origin -= component_region.origin;
                 
-                // The offset to the component is this container's position
-                // within its canvas plus the offset passed in.
-                point component_offset = this->get_position() + offset;
+                // The canvas must have an offset applied to it so that the
+                // inner component can pretend that it is being drawn with its
+                // container being at position (0,0).
+                point const position = this->get_position();
+                
+                cvs.apply_offset(position.x, position.y);
+                
+                // Ensure that the offset is unapplied before exit of this
+                // function.
+                BOOST_SCOPE_EXIT_TPL( (&cvs)(&position) )
+                {
+                    cvs.apply_offset(-position.x, -position.y);
+                } BOOST_SCOPE_EXIT_END
                 
 #ifdef DEBUG_CONTAINER
                 std::cout << "   offset = ("
@@ -411,8 +417,7 @@ protected :
                           << component_offset.y << ")\n" << std::endl;
 #endif
 
-                current_component->draw(
-                    cvs, component_offset, draw_region.get());
+                current_component->draw(cvs, draw_region.get());
             }
         }
     }

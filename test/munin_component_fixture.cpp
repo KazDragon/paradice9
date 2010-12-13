@@ -109,10 +109,7 @@ void munin_component_fixture::test_draw()
     region.size.height = 2;
     component.set_brush('X');
     
-    munin::point offset;
-    offset.x = 0;
-    offset.y = 0;
-    component.draw(canvas, offset, region);
+    component.draw(canvas, region);
     
     /* Should be equivalent to:
        "    "
@@ -145,7 +142,7 @@ void munin_component_fixture::test_draw()
     region.origin.y = 1;
     component.set_brush('Y');
     
-    component.draw(canvas, offset, region);
+    component.draw(canvas, region);
     
     /* Should be equivalent to:
        "     "
@@ -189,7 +186,7 @@ void munin_component_fixture::test_draw()
     region.size.height = 1;
     component.set_brush('Z');
     
-    component.draw(canvas, offset, region);
+    component.draw(canvas, region);
     
     /* Should be equivalent to:
        "     "

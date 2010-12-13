@@ -134,14 +134,11 @@ private :
     /// the part of itself specified by the region.
     ///
     /// \param cvs the canvas in which the component should draw itself.
-    /// \param offset the position of the parent component (if there is one)
-    ///        relative to the canvas.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
         munin::canvas<ElementType> &cvs
-      , munin::point const         &offset
       , munin::rectangle const     &region)
     {
         munin::rectangle bounds;
@@ -151,13 +148,6 @@ private :
 #ifdef DEBUG_COMPONENT
         std::cout << "fake_component::do_draw" << std::endl;
         
-        std::cout << "offset = {"
-                  << offset.x
-                  << ", "
-                  << offset.y
-                  << "}"
-                  << std::endl;
-                  
         std::cout << "region = ("
                   << region.origin.x
                   << ", "
@@ -218,13 +208,13 @@ private :
                 {
 #ifdef DEBUG_COMPONENT
                     std::cout << "Drawing " << brush_ << " at ("
-                              << x + box.origin.x + offset.x
+                              << x + box.origin.x
                               << ", "
-                              << y + box.origin.y + offset.y
+                              << y + box.origin.y
                               << ")" << std::endl;
 #endif
-                    cvs[ x + box.origin.x + offset.x ]
-                       [ y + box.origin.y + offset.y ] = brush_;
+                    cvs[x + box.origin.x]
+                       [y + box.origin.y] = brush_;
                 }
             }
         }

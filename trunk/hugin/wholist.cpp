@@ -74,7 +74,6 @@ struct wholist::impl
     // ======================================================================
     void draw(
         canvas<munin::ansi::element_type> &cvs
-      , point const                       &offset
       , rectangle const                   &region)
     {
         BOOST_AUTO(position, self_.get_position());
@@ -96,8 +95,8 @@ struct wholist::impl
                      ? element_type(' ', attribute())
                      : view_[x_coordinate][y_coordinate];
 
-                cvs[x_coordinate + position.x + offset.x]
-                   [y_coordinate + position.y + offset.y] = element;
+                cvs[x_coordinate + position.x]
+                   [y_coordinate + position.y] = element;
             }
         }
     }
@@ -491,10 +490,9 @@ void wholist::do_set_size(munin::extent const &size)
 // ==========================================================================
 void wholist::do_draw(
     munin::canvas<munin::ansi::element_type> &cvs
-  , munin::point const                       &offset
   , munin::rectangle const                   &region)
 {
-    pimpl_->draw(cvs, offset, region);
+    pimpl_->draw(cvs, region);
 }
 
 // ==========================================================================

@@ -108,7 +108,6 @@ struct edit::impl
     //* =====================================================================
     void draw(
         canvas<element_type> &cvs
-      , point const          &offset
       , rectangle const      &region)
     {
         munin::point position = self_.get_position();
@@ -135,8 +134,8 @@ struct edit::impl
               && u32(region.origin.x + index) < characters;
                  ++index)
             {
-                cvs[position.x + index + offset.x]
-                   [position.y + 0     + offset.y] = element;
+                cvs[position.x + index]
+                   [position.y + 0    ] = element;
             }
         }
         else
@@ -146,9 +145,8 @@ struct edit::impl
               && u32(region.origin.x + index) < characters;
                  ++index)
             {
-                cvs[position.x + index + offset.x]
-                   [position.y + 0     + offset.y] = 
-                       text[document_base_ + index];
+                cvs[position.x + index]
+                   [position.y + 0    ] = text[document_base_ + index];
             }
         }
         
@@ -157,11 +155,8 @@ struct edit::impl
              index < region.size.width;
              ++index)
         {
-            cvs[position.x + index + offset.x]
-               [position.y + 0     + offset.y] =
-                   munin::ansi::element_type(
-                       ' '
-                     , munin::ansi::attribute());
+            cvs[position.x + index]
+               [position.y + 0    ] = character_type(' ', attribute());
         }
     }
 
@@ -498,10 +493,9 @@ munin::point edit::do_get_cursor_position() const
 // ==========================================================================
 void edit::do_draw(
     canvas<element_type> &cvs
-  , point const          &offset
   , rectangle const      &region)
 {
-    pimpl_->draw(cvs, offset, region);
+    pimpl_->draw(cvs, region);
 }
 
 // ==========================================================================

@@ -125,6 +125,14 @@ public :
         return column_proxy(*this, column);
     }
     
+    // ======================================================================
+    // OFFSET_CANVAS
+    // ======================================================================
+    void apply_offset(odin::s32 columns, odin::s32 rows)
+    {
+        do_apply_offset(columns, rows);
+    }
+    
 private :
     //* =====================================================================
     /// \brief Sets the value and attribute at the specified coordinates on
@@ -142,6 +150,15 @@ private :
     virtual element_type get_value(
         odin::s32 column
       , odin::s32 row) const = 0;
+
+    //* =====================================================================
+    /// \brief Offsets the canvas.
+    /// Offsets the canvas so that drawing operations take place at a new
+    /// location.  For example, if a canvas is offset by (1, 2) and
+    /// receives a set_value(3, 4, x), then this will be identical to a
+    /// set_value(4, 6, x) of an unoffset canvas.  Offsets are cumulative.
+    //* =====================================================================
+    virtual void do_apply_offset(odin::s32 columns, odin::s32 rows) = 0;
 };
     
 }

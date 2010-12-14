@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\main.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Paradice9.cpp"
 				>
 			</File>
@@ -190,6 +194,10 @@
 			>
 			<File
 				RelativePath=".\context_impl.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\paradice9.hpp"
 				>
 			</File>
 		</Filter>

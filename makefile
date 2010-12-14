@@ -77,7 +77,7 @@ PARADICE_NAMES    = client \
 PARADICE_O_FILES  = $(PARADICE_NAMES:%=paradice/%.o)
 PARADICE_LIB      = libparadice.a
 
-PARADICE9_NAMES   = context_impl Paradice9
+PARADICE9_NAMES   = context_impl paradice9 main
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)
 
 TEST_L_DIRS       = -L.

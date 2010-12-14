@@ -16,16 +16,14 @@ namespace paradice
 struct server::impl
 {
     impl(asio::io_service                          &io_service
-       , weak_ptr<context>                         &context
+       , shared_ptr<context>                       &context
        , uint16_t                                   port
        , function<void (shared_ptr<socket>)> const &on_accept)
         : io_service_(io_service)
         , context_(context)
         , acceptor_(
             io_service
-          , asio::ip::tcp::endpoint(
-                asio::ip::tcp::v4()
-              , port))
+          , asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port))
         , on_accept_(on_accept)
     {
         schedule_accept();
@@ -37,6 +35,9 @@ struct server::impl
     {
         if (!error)
         {
+            printf("Connection from: %s\n",
+                new_socket->remote_endpoint().address().to_string().c_str());
+            
             boost::shared_ptr<socket> paradice_socket(new socket(new_socket));
 
             on_accept_(paradice_socket);
@@ -60,7 +61,7 @@ struct server::impl
     }
     
     asio::io_service                   &io_service_;
-    weak_ptr<context>                  &context_;
+    weak_ptr<context>                   context_;
     asio::ip::tcp::acceptor             acceptor_;
     
     function<void (shared_ptr<socket>)> on_accept_;
@@ -68,7 +69,7 @@ struct server::impl
 
 server::server(
     asio::io_service                          &io_service
-  , weak_ptr<context>                         &context
+  , shared_ptr<context>                       &context
   , uint16_t                                   port
   , function<void (shared_ptr<socket>)> const &on_accept)
     : pimpl_(new impl(io_service, context, port, on_accept))

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Server
+// Paradice9 Application
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,40 +24,24 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_SERVER_HPP_
-#define PARADICE_SERVER_HPP_
+#ifndef PARADICE9_HPP_
+#define PARADICE9_HPP_
 
-#include <boost/cstdint.hpp>
-#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
 
 namespace boost { namespace asio {
     class io_service;
 }}
 
-namespace paradice {
-    
-class context;    
-class socket;
-
-class server
+class paradice9
 {
 public :
-    server(boost::asio::io_service              &io_service
-         , boost::shared_ptr<context>           &context
-         , boost::uint16_t                       port
-         , boost::function<
-               void (boost::shared_ptr<socket>)
-            > const                             &on_accept);
-        
-   ~server();
-   
+    paradice9(boost::asio::io_service &io_service, unsigned int port);
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
 
-}
-
 #endif
+

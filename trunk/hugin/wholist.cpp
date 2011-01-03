@@ -73,12 +73,12 @@ struct wholist::impl
     // DRAW
     // ======================================================================
     void draw(
-        canvas<munin::ansi::element_type> &cvs
-      , rectangle const                   &region)
+        canvas          &cvs
+      , rectangle const &region)
     {
         BOOST_AUTO(position, self_.get_position());
         
-        munin::ansi::attribute pen;
+        attribute pen;
         pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
         pen.intensity         = odin::ansi::graphics::INTENSITY_BOLD;
         
@@ -481,7 +481,7 @@ munin::extent wholist::do_get_preferred_size() const
 // ==========================================================================
 void wholist::do_set_size(munin::extent const &size)
 {
-    munin::basic_component<munin::ansi::element_type>::do_set_size(size);
+    basic_component::do_set_size(size);
     pimpl_->render();
 }
 
@@ -489,8 +489,8 @@ void wholist::do_set_size(munin::extent const &size)
 // DO_DRAW
 // ==========================================================================
 void wholist::do_draw(
-    munin::canvas<munin::ansi::element_type> &cvs
-  , munin::rectangle const                   &region)
+    canvas          &cvs
+  , rectangle const &region)
 {
     pimpl_->draw(cvs, region);
 }

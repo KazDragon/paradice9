@@ -26,7 +26,7 @@
 // ==========================================================================
 #include "connection.hpp"
 #include "socket.hpp"
-#include "munin/ansi/window.hpp"
+#include "munin/window.hpp"
 #include "odin/ansi/parser.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
@@ -36,16 +36,17 @@
 #include "odin/telnet/options/echo_server.hpp"
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
 #include <string>
 
-using namespace std;
-using namespace boost;
-using namespace odin;
+using namespace munin;
 using namespace odin::telnet::options;
-using namespace munin::ansi;
+using namespace odin;
+using namespace boost;
+using namespace std;
 
 namespace paradice {
 

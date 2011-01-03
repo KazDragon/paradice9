@@ -28,7 +28,6 @@
 #define MUNIN_ANSI_PROTOCOL_HPP_
 
 #include "munin/types.hpp"
-#include "munin/ansi/ansi_types.hpp"
 #include "odin/runtime_array.hpp"
 #include <string>
 
@@ -39,7 +38,7 @@ namespace munin { namespace ansi {
 /// \param source_line a string of text to be converted
 /// \param attr the default attribute given to each element.
 //* =========================================================================
-odin::runtime_array<munin::ansi::element_type> elements_from_string(
+odin::runtime_array<munin::element_type> elements_from_string(
     std::string const &source_line
   , attribute attr = attribute());
 
@@ -47,7 +46,7 @@ odin::runtime_array<munin::ansi::element_type> elements_from_string(
 /// \brief Converts a runtime_array<> of ANSI elements into a string.
 //* =========================================================================
 std::string string_from_elements(
-    odin::runtime_array<munin::ansi::element_type> const &elements);
+    odin::runtime_array<munin::element_type> const &elements);
 
 //* =========================================================================
 /// \brief Hides the cursor.

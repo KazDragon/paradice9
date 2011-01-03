@@ -36,7 +36,8 @@
 #include "paradice/socket.hpp"
 #include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
-#include "munin/ansi/window.hpp"
+#include "munin/container.hpp"
+#include "munin/window.hpp"
 #include "munin/grid_layout.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "odin/tokenise.hpp"
@@ -44,11 +45,14 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
-using namespace boost;
+using namespace munin::ansi;
+using namespace munin;
 using namespace odin;
+using namespace boost;
 using namespace std;
 
 namespace {
@@ -211,14 +215,13 @@ private :
         context_->update_names();
         
         content->set_size(munin::extent(80, 24));
-        content->set_layout(
-            make_shared< munin::grid_layout<munin::ansi::element_type> >(1, 1));
+        content->set_layout(make_shared<grid_layout>(1, 1));
     
         content->add_component(user_interface);
         content->set_focus();
     
         window->set_title("Paradice9");
-        window->on_repaint(munin::ansi::set_normal_cursor_keys());
+        window->on_repaint(set_normal_cursor_keys());
     }
     
     // ======================================================================
@@ -333,11 +336,11 @@ private :
             
             if (!paradice::is_acceptible_name(arg))
             {
-                munin::ansi::attribute pen;
+                attribute pen;
                 pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
     
                 client->get_user_interface()->set_statusbar_text(
-                    munin::ansi::elements_from_string(
+                    elements_from_string(
                         "Name must be over two characters long and "
                         "comprise only alphabetical characters"
                       , pen));
@@ -345,7 +348,7 @@ private :
             else
             {
                 BOOST_AUTO(clients, context_->get_clients());
-                munin::ansi::attribute pen;
+                attribute pen;
                 pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
                 
                 BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients)
@@ -353,7 +356,7 @@ private :
                     if (cur_client->get_name() == arg)
                     {
                         client->get_user_interface()->set_statusbar_text(
-                            munin::ansi::elements_from_string(
+                            elements_from_string(
                                 "A user with that name is already online."
                               , pen));
                         return;

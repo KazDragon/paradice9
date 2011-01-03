@@ -27,6 +27,7 @@
 #ifndef MUNIN_TYPES_HPP_
 #define MUNIN_TYPES_HPP_
 
+#include "munin/attribute.hpp"
 #include "odin/types.hpp"
 #include <iosfwd>
 
@@ -148,6 +149,16 @@ bool operator==(rectangle const &lhs, rectangle const &rhs);
 bool operator!=(rectangle const &lhs, rectangle const &rhs);
 rectangle operator+(point const &pt, extent const &ext);
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
+
+//* =========================================================================
+/// \brief The type of an element in an ANSI component.  Each element is a
+/// normal character and can optionally have attributes (such as boldness,
+/// colour, font, etc.) applied to it.  A lack of an attribute indicates that
+/// the character has the "default" attribute.
+//* =========================================================================
+typedef std::pair<char, munin::attribute> element_type;
+  
+std::ostream &operator<<(std::ostream &out, element_type const &element);
 
 }
 

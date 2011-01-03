@@ -27,7 +27,7 @@
 #include "client.hpp"
 #include "connection.hpp"
 #include "munin/ansi/protocol.hpp"
-#include "munin/ansi/window.hpp"
+#include "munin/window.hpp"
 #include "hugin/user_interface.hpp"
 #include <boost/foreach.hpp>
 #include <deque>

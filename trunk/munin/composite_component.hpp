@@ -24,19 +24,14 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_COMPOSITE_CONTAINER_HPP_
-#define MUNIN_COMPOSITE_CONTAINER_HPP_
+#ifndef MUNIN_COMPOSITE_COMPONENT_HPP_
+#define MUNIN_COMPOSITE_COMPONENT_HPP_
 
-#include <munin/component.hpp>
-#include <munin/container.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
+#include "munin/component.hpp"
 
 namespace munin {
 
 //* =========================================================================
-/// \tparam ElementType the type of the smallest element that a graphical
-/// component can display.
 /// \brief Implements a component that simply forwards from and to an 
 /// underlying container.
 ///
@@ -47,235 +42,149 @@ namespace munin {
 /// class, which simply forwards functions and messages to and from the
 /// underlying container, this can be achieved more easily.
 //* =========================================================================
-template <class ElementType>
 class composite_component
-    : public component<ElementType>
+    : public component
 {
 public :
-    typedef ElementType             element_type;
-    typedef component<element_type> component_type;
-    typedef container<element_type> container_type;
-
     //* =====================================================================
     /// \brief Constructor
     /// \param underlying_container A container that this component will
     /// wrap.
     //* =====================================================================
     composite_component(
-        boost::shared_ptr<container_type> underlying_container)
-      : container_(underlying_container)
-    {
-        // Connect the underlying container's default signals to the signals
-        // of this component with.
-        container_->on_redraw.connect(
-            boost::bind(boost::ref(this->on_redraw), _1));
-
-        container_->on_position_changed.connect(
-            boost::bind(boost::ref(this->on_position_changed), _1, _2));
-
-        container_->on_focus_set.connect(
-            boost::bind(boost::ref(this->on_focus_set)));
-
-        container_->on_focus_lost.connect(
-            boost::bind(boost::ref(this->on_focus_lost)));
-        
-        container_->on_cursor_state_changed.connect(
-            boost::bind(boost::ref(this->on_cursor_state_changed), _1));
-
-        container_->on_cursor_position_changed.connect(
-            boost::bind(boost::ref(this->on_cursor_position_changed), _1));
-    }
+        boost::shared_ptr<container> underlying_container);
 
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~composite_component()
-    {
-    }
+    virtual ~composite_component();
 
 protected :
     //* =====================================================================
     /// \brief Retrieve the underlying container.
     //* =====================================================================
-    boost::shared_ptr<container_type> get_container()
-    {
-        return container_;
-    }
+    boost::shared_ptr<container> get_container();
 
     //* =====================================================================
     /// \brief Called by set_position().  Derived classes must override this
     /// function in order to set the position of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_position(point const &position) 
-    {
-        container_->set_position(position);
-    }
+    virtual void do_set_position(point const &position);
     
     //* =====================================================================
     /// \brief Called by get_position().  Derived classes must override this
     /// function in order to get the position of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual point do_get_position() const 
-    {
-        return container_->get_position();
-    }
+    virtual point do_get_position() const ;
     
     //* =====================================================================
     /// \brief Called by set_size().  Derived classes must override this 
     /// function in order to set the size of the component in a custom 
     /// manner.
     //* =====================================================================
-    virtual void do_set_size(extent const &size) 
-    {
-        container_->set_size(size);
-    }
+    virtual void do_set_size(extent const &size);
 
     //* =====================================================================
     /// \brief Called by get_size().  Derived classes must override this
     /// function in order to get the size of the component in a custom 
     /// manner.
     //* =====================================================================
-    virtual extent do_get_size() const 
-    {
-        return container_->get_size();
-    }
+    virtual extent do_get_size() const;
 
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to get the size of the component in a custom 
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const 
-    {
-        return container_->get_preferred_size();
-    }
+    virtual extent do_get_preferred_size() const;
     
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
     /// custom manner.
     //* =====================================================================
-    virtual bool do_has_focus() const 
-    {
-        return container_->has_focus();
-    }
+    virtual bool do_has_focus() const;
     
     //* =====================================================================
     /// \brief Called by set_can_focus().  Derived classes must override this
     /// function in order to set whether this component can be focussed in
     /// a custom manner.
     //* =====================================================================
-    virtual void do_set_can_focus(bool focus)
-    {
-        container_->set_can_focus(focus);
-    }
+    virtual void do_set_can_focus(bool focus);
 
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
     /// a custom manner.
     //* =====================================================================
-    virtual bool do_can_focus() const 
-    {
-        return container_->can_focus();
-    }
+    virtual bool do_can_focus() const;
     
     //* =====================================================================
     /// \brief Called by set_focus().  Derived classes must override this
     /// function in order to set the focus to this component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_focus() 
-    {
-        container_->set_focus();
-    }
+    virtual void do_set_focus();
     
     //* =====================================================================
     /// \brief Called by lose_focus().  Derived classes must override this
     /// function in order to lose the focus from this component in a
     /// custom manner.
     //* =====================================================================
-    virtual void do_lose_focus() 
-    {
-        container_->lose_focus();
-    }
+    virtual void do_lose_focus();
     
     //* =====================================================================
     /// \brief Called by focus_next().  Derived classes must override this
     /// function in order to move the focus in a custom manner.
     //* =====================================================================
-    virtual void do_focus_next() 
-    {
-        container_->focus_next();
-    }
+    virtual void do_focus_next();
     
     //* =====================================================================
     /// \brief Called by focus_previous().  Derived classes must override 
     /// this function in order to move the focus in a custom manner.
     //* =====================================================================
-    virtual void do_focus_previous() 
-    {
-        container_->focus_previous();
-    }
+    virtual void do_focus_previous();
     
     //* =====================================================================
     /// \brief Called by get_focussed_component().  Derived classes must
     /// override this function in order to return the focussed component
     /// in a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr<component_type> do_get_focussed_component() 
-    {
-        return container_->get_focussed_component();
-    }
+    virtual boost::shared_ptr<component> do_get_focussed_component();
     
     //* =====================================================================
     /// \brief Called by enable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
-    virtual void do_enable()
-    {
-        container_->enable();
-    }
+    virtual void do_enable();
     
     //* =====================================================================
     /// \brief Called by disable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
-    virtual void do_disable()
-    {
-        container_->disable();
-    }
+    virtual void do_disable();
     
     //* =====================================================================
     /// \brief Called by is_enabled().  Derived classes must override this
     /// function in order to return whether the component is disabled or not
     /// in a custom manner.
     //* =====================================================================
-    virtual bool do_is_enabled() const
-    {
-        return container_->is_enabled();
-    }
+    virtual bool do_is_enabled() const;
 
     //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
-    virtual bool do_get_cursor_state() const 
-    {
-        return container_->get_cursor_state();
-    }
+    virtual bool do_get_cursor_state() const;
     
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual point do_get_cursor_position() const 
-    {
-        return container_->get_cursor_position();
-    }
+    virtual point do_get_cursor_position() const;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -287,35 +196,28 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        canvas<element_type> &cvs
-      , rectangle const      &region) 
-    {
-        container_->draw(cvs, region);
-    }
+        canvas          &cvs
+      , rectangle const &region);
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 
     /// function in order to handle events in a custom manner.
     //* =====================================================================
-    virtual void do_event(boost::any const &event) 
-    {
-        container_->event(event);
-    }
+    virtual void do_event(boost::any const &event);
     
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.
     //* =====================================================================
     virtual void do_set_attribute(
-        std::string const &name, boost::any const &attr)
-    {
-        container_->set_attribute(name, attr);
-    }
+        std::string const &name, boost::any const &attr);
     
 private :
-    boost::shared_ptr<container_type> container_;
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
 };
 
 }
 
 #endif
+

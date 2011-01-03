@@ -30,33 +30,28 @@
 #include "odin/types.hpp"
 #include "munin/types.hpp"
 #include <boost/shared_ptr.hpp>
-#include <boost/any.hpp>
 
 namespace munin {
 
-template <class ElementType>
 class component;
-
-template <class ElementType>
 class container;
 
 //* =========================================================================
 /// \brief A class that knows how to lay components out in a container in
 /// a specified manner.
 //* =========================================================================
-template <class ElementType>
 class layout
 {
 public :
-    typedef component<ElementType> component_type;
-    typedef container<ElementType> container_type;
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    layout();
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~layout()
-    {
-    }
+    virtual ~layout();
 
     //* =====================================================================
     /// \brief Returns the preferred size of this layout.
@@ -65,19 +60,13 @@ public :
     /// if all components in it were at their preferred sizes.
     //* =====================================================================
     extent get_preferred_size(
-        boost::shared_ptr<container_type const> const &cont) const
-    {
-        return do_get_preferred_size(cont);
-    }
+        boost::shared_ptr<container const> const &cont) const;
     
     //* =====================================================================
     /// \brief Performs the laying out of the components that were added to
     /// this layout, within the context of the specified container.
     //* =====================================================================
-    void operator()(boost::shared_ptr<container_type> const &cont)
-    {
-        do_layout(cont);
-    }
+    void operator()(boost::shared_ptr<container> const &cont);
     
 protected :
     //* =====================================================================
@@ -86,7 +75,7 @@ protected :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        boost::shared_ptr<container_type const> const &cont) const = 0;
+        boost::shared_ptr<container const> const &cont) const = 0;
     
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this
@@ -94,9 +83,10 @@ protected :
     /// manner.
     //* =====================================================================
     virtual void do_layout(
-        boost::shared_ptr<container_type> const &cont) = 0;
+        boost::shared_ptr<container> const &cont) = 0;
 };
     
 }
 
 #endif
+

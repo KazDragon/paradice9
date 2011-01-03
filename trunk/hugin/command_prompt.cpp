@@ -25,10 +25,10 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "command_prompt.hpp"
-#include "munin/ansi/basic_container.hpp"
-#include "munin/ansi/edit.hpp"
-#include "munin/ansi/protocol.hpp"
+#include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
+#include "munin/edit.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
@@ -36,15 +36,10 @@
 #include <algorithm>
 #include <deque>
 
+using namespace munin;
 using namespace odin;
 using namespace boost;
 using namespace std;
-
-typedef munin::ansi::element_type                element_type;
-typedef munin::ansi::edit                        edit;
-typedef munin::text::document<element_type>      document;
-typedef munin::compass_layout<element_type>      compass_layout;
-typedef munin::composite_component<element_type> composite_component;
 
 BOOST_STATIC_CONSTANT(u32, MAX_HISTORY = 50);
 
@@ -68,7 +63,7 @@ struct command_prompt::impl
 // CONSTRUCTOR
 // ==========================================================================
 command_prompt::command_prompt()
-    : composite_component(make_shared<munin::ansi::basic_container>())
+    : composite_component(make_shared<basic_container>())
     ,  pimpl_(new impl)
 {
     pimpl_->edit_ = make_shared<edit>();
@@ -81,7 +76,7 @@ command_prompt::command_prompt()
 // ==========================================================================
 // GET_DOCUMENT
 // ==========================================================================
-shared_ptr<document> command_prompt::get_document()
+shared_ptr<munin::text::document> command_prompt::get_document()
 {
     return pimpl_->edit_->get_document();
 }
@@ -129,7 +124,7 @@ void command_prompt::do_event(any const &ev)
                 if (pimpl_->current_history_ == 0)
                 {
                     // Remember our current text in case we come back.
-                    pimpl_->current_text_ = document->get_text_line(0);
+                    pimpl_->current_text_ = document->get_line(0);
                 }
 
                 pimpl_->current_history_ = index;

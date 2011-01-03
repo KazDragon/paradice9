@@ -28,7 +28,6 @@
 #define HUGIN_USER_INTERFACE_HPP_
 
 #include "munin/composite_component.hpp"
-#include "munin/ansi/ansi_types.hpp"
 #include <odin/runtime_array.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -44,7 +43,7 @@ BOOST_STATIC_CONSTANT(std::string, FACE_MAIN  = "Main");
 /// application.
 //* =========================================================================
 class user_interface
-    : public munin::composite_component<munin::ansi::element_type>
+    : public munin::composite_component
 {
 public :
     //* =====================================================================
@@ -75,13 +74,13 @@ public :
     /// \brief Adds output to the output text area on the main screen.
     //* =====================================================================
     void add_output_text(
-        odin::runtime_array<munin::ansi::element_type> const &text);
+        odin::runtime_array<munin::element_type> const &text);
     
     //* =====================================================================
     /// \brief Sets the content of the status bar on the intro screen.
     //* =====================================================================
     void set_statusbar_text(
-        odin::runtime_array<munin::ansi::element_type> const &text);
+        odin::runtime_array<munin::element_type> const &text);
     
     //* =====================================================================
     /// \brief Updates the who list on the main screen.
@@ -108,7 +107,7 @@ public :
     /// \brief Sets the text contained in the Help window.
     //* =====================================================================
     void set_help_window_text(
-        odin::runtime_array<munin::ansi::element_type> const &text);
+        odin::runtime_array<munin::element_type> const &text);
 
 protected :
     //* =====================================================================

@@ -31,25 +31,20 @@
 
 namespace munin {
 
-template <class ElementType>
-class frame : public munin::basic_component<ElementType>
+static const std::string ATTRIBUTE_PEN = "Pen";
+
+class frame : public munin::basic_component
 {
 public :
     //* =====================================================================
     /// \brief Retrieves the height of the frame.
     //* =====================================================================
-    odin::u32 get_frame_height() const
-    {
-        return do_get_frame_height();
-    }
+    odin::u32 get_frame_height() const;
 
     //* =====================================================================
     /// \brief Retreives the width of the frame.
     //* =====================================================================
-    odin::u32 get_frame_width() const
-    {
-        return do_get_frame_width();
-    }
+    odin::u32 get_frame_width() const;
 
 protected :
     //* =====================================================================
@@ -57,11 +52,7 @@ protected :
     /// function in order to return whether this component can be focused in
     /// a custom manner.
     //* =====================================================================
-    virtual bool do_can_focus() const
-    {
-        // By default, a frame cannot receive focus.
-        return false;
-    }
+    virtual bool do_can_focus() const;
 
     //* =====================================================================
     /// \brief Called by get_frame_width().  Derived classes must override 

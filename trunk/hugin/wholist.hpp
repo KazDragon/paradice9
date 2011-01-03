@@ -27,7 +27,6 @@
 #ifndef HUGIN_WHOLIST_HPP_
 #define HUGIN_WHOLIST_HPP_
 
-#include "munin/ansi/ansi_types.hpp"
 #include "munin/basic_component.hpp"
 #include "odin/runtime_array.hpp"
 #include <string>
@@ -38,7 +37,7 @@ namespace hugin {
 /// \brief An abstraction of a tabular list of names
 //* =========================================================================
 class wholist
-    : public munin::basic_component<munin::ansi::element_type>
+    : public munin::basic_component
 {
 public :
     //* =====================================================================
@@ -76,8 +75,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        munin::canvas<munin::ansi::element_type> &cvs
-      , munin::rectangle const                   &region);
+        munin::canvas          &cvs
+      , munin::rectangle const &region);
     
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

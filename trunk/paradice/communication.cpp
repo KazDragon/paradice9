@@ -38,9 +38,11 @@
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 
-using namespace std;
-using namespace boost;
+using namespace munin::ansi;
+using namespace munin;
 using namespace odin;
+using namespace boost;
+using namespace std;
 
 namespace paradice {
     
@@ -51,15 +53,15 @@ void send_to_all(
     shared_ptr<context> &ctx
   , string const        &text)
 {
-    send_to_all(ctx, munin::ansi::elements_from_string(text));
+    send_to_all(ctx, elements_from_string(text));
 }
 
 // ==========================================================================
 // SEND_TO_ALL
 // ==========================================================================
 void send_to_all(
-    shared_ptr<context>                            &ctx
-  , runtime_array<munin::ansi::element_type> const &text)
+    shared_ptr<context>               &ctx
+  , runtime_array<element_type> const &text)
 {
     BOOST_AUTO(clients, ctx->get_clients());
     
@@ -77,16 +79,16 @@ void send_to_player(
   , string const        &text
   , shared_ptr<client>  &conn)
 {
-    send_to_player(ctx, munin::ansi::elements_from_string(text), conn);
+    send_to_player(ctx, elements_from_string(text), conn);
 }
 
 // ==========================================================================
 // SEND_TO_PLAYER
 // ==========================================================================
 void send_to_player(
-    shared_ptr<context>                            &ctx
-  , runtime_array<munin::ansi::element_type> const &text
-  , shared_ptr<client>                             &conn)
+    shared_ptr<context>               &ctx
+  , runtime_array<element_type> const &text
+  , shared_ptr<client>                &conn)
 {
     conn->get_user_interface()->add_output_text(text);
 }
@@ -99,16 +101,16 @@ void send_to_room(
   , string const        &text 
   , shared_ptr<client>  &conn)
 {
-    send_to_room(ctx, munin::ansi::elements_from_string(text), conn);
+    send_to_room(ctx, elements_from_string(text), conn);
 }
 
 // ==========================================================================
 // SEND_TO_ROOM
 // ==========================================================================
 void send_to_room(
-    shared_ptr<context> &ctx
-  , runtime_array<munin::ansi::element_type> const &text
-  , shared_ptr<client>  &conn)
+    shared_ptr<context>               &ctx
+  , runtime_array<element_type> const &text
+  , shared_ptr<client>                &conn)
 {
     BOOST_AUTO(clients, ctx->get_clients());
     

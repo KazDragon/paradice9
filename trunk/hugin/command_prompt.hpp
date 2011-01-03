@@ -27,9 +27,8 @@
 #ifndef HUGIN_COMMAND_PROMPT_HPP_
 #define HUGIN_COMMAND_PROMPT_HPP_
 
-#include "munin/ansi/ansi_types.hpp"
-#include "munin/text/document.hpp"
 #include "munin/composite_component.hpp"
+#include "munin/text/document.hpp"
 #include <string>
 
 namespace hugin {
@@ -38,7 +37,7 @@ namespace hugin {
 /// \brief An abstraction of a tabular list of names
 //* =========================================================================
 class command_prompt
-    : public munin::composite_component<munin::ansi::element_type>
+    : public munin::composite_component
 {
 public :
     //* =====================================================================
@@ -49,8 +48,7 @@ public :
     //* =====================================================================
     /// \brief Retrieves the document that models this command prompt.
     //* =====================================================================
-    boost::shared_ptr< munin::text::document<munin::ansi::element_type> >
-        get_document();
+    boost::shared_ptr<munin::text::document> get_document();
 
     //* =====================================================================
     /// \brief Adds a history element to the command prompt

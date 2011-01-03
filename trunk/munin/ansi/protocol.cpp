@@ -43,13 +43,11 @@ runtime_array<element_type> elements_from_string(
     string const &source_line
   , attribute     attr)
 {
-    runtime_array<munin::ansi::element_type> dest_line(source_line.size());
+    runtime_array<munin::element_type> dest_line(source_line.size());
     
     for (u32 index = 0; index < source_line.size(); ++index)
     {
-        dest_line[index] = munin::ansi::element_type(
-            source_line[index]
-          , attr);
+        dest_line[index] = munin::element_type(source_line[index], attr);
     }
     
     return dest_line;
@@ -59,7 +57,7 @@ runtime_array<element_type> elements_from_string(
 // STRING_FROM_ELEMENTS
 // ==========================================================================
 string string_from_elements(
-    runtime_array<munin::ansi::element_type> const &elements)
+    runtime_array<munin::element_type> const &elements)
 {
     string text(elements.size(), ' ');
     

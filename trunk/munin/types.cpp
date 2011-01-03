@@ -25,10 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/types.hpp"
+#include <boost/format.hpp>
 #include <iostream>
 
-using namespace std;
 using namespace odin;
+using namespace boost;
+using namespace std;
 
 namespace munin {
     
@@ -236,6 +238,31 @@ bool operator!=(rectangle const &lhs, rectangle const &rhs)
 ostream &operator<<(ostream &out, rectangle const &rect)
 {
     out << "rectangle[" << rect.origin << ", " << rect.size << "]";
+    return out;
+}
+
+// ==========================================================================
+// OSTREAM << ELEMENT_TYPE
+// ==========================================================================
+ostream &operator<<(ostream &out, element_type const &element)
+{
+    out << "element['";
+    
+    if (isprint(element.first))
+    {
+        out << element.first;
+    }
+    else
+    {
+        out << format("0x%02X") % int((unsigned char)(element.first));
+    }
+    
+    out << "', ";
+    
+    out << element.second;
+    
+    out << "]";
+    
     return out;
 }
 

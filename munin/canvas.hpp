@@ -27,7 +27,9 @@
 #ifndef MUNIN_CANVAS_HPP_
 #define MUNIN_CANVAS_HPP_
 
+#include "munin/types.hpp"
 #include "odin/types.hpp"
+#include <boost/shared_ptr.hpp>
 #include <utility>
 
 namespace munin {
@@ -35,75 +37,51 @@ namespace munin {
 //* =========================================================================
 /// \brief An object onto which components can draw themselves.
 //* =========================================================================
-template <class ElementType>
 class canvas
 {
 public :
-    typedef ElementType element_type;
-    
-    // COLUMN_PROXY =========================================================
-    // ======================================================================
-    class column_proxy
+    //* =====================================================================
+    /// \brief A proxy into a row of elements on the canvas
+    //* =====================================================================
+    class row_proxy
     {
-        // ROW_PROXY ========================================================
-        // ==================================================================
-        class row_proxy
-        {
-        public :
-            // ==============================================================
-            // CONSTRUCTOR
-            // ==============================================================
-            row_proxy(
-                canvas    &canvas
-              , odin::s32 column
-              , odin::s32 row)
-                : canvas_(canvas)
-                , column_(column)
-                , row_(row)
-            {
-            }
-            
-            // ==============================================================
-            // OPERATOR=
-            // ==============================================================
-            void operator=(element_type value)
-            {
-                canvas_.set_value(column_, row_, value);
-            }
-            
-            // ==============================================================
-            // CONVERSION OPERATOR: ELEMENT TYPE
-            // ==============================================================
-            operator element_type()
-            {
-                return canvas_.get_value(column_, row_);
-            }
-            
-        private :
-            canvas    &canvas_;
-            odin::s32  column_;
-            odin::s32  row_;
-        };
-        
     public :
         // ==================================================================
         // CONSTRUCTOR
         // ==================================================================
-        column_proxy(
-            canvas    &canvas
-          , odin::s32  column)
-            : canvas_(canvas)
-            , column_(column)
-        {
-        }
+        row_proxy(canvas &canvas, odin::s32 column, odin::s32 row);
+        
+        // ==================================================================
+        // OPERATOR=
+        // ==================================================================
+        void operator=(element_type value);
+        
+        // ==================================================================
+        // CONVERSION OPERATOR: ELEMENT TYPE
+        // ==================================================================
+        operator element_type();
+        
+    private :
+        canvas    &canvas_;
+        odin::s32  column_;
+        odin::s32  row_;
+    };
+    
+    //* =====================================================================
+    /// \brief A proxy into a column of elements on the canvas
+    //* =====================================================================
+    class column_proxy
+    {
+    public :
+        // ==================================================================
+        // CONSTRUCTOR
+        // ==================================================================
+        column_proxy(canvas &canvas, odin::s32  column);
             
         // ==================================================================
         // OPERATOR[]
         // ==================================================================
-        row_proxy operator[](odin::s32 row)
-        {
-            return row_proxy(canvas_, column_, row);
-        }
+        row_proxy operator[](odin::s32 row);
         
     private :
         canvas    &canvas_;
@@ -111,56 +89,56 @@ public :
     };
     
     // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    canvas();
+    
+    // ======================================================================
+    // COPY CONSTRUCTOR
+    // ======================================================================
+    canvas(canvas const &other);
+    
+    // ======================================================================
+    // OPERATOR=
+    // ======================================================================
+    canvas &operator=(canvas const &other);
+    
+    // ======================================================================
+    // OPERATOR==
+    // ======================================================================
+    bool operator==(canvas const &other) const;
+    
+    // ======================================================================
     // DESTRUCTOR
     // ======================================================================
-    virtual ~canvas()
-    {
-    }
+    virtual ~canvas();
     
     // ======================================================================
     // OPERATOR[]
     // ======================================================================
-    column_proxy operator[](odin::s32 column)
-    {
-        return column_proxy(*this, column);
-    }
+    column_proxy operator[](odin::s32 column);
     
     // ======================================================================
-    // OFFSET_CANVAS
+    // SET_SIZE
     // ======================================================================
-    void apply_offset(odin::s32 columns, odin::s32 rows)
-    {
-        do_apply_offset(columns, rows);
-    }
+    void set_size(extent const &size);
+    
+    // ======================================================================
+    // GET_SIZE
+    // ======================================================================
+    extent get_size() const;
+    
+    // ======================================================================
+    // APPLY_OFFSET
+    // ======================================================================
+    void apply_offset(odin::s32 columns, odin::s32 rows);
     
 private :
-    //* =====================================================================
-    /// \brief Sets the value and attribute at the specified coordinates on
-    /// the canvas.
-    //* =====================================================================
-    virtual void set_value(
-        odin::s32    column
-      , odin::s32    row
-      , element_type value) = 0; 
-
-    //* =====================================================================
-    /// \brief Retrieves the value and attribute at the specified coordinates
-    /// on the canvas.
-    //* =====================================================================
-    virtual element_type get_value(
-        odin::s32 column
-      , odin::s32 row) const = 0;
-
-    //* =====================================================================
-    /// \brief Offsets the canvas.
-    /// Offsets the canvas so that drawing operations take place at a new
-    /// location.  For example, if a canvas is offset by (1, 2) and
-    /// receives a set_value(3, 4, x), then this will be identical to a
-    /// set_value(4, 6, x) of an unoffset canvas.  Offsets are cumulative.
-    //* =====================================================================
-    virtual void do_apply_offset(odin::s32 columns, odin::s32 rows) = 0;
+    class impl;
+    boost::shared_ptr<impl> pimpl_;
 };
     
 }
 
 #endif
+

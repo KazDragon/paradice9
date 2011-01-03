@@ -38,9 +38,9 @@ namespace boost { namespace asio {
     class io_service;
 }}
 
-namespace munin { namespace ansi {
+namespace munin {
     class window;
-}}
+}
 
 namespace paradice {
 
@@ -68,7 +68,7 @@ public :
     //* =====================================================================
     /// \brief Returns the window that this connection maintains.
     //* =====================================================================
-    boost::shared_ptr<munin::ansi::window> get_window();
+    boost::shared_ptr<munin::window> get_window();
 
     //* =====================================================================
     /// \brief Set a function to be called when the window size changes.

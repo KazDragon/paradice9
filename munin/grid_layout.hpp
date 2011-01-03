@@ -28,10 +28,6 @@
 #define MUNIN_GRID_LAYOUT_HPP_
 
 #include "munin/layout.hpp"
-#include <boost/shared_ptr.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <algorithm>
-#include <vector>
 
 namespace munin {
 
@@ -41,25 +37,21 @@ namespace munin {
 /// Components added to the grid will be displayed left-to-right, top-to-
 /// bottom.
 //* =========================================================================
-template <class ElementType>
-class grid_layout : public layout<ElementType>
+class grid_layout : public layout
 {
 public :
-    typedef layout<ElementType> parent_type;
-    typedef typename parent_type::component_type component_type;
-    typedef typename parent_type::container_type container_type;
-
     //* =====================================================================
     /// \brief Constructor
     /// \param rows The number of rows in this grid.
     /// \param columns The number of columns in this grid.
     //* =====================================================================
-    grid_layout(odin::u32 rows, odin::u32 columns)
-        : rows_(rows)
-        , columns_(columns)
-    {
-    }
+    grid_layout(odin::u32 rows, odin::u32 columns);
 
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~grid_layout();
+    
 protected :
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
@@ -67,73 +59,21 @@ protected :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        boost::shared_ptr< munin::container<ElementType> const> const &cont) const
-    {
-        // The preferred size of the whole component is the maximum preferred
-        // width and the maximum preferred height of all components, 
-        // multiplied appropriately by the rows and columns
-        extent maximum_preferred_size(0, 0);
-
-        for (odin::u32 index = 0;
-             index < cont->get_number_of_components();
-             ++index)
-        {
-            BOOST_AUTO(comp,           cont->get_component(index));
-            BOOST_AUTO(preferred_size, comp->get_preferred_size());
-
-            maximum_preferred_size.width = (std::max)(
-                maximum_preferred_size.width
-              , preferred_size.width);
-
-            maximum_preferred_size.height = (std::max)(
-                maximum_preferred_size.height
-              , preferred_size.height);
-        }
-        
-        maximum_preferred_size.width  *= columns_;
-        maximum_preferred_size.height *= rows_;
-
-        return maximum_preferred_size;
-    }
+        boost::shared_ptr<container const> const &cont) const;
     
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this
     /// function in order to lay a container's components out in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_layout(
-        boost::shared_ptr<container_type> const &cont)
-    {
-        munin::extent size = cont->get_size();
-
-        for (odin::u32 index = 0;
-             index < cont->get_number_of_components();
-             ++index)
-        {
-            BOOST_AUTO(comp, cont->get_component(index));
-
-            // Work out the row/column of the current component.
-            odin::u32 row    = index / columns_;
-            odin::u32 column = index % columns_;
-
-            // Naive: will have missing pixels and off-by-one errors
-            comp->set_position(
-                munin::point(
-                    (size.width / columns_) * column
-                  , (size.height / rows_) * row));
-
-            comp->set_size(
-                munin::extent(
-                    size.width  / columns_
-                  , size.height / rows_));
-        }
-    }
-
-private :    
-    odin::u32 rows_;
-    odin::u32 columns_;
+    virtual void do_layout(boost::shared_ptr<container> const &cont);
+    
+private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
 };
     
 }
 
 #endif
+

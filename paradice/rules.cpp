@@ -37,9 +37,11 @@
 #include <map>
 #include <vector>
 
-using namespace std;
-using namespace boost;
+using namespace munin::ansi;
+using namespace munin;
 using namespace odin;
+using namespace boost;
+using namespace std;
 
 namespace paradice {
 
@@ -149,8 +151,6 @@ PARADICE_COMMAND_IMPL(roll)
         return;
     }
 
-    using namespace munin::ansi;
-    
     attribute normal_pen;
     attribute max_roll_pen;
     attribute total_pen;
@@ -160,13 +160,13 @@ PARADICE_COMMAND_IMPL(roll)
     
     total_pen.intensity = odin::ansi::graphics::INTENSITY_BOLD;
     
-    runtime_array<munin::ansi::element_type> total_description;    
-    s32                                      total_score = 0;
+    runtime_array<element_type> total_description;    
+    s32                         total_score = 0;
     
     for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
     {
-        runtime_array<munin::ansi::element_type> roll_description;
-        s32                                      total = dice_roll.bonus_;
+        runtime_array<element_type> roll_description;
+        s32                         total = dice_roll.bonus_;
 
         for (u32 current_roll = 0; 
              current_roll < dice_roll.amount_; 
@@ -242,7 +242,7 @@ PARADICE_COMMAND_IMPL(roll)
         }
     }
 
-    runtime_array<munin::ansi::element_type> player_output;
+    runtime_array<element_type> player_output;
     player_output += elements_from_string(
         str(format("You roll %dd%d%s%d %s%sand score ")
             % dice_roll.amount_
@@ -271,7 +271,7 @@ PARADICE_COMMAND_IMPL(roll)
     
     send_to_player(ctx, player_output, player);
 
-    runtime_array<munin::ansi::element_type> room_output;
+    runtime_array<element_type> room_output;
     room_output += elements_from_string(
         player->get_name()
       , normal_pen);
@@ -360,8 +360,6 @@ PARADICE_COMMAND_IMPL(rollprivate)
         return;
     }
 
-    using namespace munin::ansi;
-    
     attribute normal_pen;
     attribute max_roll_pen;
     attribute total_pen;
@@ -371,13 +369,13 @@ PARADICE_COMMAND_IMPL(rollprivate)
     
     total_pen.intensity = odin::ansi::graphics::INTENSITY_BOLD;
     
-    runtime_array<munin::ansi::element_type> total_description;    
-    s32                                      total_score = 0;
+    runtime_array<element_type> total_description;    
+    s32                         total_score = 0;
     
     for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
     {
-        runtime_array<munin::ansi::element_type> roll_description;
-        s32                                      total = dice_roll.bonus_;
+        runtime_array<element_type> roll_description;
+        s32                         total = dice_roll.bonus_;
 
         for (u32 current_roll = 0; 
              current_roll < dice_roll.amount_; 
@@ -435,7 +433,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
         total_score += total;
     }
 
-    runtime_array<munin::ansi::element_type> player_output;
+    runtime_array<element_type> player_output;
     player_output += elements_from_string(
         str(format("You roll privately %dd%d%s%d %sand score ")
             % dice_roll.amount_

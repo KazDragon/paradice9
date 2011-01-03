@@ -49,8 +49,8 @@ void send_to_all(
 /// \brief Send a text message to all connected players.
 //* =========================================================================
 void send_to_all(
-    boost::shared_ptr<context>                           &ctx
-  , odin::runtime_array<munin::ansi::element_type> const &text);
+    boost::shared_ptr<context>                     &ctx
+  , odin::runtime_array<munin::element_type> const &text);
 
 //* =========================================================================
 /// \brief Send a text message to a single player.
@@ -64,9 +64,9 @@ void send_to_player(
 /// \brief Send a text message to a single player.
 //* =========================================================================
 void send_to_player(
-    boost::shared_ptr<context>                           &ctx
-  , odin::runtime_array<munin::ansi::element_type> const &text
-  , boost::shared_ptr<client>                            &player);
+    boost::shared_ptr<context>                     &ctx
+  , odin::runtime_array<munin::element_type> const &text
+  , boost::shared_ptr<client>                      &player);
  
 //* =========================================================================
 /// \brief Send a text message to all players in the same room as player,
@@ -82,9 +82,9 @@ void send_to_room(
 /// but not to player.
 //* =========================================================================
 void send_to_room(
-    boost::shared_ptr<context>                           &ctx
-  , odin::runtime_array<munin::ansi::element_type> const &text
-  , boost::shared_ptr<client>                            &player);
+    boost::shared_ptr<context>                     &ctx
+  , odin::runtime_array<munin::element_type> const &text
+  , boost::shared_ptr<client>                      &player);
 
 PARADICE_COMMAND_DECL(say);
 PARADICE_COMMAND_DECL(whisper);

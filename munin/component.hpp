@@ -35,34 +35,27 @@
 
 namespace munin {
     
-template <class ElementType>
-class container;
-
-template <class ElementType>
 class canvas;
+class container;
 
 //* =========================================================================
 /// \brief An object capable of being drawn on a canvas.
 /// \par
 /// A component is a fundamental piece of the munin architecture and is the
-/// base class for anything that is capable of being drawn in some way.  It
-/// is closely attached to its canvas, with which it shares an
-/// ElementType.  This type is the fundamental graphical unit, which could 
-/// be a coloured pixel, or an attributed character, or something else. 
+/// base class for anything that is capable of being drawn in some way. 
 //* =========================================================================
-template <class ElementType>
 class component
 {
 public :
-    typedef ElementType            element_type;
-    typedef component<ElementType> component_type;
-
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    component();
+    
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~component()
-    {
-    }
+    virtual ~component();
     
     //* =====================================================================
     /// \brief Sets the position of this component.  This does not cause a
@@ -70,18 +63,12 @@ public :
     /// a layout manager) knows about it, and is better informed about all
     /// regions redrawn.
     //* =====================================================================
-    void set_position(point const &position)
-    {
-        do_set_position(position);
-    }
+    void set_position(point const &position);
     
     //* =====================================================================
     /// \brief Retrieve the position of this component.
     //* =====================================================================
-    point get_position() const
-    {
-        return do_get_position();
-    }
+    point get_position() const;
     
     //* =====================================================================
     /// \brief Sets the size of this component.  This does not cause a
@@ -90,18 +77,12 @@ public :
     /// regions redrawn.  It does, however, inform an active layout to lay
     /// the components out.
     //* =====================================================================
-    void set_size(extent const &size)
-    {
-        do_set_size(size);
-    }
+    void set_size(extent const &size);
 
     //* =====================================================================
     /// \brief Retreives the size of this component.
     //* =====================================================================
-    extent get_size() const
-    {
-        return do_get_size();
-    }
+    extent get_size() const;
     
     //* =====================================================================
     /// \brief Retrieves the preferred size of this component.
@@ -115,50 +96,32 @@ public :
     /// \endcode
     /// would be (15, 2).
     //* =====================================================================
-    extent get_preferred_size() const
-    {
-        return do_get_preferred_size();
-    }
+    extent get_preferred_size() const;
     
     //* =====================================================================
     /// \brief Returns whether this component currently has focus.
     //* =====================================================================
-    bool has_focus() const
-    {
-        return do_has_focus();
-    }
+    bool has_focus() const;
     
     //* =====================================================================
     /// \brief Sets whether this component can take focus.
     //* =====================================================================
-    void set_can_focus(bool focus)
-    {
-        do_set_can_focus(focus);
-    }
+    void set_can_focus(bool focus);
     
     //* =====================================================================
     /// \brief Returns whether this component can be focused.
     //* =====================================================================
-    bool can_focus() const
-    {
-        return do_can_focus();
-    }
+    bool can_focus() const;
 
     //* =====================================================================
     /// \brief Sets this component to have the focus.
     //* =====================================================================
-    void set_focus()
-    {
-        do_set_focus();
-    }
+    void set_focus();
     
     //* =====================================================================
     /// \brief Causes this component to lose its focus.
     //* =====================================================================
-    void lose_focus()
-    {
-        do_lose_focus();
-    }
+    void lose_focus();
     
     //* =====================================================================
     /// \brief If this component has subcomponents, causes the component to
@@ -166,10 +129,7 @@ public :
     /// subcomponent.  If it is a leaf component, then it toggles its focus,
     /// simulating a container with one element.
     //* =====================================================================
-    void focus_next()
-    {
-        do_focus_next();
-    }
+    void focus_next();
     
     //* =====================================================================
     /// \brief If this component has subcomponents, causes the component to
@@ -177,69 +137,45 @@ public :
     /// previous subcomponent.  If it is a leaf component, then it toggles 
     /// its focus, simulating a container with one element.
     //* =====================================================================
-    void focus_previous()
-    {
-        do_focus_previous();
-    }
+    void focus_previous();
     
     //* =====================================================================
     /// \brief Returns component with focus at the deepest part of the
     /// component heirarchy, or an empty shared_ptr<> if no component has
     /// focus.
     //* =====================================================================
-    boost::shared_ptr<component_type> get_focussed_component()
-    {
-        return do_get_focussed_component();
-    }
+    boost::shared_ptr<component> get_focussed_component();
     
     //* =====================================================================
     /// \brief Enables the component.
     //* =====================================================================
-    void enable()
-    {
-        do_enable();
-    }
+    void enable();
     
     //* =====================================================================
     /// \brief Disables the component.
     //* =====================================================================
-    void disable()
-    {
-        do_disable();
-    }
+    void disable();
     
     //* =====================================================================
     /// \brief Returns whether the component is enabled or not.
     //* =====================================================================
-    bool is_enabled() const
-    {
-        return do_is_enabled();
-    }
+    bool is_enabled() const;
     
     //* =====================================================================
     /// \brief Returns true if this component has a visible cursor, false
     /// otherwise.
     //* =====================================================================
-    bool get_cursor_state() const
-    {
-        return do_get_cursor_state();
-    }
+    bool get_cursor_state() const;
     
     //* =====================================================================
     /// \brief Returns the cursor's current position within the component.
     //* =====================================================================
-    point get_cursor_position() const
-    {
-        return do_get_cursor_position();
-    }
+    point get_cursor_position() const;
     
     //* =====================================================================
     /// \brief Sets an implementation-specific attribute of the component.
     //* =====================================================================
-    void set_attribute(std::string const &name, boost::any const &attr)
-    {
-        do_set_attribute(name, attr);
-    }
+    void set_attribute(std::string const &name, boost::any const &attr);
     
     //* =====================================================================
     /// \brief Draws the component.
@@ -249,21 +185,15 @@ public :
     /// should be drawn.
     //* =====================================================================
     void draw(
-        canvas<element_type> &cvs
-      , rectangle const      &region)
-    {
-        do_draw(cvs, region);
-    }
+        canvas          &cvs
+      , rectangle const &region);
     
     //* =====================================================================
     /// \brief Send an event to the component.  This may be of any type.
     /// A component must specify the types of messages it may receive and
     /// what it will do with it.
     //* =====================================================================
-    void event(boost::any const &event)
-    {
-        do_event(event);
-    }
+    void event(boost::any const &event);
     
     //* =====================================================================
     /// \fn on_redraw
@@ -412,7 +342,7 @@ protected :
     /// override this function in order to return the focussed component
     /// in a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr<component_type> do_get_focussed_component() = 0;
+    virtual boost::shared_ptr<component> do_get_focussed_component() = 0;
     
     //* =====================================================================
     /// \brief Called by enable().  Derived classes must override this
@@ -463,8 +393,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        canvas<element_type> &cvs
-      , rectangle const      &region) = 0;
+        canvas          &cvs
+      , rectangle const &region) = 0;
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

@@ -29,9 +29,6 @@
 
 #include "munin/component.hpp"
 #include <boost/enable_shared_from_this.hpp>
-#include <boost/weak_ptr.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <map>
 
 namespace munin {
 
@@ -39,26 +36,20 @@ namespace munin {
 /// \brief A default implementation of a component.  Only do_draw()
 /// do_get_preferred_size() and do_event() remain unimplemented.
 //* =========================================================================
-template <class ElementType>
 class basic_component 
-    : public component<ElementType>
-    , public boost::enable_shared_from_this< basic_component<ElementType> >
+    : public component
+    , public boost::enable_shared_from_this<basic_component>
 {
 public :
-    typedef ElementType                    element_type;
-    typedef munin::component<element_type> component_type;
-    
-    
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    basic_component()
-        : bounds_(point(0, 0), extent(0, 0))
-        , can_focus_(true)
-        , has_focus_(false)
-        , enabled_(true)
-    {
-    }
+    basic_component();
+    
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~basic_component();
     
 protected :
     //* =====================================================================
@@ -66,231 +57,133 @@ protected :
     /// function in order to set the position of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_position(point const &position)
-    {
-        point old_position = bounds_.origin;
-        bounds_.origin = position;
-        
-        this->on_position_changed(old_position, position);
-    }
+    virtual void do_set_position(point const &position);
     
     //* =====================================================================
     /// \brief Called by get_position().  Derived classes must override this
     /// function in order to get the position of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual point do_get_position() const
-    {
-        return bounds_.origin;
-    }
+    virtual point do_get_position() const;
     
     //* =====================================================================
     /// \brief Called by set_size().  Derived classes must override this 
     /// function in order to set the size of the component in a custom 
     /// manner.
     //* =====================================================================
-    virtual void do_set_size(extent const &size)
-    {
-        bounds_.size = size;
-    }
+    virtual void do_set_size(extent const &size);
 
     //* =====================================================================
     /// \brief Called by get_size().  Derived classes must override this
     /// function in order to get the size of the component in a custom 
     /// manner.
     //* =====================================================================
-    virtual extent do_get_size() const
-    {
-        return bounds_.size;
-    }
+    virtual extent do_get_size() const;
 
     //* =====================================================================
     /// \brief Called by set_can_focus().  Derived classes must override this
     /// function in order to set whether this component can be focussed in
     /// a custom manner.
     //* =====================================================================
-    virtual void do_set_can_focus(bool focus)
-    {
-        can_focus_ = focus;
-    }
+    virtual void do_set_can_focus(bool focus);
 
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
     /// a custom manner.
     //* =====================================================================
-    virtual bool do_can_focus() const
-    {
-        return can_focus_;
-    }
+    virtual bool do_can_focus() const;
 
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
     /// custom manner.
     //* =====================================================================
-    virtual bool do_has_focus() const
-    {
-        return has_focus_;
-    }
+    virtual bool do_has_focus() const;
     
     //* =====================================================================
     /// \brief Called by set_focus().  Derived classes must override this
     /// function in order to set the focus to this component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_focus()
-    {
-        if (this->can_focus())
-        {
-            has_focus_ = true;
-            this->on_focus_set();
-        }
-    }
+    virtual void do_set_focus();
     
     //* =====================================================================
     /// \brief Called by lose_focus().  Derived classes must override this
     /// function in order to lose the focus from this component in a
     /// custom manner.
     //* =====================================================================
-    virtual void do_lose_focus()
-    {
-        has_focus_ = false;
-        this->on_focus_lost();
-    }
-
-    // ======================================================================
-    // TOGGLE_FOCUS
-    // ======================================================================
-    void toggle_focus()
-    {
-        if (has_focus_)
-        {
-            has_focus_ = false;
-            this->on_focus_lost();
-        }
-        else
-        {
-            has_focus_ = true;
-            this->on_focus_set();
-        }
-    }
+    virtual void do_lose_focus();
 
     //* =====================================================================
     /// \brief Called by focus_next().  Derived classes must override this
     /// function in order to move the focus in a custom manner.
     //* =====================================================================
-    virtual void do_focus_next()
-    {
-        toggle_focus();
-    }
+    virtual void do_focus_next();
     
     //* =====================================================================
     /// \brief Called by focus_previous().  Derived classes must override 
     /// this function in order to move the focus in a custom manner.
     //* =====================================================================
-    virtual void do_focus_previous()
-    {
-        toggle_focus();
-    }
+    virtual void do_focus_previous();
 
     //* =====================================================================
     /// \brief Called by get_focussed_component().  Derived classes must
     /// override this function in order to return the focussed component
     /// in a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr<component_type> do_get_focussed_component()
-    {
-        return has_focus_
-             ? boost::shared_ptr<component_type>(this->shared_from_this())
-             : boost::shared_ptr<component_type>();
-    }
+    virtual boost::shared_ptr<component> do_get_focussed_component();
 
     //* =====================================================================
     /// \brief Called by enable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
-    virtual void do_enable()
-    {
-        enabled_ = true;
-    }
+    virtual void do_enable();
     
     //* =====================================================================
     /// \brief Called by disable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
-    virtual void do_disable()
-    {
-        enabled_ = false;
-    }
+    virtual void do_disable();
     
     //* =====================================================================
     /// \brief Called by is_enabled().  Derived classes must override this
     /// function in order to return whether the component is disabled or not
     /// in a custom manner.
     //* =====================================================================
-    virtual bool do_is_enabled() const
-    {
-        return enabled_;
-    }
+    virtual bool do_is_enabled() const;
 
     //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
-    virtual bool do_get_cursor_state() const
-    {
-        // By default, a component has no cursor.
-        return false;
-    }
+    virtual bool do_get_cursor_state() const;
 
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual point do_get_cursor_position() const
-    {
-        // By default, a component has no cursor, so we choose a sentry
-        // value of (0,0) for its non-existent location.
-        point position;
-        position.x = 0;
-        position.y = 0;
-        
-        return position;
-    }
+    virtual point do_get_cursor_position() const;
     
     //* =====================================================================
     /// \brief Returns an attribute with a specified name.
     //* =====================================================================
-    boost::any get_attribute(std::string const &name) const
-    {
-        BOOST_AUTO(attr_iterator, attributes_.find(name));
-        
-        return attr_iterator == attributes_.end()
-             ? boost::any()
-             : *attr_iterator;
-    }
+    boost::any get_attribute(std::string const &name) const;
     
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.
     //* =====================================================================
     virtual void do_set_attribute(
-        std::string const &name, boost::any const &attr)
-    {
-        attributes_[name] = attr;
-    }
+        std::string const &name, boost::any const &attr);
     
 private :
-    std::map<std::string, boost::any> attributes_;
-    rectangle                         bounds_;
-    bool                              can_focus_;
-    bool                              has_focus_;
-    bool                              enabled_;
-    
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
 };
     
 }
 
 #endif
+

@@ -27,40 +27,28 @@
 #include "user_interface.hpp"
 #include "hugin/command_prompt.hpp"
 #include "hugin/wholist.hpp"
-#include "munin/ansi/basic_container.hpp"
-#include "munin/ansi/edit.hpp"
-#include "munin/ansi/frame.hpp"
-#include "munin/ansi/framed_component.hpp"
-#include "munin/ansi/image.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "munin/ansi/text_area.hpp"
 #include "munin/aligned_layout.hpp"
-#include "munin/grid_layout.hpp"
+#include "munin/ansi/protocol.hpp"
+#include "munin/basic_container.hpp"
 #include "munin/card.hpp"
 #include "munin/compass_layout.hpp"
+#include "munin/edit.hpp"
+#include "munin/framed_component.hpp"
+#include "munin/grid_layout.hpp"
+#include "munin/image.hpp"
+#include "munin/solid_frame.hpp"
+#include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
+using namespace munin::ansi;
+using namespace munin;
 using namespace odin;
 using namespace boost;
 using namespace std;
-
-typedef munin::ansi::element_type                    element_type;
-typedef munin::component<element_type>               component;
-typedef munin::container<element_type>               container;
-typedef munin::card<element_type>                    card;
-typedef munin::aligned_layout<element_type>          aligned_layout;
-typedef munin::compass_layout<element_type>          compass_layout;
-typedef munin::grid_layout<element_type>             grid_layout;
-typedef munin::vertical_squeeze_layout<element_type> vertical_squeeze_layout; 
-typedef munin::ansi::basic_container                 basic_container;
-typedef munin::ansi::edit                            edit;
-typedef munin::ansi::image                           image;
-typedef munin::ansi::text_area                       text_area;
-typedef munin::ansi::frame                           frame;
-typedef munin::ansi::framed_component                framed_component;
 
 namespace hugin {
 
@@ -104,26 +92,23 @@ struct user_interface::impl
 
         BOOST_AUTO(
             greetings_image
-          , make_shared<image>(munin::ansi::image_from_text(main_image)));
+          , make_shared<image>(image_from_text(main_image)));
         image_container->add_component(greetings_image);
 
-        inner_content->add_component(
-            image_container
-          , munin::COMPASS_LAYOUT_CENTRE);
+        inner_content->add_component(image_container, COMPASS_LAYOUT_CENTRE);
 
         string name_label_elements[] = { "Name: " };
 
         BOOST_AUTO(
             name_label
-          , make_shared<image>(
-                munin::ansi::image_from_text(name_label_elements)));
+          , make_shared<image>(image_from_text(name_label_elements)));
 
         BOOST_AUTO(name_container, make_shared<basic_container>());
         name_container->set_layout(make_shared<aligned_layout>());
 
-        munin::alignment_data alignment;
-        alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
-        alignment.vertical_alignment   = munin::VERTICAL_ALIGNMENT_CENTRE;
+        alignment_data alignment;
+        alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
+        alignment.vertical_alignment   = VERTICAL_ALIGNMENT_CENTRE;
 
         name_container->add_component(name_label, alignment);
 
@@ -131,18 +116,14 @@ struct user_interface::impl
 
         BOOST_AUTO(bottom_container, make_shared<basic_container>());
         bottom_container->set_layout(make_shared<compass_layout>());
-        bottom_container->add_component(
-            name_container
-          , munin::COMPASS_LAYOUT_WEST);
+        bottom_container->add_component(name_container, COMPASS_LAYOUT_WEST);
         bottom_container->add_component(
             make_shared<framed_component>(
-                make_shared<frame>()
+                make_shared<solid_frame>()
               , intro_name_field_)
-          , munin::COMPASS_LAYOUT_CENTRE);
+          , COMPASS_LAYOUT_CENTRE);
 
-        inner_content->add_component(
-            bottom_container
-          , munin::COMPASS_LAYOUT_SOUTH);
+        inner_content->add_component(bottom_container, COMPASS_LAYOUT_SOUTH);
 
         BOOST_AUTO(outer_content, make_shared<basic_container>());
         outer_content->set_layout(make_shared<compass_layout>());
@@ -150,12 +131,8 @@ struct user_interface::impl
         statusbar_ = make_shared<edit>();
         statusbar_->set_can_focus(false);
         
-        outer_content->add_component(
-            inner_content
-          , munin::COMPASS_LAYOUT_CENTRE);
-        outer_content->add_component(
-            statusbar_
-          , munin::COMPASS_LAYOUT_SOUTH);
+        outer_content->add_component(inner_content, COMPASS_LAYOUT_CENTRE);
+        outer_content->add_component(statusbar_, COMPASS_LAYOUT_SOUTH);
         
         return outer_content;
     }
@@ -171,14 +148,12 @@ struct user_interface::impl
         input_field_ = make_shared<command_prompt>();
         content->add_component(
             make_shared<framed_component>(
-                make_shared<frame>()
+                make_shared<solid_frame>()
               , input_field_)
-          , munin::COMPASS_LAYOUT_SOUTH);
+          , COMPASS_LAYOUT_SOUTH);
         
         wholist_ = make_shared<wholist>();
-        content->add_component(
-            wholist_
-          , munin::COMPASS_LAYOUT_NORTH);
+        content->add_component(wholist_, COMPASS_LAYOUT_NORTH);
         
         output_container_ = make_shared<basic_container>();
         output_container_->set_layout(make_shared<vertical_squeeze_layout>());
@@ -187,18 +162,16 @@ struct user_interface::impl
         output_field_->disable();
         output_container_->add_component(
             make_shared<framed_component>(
-                make_shared<frame>()
+                make_shared<solid_frame>()
               , output_field_));
         
         help_field_ = make_shared<text_area>();
         help_field_->disable();
         help_field_frame_ = make_shared<framed_component>(
-            make_shared<frame>()
+            make_shared<solid_frame>()
           , help_field_);
         
-        content->add_component(
-            output_container_
-          , munin::COMPASS_LAYOUT_CENTRE);
+        content->add_component(output_container_, COMPASS_LAYOUT_CENTRE);
         
         return content;
     }
@@ -211,11 +184,11 @@ struct user_interface::impl
         if (on_username_entered_)
         {
             BOOST_AUTO(document, intro_name_field_->get_document());
-            BOOST_AUTO(elements, document->get_text_line(0));
+            BOOST_AUTO(elements, document->get_line(0));
 
             string username;
 
-            BOOST_FOREACH(munin::ansi::element_type element, elements)
+            BOOST_FOREACH(element_type element, elements)
             {
                 username += element.first;
             }
@@ -232,7 +205,7 @@ struct user_interface::impl
         if (on_input_entered_)
         {
             BOOST_AUTO(document, input_field_->get_document());
-            BOOST_AUTO(elements, document->get_text_line(0));
+            BOOST_AUTO(elements, document->get_line(0));
             BOOST_AUTO(input,   string_from_elements(elements)); 
 
             document->delete_text(
@@ -269,8 +242,7 @@ struct user_interface::impl
 // CONSTRUCTOR
 // ==========================================================================
 user_interface::user_interface()
-    : munin::composite_component<munin::ansi::element_type>(
-           make_shared<munin::ansi::basic_container>())
+    : composite_component(make_shared<basic_container>())
     , pimpl_(new impl)
 {
     pimpl_->active_screen_ = make_shared<card>();
@@ -317,7 +289,7 @@ void user_interface::select_face(string const &face_name)
 // ADD_OUTPUT_TEXT
 // ==========================================================================
 void user_interface::add_output_text(
-    runtime_array<munin::ansi::element_type> const &text)
+    runtime_array<element_type> const &text)
 {
     pimpl_->output_field_->get_document()->insert_text(
         text
@@ -328,7 +300,7 @@ void user_interface::add_output_text(
 // SET_STATUSBAR_TEXT
 // ==========================================================================
 void user_interface::set_statusbar_text(
-    runtime_array<munin::ansi::element_type> const &text)
+    runtime_array<element_type> const &text)
 {
     BOOST_AUTO(document, pimpl_->statusbar_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));
@@ -379,7 +351,7 @@ void user_interface::hide_help_window()
 // SET_HELP_WINDOW_TEXT
 // ==========================================================================
 void user_interface::set_help_window_text(
-    odin::runtime_array<munin::ansi::element_type> const &text)
+    odin::runtime_array<element_type> const &text)
 {
     BOOST_AUTO(document, pimpl_->help_field_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));
@@ -409,7 +381,7 @@ void user_interface::do_event(any const &ev)
         }
         else
         {
-            munin::composite_component<munin::ansi::element_type>::do_event(ev);
+            composite_component::do_event(ev);
         }
     }
     else if (pimpl_->face_name_ == hugin::FACE_MAIN
@@ -443,12 +415,12 @@ void user_interface::do_event(any const &ev)
         }
         else
         {
-            munin::composite_component<munin::ansi::element_type>::do_event(ev);
+            composite_component::do_event(ev);
         }
     }
     else
     {
-        munin::composite_component<munin::ansi::element_type>::do_event(ev);
+        composite_component::do_event(ev);
     }
 }
 

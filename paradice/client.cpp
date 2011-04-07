@@ -30,6 +30,7 @@
 #include "munin/window.hpp"
 #include "hugin/user_interface.hpp"
 #include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <deque>
 #include <string>
 #include <vector>
@@ -47,14 +48,11 @@ vector< shared_ptr<client> > clients;
 // ==========================================================================
 struct client::impl
 {
+    shared_ptr<account>               account_;
+    shared_ptr<character>             character_;
 
     shared_ptr<connection>            connection_;
     shared_ptr<hugin::user_interface> user_interface_;
-    client::command_mode              command_mode_;
-
-    string                            prefix_;
-    string                            name_;
-    string                            title_;
 
     string                            last_command_;
 };
@@ -65,7 +63,6 @@ struct client::impl
 client::client()
     : pimpl_(new impl)
 {
-    pimpl_->command_mode_ = command_mode_mud;
 }
     
 // ==========================================================================
@@ -109,53 +106,53 @@ shared_ptr<hugin::user_interface> client::get_user_interface()
 }
 
 // ==========================================================================
-// SET_NAME
+// SET_WINDOW_TITLE
 // ==========================================================================
-void client::set_name(string const &name)
+void client::set_window_title(std::string const &title)
 {
-    pimpl_->name_ = name;
-    get_connection()->get_window()->set_title(
-        name + " - Paradice9");
+    BOOST_AUTO(connection, get_connection());
+    
+    if (connection != NULL)
+    {
+        BOOST_AUTO(window, connection->get_window());
+        
+        if (window != NULL)
+        {
+            window->set_title(title);
+        }
+    }
 }
 
 // ==========================================================================
-// GET_NAME
+// SET_ACCOUNT
 // ==========================================================================
-string client::get_name() const
+void client::set_account(shared_ptr<account> acc)
 {
-    return pimpl_->name_;
+    pimpl_->account_ = acc;
 }
 
 // ==========================================================================
-// SET_TITLE
+// GET_ACCOUNT
 // ==========================================================================
-void client::set_title(string const &title)
+shared_ptr<account> client::get_account() const
 {
-    pimpl_->title_ = title;
+    return pimpl_->account_;
 }
 
 // ==========================================================================
-// GET_TITLE
+// SET_CHARACTER
 // ==========================================================================
-string client::get_title() const
+void client::set_character(shared_ptr<character> ch)
 {
-    return pimpl_->title_;
+    pimpl_->character_ = ch;
 }
 
 // ==========================================================================
-// SET_PREFIX
+// GET_CHARACTER
 // ==========================================================================
-void client::set_prefix(string const &prefix)
+shared_ptr<character> client::get_character() const
 {
-    pimpl_->prefix_ = prefix;
-}
-
-// ==========================================================================
-// GET_PREFIX
-// ==========================================================================
-string client::get_prefix() const
-{
-    return pimpl_->prefix_;
+    return pimpl_->character_;
 }
 
 // ==========================================================================
@@ -172,22 +169,6 @@ void client::set_last_command(string const &cmd)
 string client::get_last_command() const
 {
     return pimpl_->last_command_;
-}
-
-// ==========================================================================
-// SET_COMMAND_MODE
-// ==========================================================================
-void client::set_command_mode(command_mode mode)
-{
-    pimpl_->command_mode_ = mode;
-}
-
-// ==========================================================================
-// GET_COMMAND_MODE
-// ==========================================================================
-client::command_mode client::get_command_mode() const
-{
-    return pimpl_->command_mode_;
 }
 
 }

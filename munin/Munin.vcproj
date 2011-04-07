@@ -216,6 +216,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\named_frame.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\solid_frame.cpp"
 				>
 			</File>
@@ -307,6 +311,10 @@
 			</File>
 			<File
 				RelativePath=".\layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\named_frame.hpp"
 				>
 			</File>
 			<File

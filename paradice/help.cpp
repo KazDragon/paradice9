@@ -43,13 +43,17 @@ using namespace boost;
 using namespace odin;
 
 namespace {
+    static string const help_header =
+        "Type HELP CLOSE to close this window.\n"
+        "\n";
+        
     static string const help_repeat =
-        "!\n"
+        "COMMAND: !\n"
         "\n"
         "Repeats the previous command.\n";
         
     static string const help_say =
-        "SAY, .\n"
+        "COMMAND: SAY, .\n"
         "\n"
         " USAGE:    [say|.] <text>\n"
         " EXAMPLE:  say hello, everyone!\n"
@@ -58,7 +62,7 @@ namespace {
         "Sends a message to the room.\n";
         
     static string const help_whisper =
-        "WHISPER, >\n"
+        "COMMAND: WHISPER, >\n"
         "\n"
         " USAGE:    [whisper|>] <player> <text>\n"
         " EXAMPLE:  whisper perdix What's with the tentacles?\n"
@@ -67,7 +71,7 @@ namespace {
         "Sends a message to a specific player.\n";
         
     static string const help_emote =
-        "EMOTE, :\n"
+        "COMMAND: EMOTE, :\n"
         "\n"
         " USAGE:    [emote|:] <message>\n"
         " EXAMPLE:  emote wants a hug.\n"
@@ -76,7 +80,7 @@ namespace {
         "Sends a message to the room in the form of an action.\n";
         
     static string const help_set =
-        "SET\n"
+        "COMMAND: SET\n"
         "\n"
         " USAGE:    set <option> <value>\n"
         " EXAMPLE:  set commandmode mmo\n"
@@ -88,7 +92,7 @@ namespace {
         "command by default, unless prefixed with a / character (e.g. /quit)";
         
     static string const help_title =
-        "TITLE, SURNAME\n"
+        "COMMAND: TITLE, SURNAME\n"
         "\n"
         " USAGE:   [title|surname] <text>\n"
         " EXAMPLE: title lord of the flies\n"
@@ -98,7 +102,7 @@ namespace {
         "active players.\n";
         
     static string const help_rename =
-        "RENAME\n"
+        "COMMAND: RENAME\n"
         "\n"
         " USAGE:   rename <text>\n"
         " EXAMPLE: rename Boffo\n"
@@ -106,7 +110,7 @@ namespace {
         "Renames your character.\n";
         
     static string const help_prefix =
-        "PREFIX, HONORIFIC\n"
+        "COMMAND: PREFIX, HONORIFIC\n"
         "\n"
         " USAGE:   [prefix|honorific] <text>\n"
         " EXAMPLE: prefix Sir\n"
@@ -116,7 +120,7 @@ namespace {
         "active players.\n";
 
     static string const help_roll =
-        "ROLL\n"
+        "COMMAND: ROLL\n"
         "\n"
         " USAGE:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]\n"
         " EXAMPLE: roll 2d6+3-20\n"
@@ -132,7 +136,7 @@ namespace {
         "These rolls are visible to all.";
 
     static string const help_rollprivate =
-        "ROLLPRIVATE\n"
+        "COMMAND: ROLLPRIVATE\n"
         "\n"
         " USAGE:   rollprivate [n*]<dice>d<sides>[<bonuses...>] [<category>]\n"
         " EXAMPLE: rollprivate 2d6+3-20\n"
@@ -145,7 +149,7 @@ namespace {
         "These rolls are visible only to the roller.";
         
     static string const help_showrolls =
-        "SHOWROLLS\n"
+        "COMMAND: SHOWROLLS\n"
         "\n"
         " USAGE:   showrolls <category> [asc|desc]\n"
         " EXAMPLE: showrolls initiative\n"
@@ -157,7 +161,7 @@ namespace {
         "ascending or descending order, as appropriate.";
         
     static string const help_clearrolls =
-        "CLEARROLLS\n"
+        "COMMAND: CLEARROLLS\n"
         "\n"
         " USAGE:   clearrolls <category>\n"
         " EXAMPLE: clearrolls initiative\n"
@@ -165,7 +169,7 @@ namespace {
         "Clears all rolls from the specified category.\n";
         
     static string const help_help = 
-        "HELP\n" 
+        "COMMAND: HELP\n" 
         "  USAGE:   help <subject>\n"
         "  EXAMPLE: help say\n"
         "\n"
@@ -226,7 +230,9 @@ PARADICE_COMMAND_IMPL(help)
             if (argument == help_table[index].command)
             {
                 user_interface->set_help_window_text(
-                    munin::ansi::elements_from_string(help_table[index].text));
+                    munin::ansi::elements_from_string(
+                        help_header
+                      + help_table[index].text));
                 user_interface->show_help_window();
                 return;
             }

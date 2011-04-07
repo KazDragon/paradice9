@@ -25,14 +25,19 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "configuration.hpp"
+#include "account.hpp"
+#include "character.hpp"
 #include "client.hpp"
 #include "communication.hpp"
 #include "connection.hpp"
+#include "context.hpp"
 #include "who.hpp"
+#include "hugin/user_interface.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/typeof/typeof.hpp>
 
 using namespace std;
 using namespace boost;
@@ -78,17 +83,21 @@ PARADICE_COMMAND_IMPL(set)
         // TODO: make case sensitive, tie settings to a map, etc.
         if (token1.first == "mud")
         {
-            player->set_command_mode(paradice::client::command_mode_mud);
+            player->get_account()->set_command_mode(
+                paradice::account::command_mode_mud);
         }
         else if (token1.first == "mmo")
         {
-            player->set_command_mode(paradice::client::command_mode_mmo);
+            player->get_account()->set_command_mode(
+                paradice::account::command_mode_mmo);
         }
         else
         {
             send_to_player(ctx, commandmode_usage, player);
         }
     }
+    
+    ctx->save_account(player->get_account());
 }
 
 // ==========================================================================
@@ -99,5 +108,29 @@ PARADICE_COMMAND_IMPL(quit)
     player->get_connection()->disconnect();
 }
 
+// ==========================================================================
+// PARADICE COMMAND: LOGOUT
+// ==========================================================================
+PARADICE_COMMAND_IMPL(logout)
+{
+    // First, announce the removal of the player from the game, and make it so.
+    paradice::send_to_room(
+        ctx
+      , "#SERVER: " 
+      + player->get_character()->get_name()
+      + " has left Paradice!\n"
+      , player);
+    
+    player->set_character(shared_ptr<character>());
+    ctx->update_names();
+
+    player->set_window_title("Paradice9");
+    
+    // Now, return the player to the login screen
+    BOOST_AUTO(user_interface, player->get_user_interface());
+    user_interface->clear_intro_screen();
+    user_interface->select_face(hugin::FACE_INTRO);
+    user_interface->set_focus();
+}
 
 }

@@ -81,8 +81,15 @@ public :
     /// connection.
     //* =====================================================================
     void on_text(
-        boost::function< void (std::string)> callback);
+        boost::function<void (std::string)> callback);
 
+    //* =====================================================================
+    /// \brief Set a function to be called when a mouse report is received
+    /// from the connection.
+    //* =====================================================================
+    void on_mouse_report(
+        boost::function<void (odin::ansi::mouse_report)> callback);
+    
     //* =====================================================================
     /// \brief Set a function to be called when an ANSI control sequence
     /// is received from the client.
@@ -99,6 +106,12 @@ public :
     /// \brief Reconnects a new socket to this connection.
     //* =====================================================================
     void reconnect(boost::shared_ptr<socket> connection_socket);
+    
+    //* =====================================================================
+    /// \brief Asynchronously retrieves the terminal type of the connection.
+    //* =====================================================================
+    void async_get_terminal_type(
+        boost::function<void (std::string)> callback);
     
 private :
     struct impl;

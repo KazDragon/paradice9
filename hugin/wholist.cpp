@@ -40,17 +40,9 @@ using namespace odin;
 using namespace boost;
 using namespace std;
 
-BOOST_STATIC_CONSTANT(u16, MIN_COLUMN_WIDTH           = 36);
-BOOST_STATIC_CONSTANT(u16, NUMBER_OF_ROWS             = 3);
-BOOST_STATIC_CONSTANT(u16, TOP_BORDER_HEIGHT          = 1);
-BOOST_STATIC_CONSTANT(u16, BOTTOM_BORDER_HEIGHT       = 1);
-BOOST_STATIC_CONSTANT(u16, LEFT_BORDER_WIDTH          = 2);
-BOOST_STATIC_CONSTANT(u16, RIGHT_BORDER_WIDTH         = 2);
-BOOST_STATIC_CONSTANT(u16, TOTAL_BORDER_WIDTH         =
-    LEFT_BORDER_WIDTH + RIGHT_BORDER_WIDTH); 
-BOOST_STATIC_CONSTANT(u16, TOTAL_BORDER_HEIGHT        = 
-    TOP_BORDER_HEIGHT + BOTTOM_BORDER_HEIGHT); 
-BOOST_STATIC_CONSTANT(u16,    COLUMN_SEPERATOR_WIDTH  = 3);
+BOOST_STATIC_CONSTANT(u16, MIN_COLUMN_WIDTH        = 36);
+BOOST_STATIC_CONSTANT(u16, NUMBER_OF_ROWS          = 3);
+BOOST_STATIC_CONSTANT(u16, COLUMN_SEPERATOR_WIDTH  = 3);
 
 namespace hugin {
 
@@ -151,90 +143,10 @@ struct wholist::impl
         cache_constants();
         initialise_view();
         render_names();
-        render_border();
         repaint();
     }
     
 private :
-    // ======================================================================
-    // RENDER_BORDER
-    // ======================================================================
-    void render_border()
-    {
-        BOOST_AUTO(size, self_.get_size());
-
-        if (size.width  < (LEFT_BORDER_WIDTH + RIGHT_BORDER_WIDTH)
-         || size.height < (TOP_BORDER_HEIGHT + BOTTOM_BORDER_HEIGHT))
-        {
-            // We cannot draw anything.
-            return;
-        }
-        
-        BOOST_AUTO(focussed, self_.has_focus());
-        attribute pen;
-        pen.foreground_colour = focussed
-            ? odin::ansi::graphics::COLOUR_CYAN
-            : odin::ansi::graphics::COLOUR_DEFAULT;
-        pen.intensity = focussed
-            ? odin::ansi::graphics::INTENSITY_BOLD
-            : odin::ansi::graphics::INTENSITY_NORMAL;
-        pen.locale = odin::ansi::character_set::LOCALE_SCO;
-        
-        view_[0             ][0              ] = element_type(char(201), pen);
-        view_[size.width - 1][0              ] = element_type(char(187), pen);
-        view_[0             ][size.height - 1] = element_type(char(200), pen);
-        view_[size.width - 1][size.height - 1] = element_type(char(188), pen);
-
-        for (s32 row = 1; row < (size.height - 1); ++row)
-        {
-            view_[0             ][row] = element_type(char(186), pen);
-            view_[size.width - 1][row] = element_type(char(186), pen);
-        }
-        
-        for (s32 column = 1; column < (size.width - 1); ++column)
-        {
-            view_[column][0              ] = element_type(char(205), pen);
-            view_[column][size.height - 1] = element_type(char(205), pen);
-        }
-        
-        BOOST_AUTO(header, elements_from_string(" CURRENTLY PLAYING "));
-        
-        if (size.width >= s32(header.size() + TOTAL_BORDER_WIDTH))
-        {
-            for (s32 column = LEFT_BORDER_WIDTH; 
-                 column < s32(header.size() + LEFT_BORDER_WIDTH);
-                 ++column)
-            {
-                view_[column][0] = header[column - LEFT_BORDER_WIDTH];
-            }
-        }
-        
-        u32 page_number = (name_index_ / names_per_page_) + 1;
-        u32 pages       = (names_.size() / names_per_page_);
-        
-        if ((names_.size() % names_per_page_) != 0)
-        {
-            ++pages;
-        }
-        
-        BOOST_AUTO(
-            footer
-          , elements_from_string(str(format(" [%d/%d] ")
-                % page_number
-                % pages)));
-        
-        if (size.width >= s32(footer.size() + RIGHT_BORDER_WIDTH))
-        {
-            s32 starting_column =
-                (size.width - footer.size()) - RIGHT_BORDER_WIDTH;
-                
-            for (u32 index = 0; index < footer.size(); ++index)
-            {
-                view_[starting_column + index][size.height - 1] = footer[index];
-            }
-        }
-    }
-    
     // ======================================================================
     // RENDER_NAMES
     // ======================================================================
@@ -287,13 +199,12 @@ private :
                 
                 // Find the x coordinate of this cell.
                 u32 cell_x_coordinate = 
-                    LEFT_BORDER_WIDTH
-                  + (column * MIN_COLUMN_WIDTH)
+                    (column * MIN_COLUMN_WIDTH)
                   + (column == 0 ? 0 : (column * COLUMN_SEPERATOR_WIDTH))
                   + (column == 0 ? 0 : padding_per_column_);
                 
                 // Find the y coordinate of this cell.
-                u32 cell_y_coordinate = row + TOP_BORDER_HEIGHT;
+                u32 cell_y_coordinate = row;
                   
                 // Copy these into the correct location.
                 for (u32 index = 0; index < name_elements.size(); ++index)
@@ -311,6 +222,11 @@ private :
     void initialise_view()
     {
         BOOST_AUTO(size, self_.get_size());
+        
+        if (size.width <= 0 || size.height <= 0)
+        {
+            return;
+        }
         
         // If necessary, we will have to totally recreate the view
         if (size != current_size_)
@@ -388,21 +304,17 @@ private :
     {
         BOOST_AUTO(size, self_.get_size());
         
-        rows_    = size.height < TOTAL_BORDER_HEIGHT
-                 ? 0
-                 : size.height - TOTAL_BORDER_HEIGHT;
-        
+        rows_    = size.height;
         columns_ = 0;
         
-        if (size.width >= (MIN_COLUMN_WIDTH + TOTAL_BORDER_WIDTH))
+        if (size.width >= MIN_COLUMN_WIDTH)
         {
             do
             {
                 ++columns_;
             } 
-            while ((TOTAL_BORDER_WIDTH 
-                 + ((columns_ + 1) * MIN_COLUMN_WIDTH)
-                 + (columns_ * COLUMN_SEPERATOR_WIDTH))
+            while (((columns_ + 1) * MIN_COLUMN_WIDTH)
+                 + (columns_ * COLUMN_SEPERATOR_WIDTH)
                 < u32(size.width));
         }
 
@@ -416,9 +328,9 @@ private :
         else
         {
             // The padding necessary per row to make the columns flush 
-            // with the border.
+            // with the edge.
             padding_per_row_ =
-                ((size.width - TOTAL_BORDER_WIDTH) - (columns_ * MIN_COLUMN_WIDTH))
+                (size.width - (columns_ * MIN_COLUMN_WIDTH))
               - ((columns_ - 1) * COLUMN_SEPERATOR_WIDTH);
 
             padding_per_column_ = padding_per_row_ / columns_;
@@ -471,9 +383,7 @@ void wholist::set_names(runtime_array<string> const &names)
 // ==========================================================================
 munin::extent wholist::do_get_preferred_size() const
 {
-    return munin::extent(
-        get_size().width
-      , NUMBER_OF_ROWS + TOTAL_BORDER_HEIGHT);
+    return munin::extent(get_size().width, NUMBER_OF_ROWS);
 }
 
 // ==========================================================================
@@ -534,6 +444,10 @@ void wholist::do_event(any const &ev)
             
             pimpl_->render();            
         }
+    }
+    else
+    {
+        basic_component::do_event(ev);
     }
 }
 

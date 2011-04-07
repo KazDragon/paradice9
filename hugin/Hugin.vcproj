@@ -148,7 +148,27 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\account_creation_screen.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\character_creation_screen.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\character_selection_screen.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\command_prompt.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\intro_screen.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\main_screen.cpp"
 				>
 			</File>
 			<File
@@ -166,7 +186,27 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\account_creation_screen.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\character_creation_screen.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\character_selection_screen.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\command_prompt.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\intro_screen.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\main_screen.hpp"
 				>
 			</File>
 			<File

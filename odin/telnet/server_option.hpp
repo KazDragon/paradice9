@@ -158,6 +158,12 @@ public :
     /// \brief Sets a callback to be called whenever a request is completed.
     //* =====================================================================
     void on_request_complete(boost::function<void ()> const &callback);
+
+protected :    
+    //* =====================================================================
+    /// \brief Sends a telnet subnegotiation
+    //* =====================================================================
+    void send_subnegotiation(subnegotiation_content_type const &content);
     
 private :
     //* =====================================================================

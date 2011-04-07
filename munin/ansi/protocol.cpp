@@ -70,6 +70,19 @@ string string_from_elements(
 }
 
 // ==========================================================================
+// ENABLE_MOUSE_TRACKING
+// ==========================================================================
+string enable_mouse_tracking()
+{
+    return string()
+        + odin::ansi::ESCAPE
+        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        + odin::ansi::PRIVATE_MODE_SET
+        + "1000"
+        + odin::ascii::LOWERCASE_H;
+}
+
+// ==========================================================================
 // HIDE_CURSOR
 // ==========================================================================
 string hide_cursor()

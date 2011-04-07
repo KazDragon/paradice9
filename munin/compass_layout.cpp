@@ -171,8 +171,10 @@ void compass_layout::do_layout(shared_ptr<container> const &cont)
             BOOST_AUTO(
                 comp_height
               , (size.height - north_used) - south_used);
-            
-            comp->set_position(point(0, north_used));
+  
+            comp->set_position(point(
+                size.width - east_used
+              , north_used));
             comp->set_size(extent(east_used, comp_height));
         }
         else if (*direction == COMPASS_LAYOUT_NORTH)

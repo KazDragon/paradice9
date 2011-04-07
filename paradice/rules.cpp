@@ -23,6 +23,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "rules.hpp"
+#include "character.hpp"
 #include "client.hpp"
 #include "communication.hpp"
 #include "connection.hpp"
@@ -116,7 +117,7 @@ PARADICE_COMMAND_IMPL(roll)
             ctx
           , str(format(
                 "%s rolls no dice and scores nothing.\n")
-              % player->get_name())
+              % player->get_character()->get_name())
           , player);
         
         return;
@@ -135,7 +136,7 @@ PARADICE_COMMAND_IMPL(roll)
           , str(format(
                 "%s fumbles their roll and spills a pile of zero-"
                 "sided dice on the floor.\n")
-              % player->get_name())
+              % player->get_character()->get_name())
           , player);
         
         return;
@@ -228,7 +229,7 @@ PARADICE_COMMAND_IMPL(roll)
         {
             roll_data data;
             data.roller = player;
-            data.name   = player->get_name();
+            data.name   = player->get_character()->get_name();
             data.roll_text = str(format("%dd%d%s%d")
                 % dice_roll.amount_
                 % dice_roll.sides_
@@ -273,7 +274,7 @@ PARADICE_COMMAND_IMPL(roll)
 
     runtime_array<element_type> room_output;
     room_output += elements_from_string(
-        player->get_name()
+        player->get_character()->get_name()
       , normal_pen);
     room_output += elements_from_string(
         str(format(" rolls %dd%d%s%d %s%sand scores ")
@@ -520,7 +521,10 @@ PARADICE_COMMAND_IMPL(showrolls)
         roll_data &data = rolls[index];
         shared_ptr<client> roller = data.roller.lock();
         
-        string name = (roller == NULL ? data.name : roller->get_name());
+        string name = (
+            roller == NULL 
+          ? data.name 
+          : roller->get_character()->get_name());
         
         output += str(format(
             "\n%s rolled %s and scored %d [%d%s]")
@@ -564,7 +568,7 @@ PARADICE_COMMAND_IMPL(clearrolls)
     send_to_room(
         ctx
       , str(format("%s clears the rolls for the %s category\n")
-          % player->get_name()
+          % player->get_character()->get_name()
           % category)
       , player);
 }

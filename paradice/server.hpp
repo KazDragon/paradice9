@@ -41,18 +41,31 @@ namespace paradice {
 class context;    
 class socket;
 
+//* =========================================================================
+/// \brief Implements a tcp/ip server.
+/// \par Usage
+/// Construct, passing a Boost.Asio io_service, a port number, and a function
+/// to call whenever a new connection is made.  The handler for these 
+/// connections will be called in the io_service's run() method.  To stop the
+/// server and cancel any pending acceptance, call stop().
+//* =========================================================================
 class server
 {
 public :
-    server(boost::asio::io_service              &io_service
-         , boost::shared_ptr<context>           &context
-         , boost::uint16_t                       port
-         , boost::function<
-               void (boost::shared_ptr<socket>)
-            > const                             &on_accept);
+    typedef boost::function<void (boost::shared_ptr<socket>)> accept_handler;
+    
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    server(boost::asio::io_service &io_service
+         , boost::uint16_t          port
+         , accept_handler const    &on_accept);
         
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
    ~server();
-   
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

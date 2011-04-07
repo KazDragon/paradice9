@@ -158,6 +158,12 @@ public :
     //* =====================================================================
     void on_request_complete(boost::function<void ()> const &callback);
     
+protected :    
+    //* =====================================================================
+    /// \brief Sends a telnet subnegotiation
+    //* =====================================================================
+    void send_subnegotiation(subnegotiation_content_type const &content);
+    
 private :
     //* =====================================================================
     /// \brief Called when a subnegotiation for this option is received

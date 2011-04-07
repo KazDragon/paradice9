@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/basic_component.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/typeof/typeof.hpp>
 #include <map>
 
@@ -258,6 +259,22 @@ void basic_component::do_set_attribute(
     string const &name, any const &attr)
 {
     pimpl_->attributes_[name] = attr;
+}
+
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void basic_component::do_event(any const &event)
+{
+    BOOST_AUTO(mouse, any_cast<odin::ansi::mouse_report>(&event));
+    
+    if (mouse != NULL)
+    {
+        if (!has_focus())
+        {
+            set_focus();
+        }
+    }
 }
 
 }

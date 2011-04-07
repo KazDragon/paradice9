@@ -49,6 +49,11 @@ std::string string_from_elements(
     odin::runtime_array<munin::element_type> const &elements);
 
 //* =========================================================================
+/// \brief Enables mouse tracking.
+//* =========================================================================
+std::string enable_mouse_tracking();
+
+//* =========================================================================
 /// \brief Hides the cursor.
 //* =========================================================================
 std::string hide_cursor();

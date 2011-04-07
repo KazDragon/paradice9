@@ -35,8 +35,11 @@
 
 namespace hugin {
 
-BOOST_STATIC_CONSTANT(std::string, FACE_INTRO = "Intro");
-BOOST_STATIC_CONSTANT(std::string, FACE_MAIN  = "Main");
+BOOST_STATIC_CONSTANT(std::string, FACE_INTRO            = "Intro");
+BOOST_STATIC_CONSTANT(std::string, FACE_ACCOUNT_CREATION = "AcctCreate");
+BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_SELECTION   = "CharSelect");
+BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_CREATION    = "CharCreate");
+BOOST_STATIC_CONSTANT(std::string, FACE_MAIN             = "Main");
 
 //* =========================================================================
 /// \brief An abstraction of the primary user interface for the Paradice
@@ -52,18 +55,95 @@ public :
     user_interface();
     
     //* =====================================================================
+    /// \brief Clears the intro screen.
+    //* =====================================================================
+    void clear_intro_screen();
+    
+    //* =====================================================================
+    /// \brief Clears the account creation screen.
+    //* =====================================================================
+    void clear_account_creation_screen();
+    
+    //* =====================================================================
+    /// \brief Clears the character selection screen.
+    //* =====================================================================
+    void clear_character_selection_screen();
+
+    //* =====================================================================
+    /// \brief Clears the character creation screen.
+    //* =====================================================================
+    void clear_character_creation_screen();
+    
+    //* =====================================================================
+    /// \brief Clears the main screen.
+    //* =====================================================================
+    void clear_main_screen();
+    
+    //* =====================================================================
     /// \brief Set a function to be called when the user inputs a name
     /// on the intro screen.
     //* =====================================================================
-    void on_username_entered(
-        boost::function<void (std::string)> callback);
+    void on_account_details_entered(
+        boost::function<void (std::string, std::string)> callback);
 
+    //* =====================================================================
+    /// \brief Set a function to be called when the user inputs the details
+    /// for the creation of an account.
+    //* =====================================================================
+    void on_account_created(
+        boost::function<
+            void (std::string account_name
+                , std::string password
+                , std::string password_verify)> callback);
+    
+    //* =====================================================================
+    /// \brief Set a function to be called when the user cancels the creation
+    /// of an account.
+    //* =====================================================================
+    void on_account_creation_cancelled(boost::function<void ()> callback);
+    
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a command
     /// on the main screen.
     //* =====================================================================
     void on_input_entered(
         boost::function<void (std::string)> callback);
+    
+    //* =====================================================================
+    /// \brief Provide a function to be called if the user opts to create
+    /// a new character.
+    //* =====================================================================
+    void on_new_character(
+        boost::function<void ()> callback);
+    
+    //* =====================================================================
+    /// \brief Provide a function to be called if the user opts to use an
+    /// existing character.
+    //* =====================================================================
+    void on_character_selected(
+        boost::function<void (std::string)> callback);
+    
+    //* =====================================================================
+    /// \brief Provide a function to be called if the user creates a new
+    /// character.
+    //* =====================================================================
+    void on_character_created(
+        boost::function<void (std::string)> callback);
+
+    //* =====================================================================
+    /// \brief Provide a function to be called if the user decides to cancel
+    /// the creation of a character.
+    //* =====================================================================
+    void on_character_creation_cancelled(
+        boost::function<void ()> callback);
+
+    //* =====================================================================
+    /// \brief Sets the character names belonging to this account.
+    //* =====================================================================
+    void set_character_names(
+        odin::runtime_array<
+            std::pair<std::string, std::string>
+        > const &names);
     
     //* =====================================================================
     /// \brief Select a user interface screen to be shown.
@@ -108,13 +188,6 @@ public :
     //* =====================================================================
     void set_help_window_text(
         odin::runtime_array<munin::element_type> const &text);
-
-protected :
-    //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
-    //* =====================================================================
-    virtual void do_event(boost::any const &event);
 
 private :
     struct impl;

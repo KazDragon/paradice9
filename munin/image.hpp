@@ -42,12 +42,17 @@ class image : public munin::basic_component
 public :
     //* =====================================================================
     /// \brief Constructor
+    /// \param elements - a multidimentional array with each element
+    /// representing one horizontal line of the image.
     //* =====================================================================
-    image(
-        odin::runtime_array<
-            odin::runtime_array<munin::element_type>
-        > elements);
+    image(odin::runtime_array< odin::runtime_array<element_type> > elements);
 
+    //* =====================================================================
+    /// \brief Constructor
+    /// \param elements - an array representing a single-lined image.
+    //* =====================================================================
+    image(odin::runtime_array<munin::element_type> elements);
+    
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
@@ -69,6 +74,13 @@ protected :
     virtual bool do_can_focus() const;
     
     //* =====================================================================
+    /// \brief Called by set_can_focus().  Derived classes must override this
+    /// function in order to set whether this component can be focussed in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_can_focus(bool focus);
+    
+    //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
     /// in order to draw onto the passed canvas.  A component must only draw 
     /// the part of itself specified by the region.
@@ -80,12 +92,6 @@ protected :
     virtual void do_draw(
         canvas          &cvs
       , rectangle const &region);
-
-    //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
-    //* =====================================================================
-    virtual void do_event(boost::any const &event);
     
 private :
     struct impl;

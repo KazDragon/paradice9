@@ -37,6 +37,12 @@ public :
 
     std::vector<odin::telnet::subnegotiation_type> subnegotiations_;
     
+    void send_subnegotiation(
+        odin::telnet::subnegotiation_content_type const &content)
+    {
+        odin::telnet::server_option::send_subnegotiation(content);
+    }
+    
 private :
     virtual void on_subnegotiation(
         odin::telnet::subnegotiation_type const &subnegotiation)
@@ -1474,3 +1480,98 @@ void telnet_server_option_fixture::test_active_subnegotiation()
     CPPUNIT_ASSERT(
         expected_subnegotiation.content_ == option.subnegotiations_[0].content_);
 }
+
+void telnet_server_option_fixture::test_send_subnegotiation()
+{
+    boost::asio::io_service          io_service;
+    shared_ptr<fake_byte_stream>     fake_stream(
+        new fake_datastream<odin::u8, odin::u8>(io_service));
+    shared_ptr<odin::telnet::stream> telnet_stream(
+        new odin::telnet::stream(fake_stream, io_service));
+    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+        new odin::telnet::negotiation_router);
+    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+        new odin::telnet::subnegotiation_router);
+
+    odin::telnet::input_visitor visitor(
+        shared_ptr<odin::telnet::command_router>()
+      , telnet_negotiation_router
+      , telnet_subnegotiation_router
+      , NULL);
+        
+    fake_server_option option(
+        telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
+    
+    CPPUNIT_ASSERT_EQUAL(false, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    
+    odin::u32 request_completed = 0;
+    function<void ()> request_complete_handler = (
+        ++bll::var(request_completed)
+    );
+    
+    option.on_request_complete(request_complete_handler);
+    option.activate();
+
+    CPPUNIT_ASSERT_EQUAL(false, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    
+    odin::u8 expected_data[] =
+    {
+        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+    };
+    
+    CPPUNIT_ASSERT_EQUAL(
+        odin::make_runtime_array(expected_data)
+      , fake_stream->read_data_written());
+    
+    odin::u8 response_data[] = 
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
+    
+    fake_stream->write_data_to_read(response_data);
+    
+    function<void (
+        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    (
+        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
+    );
+    
+    telnet_stream->async_read(1, callback);
+    
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(true, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+    
+    // Now test that sending the subnegotiation actually works.
+    odin::telnet::subnegotiation_content_type content;
+    content.push_back('a');
+    content.push_back('b');
+    content.push_back('c');
+    
+    option.send_subnegotiation(content);
+    
+    io_service.reset();
+    io_service.run();
+
+    odin::u8 expected_subnegotiation_data[] = {
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT
+      , 'a', 'b', 'c'
+      , odin::telnet::IAC, odin::telnet::SE
+    };
+    odin::runtime_array<odin::u8> expected_subnegotiation_array(
+        expected_subnegotiation_data);
+    
+    odin::runtime_array<odin::u8> actual_array = 
+        fake_stream->read_data_written();
+        
+    CPPUNIT_ASSERT_EQUAL(expected_subnegotiation_array, actual_array);
+}
+

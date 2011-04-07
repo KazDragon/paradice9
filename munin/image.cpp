@@ -60,17 +60,29 @@ runtime_array< runtime_array<element_type> >
 // ==========================================================================
 struct image::impl
 {
-    runtime_array< runtime_array<munin::element_type> > elements_;    
+    runtime_array< runtime_array<element_type> > elements_;
+    bool                                         can_focus_;    
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-image::image(
-    runtime_array< runtime_array<munin::element_type> > elements)
+image::image(runtime_array< runtime_array<element_type> > elements)
     : pimpl_(new impl)
 {
-    pimpl_->elements_ = elements;
+    pimpl_->elements_  = elements;
+    pimpl_->can_focus_ = false;
+}
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+image::image(runtime_array<element_type> elements)
+    : pimpl_(new impl)
+{
+    pimpl_->elements_ = runtime_array< runtime_array<element_type> >(
+        &elements, 1);
+    pimpl_->can_focus_ = false;
 }
 
 // ==========================================================================
@@ -85,19 +97,26 @@ image::~image()
 // ==========================================================================
 bool image::do_can_focus() const
 {
-    return false;
+    return pimpl_->can_focus_;
+}
+
+// ==========================================================================
+// DO_SET_CAN_FOCUS
+// ==========================================================================
+void image::do_set_can_focus(bool focus)
+{
+    pimpl_->can_focus_ = focus;
 }
 
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-munin::extent image::do_get_preferred_size() const
+extent image::do_get_preferred_size() const
 {
-    munin::extent preferred_size;
+    extent preferred_size;
     preferred_size.height = pimpl_->elements_.size();
     
-    BOOST_FOREACH(
-        runtime_array<munin::element_type> row, pimpl_->elements_)
+    BOOST_FOREACH(runtime_array<element_type> row, pimpl_->elements_)
     {
         preferred_size.width = (max)(
             u32(preferred_size.width)
@@ -144,13 +163,6 @@ void image::do_draw(
             }
         }
     }
-}
-
-// ==========================================================================
-// DO_EVENT
-// ==========================================================================
-void image::do_event(any const &event)
-{
 }
 
 }

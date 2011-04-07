@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "communication.hpp"
+#include "character.hpp"
 #include "client.hpp"
 #include "connection.hpp"
 #include "context.hpp"
@@ -136,7 +137,7 @@ PARADICE_COMMAND_IMPL(say)
 
     send_to_room(ctx, str(
         format("%s says, \"%s\"\n")
-            % player->get_name()
+            % player->get_character()->get_name()
             % arguments)
       , player);
 }
@@ -165,17 +166,17 @@ PARADICE_COMMAND_IMPL(whisper)
 
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
-        if(is_iequal(cur_client->get_name(), arg.first))
+        if(is_iequal(cur_client->get_character()->get_name(), arg.first))
         {
             send_to_player(ctx, str(
                 format("You say to %s, \"%s\"\n")
-                    % cur_client->get_name()
+                    % cur_client->get_character()->get_name()
                     % arg.second)
               , player);
 
             send_to_player(ctx, str(
                 format("%s says to you, \"%s\"\n")
-                    % player->get_name()
+                    % player->get_character()->get_name()
                     % arg.second)
               , cur_client);
 
@@ -204,7 +205,7 @@ PARADICE_COMMAND_IMPL(emote)
 
     send_to_all(ctx, str(
         format("%s %s\n")
-            % player->get_name()
+            % player->get_character()->get_name()
             % arguments));
 }
 

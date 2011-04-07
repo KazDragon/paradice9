@@ -68,6 +68,40 @@ public :
     /// \brief For all clients, updates their lists of names.
     //* =====================================================================
     virtual void update_names();
+
+    //* =====================================================================
+    /// \brief Returns how a character appears to others, including prefix
+    /// and suffix.
+    //* =====================================================================
+    virtual std::string get_moniker(
+        boost::shared_ptr<paradice::character> &ch);
+
+    //* =====================================================================
+    /// \brief Loads an account from a specific account name and returns it.
+    /// Returns an empty shared_ptr<> if there was no account with that name
+    /// found.
+    //* =====================================================================
+    virtual boost::shared_ptr<paradice::account> load_account(
+        std::string const &name);
+
+    //* =====================================================================
+    /// \brief Saves an account.
+    //* =====================================================================
+    virtual void save_account(boost::shared_ptr<paradice::account> acct);
+
+    //* =====================================================================
+    /// \brief Loads a character that is identified by the passed name and
+    /// returns it.  Returns an empty shared_ptr<> if there was no character
+    /// with that name found.
+    //* =====================================================================
+    virtual boost::shared_ptr<paradice::character> load_character(
+        std::string const &name);
+
+    //* =====================================================================
+    /// \brief Saves a character.
+    //* =====================================================================
+    virtual void save_character(boost::shared_ptr<paradice::character> ch);
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

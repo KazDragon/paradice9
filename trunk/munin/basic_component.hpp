@@ -34,7 +34,7 @@ namespace munin {
 
 //* =========================================================================
 /// \brief A default implementation of a component.  Only do_draw()
-/// do_get_preferred_size() and do_event() remain unimplemented.
+/// and do_get_preferred_size() remain unimplemented.
 //* =========================================================================
 class basic_component 
     : public component
@@ -177,6 +177,12 @@ protected :
     //* =====================================================================
     virtual void do_set_attribute(
         std::string const &name, boost::any const &attr);
+    
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event);
     
 private :
     struct impl;

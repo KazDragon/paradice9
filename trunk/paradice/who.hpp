@@ -34,12 +34,13 @@
 
 namespace paradice {
 
+class character;
+
 BOOST_STATIC_CONSTANT(odin::u16, minimum_name_size = 3);
 BOOST_STATIC_CONSTANT(odin::u16, maximum_name_size = 36);
     
 PARADICE_COMMAND_DECL(title);
 PARADICE_COMMAND_DECL(prefix);
-PARADICE_COMMAND_DECL(rename);
 
 bool is_acceptible_name(std::string const &name);
 

@@ -36,6 +36,7 @@
 #include "odin/telnet/options/echo_server.hpp"
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
+#include "odin/telnet/options/terminal_type_client.hpp"
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -52,13 +53,18 @@ namespace paradice {
 
 namespace {
     
+// ==========================================================================
+// ANSI_INPUT_VISITOR
+// ==========================================================================
 struct ansi_input_visitor
     : public static_visitor<>
 {
     ansi_input_visitor(
-        function<void (odin::ansi::control_sequence)> on_control_sequence
+        function<void (odin::ansi::mouse_report)>     on_mouse_report
+      , function<void (odin::ansi::control_sequence)> on_control_sequence
       , function<void (string)>                       on_text)
-        : on_control_sequence_(on_control_sequence)
+        : on_mouse_report_(on_mouse_report)
+        , on_control_sequence_(on_control_sequence)
         , on_text_(on_text)
     {
     }
@@ -96,12 +102,24 @@ struct ansi_input_visitor
         }
     }
     
-    void operator()(odin::ansi::mouse_report const &report)
+    void operator()(odin::ansi::mouse_report report)
     {
+        // Mouse reports are all offset by 32 in the protocol, ostensibly to
+        // avoid any other protocol errors.  It then has (1,1) as the origin
+        // where we have (0,0), so we must compensate for that too.
+        report.button_     -= 32;
+        report.x_position_ -= 33;
+        report.y_position_ -= 33;
+        
         printf("[BUTTON=%d, X=%d, Y=%d]\n",
             int(report.button_), 
             int(report.x_position_),
             int(report.y_position_));
+        
+        if (on_mouse_report_)
+        {
+            on_mouse_report_(report);
+        }
     }
     
     void operator()(string const &text)
@@ -112,12 +130,16 @@ struct ansi_input_visitor
         }
     }
     
+    function<void (odin::ansi::mouse_report)>     on_mouse_report_;
     function<void (odin::ansi::control_sequence)> on_control_sequence_;
     function<void (string)>                       on_text_;
 };
 
 }
 
+// ==========================================================================
+// CONNECTION::IMPLEMENTATION STRUCTURE
+// ==========================================================================
 struct connection::impl
 {
     // ======================================================================
@@ -180,6 +202,17 @@ struct connection::impl
           , _1
           , _2));
 
+        telnet_terminal_type_client_ = make_shared<terminal_type_client>(
+            telnet_stream_
+          , telnet_negotiation_router_
+          , telnet_subnegotiation_router_);
+        telnet_terminal_type_client_->set_activatable(true);
+        telnet_terminal_type_client_->activate();
+        telnet_terminal_type_client_->on_terminal_type_detected(bind(
+            &impl::on_terminal_type_detected
+          , this
+          , _1));
+        
         schedule_next_read();
     }
 
@@ -230,7 +263,8 @@ struct connection::impl
         BOOST_AUTO(end,   input_buffer_.end());
         BOOST_AUTO(result, parse(begin, end));
         
-        ansi_input_visitor visitor(on_control_sequence_, on_text_);
+        ansi_input_visitor visitor(
+            on_mouse_report_, on_control_sequence_, on_text_);
 
         BOOST_FOREACH(odin::ansi::parser::element_type value, result)
         {
@@ -252,6 +286,83 @@ struct connection::impl
         }
     }
 
+    // ======================================================================
+    // ON_TERMINAL_TYPE_NEGOTIATED
+    // ======================================================================
+    void on_terminal_type_negotiated()
+    {
+        // No longer wait on the terminal type negotiation.
+        telnet_terminal_type_client_->on_request_complete(NULL);
+        
+        // Get back to scheduling a terminal type get.
+        schedule_get_terminal_type();
+    }
+    
+    // ======================================================================
+    // ON_TERMINAL_TYPE_DETECTED
+    // ======================================================================
+    void on_terminal_type_detected(string const &type)
+    {
+        terminal_type_ = type;
+        announce_terminal_type();
+    }
+
+    // ======================================================================
+    // ANNOUNCE_TERMINAL_TYPE
+    // ======================================================================
+    void announce_terminal_type()
+    {
+        BOOST_FOREACH(function<void (string)> callback, terminal_type_requests_)
+        {
+            callback(terminal_type_);
+        }
+        
+        terminal_type_requests_.clear();
+    }
+    
+    // ======================================================================
+    // SCHEDULE_GET_TERMINAL_TYPE
+    // ======================================================================
+    void schedule_get_terminal_type()
+    {
+        if (telnet_terminal_type_client_->is_active())
+        {
+            // if we already know the terminal type, then simply schedule
+            // an announcement.
+            if (terminal_type_ != "")
+            {
+                socket_->get_io_service().post(bind(
+                    &impl::announce_terminal_type
+                  , this));
+            }
+            else
+            {
+                telnet_terminal_type_client_->send_request();
+            }
+        }
+        else
+        {
+            // If the terminal type client is still negotiating, then set up 
+            // a callback for when it's done.
+            if (telnet_terminal_type_client_->is_negotiating_activation())
+            {
+                telnet_terminal_type_client_->on_request_complete(bind(
+                    &impl::on_terminal_type_negotiated
+                  , this));
+            }
+            else
+            {
+                // It has completed the negotiation and the other end has
+                // decided not to offer this functionality.  Therefore,
+                // complete the terminal type lookup manually with "UNKNOWN".
+                socket_->get_io_service().post(bind(
+                    &impl::on_terminal_type_detected
+                  , this
+                  , "UNKNOWN"));
+            }
+        }
+    }
+
     shared_ptr<socket>                              socket_;
     shared_ptr<odin::telnet::stream>                telnet_stream_;
     shared_ptr<odin::telnet::command_router>        telnet_command_router_;
@@ -261,14 +372,19 @@ struct connection::impl
     shared_ptr<echo_server>                         telnet_echo_server_;
     shared_ptr<suppress_goahead_server>             telnet_suppress_ga_server_;
     shared_ptr<naws_client>                         telnet_naws_client_;
+    shared_ptr<terminal_type_client>                telnet_terminal_type_client_;
 
     shared_ptr<window> window_;
 
     function<void (u16, u16)>                       on_window_size_changed_;
     function<void (string)>                         on_text_;
     function<void (odin::ansi::control_sequence)>   on_control_sequence_;
+    function<void (odin::ansi::mouse_report)>       on_mouse_report_;
    
     deque<char>                                     input_buffer_;
+    
+    string                                          terminal_type_;
+    vector< function<void (string)> >               terminal_type_requests_;
 };
 
 // ==========================================================================
@@ -312,6 +428,15 @@ void connection::on_text(function<void (string)> callback)
 }
 
 // ==========================================================================
+// ON_MOUSE_REPORT
+// ==========================================================================
+void connection::on_mouse_report(
+    function<void (odin::ansi::mouse_report)> callback)
+{
+    pimpl_->on_mouse_report_ = callback;
+}
+
+// ==========================================================================
 // ON_CONTROL_SEQUENCE
 // ==========================================================================
 void connection::on_control_sequence(
@@ -335,6 +460,15 @@ void connection::disconnect()
 void connection::reconnect(shared_ptr<socket> connection_socket)
 {
     pimpl_->reconnect(connection_socket);
+}
+
+// ==========================================================================
+// ASYNC_GET_TERMINAL_TYPE
+// ==========================================================================
+void connection::async_get_terminal_type(function<void (string)> callback)
+{
+    pimpl_->terminal_type_requests_.push_back(callback);
+    pimpl_->schedule_get_terminal_type();
 }
 
 }

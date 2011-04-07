@@ -39,14 +39,14 @@ namespace munin {
 extent vertical_squeeze_layout::do_get_preferred_size(
     shared_ptr<container const> const &cont) const
 {
-    // The preferred size of the whol component is the maximum preferred
+    // The preferred size of the whole component is the maximum preferred
     // height, and the maximum preferred width multiplied by the number
     // of components.
     BOOST_AUTO(amount, cont->get_number_of_components());
     
     extent maximum_preferred_size(0, 0);
 
-   for (u32 index = 0; index < amount; ++index) 
+    for (u32 index = 0; index < amount; ++index) 
     {
         BOOST_AUTO(comp, cont->get_component(index));
         extent preferred_size = comp->get_preferred_size();
@@ -66,7 +66,7 @@ extent vertical_squeeze_layout::do_get_preferred_size(
 }
 
 // ==========================================================================
-// 
+// DO_LAYOUT
 // ==========================================================================
 void vertical_squeeze_layout::do_layout(shared_ptr<container> const &cont)
 {

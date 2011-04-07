@@ -65,6 +65,11 @@ public :
     void set_title(std::string const &title);
     
     //* =====================================================================
+    /// \brief Enables mouse tracking for the window.
+    //* =====================================================================
+    void enable_mouse_tracking();
+    
+    //* =====================================================================
     /// \brief Retrieve the top level container in the window.  This
     /// contains all the components that are displayed in this window.
     //* =====================================================================

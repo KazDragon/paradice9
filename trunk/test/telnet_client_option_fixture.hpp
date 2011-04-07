@@ -26,6 +26,8 @@ public :
         
         CPPUNIT_TEST(test_inactive_subnegotiation);
         CPPUNIT_TEST(test_active_subnegotiation);
+        
+        CPPUNIT_TEST(test_send_subnegotiation);
     CPPUNIT_TEST_SUITE_END();
 
 private :
@@ -50,4 +52,6 @@ private :
     
     void test_inactive_subnegotiation();
     void test_active_subnegotiation();
+    
+    void test_send_subnegotiation();
 };

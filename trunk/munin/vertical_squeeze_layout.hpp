@@ -35,6 +35,11 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that knows how to lay components out in a container in
 /// vertical strips.  Each component is given a roughly even amount of space.
+///
+///  +----+----+
+///  |    |    |
+///  |    |    |
+///  +----+----+
 //* =========================================================================
 class vertical_squeeze_layout 
     : public layout

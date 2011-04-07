@@ -172,6 +172,16 @@ public :
         on_request_complete_ = callback;
     }
     
+    void send_subnegotiation(subnegotiation_content_type const &content)
+    {
+        subnegotiation_type subnegotiation;
+        subnegotiation.option_id_ = option_id_;
+        subnegotiation.content_   = content;
+        
+        stream::input_value_type input[] = { subnegotiation };
+        stream_->async_write(input, NULL);
+    }
+    
 private :
     shared_ptr<stream>                   stream_;
     shared_ptr<negotiation_router>       negotiation_router_;
@@ -359,5 +369,15 @@ void client_option::on_request_complete(function<void ()> const &callback)
 {
     pimpl_->on_request_complete(callback);
 }
+
+// ==========================================================================
+// SEND_SUBNEGOTIATION
+// ==========================================================================
+void client_option::send_subnegotiation(
+    subnegotiation_content_type const &content)
+{
+    pimpl_->send_subnegotiation(content);
+}
+
 
 }}

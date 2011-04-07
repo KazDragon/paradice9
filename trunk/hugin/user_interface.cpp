@@ -25,26 +25,17 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "user_interface.hpp"
-#include "hugin/command_prompt.hpp"
-#include "hugin/wholist.hpp"
-#include "munin/aligned_layout.hpp"
-#include "munin/ansi/protocol.hpp"
+#include "hugin/account_creation_screen.hpp"
+#include "hugin/character_creation_screen.hpp"
+#include "hugin/character_selection_screen.hpp"
+#include "hugin/intro_screen.hpp"
+#include "hugin/main_screen.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/card.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/edit.hpp"
-#include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
-#include "munin/image.hpp"
-#include "munin/solid_frame.hpp"
-#include "munin/text_area.hpp"
-#include "munin/vertical_squeeze_layout.hpp"
-#include "odin/ansi/protocol.hpp"
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
-using namespace munin::ansi;
 using namespace munin;
 using namespace odin;
 using namespace boost;
@@ -52,190 +43,19 @@ using namespace std;
 
 namespace hugin {
 
-static string main_image[] = {
-    
-    "             _"
-  , "    |/ _._  | \\.__. _  _ ._/ _"
-  , "    |\\(_|/_ |_/|(_|(_|(_)| |_>"
-  , "                    _|"
-  , " "
-  , "                   ___                   ___           ___"
-  , "                  / _ \\___ ________ ____/ (_)______   / _ \\"
-  , "                 / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\_, /"
-  , "                /_/   \\_,_/_/  \\_,_/\\_,_/_/\\__/\\__/  /___/"
-  , "                                                     v1.0"
-};
-
 // ==========================================================================
 // USER_INTERFACE::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct user_interface::impl
 {
-    // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    impl()
-        : help_field_visible_(false)
-    {
-    } 
+    shared_ptr<card>                       active_screen_;
+    string                                 active_face_;                  
     
-    // ======================================================================
-    // CREATE_INTRO_SCREEN
-    // ======================================================================
-    shared_ptr<component> create_intro_screen()
-    {
-        BOOST_AUTO(inner_content, make_shared<basic_container>());
-        inner_content->set_layout(make_shared<compass_layout>());
-
-        BOOST_AUTO(image_container, make_shared<basic_container>());
-        image_container->set_layout(make_shared<aligned_layout>());
-
-        BOOST_AUTO(
-            greetings_image
-          , make_shared<image>(image_from_text(main_image)));
-        image_container->add_component(greetings_image);
-
-        inner_content->add_component(image_container, COMPASS_LAYOUT_CENTRE);
-
-        string name_label_elements[] = { "Name: " };
-
-        BOOST_AUTO(
-            name_label
-          , make_shared<image>(image_from_text(name_label_elements)));
-
-        BOOST_AUTO(name_container, make_shared<basic_container>());
-        name_container->set_layout(make_shared<aligned_layout>());
-
-        alignment_data alignment;
-        alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
-        alignment.vertical_alignment   = VERTICAL_ALIGNMENT_CENTRE;
-
-        name_container->add_component(name_label, alignment);
-
-        intro_name_field_ = make_shared<edit>();
-
-        BOOST_AUTO(bottom_container, make_shared<basic_container>());
-        bottom_container->set_layout(make_shared<compass_layout>());
-        bottom_container->add_component(name_container, COMPASS_LAYOUT_WEST);
-        bottom_container->add_component(
-            make_shared<framed_component>(
-                make_shared<solid_frame>()
-              , intro_name_field_)
-          , COMPASS_LAYOUT_CENTRE);
-
-        inner_content->add_component(bottom_container, COMPASS_LAYOUT_SOUTH);
-
-        BOOST_AUTO(outer_content, make_shared<basic_container>());
-        outer_content->set_layout(make_shared<compass_layout>());
-        
-        statusbar_ = make_shared<edit>();
-        statusbar_->set_can_focus(false);
-        
-        outer_content->add_component(inner_content, COMPASS_LAYOUT_CENTRE);
-        outer_content->add_component(statusbar_, COMPASS_LAYOUT_SOUTH);
-        
-        return outer_content;
-    }
-    
-    // ======================================================================
-    // CREATE_MAIN_SCREEN
-    // ======================================================================
-    shared_ptr<component> create_main_screen()
-    {
-        BOOST_AUTO(content, make_shared<basic_container>());
-        content->set_layout(make_shared<compass_layout>());
-        
-        input_field_ = make_shared<command_prompt>();
-        content->add_component(
-            make_shared<framed_component>(
-                make_shared<solid_frame>()
-              , input_field_)
-          , COMPASS_LAYOUT_SOUTH);
-        
-        wholist_ = make_shared<wholist>();
-        content->add_component(wholist_, COMPASS_LAYOUT_NORTH);
-        
-        output_container_ = make_shared<basic_container>();
-        output_container_->set_layout(make_shared<vertical_squeeze_layout>());
-        
-        output_field_ = make_shared<text_area>();
-        output_field_->disable();
-        output_container_->add_component(
-            make_shared<framed_component>(
-                make_shared<solid_frame>()
-              , output_field_));
-        
-        help_field_ = make_shared<text_area>();
-        help_field_->disable();
-        help_field_frame_ = make_shared<framed_component>(
-            make_shared<solid_frame>()
-          , help_field_);
-        
-        content->add_component(output_container_, COMPASS_LAYOUT_CENTRE);
-        
-        return content;
-    }
-
-    // ======================================================================
-    // ON_USERNAME_ENTERED
-    // ======================================================================
-    void on_username_entered()
-    {
-        if (on_username_entered_)
-        {
-            BOOST_AUTO(document, intro_name_field_->get_document());
-            BOOST_AUTO(elements, document->get_line(0));
-
-            string username;
-
-            BOOST_FOREACH(element_type element, elements)
-            {
-                username += element.first;
-            }
-
-            on_username_entered_(username);
-        }
-    }
-
-    // ======================================================================
-    // ON_INPUT_ENTERED
-    // ======================================================================
-    void on_input_entered()
-    {
-        if (on_input_entered_)
-        {
-            BOOST_AUTO(document, input_field_->get_document());
-            BOOST_AUTO(elements, document->get_line(0));
-            BOOST_AUTO(input,   string_from_elements(elements)); 
-
-            document->delete_text(
-                make_pair(u32(0), document->get_text_size()));
-
-            if (!input.empty())
-            {
-                on_input_entered_(input);
-            }
-        }
-    }
-
-    string                       face_name_;
-    shared_ptr<card>             active_screen_;
-    
-    // Intro Screen components
-    shared_ptr<edit>             intro_name_field_;
-    shared_ptr<edit>             statusbar_;
-    function<void (string)>      on_username_entered_;
-    
-    // Main Screen components
-    shared_ptr<wholist>          wholist_;
-    shared_ptr<command_prompt>   input_field_;
-    shared_ptr<container>        output_container_;
-    shared_ptr<text_area>        output_field_;
-    shared_ptr<text_area>        help_field_;
-    shared_ptr<framed_component> help_field_frame_;
-    bool                         help_field_visible_;
-    
-    function<void (string)>      on_input_entered_;
+    shared_ptr<intro_screen>               intro_screen_;   
+    shared_ptr<account_creation_screen>    account_creation_screen_;
+    shared_ptr<character_selection_screen> character_selection_screen_;
+    shared_ptr<character_creation_screen>  character_creation_screen_;
+    shared_ptr<main_screen>                main_screen_;
 };
 
 // ==========================================================================
@@ -245,15 +65,26 @@ user_interface::user_interface()
     : composite_component(make_shared<basic_container>())
     , pimpl_(new impl)
 {
-    pimpl_->active_screen_ = make_shared<card>();
-    pimpl_->face_name_ = hugin::FACE_INTRO;
+    pimpl_->active_screen_              = make_shared<card>();
+    pimpl_->intro_screen_               = make_shared<intro_screen>();
+    pimpl_->account_creation_screen_    = make_shared<account_creation_screen>();
+    pimpl_->character_creation_screen_  = make_shared<character_creation_screen>();
+    pimpl_->character_selection_screen_ = make_shared<character_selection_screen>();
+    pimpl_->main_screen_                = make_shared<main_screen>();
     
     pimpl_->active_screen_->add_face(
-        pimpl_->create_intro_screen(), hugin::FACE_INTRO);
+        pimpl_->intro_screen_, hugin::FACE_INTRO);
     pimpl_->active_screen_->add_face(
-        pimpl_->create_main_screen(), hugin::FACE_MAIN);
+        pimpl_->account_creation_screen_, hugin::FACE_ACCOUNT_CREATION);
+    pimpl_->active_screen_->add_face(
+        pimpl_->character_selection_screen_, hugin::FACE_CHAR_SELECTION);
+    pimpl_->active_screen_->add_face(
+        pimpl_->character_creation_screen_, hugin::FACE_CHAR_CREATION);
+    pimpl_->active_screen_->add_face(
+        pimpl_->main_screen_, hugin::FACE_MAIN);
     
     pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
+    pimpl_->active_face_ = hugin::FACE_INTRO;
 
     BOOST_AUTO(container, get_container());
     container->set_layout(make_shared<grid_layout>(1, 1));
@@ -261,11 +92,68 @@ user_interface::user_interface()
 }
 
 // ==========================================================================
-// ON_USERNAME_ENTERED
+// CLEAR_INTRO_SCREEN
 // ==========================================================================
-void user_interface::on_username_entered(function<void (string)> callback)
+void user_interface::clear_intro_screen()
 {
-    pimpl_->on_username_entered_ = callback;
+    pimpl_->intro_screen_->clear();
+}
+
+// ==========================================================================
+// CLEAR_ACCOUNT_CREATION_SCREEN
+// ==========================================================================
+void user_interface::clear_account_creation_screen()
+{
+    pimpl_->account_creation_screen_->clear();
+}
+
+// ==========================================================================
+// CLEAR_CHARACTER_SELECTION_SCREEN
+// ==========================================================================
+void user_interface::clear_character_selection_screen()
+{
+}
+
+// ==========================================================================
+// CLEAR_CHARACTER_CREATION_SCREEN
+// ==========================================================================
+void user_interface::clear_character_creation_screen()
+{
+    pimpl_->character_creation_screen_->clear();
+}
+
+// ==========================================================================
+// CLEAR_MAIN_SCREEN
+// ==========================================================================
+void user_interface::clear_main_screen()
+{
+    pimpl_->main_screen_->clear();
+}
+
+// ==========================================================================
+// ON_ACCOUNT_DETAILS_ENTERED
+// ==========================================================================
+void user_interface::on_account_details_entered(
+    function<void (string, string)> callback)
+{
+    pimpl_->intro_screen_->on_account_details_entered(callback);
+}
+
+// ==========================================================================
+// ON_ACCOUNT_CREATED
+// ==========================================================================
+void user_interface::on_account_created(
+    function<void (string, string, string)> callback)
+{
+    pimpl_->account_creation_screen_->on_account_created(callback);
+}
+
+// ==========================================================================
+// ON_ACCOUNT_CREATION_CANCELLED
+// ==========================================================================
+void user_interface::on_account_creation_cancelled(function<void ()> callback)
+{
+    pimpl_->account_creation_screen_->on_account_creation_cancelled(callback);
 }
 
 // ==========================================================================
@@ -273,16 +161,60 @@ void user_interface::on_username_entered(function<void (string)> callback)
 // ==========================================================================
 void user_interface::on_input_entered(function<void (string)> callback)
 {
-    pimpl_->on_input_entered_ = callback;
+    pimpl_->main_screen_->on_input_entered(callback);
 }
 
+// ==========================================================================
+// ON_NEW_CHARACTER
+// ==========================================================================
+void user_interface::on_new_character(function<void ()> callback)
+{
+    pimpl_->character_selection_screen_->on_new_character(callback);
+}
+
+// ==========================================================================
+// ON_CHARACTER_SELECTED
+// ==========================================================================
+void user_interface::on_character_selected(function<void (string)> callback)
+{
+    pimpl_->character_selection_screen_->on_character_selected(callback);
+}
+
+// ==========================================================================
+// ON_CHARACTER_CREATED
+// ==========================================================================
+void user_interface::on_character_created(function<void (string)> callback)
+{
+    pimpl_->character_creation_screen_->on_character_created(callback);
+}
+
+// ==========================================================================
+// ON_CHARACTER_CREATION_CANCELLED
+// ==========================================================================
+void user_interface::on_character_creation_cancelled(
+    function<void ()> callback)
+{
+    pimpl_->character_creation_screen_->on_character_creation_cancelled(
+        callback);
+}
+
+// ==========================================================================
+// SET_CHARACTER_NAMES
+// ==========================================================================
+void user_interface::set_character_names(        
+    runtime_array< pair<string, string> > const &names)
+{
+    pimpl_->character_selection_screen_->set_character_names(names);
+}
+    
 // ==========================================================================
 // SELECT_FACE
 // ==========================================================================
 void user_interface::select_face(string const &face_name)
 {
     pimpl_->active_screen_->select_face(face_name);
-    pimpl_->face_name_ = face_name;
+    pimpl_->active_screen_->set_focus();
+    pimpl_->active_face_ = face_name;
 }
 
 // ==========================================================================
@@ -291,9 +223,7 @@ void user_interface::select_face(string const &face_name)
 void user_interface::add_output_text(
     runtime_array<element_type> const &text)
 {
-    pimpl_->output_field_->get_document()->insert_text(
-        text
-      , pimpl_->output_field_->get_document()->get_text_size());
+    pimpl_->main_screen_->add_output_text(text);
 }
 
 // ==========================================================================
@@ -302,9 +232,18 @@ void user_interface::add_output_text(
 void user_interface::set_statusbar_text(
     runtime_array<element_type> const &text)
 {
-    BOOST_AUTO(document, pimpl_->statusbar_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
-    document->insert_text(text);
+    if (pimpl_->active_face_ == hugin::FACE_INTRO)
+    {
+        pimpl_->intro_screen_->set_statusbar_text(text);
+    }
+    else if (pimpl_->active_face_ == hugin::FACE_ACCOUNT_CREATION)
+    {
+        pimpl_->account_creation_screen_->set_statusbar_text(text);
+    }
+    else if (pimpl_->active_face_ == hugin::FACE_CHAR_CREATION)
+    {
+        pimpl_->character_creation_screen_->set_statusbar_text(text);
+    }
 }
 
 // ==========================================================================
@@ -312,7 +251,7 @@ void user_interface::set_statusbar_text(
 // ==========================================================================
 void user_interface::update_wholist(runtime_array<string> const &names)
 {
-    pimpl_->wholist_->set_names(names);
+    pimpl_->main_screen_->update_wholist(names);
 }
 
 // ==========================================================================
@@ -320,7 +259,7 @@ void user_interface::update_wholist(runtime_array<string> const &names)
 // ==========================================================================
 void user_interface::add_command_history(string const &history)
 {
-    pimpl_->input_field_->add_history(history);
+    pimpl_->main_screen_->add_command_history(history);
 }
 
 // ==========================================================================
@@ -328,11 +267,7 @@ void user_interface::add_command_history(string const &history)
 // ==========================================================================
 void user_interface::show_help_window()
 {
-    if (!pimpl_->help_field_visible_)
-    {
-        pimpl_->output_container_->add_component(pimpl_->help_field_frame_);
-        pimpl_->help_field_visible_ = true;
-    }
+    pimpl_->main_screen_->show_help_window();
 }
 
 // ==========================================================================
@@ -340,11 +275,7 @@ void user_interface::show_help_window()
 // ==========================================================================
 void user_interface::hide_help_window()
 {
-    if (pimpl_->help_field_visible_)
-    {
-        pimpl_->output_container_->remove_component(pimpl_->help_field_frame_);
-        pimpl_->help_field_visible_ = false;
-    }
+    pimpl_->main_screen_->hide_help_window();
 }
 
 // ==========================================================================
@@ -353,75 +284,7 @@ void user_interface::hide_help_window()
 void user_interface::set_help_window_text(
     odin::runtime_array<element_type> const &text)
 {
-    BOOST_AUTO(document, pimpl_->help_field_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
-    document->insert_text(text);
-}
-
-// ==========================================================================
-// DO_EVENT
-// ==========================================================================
-void user_interface::do_event(any const &ev)
-{
-    char const *ch = any_cast<char>(&ev);
-    odin::ansi::control_sequence const *control_sequence = 
-        any_cast<odin::ansi::control_sequence>(&ev);
-
-    if (pimpl_->face_name_ == hugin::FACE_INTRO 
-     && pimpl_->intro_name_field_->has_focus()
-     && ch != NULL)
-    {
-        if (*ch == '\n' || *ch == '\r')
-        {
-            pimpl_->on_username_entered();
-        }
-        else if (*ch == ' ')
-        {
-            // Do nothing - we don't allow spaces in names.
-        }
-        else
-        {
-            composite_component::do_event(ev);
-        }
-    }
-    else if (pimpl_->face_name_ == hugin::FACE_MAIN
-          && pimpl_->input_field_->has_focus()
-          && ch != NULL
-          && (*ch == '\n' || *ch == '\r'))
-    {
-        pimpl_->on_input_entered();
-    }
-    else if (pimpl_->face_name_ == hugin::FACE_MAIN)
-    {
-        if (ch != NULL && *ch == '\t')
-        {
-            focus_next();
-            
-            if (!has_focus())
-            {
-                focus_next();
-            }
-        }
-        else if (control_sequence != NULL
-              && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-              && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
-        {
-            focus_previous();
-
-            if (!has_focus())
-            {
-                focus_previous();
-            }
-        }
-        else
-        {
-            composite_component::do_event(ev);
-        }
-    }
-    else
-    {
-        composite_component::do_event(ev);
-    }
+    pimpl_->main_screen_->set_help_window_text(text);
 }
 
 }

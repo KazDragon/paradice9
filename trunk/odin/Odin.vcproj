@@ -294,6 +294,10 @@
 				RelativePath=".\telnet\subnegotiation_router.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_client.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Telnet Option Header Files"
@@ -324,6 +328,10 @@
 			</File>
 			<File
 				RelativePath=".\telnet\options\suppress_goahead_server.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_client.hpp"
 				>
 			</File>
 			<File

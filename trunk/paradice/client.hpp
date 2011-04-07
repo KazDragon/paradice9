@@ -36,6 +36,8 @@ namespace hugin {
 }
 
 namespace paradice {
+    class account;
+    class character;
     class socket;
     class connection;
 }
@@ -45,15 +47,6 @@ namespace paradice {
 class client
 {
 public :
-    //* =====================================================================
-    /// \brief Defines the style of command that the client wishes to use.
-    //* =====================================================================
-    enum command_mode
-    {
-        command_mode_mud
-      , command_mode_mmo
-    };
-    
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
@@ -86,34 +79,29 @@ public :
     boost::shared_ptr<hugin::user_interface> get_user_interface();
     
     //* =====================================================================
-    /// \brief Sets the name that the client goes by.
+    /// \brief Sets the title of the client's window
     //* =====================================================================
-    void set_name(std::string const &name);
+    void set_window_title(std::string const &title);
 
     //* =====================================================================
-    /// \brief Gets the name that the client goes by.
+    /// \brief Sets the account that the client is currently using.
     //* =====================================================================
-    std::string get_name() const;
+    void set_account(boost::shared_ptr<account> acc);
     
     //* =====================================================================
-    /// \brief Sets the post-name text that the client uses as a title.
+    /// \brief Retrieves the account that the client is currently using.
     //* =====================================================================
-    void set_title(std::string const &title);
-
-    //* =====================================================================
-    /// \brief Gets the post-name text that the client uses as a title.
-    //* =====================================================================
-    std::string get_title() const;
+    boost::shared_ptr<account> get_account() const;
     
     //* =====================================================================
-    /// \brief Sets the pre-name text that the client uses as a prefix.
+    /// \brief Sets the character that the client is currently using.
     //* =====================================================================
-    void set_prefix(std::string const &prefix);
-
+    void set_character(boost::shared_ptr<character> ch);
+    
     //* =====================================================================
-    /// \brief Gets the pre-name text that the client uses as a prefix.
+    /// \brief Retreives the character that the client is currently using.
     //* =====================================================================
-    std::string get_prefix() const;
+    boost::shared_ptr<character> get_character() const;
 
     //* =====================================================================
     /// \brief Sets the command that the client last used.
@@ -124,16 +112,6 @@ public :
     /// \brief Gets the command that the client last used.
     //* =====================================================================
     std::string get_last_command() const;
-
-    //* =====================================================================
-    /// \brief Sets the style of command that the client wishes to use.
-    //* =====================================================================
-    void set_command_mode(command_mode mode);
-
-    //* =====================================================================
-    /// \brief Returns the style of command that the client is using.
-    //* =====================================================================
-    command_mode get_command_mode() const;
 
 private :
     struct impl;

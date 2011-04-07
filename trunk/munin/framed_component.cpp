@@ -158,9 +158,9 @@ framed_component::framed_component(
     
     container->set_layout(make_shared<framed_component_layout>());
     container->add_component(
-        border, framed_component_layout::hint_border);
-    container->add_component(
         interior, framed_component_layout::hint_interior);
+    container->add_component(
+        border, framed_component_layout::hint_border);
     
     interior->on_focus_set.connect(bind(&impl::update_pen, pimpl_.get()));
     interior->on_focus_lost.connect(bind(&impl::update_pen, pimpl_.get()));

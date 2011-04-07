@@ -494,6 +494,14 @@ void window::set_title(string const &title)
 }
 
 // ==========================================================================
+// ENABLE_MOUSE_TRACKING
+// ==========================================================================
+void window::enable_mouse_tracking()
+{
+    on_repaint(munin::ansi::enable_mouse_tracking());
+}
+
+// ==========================================================================
 // GET_CONTENT
 // ==========================================================================
 shared_ptr<container> window::get_content()

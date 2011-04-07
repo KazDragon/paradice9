@@ -14,7 +14,9 @@ L_DIRS       = -L.
 G_LIBS       = -lmunin -lodin -lboost_program_options -lboost_system \
                -lboost_signals -lws2_32 -lwsock32
 LIBS         = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
-               -lboost_system -lboost_signals -lws2_32 -lwsock32 
+               -lboost_filesystem -lboost_system -lboost_signals \
+               -lboost_serialization \
+               -lws2_32 -lwsock32 
 E_NAME       = paradice.exe
 G_NAME       = guibuilder.exe
 
@@ -28,30 +30,51 @@ ODIN_NAMES        = ansi/protocol \
                     telnet/subnegotiation_router \
                     telnet/stream \
                     telnet/options/naws_client \
+                    telnet/options/terminal_type_client \
                     tokenise
 ODIN_O_FILES      = $(ODIN_NAMES:%=odin/%.o)
 ODIN_LIB          = libodin.a
 
 MUNIN_NAMES       = algorithm \
-                    ansi/attribute \
-                    ansi/ansi_canvas \
-                    ansi/ansi_types \
-                    ansi/attribute \
-                    ansi/basic_container \
-                    ansi/edit \
-                    ansi/frame \
-                    ansi/framed_component \
-                    ansi/image \
+                    aligned_layout \
                     ansi/protocol \
-                    ansi/text/default_multiline_document \
-                    ansi/text/default_singleline_document \
-                    ansi/text_area \
-                    ansi/window \
-                    types
+                    attribute \
+                    basic_component \
+                    basic_container \
+                    canvas \
+                    card \
+                    compass_layout \
+                    component \
+                    composite_component \
+                    container \
+                    edit \
+                    frame \
+                    framed_component \
+                    grid_layout \
+                    horizontal_squeeze_layout \
+                    horizontal_strip_layout \
+                    image \
+                    layout \
+                    named_frame \
+                    solid_frame \
+                    text_area \
+                    text/default_multiline_document \
+                    text/default_singleline_document \
+                    text/document \
+                    types \
+                    vertical_squeeze_layout \
+                    window
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
 MUNIN_LIB         = libmunin.a
 
-HUGIN_NAMES       = command_prompt user_interface wholist
+HUGIN_NAMES       = account_creation_screen \
+                    character_creation_screen \
+                    character_selection_screen \
+                    command_prompt \
+                    intro_screen \
+                    main_screen \
+                    user_interface \
+                    wholist
 HUGIN_O_FILES     = $(HUGIN_NAMES:%=hugin/%.o)
 HUGIN_LIB         = libhugin.a
 
@@ -62,7 +85,9 @@ GUIBUILDER_NAMES  = client \
                     ui
 GUIBUILDER_O_FILES= $(GUIBUILDER_NAMES:%=guibuilder/%.o)
 
-PARADICE_NAMES    = client \
+PARADICE_NAMES    = account \
+                    character \
+                    client \
                     communication \
                     configuration \
                     connection \
@@ -86,12 +111,6 @@ TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_system \
 TEST_L_FLAGS      = --enable-auto-import
 TEST_FIXTURES     = ansi_parser \
                     dice_parser \
-                    munin_algorithm \
-                    munin_ansi_canvas \
-                    munin_component \
-                    munin_container \
-                    munin_canvas \
-                    munin_layout \
                     router \
                     runtime_array \
                     small_buffer \
@@ -105,6 +124,7 @@ TEST_FIXTURES     = ansi_parser \
                     telnet_options_subnegotiationless_server \
                     telnet_options_suppress_goahead_client \
                     telnet_options_suppress_goahead_server \
+                    telnet_options_terminal_type_client \
                     telnet_parser \
                     telnet_server_option \
                     telnet_stream \
@@ -118,7 +138,7 @@ $(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(HUGIN_LIB) $(PARADICE_LIB) \
            $(TEST_EXE) $(PARADICE9_O_FILES)
 	$(CC) $(NAME_IS) $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS)
     
-$(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(TEST_EXE) $(GUIBUILDER_O_FILES)
+$(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(GUIBUILDER_O_FILES)
 	$(CC) $(NAME_IS) $@ $(GUIBUILDER_O_FILES) $(L_DIRS) $(G_LIBS)
 	
 clean: 

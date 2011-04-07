@@ -28,9 +28,12 @@
 #define PARADICE_CONTEXT_HPP_
 
 #include "odin/runtime_array.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace paradice {
 
+class account;
+class character;
 class client;
 
 //* =========================================================================
@@ -49,7 +52,7 @@ public :
     /// \brief Retrieves a list of clients currently connected to Paradice.
     //* =====================================================================
     virtual odin::runtime_array< boost::shared_ptr<client> > get_clients() = 0;
-
+    
     //* =====================================================================
     /// \brief Adds a client to the list of clients currently connected
     /// to Paradice.
@@ -66,6 +69,38 @@ public :
     /// \brief For all clients, updates their lists of names.
     //* =====================================================================
     virtual void update_names() = 0;
+
+    //* =====================================================================
+    /// \brief Returns how a character appears to others, including prefix
+    /// and suffix.
+    //* =====================================================================
+    virtual std::string get_moniker(boost::shared_ptr<character> &ch) = 0;
+    
+    //* =====================================================================
+    /// \brief Loads an account from a specific account name and returns it.
+    /// Returns an empty shared_ptr<> if there was no account with that name
+    /// found.
+    //* =====================================================================
+    virtual boost::shared_ptr<account> load_account(
+        std::string const &name) = 0;
+
+    //* =====================================================================
+    /// \brief Saves an account.
+    //* =====================================================================
+    virtual void save_account(boost::shared_ptr<account> acct) = 0;
+
+    //* =====================================================================
+    /// \brief Loads a character that is identified by the passed name and
+    /// returns it.  Returns an empty shared_ptr<> if there was no character
+    /// with that name found.
+    //* =====================================================================
+    virtual boost::shared_ptr<character> load_character(
+        std::string const &name) = 0;
+
+    //* =====================================================================
+    /// \brief Saves a character.
+    //* =====================================================================
+    virtual void save_character(boost::shared_ptr<character> ch) = 0;
 };
 
 }

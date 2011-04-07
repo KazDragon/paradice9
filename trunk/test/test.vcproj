@@ -247,6 +247,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\telnet_options_terminal_type_client_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\telnet_parser_fixture.cpp"
 				>
 			</File>
@@ -354,6 +358,10 @@
 			</File>
 			<File
 				RelativePath=".\telnet_options_suppress_goahead_server_fixture.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet_options_terminal_type_client_fixture.hpp"
 				>
 			</File>
 			<File

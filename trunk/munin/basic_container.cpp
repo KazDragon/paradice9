@@ -27,6 +27,7 @@
 #include "munin/basic_container.hpp"
 #include "munin/canvas.hpp"
 #include "munin/layout.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -748,14 +749,51 @@ bool basic_container::do_is_enabled() const
 // ==========================================================================
 void basic_container::do_event(any const &event)
 {
-    BOOST_FOREACH(
-        shared_ptr<component> current_component
-      , pimpl_->components_)
+    // We split the events into two types.  Mouse events are passed to
+    // whichever component is under the mouse click.  All other events are
+    // passed to the focussed component.
+    BOOST_AUTO(mouse, any_cast<odin::ansi::mouse_report>(&event));
+    
+    if (mouse != NULL)
     {
-        if (current_component->has_focus())
+        BOOST_FOREACH(
+            shared_ptr<component> current_component
+          , pimpl_->components_)
         {
-            current_component->event(event);
-            break;
+            BOOST_AUTO(position, current_component->get_position());
+            BOOST_AUTO(size,     current_component->get_size());
+            
+            // Check to see if the reported position is within the component's
+            // bounds.
+            if (mouse->x_position_ >= position.x
+             && mouse->x_position_  < position.x + size.width
+             && mouse->y_position_ >= position.y
+             && mouse->y_position_  < position.y + size.height)
+            {
+                // Copy the mouse's report and adjust it so that the
+                // subcomponent's position is taken into account.
+                odin::ansi::mouse_report subreport;
+                subreport.button_     = mouse->button_;
+                subreport.x_position_ = u8(mouse->x_position_ - position.x);
+                subreport.y_position_ = u8(mouse->y_position_ - position.y);
+                
+                // Forward the event onto the component, then look no further.
+                current_component->event(subreport);
+                break;
+            }
+        }
+    }
+    else
+    {
+        BOOST_FOREACH(
+            shared_ptr<component> current_component
+          , pimpl_->components_)
+        {
+            if (current_component->has_focus())
+            {
+                current_component->event(event);
+                break;
+            }
         }
     }
 }

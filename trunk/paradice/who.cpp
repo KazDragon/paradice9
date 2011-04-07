@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "who.hpp"
+#include "character.hpp"
 #include "client.hpp"
 #include "communication.hpp"
 #include "connection.hpp"
@@ -37,6 +38,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <boost/utility.hpp>
 
 using namespace std;
@@ -45,32 +47,6 @@ using namespace odin;
 
 namespace paradice {
 
-// ==========================================================================
-// GET_PLAYER_ADDRESS
-// ==========================================================================
-static string get_player_address(shared_ptr<client> &client)
-{
-    string prefix = client->get_prefix();
-    string name   = client->get_name();
-    string title  = client->get_title();
-    
-    string address;
-    
-    if (!prefix.empty())
-    {
-        address += prefix + " ";
-    }
-    
-    address += name;
-    
-    if (!title.empty())
-    {
-        address += " " + title;
-    }
-    
-    return address;
-}
- 
 // ==========================================================================
 // IS_ACCEPTIBLE_NAME
 // ==========================================================================
@@ -98,19 +74,21 @@ bool is_acceptible_name(string const &name)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(title)
 {
-    player->set_title(boost::algorithm::trim_copy(arguments));
+    BOOST_AUTO(character, player->get_character());
+    character->set_suffix(boost::algorithm::trim_copy(arguments));
 
     send_to_player(ctx, str(
         format("\r\nYou are now %s.\r\n")
-            % get_player_address(player))
+            % ctx->get_moniker(character))
       , player);
     
     send_to_room(ctx, str(
         format("\r\n%s is now %s.\r\n")
-            % player->get_name()
-            % get_player_address(player))
+            % player->get_character()->get_name()
+            % ctx->get_moniker(character))
       , player);
     
+    ctx->save_character(character);
     ctx->update_names();
 }
 
@@ -119,60 +97,21 @@ PARADICE_COMMAND_IMPL(title)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(prefix)
 {
-    player->set_prefix(boost::algorithm::trim_copy(arguments));
+    BOOST_AUTO(character, player->get_character());
+    character->set_prefix(boost::algorithm::trim_copy(arguments));
 
     send_to_player(ctx, str(
         format("\r\nYou are now %s.\r\n")
-            % get_player_address(player))
+            % ctx->get_moniker(character))
       , player);
     
     send_to_room(ctx, str(
         format("\r\n%s is now %s.\r\n")
-            % player->get_name()
-            % get_player_address(player))
+            % player->get_character()->get_name()
+            % ctx->get_moniker(character))
       , player);
 
-    ctx->update_names();
-}
-
-// ==========================================================================
-// PARADICE COMMAND: RENAME
-// ==========================================================================
-PARADICE_COMMAND_IMPL(rename)
-{
-    string name = tokenise(arguments).first;
-    
-    if (!is_acceptible_name(name))
-    {
-        // Colour in red?
-        player->get_user_interface()->add_output_text(
-            munin::ansi::elements_from_string(
-                "\nYour name must be at least three characters long and be "
-                "composed of only alphabetical characters.\n"));
-    }
-    else
-    {
-        name[0] = toupper(name[0]);
-        for (size_t index = 1; index < name.size(); ++index)
-        {
-            name[index] = tolower(name[index]);
-        }
-        
-        string old_name = player->get_name();
-        player->set_name(name);
-        
-        send_to_player(ctx, str(
-            format("\r\nYou are now %s.\r\n")
-                % get_player_address(player))
-          , player);
-        
-        send_to_room(ctx, str(
-            format("\r\n%s is now %s.\r\n")
-                % old_name
-                % get_player_address(player))
-          , player);
-    }
-
+    ctx->save_character(character);
     ctx->update_names();
 }
 

@@ -25,26 +25,66 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "context_impl.hpp"
+#include "paradice/account.hpp"
+#include "paradice/character.hpp"
 #include "paradice/client.hpp"
 #include "hugin/user_interface.hpp"
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
+#include <fstream>
 #include <string>
 #include <vector>
 
 using namespace std;
 using namespace boost;
+using namespace boost::archive;
+using namespace boost::filesystem;
 using namespace odin;
 
 // ==========================================================================
-// GET_PLAYER_ADDRESS
+// GET_ACCOUNTS_PATH
 // ==========================================================================
-static string get_player_address(shared_ptr<paradice::client> &client)
+static path get_accounts_path()
 {
-    string prefix = client->get_prefix();
-    string name   = client->get_name();
-    string title  = client->get_title();
+    BOOST_AUTO(cwd, current_path());
+    BOOST_AUTO(accounts_path, cwd / "accounts");
+    
+    if (!exists(accounts_path))
+    {
+        create_directory(accounts_path);
+    }
+    
+    return accounts_path;
+}
+
+// ==========================================================================
+// GET_CHARACTERS_PATH
+// ==========================================================================
+static path get_characters_path()
+{
+    BOOST_AUTO(cwd, current_path());
+    BOOST_AUTO(characters_path, cwd / "characters");
+    
+    if (!exists(characters_path))
+    {
+        create_directory(characters_path);
+    }
+    
+    return characters_path;
+}
+
+// ==========================================================================
+// GET_CHARACTER_ADDRESS
+// ==========================================================================
+static string get_character_address(shared_ptr<paradice::character> &ch)
+{
+    string prefix = ch->get_prefix();
+    string name   = ch->get_name();
+    string title  = ch->get_suffix();
     
     string address;
     
@@ -129,11 +169,16 @@ void context_impl::update_names()
     
     BOOST_FOREACH(shared_ptr<paradice::client> cur_client, pimpl_->clients_)
     {
-        BOOST_AUTO(name, get_player_address(cur_client));
+        BOOST_AUTO(character, cur_client->get_character());
         
-        if (!name.empty())
+        if (character != NULL)
         {
-            names.push_back(name);
+            BOOST_AUTO(name, get_character_address(character));
+            
+            if (!name.empty())
+            {
+                names.push_back(name);
+            }
         }
     }
     
@@ -149,5 +194,106 @@ void context_impl::update_names()
             user_interface->update_wholist(names_array);
         }
     }
+}
+
+// ==========================================================================
+// GET_MONIKER
+// ==========================================================================
+string context_impl::get_moniker(shared_ptr<paradice::character> &ch)
+{
+    string prefix = ch->get_prefix();
+    string name   = ch->get_name();
+    string title  = ch->get_suffix();
+    
+    string address;
+    
+    if (!prefix.empty())
+    {
+        address += prefix + " ";
+    }
+    
+    address += name;
+    
+    if (!title.empty())
+    {
+        address += " " + title;
+    }
+    
+    return address;
+}
+ 
+// ==========================================================================
+// LOAD_ACCOUNT
+// ==========================================================================
+shared_ptr<paradice::account> context_impl::load_account(string const &name)
+{
+    BOOST_AUTO(
+        account_path
+      , get_accounts_path() / name);
+    
+    if (exists(account_path))
+    {
+        ifstream in(account_path.string().c_str());
+        xml_iarchive ia(in);
+        
+        shared_ptr<paradice::account> account(new paradice::account);
+        ia >> boost::serialization::make_nvp("account", *account);
+        
+        return account;
+    }
+    
+    return shared_ptr<paradice::account>();
+}
+
+// ==========================================================================
+// SAVE_ACCOUNT
+// ==========================================================================
+void context_impl::save_account(shared_ptr<paradice::account> acct)
+{
+    BOOST_AUTO(
+        account_path
+      , get_accounts_path() / acct->get_name());
+    
+    ofstream out(account_path.string().c_str());
+    xml_oarchive oa(out);
+    oa << boost::serialization::make_nvp("account", *acct);
+}
+
+// ==========================================================================
+// LOAD_CHARACTER
+// ==========================================================================
+shared_ptr<paradice::character> context_impl::load_character(
+    string const &name)
+{
+    BOOST_AUTO(
+        character_path
+      , get_characters_path() / name);
+    
+    if (exists(character_path))
+    {
+        ifstream in(character_path.string().c_str());
+        xml_iarchive ia(in);
+        
+        shared_ptr<paradice::character> character(new paradice::character);
+        ia >> boost::serialization::make_nvp("character", *character);
+        
+        return character;
+    }
+    
+    return shared_ptr<paradice::character>();
+}
+
+// ==========================================================================
+// SAVE_CHARACTER
+// ==========================================================================
+void context_impl::save_character(shared_ptr<paradice::character> ch)
+{
+    BOOST_AUTO(
+        character_path
+      , get_characters_path() / ch->get_name());
+    
+    ofstream out(character_path.string().c_str());
+    xml_oarchive oa(out);
+    oa << boost::serialization::make_nvp("character", *ch);
 }
 

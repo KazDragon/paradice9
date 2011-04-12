@@ -85,11 +85,24 @@ PARADICE_COMMAND_IMPL(set)
         {
             player->get_account()->set_command_mode(
                 paradice::account::command_mode_mud);
+            
+            send_to_player(
+                ctx
+              , "Your command mode is now 'mud'.  Type commands normally, and "
+                "use '.' or 'say' to talk.\n"
+              , player);
         }
         else if (token1.first == "mmo")
         {
             player->get_account()->set_command_mode(
                 paradice::account::command_mode_mmo);
+            
+            send_to_player(
+                ctx
+              , "Your command mode is now 'mmo'.  Use the '/' character to "
+                "perform commands.  Anything else will be said by your "
+                "character.\n"
+              , player);
         }
         else
         {

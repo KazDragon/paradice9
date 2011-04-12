@@ -70,13 +70,13 @@ struct character_selection_screen::impl
             characters_.size() + 1);
         
         // Fill the first element with the "create new character" text.
-        text[0] = elements_from_string("0. <Create new character>");
+        text[0] = elements_from_string("+. <Create new character>");
         
         // Fill the remainder with the names of the characters.
         for (size_t index = 0; index < characters_.size(); ++index)
         {
             text[index + 1] = elements_from_string(str(format("%d. %s")
-                % (index + 1)
+                % index
                 % characters_[index].second));
         }
         
@@ -169,7 +169,7 @@ void character_selection_screen::do_event(any const &event)
     
     if (ch != NULL)
     {
-        if (*ch == '0')
+        if (*ch == '+')
         {
             if (pimpl_->on_new_character_)
             {
@@ -180,12 +180,11 @@ void character_selection_screen::do_event(any const &event)
         {
             unsigned int selection = *ch - '0';
             
-            if (selection != 0
-             && selection <= pimpl_->characters_.size()
+            if (selection < pimpl_->characters_.size()
              && pimpl_->on_character_selected_ != NULL)
             {
                 pimpl_->on_character_selected_(
-                    pimpl_->characters_[selection - 1].first);
+                    pimpl_->characters_[selection].first);
             }
         }
     }

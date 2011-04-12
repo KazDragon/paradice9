@@ -42,9 +42,11 @@ namespace munin {
     class window;
 }
 
-namespace paradice {
+namespace odin { namespace net {
+    class socket;
+}}
 
-class socket;
+namespace paradice {
 
 //* =========================================================================
 /// \brief An connection to a socket that abstracts away details about the
@@ -58,7 +60,7 @@ public :
     /// a communications point, and calls the passed function whenever data
     /// is received.
     //* =====================================================================
-    connection(boost::shared_ptr<socket> sock);
+    connection(boost::shared_ptr<odin::net::socket> socket);
     
     //* =====================================================================
     /// \brief Destructor.
@@ -105,7 +107,7 @@ public :
     //* =====================================================================
     /// \brief Reconnects a new socket to this connection.
     //* =====================================================================
-    void reconnect(boost::shared_ptr<socket> connection_socket);
+    void reconnect(boost::shared_ptr<odin::net::socket> socket);
     
     //* =====================================================================
     /// \brief Asynchronously retrieves the terminal type of the connection.

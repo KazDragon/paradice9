@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Framed Component.
+// Munin Button.
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,54 +24,47 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_FRAMED_COMPONENT_HPP_
-#define MUNIN_FRAMED_COMPONENT_HPP_
+#ifndef MUNIN_BUTTON_HPP_
+#define MUNIN_BUTTON_HPP_
 
 #include "munin/composite_component.hpp"
+#include "odin/runtime_array.hpp"
+#include <boost/signal.hpp>
 
 namespace munin {
 
-class frame;
-
-BOOST_STATIC_CONSTANT(std::string, 
-    FOCUSSED_BORDER_PEN = "Focussed.Border.Pen");
-BOOST_STATIC_CONSTANT(std::string, 
-    UNFOCUSSED_BORDER_PEN = "Unfocussed.Border.Pen");
-
 //* =========================================================================
-/// \brief A class that models a multi-line text control with a frame
-/// bordering it.
+/// \brief A class that models a push-button.
 //* =========================================================================
-class framed_component 
+class button 
   : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    framed_component(
-        boost::shared_ptr<frame>     border
-      , boost::shared_ptr<component> interior); 
+    button(odin::runtime_array<element_type> const &caption);
 
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~framed_component();
+    virtual ~button();
     
-protected :
     //* =====================================================================
-    /// \brief Called by set_attribute().  Derived classes must override this
-    /// function in order to set an attribute in a custom manner.
+    /// \fn on_click
+    /// \brief Connect to this signal to receive click events due to the
+    /// button either being clicked, or having focus and receiving an
+    /// enter or space keypress.
     //* =====================================================================
-    virtual void do_set_attribute(
-        std::string const &name, boost::any const &attr);
+    boost::signal<void ()> on_click;
     
+protected :    
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
-    
+
     struct impl;
     boost::shared_ptr<impl> pimpl_;    
 };

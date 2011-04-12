@@ -34,7 +34,6 @@
 namespace munin {
     
 //* =========================================================================
-/// \fn intersection
 /// \brief Returns the intersection of two rectangles.
 //* =========================================================================
 boost::optional<rectangle> intersection(
@@ -42,7 +41,6 @@ boost::optional<rectangle> intersection(
   , rectangle const &rhs);
 
 //* =========================================================================
-/// \fn rectangular_slice
 /// \brief Returns an array of sliced rectangles.
 /// \par
 /// A rectangular slice takes an array of rectangles, and returns an array
@@ -52,6 +50,23 @@ boost::optional<rectangle> intersection(
 //* =========================================================================
 std::vector<rectangle> rectangular_slice(
     std::vector<rectangle> const &rectangles);
+
+//* =========================================================================
+/// \brief Returns an array of clipped regions.
+/// \par
+/// A clipped region is one whose bounds are trimmed to a particular size.
+/// For example, if the size is (5,5), and a region is (3,2)->[3,3], then
+/// the region is clipped to (3,2)->[2,3].
+//* =========================================================================
+std::vector<rectangle> clip_regions(
+    std::vector<rectangle> regions
+  , extent                 size);
+
+//* =========================================================================
+/// \brief Returns the passed array, except that any regions that have a
+/// height or width of 0 are omitted.
+//* =========================================================================
+std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
 
 }
     

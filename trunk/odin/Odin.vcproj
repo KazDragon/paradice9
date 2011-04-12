@@ -294,10 +294,6 @@
 				RelativePath=".\telnet\subnegotiation_router.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\telnet\options\terminal_type_client.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Telnet Option Header Files"
@@ -344,6 +340,10 @@
 			>
 			<File
 				RelativePath=".\telnet\options\naws_client.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\telnet\options\terminal_type_client.cpp"
 				>
 			</File>
 			<File
@@ -396,6 +396,22 @@
 			>
 			<File
 				RelativePath=".\ascii\protocol.hpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Net Source Files"
+			>
+			<File
+				RelativePath=".\net\socket.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Net Header Files"
+			>
+			<File
+				RelativePath=".\net\socket.hpp"
 				>
 			</File>
 		</Filter>

@@ -35,12 +35,12 @@
 #include "paradice/help.hpp"
 #include "paradice/rules.hpp"
 #include "paradice/server.hpp"
-#include "paradice/socket.hpp"
 #include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
 #include "munin/container.hpp"
 #include "munin/window.hpp"
 #include "munin/grid_layout.hpp"
+#include "odin/net/socket.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/asio/deadline_timer.hpp>
@@ -151,7 +151,7 @@ private :
     // ======================================================================
     // ON_ACCEPT
     // ======================================================================
-    void on_accept(shared_ptr<paradice::socket> socket)
+    void on_accept(shared_ptr<odin::net::socket> socket)
     {
         // Begin the keepalive process.  This sends regular heartbeats to the
         // client to help guard against his network settings timing him out
@@ -186,7 +186,7 @@ private :
             bind(
                 &impl::on_terminal_type
               , this
-              , weak_ptr<paradice::socket>(socket)
+              , weak_ptr<odin::net::socket>(socket)
               , weak_ptr<paradice::client>(client)
               , _1));
     }
@@ -195,9 +195,9 @@ private :
     // ON_TERMINAL_TYPE
     // ======================================================================
     void on_terminal_type(
-        weak_ptr<paradice::socket>  weak_socket
-      , weak_ptr<paradice::client>  weak_client
-      , string const               &terminal_type)
+        weak_ptr<odin::net::socket>  weak_socket
+      , weak_ptr<paradice::client>   weak_client
+      , string const                &terminal_type)
     {
         printf("Terminal type is: \"%s\"\n", terminal_type.c_str());
         
@@ -244,7 +244,7 @@ private :
                 bind(
                     &impl::on_repaint
                   , this
-                  , weak_ptr<paradice::socket>(socket)
+                  , weak_ptr<odin::net::socket>(socket)
                   , _1));
         
             BOOST_AUTO(user_interface, make_shared<hugin::user_interface>());
@@ -361,10 +361,14 @@ private :
     {
         BOOST_AUTO(connection, weak_connection.lock());
     
-        if (connection)
+        if (connection != NULL)
         {
-            connection->get_window()->get_content()->set_size(
-                munin::extent(width, height));
+            BOOST_AUTO(window, connection->get_window());
+            
+            if (window != NULL)
+            {
+                window->get_content()->set_size(munin::extent(width, height));
+            }
         }
     }
     
@@ -377,13 +381,16 @@ private :
     {
         BOOST_AUTO(connection, weak_connection.lock());
     
-        if (connection)
+        if (connection != NULL)
         {
             BOOST_AUTO(window, connection->get_window());
-    
-            BOOST_FOREACH(char ch, text)
+
+            if (window != NULL)
             {
-                window->event(ch);
+                BOOST_FOREACH(char ch, text)
+                {
+                    window->event(ch);
+                }
             }
         }
     }
@@ -397,9 +404,14 @@ private :
     {
         BOOST_AUTO(connection, weak_connection.lock());
         
-        if (connection)
+        if (connection != NULL)
         {
-            connection->get_window()->event(report);
+            BOOST_AUTO(window, connection->get_window());
+
+            if (window != NULL)
+            {
+                window->event(report);
+            }
         }
     }
     
@@ -412,9 +424,14 @@ private :
     {
         BOOST_AUTO(connection, weak_connection.lock());
         
-        if (connection)
+        if (connection != NULL)
         {
-            connection->get_window()->event(control_sequence);
+            BOOST_AUTO(window, connection->get_window());
+
+            if (window != NULL)
+            {
+                window->event(control_sequence);
+            }
         }
     }
     
@@ -422,12 +439,12 @@ private :
     // ON_REPAINT
     // ======================================================================
     void on_repaint(
-        weak_ptr<paradice::socket>  weak_socket
-      , string const               &paint_data)
+        weak_ptr<odin::net::socket>  weak_socket
+      , string const                &paint_data)
     {
         BOOST_AUTO(socket, weak_socket.lock());
     
-        if (socket)
+        if (socket != NULL)
         {
             runtime_array<u8> data(paint_data.size());
             copy(paint_data.begin(), paint_data.end(), data.begin());
@@ -818,7 +835,7 @@ private :
     // ON_KEEPALIVE
     // ======================================================================
     void on_keepalive(
-        weak_ptr<paradice::socket>               weak_socket
+        weak_ptr<odin::net::socket>              weak_socket
       , shared_ptr<boost::asio::deadline_timer>  keepalive_timer
       , boost::system::error_code const         &error)
     {
@@ -826,7 +843,7 @@ private :
     
         if (socket)
         {
-            paradice::socket::output_value_type values[] = {
+            odin::net::socket::output_value_type values[] = {
                 odin::telnet::IAC, odin::telnet::NOP
             };
     
@@ -840,7 +857,7 @@ private :
     // SCHEDULE_KEEPALIVE
     // ======================================================================
     void schedule_keepalive(
-        shared_ptr<paradice::socket>     socket
+        shared_ptr<odin::net::socket>    socket
       , shared_ptr<asio::deadline_timer> keepalive_timer)
     {
         keepalive_timer->expires_from_now(boost::posix_time::seconds(30));
@@ -848,7 +865,7 @@ private :
             bind(
                 &impl::on_keepalive
               , this
-              , weak_ptr<paradice::socket>(socket)
+              , weak_ptr<odin::net::socket>(socket)
               , keepalive_timer
               , boost::asio::placeholders::error));
     }

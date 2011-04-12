@@ -179,6 +179,14 @@ struct text_area::impl
         {
             do_ansi_control_sequence_event(*sequence);
         }
+
+        odin::ansi::mouse_report const *report =
+            boost::any_cast<odin::ansi::mouse_report>(&event);
+        
+        if (report != NULL)
+        {
+            do_ansi_mouse_report_event(*report);
+        }
     }
     
 private :
@@ -454,7 +462,7 @@ private :
                           
                 do_cursor_up_key_event(times);
             }
-            // Check for the up arrow key
+            // Check for the down arrow key
             else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
             {
                 u32 times = sequence.arguments_.empty()
@@ -534,6 +542,28 @@ private :
             {
                 element_type data[] = { make_pair(ch, attribute()) };
                 document_->insert_text(data, optional<u32>());
+            }
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Called by do_event when an ANSI mouse report has been
+    /// received.
+    //* =====================================================================
+    void do_ansi_mouse_report_event(odin::ansi::mouse_report const &report)
+    {
+        if (report.button_ == 0)
+        {
+            if (self_.can_focus())
+            {
+                if (!self_.has_focus())
+                {
+                    self_.set_focus();
+                }
+                
+                self_.get_document()->set_caret_position(point(
+                    report.x_position_
+                  , report.y_position_));
             }
         }
     }

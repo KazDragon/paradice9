@@ -36,10 +36,13 @@ namespace boost { namespace asio {
     class io_service;
 }}
 
+namespace odin { namespace net {
+    class socket;
+}}
+
 namespace paradice {
     
 class context;    
-class socket;
 
 //* =========================================================================
 /// \brief Implements a tcp/ip server.
@@ -52,7 +55,9 @@ class socket;
 class server
 {
 public :
-    typedef boost::function<void (boost::shared_ptr<socket>)> accept_handler;
+    typedef boost::function<
+        void (boost::shared_ptr<odin::net::socket>)
+    > accept_handler;
     
     //* =====================================================================
     /// \brief Constructor

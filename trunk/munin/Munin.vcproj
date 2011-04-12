@@ -168,6 +168,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\button.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\canvas.cpp"
 				>
 			</File>
@@ -205,6 +209,14 @@
 			</File>
 			<File
 				RelativePath=".\grid_layout.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\horizontal_squeeze_layout.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\horizontal_strip_layout.cpp"
 				>
 			</File>
 			<File
@@ -266,6 +278,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\button.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\canvas.hpp"
 				>
 			</File>
@@ -303,6 +319,14 @@
 			</File>
 			<File
 				RelativePath=".\grid_layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\horizontal_squeeze_layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\horizontal_strip_layout.hpp"
 				>
 			</File>
 			<File

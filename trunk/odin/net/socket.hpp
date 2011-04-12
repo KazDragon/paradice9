@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Socket
+// Odin Net Socket
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,25 +24,35 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_SOCKET_HPP_
-#define PARADICE_SOCKET_HPP_
+#ifndef ODIN_NET_SOCKET_HPP_
+#define ODIN_NET_SOCKET_HPP_
 
 #include "odin/io/datastream.hpp"
 #include "odin/types.hpp"
-#include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/shared_ptr.hpp>
 
-namespace paradice {
+namespace odin { namespace net {
 
 class socket 
     : public odin::io::datastream<odin::u8, odin::u8>
 {
 public :
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
     socket(
         boost::shared_ptr<boost::asio::ip::tcp::socket> const &socket);
 
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
     virtual ~socket();
+
+    //* =====================================================================
+    /// \brief Close the socket, allowing no further transmission.
+    //* =====================================================================
+    void close();
 
     //* =====================================================================
     /// \brief Returns the number of objects that are available to be read.
@@ -104,19 +114,22 @@ public :
     //* =====================================================================
     virtual bool is_alive() const;
 
-    //
+    //* =====================================================================
+    /// \brief Retrieve the io_service instance that this socket uses for
+    /// synchronisation.
+    //* =====================================================================
     boost::asio::io_service &get_io_service();
     
-    //
+    //* =====================================================================
+    /// \brief Register a callback to be performed when the socket is closed.
+    //* =====================================================================
     void on_death(boost::function<void ()> callback);
-
-    void kill();
 
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
 
-}
+}}
 
 #endif

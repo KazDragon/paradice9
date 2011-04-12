@@ -115,7 +115,10 @@ point basic_component::do_get_position() const
 // ==========================================================================
 void basic_component::do_set_size(extent const &size)
 {
+    BOOST_AUTO(old_size, pimpl_->bounds_.size);
     pimpl_->bounds_.size = size;
+
+    on_size_changed(old_size, size);
 }
 
 // ==========================================================================

@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/framed_component.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/frame.hpp"
 #include "munin/layout.hpp"
@@ -116,30 +117,17 @@ private :
 // ==========================================================================
 struct framed_component::impl
 {
-    impl(shared_ptr<frame>     border
-       , shared_ptr<component> interior)
-        : border_(border)
-        , interior_(interior)
-    {
-    }
-        
     void update_pen()
     {
-        BOOST_AUTO(border,   border_.lock());
-        BOOST_AUTO(interior, interior_.lock());
-        
-        if (border != NULL && interior != NULL)
-        {
-            border->set_attribute(
-                ATTRIBUTE_PEN
-              , interior->has_focus()
-                    ? focussed_pen_
-                    : unfocussed_pen_);
-        }
+        border_->set_attribute(
+            ATTRIBUTE_PEN
+          , interior_->has_focus()
+                ? focussed_pen_
+                : unfocussed_pen_);
     }
     
-    weak_ptr<frame>     border_;
-    weak_ptr<component> interior_;
+    shared_ptr<frame>     border_;
+    shared_ptr<component> interior_;
     
     attribute focussed_pen_;
     attribute unfocussed_pen_;
@@ -152,8 +140,11 @@ framed_component::framed_component(
     shared_ptr<frame>     border
   , shared_ptr<component> interior)
     : composite_component(make_shared<basic_container>())
-    , pimpl_(new impl(border, interior))
+    , pimpl_(new impl)
 {
+    pimpl_->border_   = border;
+    pimpl_->interior_ = interior;
+    
     BOOST_AUTO(container, get_container());
     
     container->set_layout(make_shared<framed_component_layout>());
@@ -205,4 +196,41 @@ void framed_component::do_set_attribute(string const &name, any const &attr)
     }
 }
 
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void framed_component::do_event(any const &event)
+{
+    bool handled = false;
+    
+    odin::ansi::mouse_report const *report =
+        any_cast<odin::ansi::mouse_report>(&event);
+        
+    if (report != NULL)
+    {
+        if (report->button_ == 0)
+        {
+            BOOST_AUTO(position, pimpl_->interior_->get_position());
+            BOOST_AUTO(size,     pimpl_->interior_->get_size());
+            
+            // If this intersects the edit box, then just handle it normally.
+            // Otherwise, it's clicking the frame, so we set focus instead.
+            if (!intersection(
+                rectangle(pimpl_->interior_->get_position()
+                        , pimpl_->interior_->get_size())
+              , rectangle(point(report->x_position_, report->y_position_)
+                        , extent(1, 1))))
+            {
+                set_focus();
+                handled = true;
+            }
+        }
+    }
+    
+    if (!handled)
+    {
+        composite_component::do_event(event);
+    }
+}
+   
 }

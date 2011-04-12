@@ -25,9 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "server.hpp"
-#include "socket.hpp"
 #include "client.hpp"
 #include "connection.hpp"
+#include "odin/net/socket.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/bind.hpp>
@@ -71,9 +71,10 @@ struct server::impl
             printf("Connection from: %s\n",
                 new_socket->remote_endpoint().address().to_string().c_str());
             
-            boost::shared_ptr<socket> paradice_socket(new socket(new_socket));
+            boost::shared_ptr<odin::net::socket> socket(
+                new odin::net::socket(new_socket));
 
-            on_accept_(paradice_socket);
+            on_accept_(socket);
 
             schedule_accept();
         }

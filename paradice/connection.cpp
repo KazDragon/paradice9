@@ -25,9 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "connection.hpp"
-#include "socket.hpp"
 #include "munin/window.hpp"
 #include "odin/ansi/parser.hpp"
+#include "odin/net/socket.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
 #include "odin/telnet/negotiation_router.hpp"
@@ -145,15 +145,15 @@ struct connection::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(shared_ptr<socket> sock)
+    impl(shared_ptr<odin::net::socket> socket)
     {
-        reconnect(sock);
+        reconnect(socket);
         window_ = make_shared<window>(ref(socket_->get_io_service()));
     }
     
-    void reconnect(shared_ptr<socket> sock)
+    void reconnect(shared_ptr<odin::net::socket> socket)
     {
-        socket_ = sock;
+        socket_ = socket;
 
         telnet_stream_ =
             make_shared<odin::telnet::stream>(
@@ -363,7 +363,7 @@ struct connection::impl
         }
     }
 
-    shared_ptr<socket>                              socket_;
+    shared_ptr<odin::net::socket>                   socket_;
     shared_ptr<odin::telnet::stream>                telnet_stream_;
     shared_ptr<odin::telnet::command_router>        telnet_command_router_;
     shared_ptr<odin::telnet::negotiation_router>    telnet_negotiation_router_;
@@ -390,8 +390,8 @@ struct connection::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-connection::connection(shared_ptr<socket> sock)
-    : pimpl_(new impl(sock))
+connection::connection(shared_ptr<odin::net::socket> socket)
+    : pimpl_(new impl(socket))
 {
 }
 
@@ -450,16 +450,16 @@ void connection::on_control_sequence(
 // ==========================================================================
 void connection::disconnect()
 {
-    pimpl_->socket_->kill();
+    pimpl_->socket_->close();
     pimpl_->socket_.reset();
 }
 
 // ==========================================================================
 // RECONNECT
 // ==========================================================================
-void connection::reconnect(shared_ptr<socket> connection_socket)
+void connection::reconnect(shared_ptr<odin::net::socket> socket)
 {
-    pimpl_->reconnect(connection_socket);
+    pimpl_->reconnect(socket);
 }
 
 // ==========================================================================

@@ -129,7 +129,8 @@ public :
           >> meta_
           >> char_  // Control Sequence Initiator (e.g. '[')
           >> *(digit | char_(';'))
-          >> char_; // Command (e.g. 'A')
+          >> (char_ - 'M'); // Command (e.g. 'A'), but never M, which is a
+                            // Mouse Report.
           
         // A contiguous sequence of ANSI characters comes together as a string
         // of ANSI characters.

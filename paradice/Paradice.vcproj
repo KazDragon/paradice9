@@ -195,10 +195,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\socket.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\utility.cpp"
 				>
 			</File>
@@ -262,10 +258,6 @@
 			</File>
 			<File
 				RelativePath=".\server.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\socket.hpp"
 				>
 			</File>
 			<File

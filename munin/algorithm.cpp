@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/algorithm.hpp"
+#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
@@ -204,6 +205,79 @@ vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
     sort(slices.begin(), slices.end(), &compare_slices);
     
     return slices;
+}
+
+// ==========================================================================
+// CLIP_REGION
+// ==========================================================================
+static munin::rectangle clip_region(
+    munin::rectangle region, munin::extent size)
+{
+    if (region.origin.x >= size.width)
+    {
+        region.size.width = 0;
+    }
+    
+    if (region.origin.y >= size.height)
+    {
+        region.size.height = 0;
+    }
+
+    if (region.origin.x < size.width
+     && region.origin.y < size.height)
+    {
+        if (region.origin.x + region.size.width >= size.width)
+        {
+            region.size.width = size.width - region.origin.x;
+        }
+
+        if (region.origin.y + region.size.height >= size.height)
+        {
+            region.size.height = size.height - region.origin.y;
+        }
+    }
+    
+    return region;
+}
+
+// ==========================================================================
+// HAS_ZERO_DIMENSION
+// ==========================================================================
+static bool has_zero_dimension(munin::rectangle const &region)
+{
+    return region.size.width == 0 || region.size.height == 0;
+}
+
+// ======================================================================
+// CLIP_REGIONS
+// ======================================================================
+vector<rectangle> clip_regions(vector<rectangle> regions, extent size)
+{
+    // Returns a vector of rectangles that is identical to the regions
+    // passed in, except that their extends are clipped to those of the
+    // content's.
+    transform(
+        regions.begin()
+      , regions.end()
+      , regions.begin()
+      , bind(clip_region, _1, size));
+
+    return regions;
+}
+
+// ======================================================================
+// PRUNE_REGIONS
+// ======================================================================
+vector<rectangle> prune_regions(vector<rectangle> regions)
+{
+    regions.erase(
+        remove_if(
+            regions.begin()
+          , regions.end()
+          , bind(has_zero_dimension, _1))
+      , regions.end());
+    
+    return regions;
 }
 
 }

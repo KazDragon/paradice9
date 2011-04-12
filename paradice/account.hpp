@@ -28,6 +28,7 @@
 #define PARADICE_ACCOUNT_HPP_
 
 #include "odin/types.hpp"
+#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>

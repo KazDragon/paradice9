@@ -342,3 +342,4 @@ void solid_frame::do_set_attribute(string const &name, any const &attr)
 }
 
 }
+

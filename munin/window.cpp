@@ -47,7 +47,7 @@ namespace {
 /// \brief Returns true if the specified region is identical between the
 /// two canvases, false otherwise.
 //* =========================================================================
-bool canvas_region_compare(
+static bool canvas_region_compare(
     munin::rectangle const &region
   , munin::canvas          &lhs
   , munin::canvas          &rhs)
@@ -217,7 +217,7 @@ static string change_pen(munin::attribute &from, munin::attribute to)
 /// \brief Returns a string which would paint the specified region on a
 /// canvas.
 //* =========================================================================
-string canvas_region_string(
+static string canvas_region_string(
     munin::attribute       &pen
   , munin::rectangle const &region
   , munin::canvas          &cvs)
@@ -274,7 +274,7 @@ public :
         content_->on_redraw.connect(
             bind(&impl::redraw_handler, this, _1));
         
-        repaint_connection_ = content_->on_cursor_state_changed.connect(
+        content_->on_cursor_state_changed.connect(
             bind(&impl::schedule_repaint, this));
         
         content_->on_cursor_position_changed.connect(
@@ -330,45 +330,8 @@ private :
     // ======================================================================
     void do_repaint()
     {
-        // First, trim any redraw regions to the expected size of the canvas.
-        extent size = content_->get_size();
+        BOOST_AUTO(size, content_->get_size());
 
-        vector<rectangle> trimmed_regions;
-
-        BOOST_FOREACH(rectangle region, redraw_regions_)
-        {
-            if (region.origin.x < size.width
-             && region.origin.y < size.height)
-            {
-                if (region.origin.x + region.size.width >= size.width)
-                {
-                    region.size.width = size.width - region.origin.x;
-                }
-
-                if (region.origin.y + region.size.height >= size.height)
-                {
-                    region.size.height = size.height - region.origin.y;
-                }
-
-                trimmed_regions.push_back(region);
-            }
-        }
-
-        // Then, prune out any regions with dimensions zero.
-        vector<rectangle> pruned_regions;
-        
-        BOOST_FOREACH(rectangle region, trimmed_regions)
-        {
-            if (region.size.width != 0 && region.size.height != 0)
-            {
-                pruned_regions.push_back(region);
-            }
-        }
-
-        // Prepare a string that is a collection of the ANSI data required
-        // to update the window.         
-        string output;
-        
         // If the canvas has changed size, then many things can happen.
         // If it's shrunk, then there's no way to tell if the client has
         // clipped or scrolled or whatever.  If it's grown, then the new
@@ -377,15 +340,18 @@ private :
         // to what it used to be and instead just repaint everything.
         bool repaint_all = canvas_.get_size().width  != size.width
                         || canvas_.get_size().height != size.height;
-
+        
         // Ensure that our canvas is the correct size for the content that we
         // are going to paint.
         canvas_.set_size(size);
 
-        // Since we are going to repaint as little as possible, cut the 
-        // regions into horizontal slices.
-        vector<rectangle> slices = rectangular_slice(pruned_regions);
-    
+        // Since we are going to repaint as little as possible, we first
+        // clip all the redraw regions to the size of the content, prune out
+        // any regions whose dimensions are zero, then cut those regions
+        // into horizontal slices.
+        vector<rectangle> slices = rectangular_slice(
+            prune_regions(clip_regions(redraw_regions_, size)));
+        
         // Take a copy of the canvas.  We will want to check against this
         // after the draw operations to see if anything has changed.
         canvas canvas_clone = canvas_;
@@ -395,6 +361,10 @@ private :
         {
             content_->draw(canvas_, region);
         }
+        
+        // Prepare a string that is a collection of the ANSI data required
+        // to update the window.         
+        string output;
         
         // For each slice, see if it has changed between the canvas that was
         // updated and the clone of the original.
@@ -422,9 +392,11 @@ private :
             point current_cursor_position = content_->get_cursor_position();
             
             // The cursor is enabled.  If there has been any output, or if
-            // it has been moved, then it must be put in position.
+            // it has been moved, or the cursor has just been turned on, then
+            // it must be put in position.
             if (!output.empty() 
-             || current_cursor_position != last_cursor_position_)
+             || current_cursor_position != last_cursor_position_
+             || cursor_state != last_cursor_state_)
             {
                 output += munin::ansi::cursor_position(current_cursor_position);
                 last_cursor_position_ = current_cursor_position;
@@ -466,7 +438,6 @@ private :
     bool                          last_cursor_state_;
     
     vector<rectangle>             redraw_regions_;
-    boost::signals::connection    repaint_connection_;
     bool                          repaint_scheduled_;
 };
     

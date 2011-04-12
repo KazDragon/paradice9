@@ -129,6 +129,19 @@ void send_to_room(
 // ==========================================================================
 PARADICE_COMMAND_IMPL(say)
 {
+    if (arguments.empty())
+    {
+        send_to_player(
+            ctx
+          , "\n Usage: say [messsage]"
+            "\n     or"
+            "\n Usage: . [message]"
+            "\n"
+          , player);
+        
+        return;
+    }
+    
     send_to_player(ctx, str(
         format("You say, \"%s\"\n")
             % arguments)
@@ -149,7 +162,7 @@ PARADICE_COMMAND_IMPL(whisper)
 {
     pair<string, string> arg = odin::tokenise(arguments);
 
-    if (arg.first == "")
+    if (arg.first.empty() || arg.second.empty())
     {
         send_to_player(
             ctx

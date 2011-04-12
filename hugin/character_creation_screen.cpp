@@ -28,6 +28,7 @@
 #include "munin/ansi/protocol.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
+#include "munin/button.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
 #include "munin/framed_component.hpp"
@@ -36,6 +37,7 @@
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -81,8 +83,8 @@ struct character_creation_screen::impl
     // Character Creation components
     shared_ptr<edit>        name_field_;
     shared_ptr<edit>        statusbar_;
-    shared_ptr<image>       ok_button_;
-    shared_ptr<image>       cancel_button_;
+    shared_ptr<button>      ok_button_;
+    shared_ptr<button>      cancel_button_;
     function<void (string)> on_character_created_;
     function<void ()>       on_character_creation_cancelled_;
 };
@@ -141,24 +143,20 @@ character_creation_screen::character_creation_screen()
       , COMPASS_LAYOUT_NORTH);
 
     // Create the OK and Cancel buttons.
-    pimpl_->ok_button_ = make_shared<image>(
+    pimpl_->ok_button_     = make_shared<button>(
         elements_from_string("  OK  "));
-    pimpl_->ok_button_->set_can_focus(true);
+    pimpl_->ok_button_->on_click.connect(
+        bind(&impl::on_character_creation_ok, pimpl_));
     
-    pimpl_->cancel_button_ = make_shared<image>(
+    pimpl_->cancel_button_ = make_shared<button>(
         elements_from_string("Cancel"));
-    pimpl_->cancel_button_->set_can_focus(true);
+    pimpl_->cancel_button_->on_click.connect(
+        bind(&impl::on_character_creation_cancelled, pimpl_));
     
     BOOST_AUTO(buttons_inner_container, make_shared<basic_container>());
     buttons_inner_container->set_layout(make_shared<grid_layout>(1, 2));
-    buttons_inner_container->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
-          , pimpl_->ok_button_));
-    buttons_inner_container->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
-          , pimpl_->cancel_button_));
+    buttons_inner_container->add_component(pimpl_->ok_button_);
+    buttons_inner_container->add_component(pimpl_->cancel_button_);
     
     BOOST_AUTO(buttons_outer_container, make_shared<basic_container>());
     buttons_outer_container->set_layout(make_shared<compass_layout>());
@@ -252,19 +250,6 @@ void character_creation_screen::do_event(any const &ev)
             }
             
             handled = true;
-        }
-        else if (*ch == '\n' || *ch == ' ')
-        {
-            if (pimpl_->ok_button_->has_focus())
-            {
-                pimpl_->on_character_creation_ok();
-                handled = true;
-            }
-            else if (pimpl_->cancel_button_->has_focus())
-            {
-                pimpl_->on_character_creation_cancelled();
-                handled = true;
-            }
         }
     }
     else if (control_sequence != NULL

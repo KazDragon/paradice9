@@ -61,8 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="cryptlib.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(BOOST_LIB_ROOT)"
+				AdditionalLibraryDirectories="$(BOOST_LIB_ROOT);$(CRYPTOPP_ROOT)\cryptopp\Win32\Output\Debug"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -135,8 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="cryptlib.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(BOOST_LIB_ROOT)"
+				AdditionalLibraryDirectories="$(BOOST_LIB_ROOT);$(CRYPTOPP_ROOT)\cryptopp\Win32\Output\Release"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

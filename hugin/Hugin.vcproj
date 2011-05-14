@@ -172,6 +172,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\password_change_screen.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\user_interface.cpp"
 				>
 			</File>
@@ -207,6 +211,10 @@
 			</File>
 			<File
 				RelativePath=".\main_screen.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\password_change_screen.hpp"
 				>
 			</File>
 			<File

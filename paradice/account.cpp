@@ -67,7 +67,7 @@ string account::get_name() const
 // ==========================================================================
 void account::set_password(string const &password)
 {
-    password_ = password;
+    password_ = encrypt(password);
 }
 
 // ==========================================================================
@@ -75,7 +75,7 @@ void account::set_password(string const &password)
 // ==========================================================================
 bool account::password_match(string const &password)
 {
-    return password == password_;
+    return encrypt(password) == password_;
 }
 
 // ==========================================================================
@@ -116,6 +116,14 @@ void account::set_command_mode(command_mode mode)
 account::command_mode account::get_command_mode() const
 {
     return command_mode_;
+}
+
+// ==========================================================================
+// GET_ADMIN_LEVEL
+// ==========================================================================
+u32 account::get_admin_level() const
+{
+    return admin_level_;
 }
 
 }

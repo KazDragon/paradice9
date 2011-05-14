@@ -44,7 +44,56 @@ struct solid_frame::impl
 public :
     impl(solid_frame &self)
         : self_(self)
+        , closeable_(false)
     {
+    }
+    
+    // ======================================================================
+    // SET_CLOSEABLE
+    // ======================================================================
+    void set_closeable(bool closeable)
+    {
+        closeable_ = closeable;
+        
+        // Also redraw the top right corner, which is where the close button
+        // would be.
+        BOOST_AUTO(position, self_.get_position());
+        BOOST_AUTO(size,     self_.get_size());
+        
+        rectangle corner_region(
+            point((position.x + size.width) - 1, 0)
+          , extent(1, 1));
+        
+        vector<rectangle> regions;
+        regions.push_back(corner_region);
+        self_.on_redraw(regions);
+    }
+    
+    // ======================================================================
+    // HANDLE_MOUSE_CLICK
+    // ======================================================================
+    bool handle_mouse_click(odin::ansi::mouse_report const *report)
+    {
+        bool handled = false;
+        
+        // If we're closeable, then check to see if the close button has been
+        // pressed.  If so, fire the close signal.
+        if (closeable_)
+        {
+            BOOST_AUTO(position, self_.get_position());
+            BOOST_AUTO(size,     self_.get_size());
+            
+            point close_button((position.x + size.width) - 1, 0);
+            
+            if (report->x_position_ == close_button.x
+             && report->y_position_ == close_button.y)
+            {
+                self_.on_close();
+                handled = true;
+            }
+        }
+        
+        return handled;
     }
     
     // ======================================================================
@@ -107,9 +156,21 @@ public :
         
         if (topright)
         {
-            cvs[position.x + topright->origin.x]
-               [position.y + topright->origin.y] = 
-                munin::element_type(char(187), pen);
+            if (closeable_)
+            {
+                BOOST_AUTO(close_pen, pen);
+                close_pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+
+                cvs[position.x + topright->origin.x]
+                   [position.y + topright->origin.y] = 
+                    munin::element_type(char(191), close_pen);
+            }
+            else
+            {
+                cvs[position.x + topright->origin.x]
+                   [position.y + topright->origin.y] = 
+                    munin::element_type(char(187), pen);
+            }
         }
 
         if (bottomleft)
@@ -244,6 +305,7 @@ public :
 private :
     solid_frame &self_;
     attribute    pen_;
+    bool         closeable_;
 };
 
 // ==========================================================================
@@ -259,6 +321,14 @@ solid_frame::solid_frame()
 // ==========================================================================
 solid_frame::~solid_frame()
 {
+}
+
+// ==========================================================================
+// SET_CLOSEABLE
+// ==========================================================================
+void solid_frame::set_closeable(bool closeable)
+{
+    pimpl_->set_closeable(closeable);
 }
 
 // ==========================================================================
@@ -338,6 +408,27 @@ void solid_frame::do_set_attribute(string const &name, any const &attr)
 
             on_redraw(regions);
         }
+    }
+}
+
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void solid_frame::do_event(any const &event)
+{
+    bool handled = false;
+    
+    odin::ansi::mouse_report const *report =
+        any_cast<odin::ansi::mouse_report>(&event);
+     
+    if (report != NULL)
+    {
+        handled = pimpl_->handle_mouse_click(report);
+    }
+    
+    if (!handled)
+    {
+        frame::do_event(event);
     }
 }
 

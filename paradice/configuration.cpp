@@ -114,6 +114,15 @@ PARADICE_COMMAND_IMPL(set)
 }
 
 // ==========================================================================
+// PARADICE COMMAND: PASSWORD
+// ==========================================================================
+PARADICE_COMMAND_IMPL(password)
+{
+    player->get_user_interface()->clear_password_change_screen();
+    player->get_user_interface()->select_face(hugin::FACE_PASSWORD_CHANGE);
+}
+
+// ==========================================================================
 // PARADICE COMMAND: QUIT
 // ==========================================================================
 PARADICE_COMMAND_IMPL(quit)

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Configuration
+// Paradice Admin Commands
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,17 +24,14 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_CONFIGURATION_HPP_
-#define PARADICE_CONFIGURATION_HPP_
+#ifndef PARADICE_ADMIN_HPP_
+#define PARADICE_ADMIN_HPP_
 
 #include "command.hpp"
 
 namespace paradice {
 
-PARADICE_COMMAND_DECL(set);   
-PARADICE_COMMAND_DECL(password);
-PARADICE_COMMAND_DECL(quit);
-PARADICE_COMMAND_DECL(logout);
+PARADICE_COMMAND_DECL(admin_set_password);   
 
 }
 

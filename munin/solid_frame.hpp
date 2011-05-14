@@ -47,6 +47,20 @@ public :
     //* =====================================================================
     virtual ~solid_frame();
     
+    //* =====================================================================
+    /// \brief Sets whether the frame is 'closeable' or not.  That is,
+    /// whether it has a close icon that can be clicked.
+    //* =====================================================================
+    void set_closeable(bool closeable);
+    
+    //* =====================================================================
+    /// \fn on_close
+    /// \brief A signal that is raised whenever the close icon is clicked.
+    //* =====================================================================
+    boost::signal<
+        void ()
+    > on_close;
+    
 protected :
     //* =====================================================================
     /// \brief Called by get_frame_width().  Derived classes must override 
@@ -89,6 +103,12 @@ protected :
     virtual void do_set_attribute(
         std::string const &name, boost::any const &attr);
     
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event);
+
 private :    
     struct impl;
     boost::shared_ptr<impl> pimpl_;

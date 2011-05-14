@@ -30,6 +30,7 @@
 #include "hugin/character_selection_screen.hpp"
 #include "hugin/intro_screen.hpp"
 #include "hugin/main_screen.hpp"
+#include "hugin/password_change_screen.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/card.hpp"
 #include "munin/grid_layout.hpp"
@@ -56,6 +57,7 @@ struct user_interface::impl
     shared_ptr<character_selection_screen> character_selection_screen_;
     shared_ptr<character_creation_screen>  character_creation_screen_;
     shared_ptr<main_screen>                main_screen_;
+    shared_ptr<password_change_screen>     password_change_screen_;
 };
 
 // ==========================================================================
@@ -71,6 +73,7 @@ user_interface::user_interface()
     pimpl_->character_creation_screen_  = make_shared<character_creation_screen>();
     pimpl_->character_selection_screen_ = make_shared<character_selection_screen>();
     pimpl_->main_screen_                = make_shared<main_screen>();
+    pimpl_->password_change_screen_     = make_shared<password_change_screen>();
     
     pimpl_->active_screen_->add_face(
         pimpl_->intro_screen_, hugin::FACE_INTRO);
@@ -82,6 +85,8 @@ user_interface::user_interface()
         pimpl_->character_creation_screen_, hugin::FACE_CHAR_CREATION);
     pimpl_->active_screen_->add_face(
         pimpl_->main_screen_, hugin::FACE_MAIN);
+    pimpl_->active_screen_->add_face(
+        pimpl_->password_change_screen_, hugin::FACE_PASSWORD_CHANGE);
     
     pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
     pimpl_->active_face_ = hugin::FACE_INTRO;
@@ -128,6 +133,31 @@ void user_interface::clear_character_creation_screen()
 void user_interface::clear_main_screen()
 {
     pimpl_->main_screen_->clear();
+}
+
+// ==========================================================================
+// CLEAR_PASSWORD_CHANGE_SCREEN
+// ==========================================================================
+void user_interface::clear_password_change_screen()
+{
+    pimpl_->password_change_screen_->clear();
+}
+
+// ==========================================================================
+// ON_PASSWORD_CHANGED
+// ==========================================================================
+void user_interface::on_password_changed(
+    function<void (string, string, string)> callback)
+{
+    pimpl_->password_change_screen_->on_password_changed(callback);
+}
+
+// ==========================================================================
+// ON_PASSWORD_CHANGE_CANCELLED
+// ==========================================================================
+void user_interface::on_password_change_cancelled(function<void ()> callback)
+{
+    pimpl_->password_change_screen_->on_password_change_cancelled(callback);
 }
 
 // ==========================================================================
@@ -244,6 +274,10 @@ void user_interface::set_statusbar_text(
     {
         pimpl_->character_creation_screen_->set_statusbar_text(text);
     }
+    else if (pimpl_->active_face_ == hugin::FACE_PASSWORD_CHANGE)
+    {
+        pimpl_->password_change_screen_->set_statusbar_text(text);
+    }
 }
 
 // ==========================================================================
@@ -276,6 +310,14 @@ void user_interface::show_help_window()
 void user_interface::hide_help_window()
 {
     pimpl_->main_screen_->hide_help_window();
+}
+
+// ==========================================================================
+// ON_HELP_CLOSED
+// ==========================================================================
+void user_interface::on_help_closed(function<void ()> callback)
+{
+    pimpl_->main_screen_->on_help_closed(callback);
 }
 
 // ==========================================================================

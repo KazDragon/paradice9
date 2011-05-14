@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Configuration
+// Paradice Cryptography
 //
-// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,18 +24,19 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_CONFIGURATION_HPP_
-#define PARADICE_CONFIGURATION_HPP_
+#ifndef PARADICE_CRYPTOGRAPHY_HPP_
+#define PARADICE_CRYPTOGRAPHY_HPP_
 
-#include "command.hpp"
+#include <string>
 
 namespace paradice {
-
-PARADICE_COMMAND_DECL(set);   
-PARADICE_COMMAND_DECL(password);
-PARADICE_COMMAND_DECL(quit);
-PARADICE_COMMAND_DECL(logout);
+    
+//* =========================================================================
+/// \brief Encrypts a string.
+//* =========================================================================
+std::string encrypt(std::string const &text);
 
 }
 
 #endif
+

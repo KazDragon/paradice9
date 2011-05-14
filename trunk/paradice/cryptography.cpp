@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Configuration
+// Paradice Cryptography
 //
-// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,18 +24,34 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_CONFIGURATION_HPP_
-#define PARADICE_CONFIGURATION_HPP_
+#include "paradice/cryptography.hpp"
+#include <cryptopp/filters.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/sha.h>
+#include <boost/lexical_cast.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <cstdlib>
 
-#include "command.hpp"
+using namespace std;
 
 namespace paradice {
 
-PARADICE_COMMAND_DECL(set);   
-PARADICE_COMMAND_DECL(password);
-PARADICE_COMMAND_DECL(quit);
-PARADICE_COMMAND_DECL(logout);
+// ==========================================================================
+// ENCRYPT
+// ==========================================================================
+string encrypt(string const &text)
+{
+    CryptoPP::SHA hash;
+    
+    string result;
+    CryptoPP::StringSource(
+        text
+      , true
+      , new CryptoPP::HashFilter(
+            hash
+          , new CryptoPP::HexEncoder(new CryptoPP::StringSink(result))));
+    return result;
+}
 
 }
 
-#endif

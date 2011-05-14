@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Main Screen
+// Hugin Password Change Screen
 //
 // Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,8 +24,8 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_MAIN_SCREEN_HPP_
-#define HUGIN_MAIN_SCREEN_HPP_
+#ifndef HUGIN_PASSWORD_CHANGE_SCREEN_HPP_
+#define HUGIN_PASSWORD_CHANGE_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
 #include <odin/runtime_array.hpp>
@@ -39,14 +39,14 @@ namespace hugin {
 /// \brief An abstraction of the primary user interface for the Paradice
 /// application.
 //* =========================================================================
-class main_screen
+class password_change_screen
     : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    main_screen();
+    password_change_screen();
     
     //* =====================================================================
     /// \brief Clears the screen of all data.
@@ -54,50 +54,26 @@ public :
     void clear();
     
     //* =====================================================================
-    /// \brief Set a function to be called when the user inputs a command
-    /// on the main screen.
+    /// \brief Set a function to be called when the user inputs the details
+    /// for the change of a password.
     //* =====================================================================
-    void on_input_entered(
-        boost::function<void (std::string)> callback);
+    void on_password_changed(
+        boost::function<
+            void (std::string old_password
+                , std::string new_password
+                , std::string new_password_verify)> callback);
     
     //* =====================================================================
-    /// \brief Adds output to the output text area on the main screen.
+    /// \brief Set a function to be called when the user cancels the change
+    /// of a password.
     //* =====================================================================
-    void add_output_text(
+    void on_password_change_cancelled(boost::function<void ()> callback);
+    
+    //* =====================================================================
+    /// \brief Sets the content of the status bar on the intro screen.
+    //* =====================================================================
+    void set_statusbar_text(
         odin::runtime_array<munin::element_type> const &text);
-    
-    //* =====================================================================
-    /// \brief Updates the who list on the main screen.
-    //* =====================================================================
-    void update_wholist(
-        odin::runtime_array<std::string> const &names);
-    
-    //* =====================================================================
-    /// \brief Adds a line of command history to the input pane.
-    //* =====================================================================
-    void add_command_history(std::string const &history);
-
-    //* =====================================================================
-    /// \brief Shows the Help window.
-    //* =====================================================================
-    void show_help_window();
-    
-    //* =====================================================================
-    /// \brief Hides the Help window.
-    //* =====================================================================
-    void hide_help_window();
-    
-    //* =====================================================================
-    /// \brief Sets the text contained in the Help window.
-    //* =====================================================================
-    void set_help_window_text(
-        odin::runtime_array<munin::element_type> const &text);
-
-    //* =====================================================================
-    /// \brief Register a callback for when the close button on the help
-    /// screen is called.
-    //* =====================================================================
-    void on_help_closed(boost::function<void ()> callback);
     
 protected :
     //* =====================================================================
@@ -114,4 +90,3 @@ private :
 }
 
 #endif
-

@@ -15,12 +15,13 @@ G_LIBS       = -lmunin -lodin -lboost_program_options -lboost_system \
                -lboost_signals -lws2_32 -lwsock32
 LIBS         = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
                -lboost_filesystem -lboost_system -lboost_signals \
-               -lboost_serialization \
+               -lboost_serialization -lcryptopp \
                -lws2_32 -lwsock32 
 E_NAME       = paradice.exe
 G_NAME       = guibuilder.exe
 
 ODIN_NAMES        = ansi/protocol \
+                    net/socket \
                     telnet/client_option \
                     telnet/command_router \
                     telnet/input_visitor \
@@ -41,6 +42,7 @@ MUNIN_NAMES       = algorithm \
                     attribute \
                     basic_component \
                     basic_container \
+                    button \
                     canvas \
                     card \
                     compass_layout \
@@ -73,6 +75,7 @@ HUGIN_NAMES       = account_creation_screen \
                     command_prompt \
                     intro_screen \
                     main_screen \
+                    password_change_screen \
                     user_interface \
                     wholist
 HUGIN_O_FILES     = $(HUGIN_NAMES:%=hugin/%.o)
@@ -81,22 +84,22 @@ HUGIN_LIB         = libhugin.a
 GUIBUILDER_NAMES  = client \
                     main \
                     server \
-                    socket \
                     ui
 GUIBUILDER_O_FILES= $(GUIBUILDER_NAMES:%=guibuilder/%.o)
 
 PARADICE_NAMES    = account \
+                    admin \
                     character \
                     client \
                     communication \
                     configuration \
                     connection \
+                    cryptography \
                     dice_roll_parser \
                     help \
                     random \
                     rules \
                     server \
-                    socket \
                     utility \
                     who
 PARADICE_O_FILES  = $(PARADICE_NAMES:%=paradice/%.o)

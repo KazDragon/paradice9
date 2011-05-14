@@ -37,6 +37,7 @@
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -81,16 +82,29 @@ struct main_screen::impl
             }
         }
     }
+
+    // ======================================================================
+    // FIRE_HELP_CLOSED
+    // ======================================================================
+    void fire_help_closed()
+    {
+        if (on_help_closed_)
+        {
+            on_help_closed_();
+        }
+    }
     
     shared_ptr<wholist>             wholist_;
     shared_ptr<command_prompt>      input_field_;
     shared_ptr<container>           output_container_;
     shared_ptr<text_area>           output_field_;
     shared_ptr<text_area>           help_field_;
+    shared_ptr<solid_frame>         help_field_inner_frame_;
     shared_ptr<framed_component>    help_field_frame_;
     bool                            help_field_visible_;
     
     function<void (string)>         on_input_entered_;
+    function<void ()>               on_help_closed_;
 };
 
 // ==========================================================================
@@ -132,8 +146,15 @@ main_screen::main_screen()
     
     pimpl_->help_field_ = make_shared<text_area>();
     pimpl_->help_field_->disable();
+    
+    pimpl_->help_field_inner_frame_ = make_shared<solid_frame>();
+    pimpl_->help_field_inner_frame_->set_closeable(true);
+    
+    pimpl_->help_field_inner_frame_->on_close.connect(
+        bind(&impl::fire_help_closed, ref(*pimpl_)));
+    
     pimpl_->help_field_frame_ = make_shared<framed_component>(
-        make_shared<solid_frame>()
+        pimpl_->help_field_inner_frame_
       , pimpl_->help_field_);
     
     content->add_component(pimpl_->output_container_, COMPASS_LAYOUT_CENTRE);
@@ -214,6 +235,11 @@ void main_screen::hide_help_window()
     {
         pimpl_->output_container_->remove_component(pimpl_->help_field_frame_);
         pimpl_->help_field_visible_ = false;
+        
+        if (pimpl_->help_field_frame_->has_focus())
+        {
+            pimpl_->input_field_->set_focus();
+        }
     }
 }
 
@@ -226,6 +252,14 @@ void main_screen::set_help_window_text(
     BOOST_AUTO(document, pimpl_->help_field_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));
     document->insert_text(text);
+}
+
+// ==========================================================================
+// ON_HELP_CLOSED
+// ==========================================================================
+void main_screen::on_help_closed(function<void ()> callback)
+{
+    pimpl_->on_help_closed_ = callback;
 }
 
 // ==========================================================================

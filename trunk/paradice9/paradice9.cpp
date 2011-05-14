@@ -27,6 +27,7 @@
 #include "paradice9.hpp"
 #include "context_impl.hpp"
 #include "paradice/account.hpp"
+#include "paradice/admin.hpp"
 #include "paradice/character.hpp"
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
@@ -59,13 +60,16 @@ using namespace std;
 
 namespace {
     #define PARADICE_CMD_ENTRY_NOP(name) \
-        { name,        NULL                                   }
+        { name,        NULL                                  , 0 }
         
     #define PARADICE_CMD_ENTRY(func) \
-        { #func,       bind(&paradice::do_##func, _1, _2, _3) }
+        { #func,       bind(&paradice::do_##func, _1, _2, _3), 0 }
         
     #define PARADICE_CMD_ALIAS(func, alias) \
-        { alias,       bind(&paradice::do_##func, _1, _2, _3) }
+        { alias,       bind(&paradice::do_##func, _1, _2, _3), 0 }
+        
+    #define PARADICE_ADMIN_ENTRY(func, level) \
+        { #func,       bind(&paradice::do_##func, _1, _2, _3), (level) }
         
     typedef function<void (
         shared_ptr<paradice::context> ctx
@@ -76,6 +80,7 @@ namespace {
     {
         string           command_;
         paradice_command function_;
+        u32              admin_level_required_;
     } const command_list[] =
     {
         PARADICE_CMD_ENTRY_NOP("!")
@@ -100,9 +105,12 @@ namespace {
       , PARADICE_CMD_ENTRY(clearrolls)
     
       , PARADICE_CMD_ENTRY(help)
-      
+
+      , PARADICE_CMD_ENTRY(password)      
       , PARADICE_CMD_ENTRY(quit)
       , PARADICE_CMD_ENTRY(logout)
+      
+      , PARADICE_ADMIN_ENTRY(admin_set_password, 100)
     };
 
     #undef PARADICE_CMD_ENTRY_NOP
@@ -295,6 +303,24 @@ private :
             
             user_interface->on_character_creation_cancelled(bind(
                 &impl::on_character_creation_cancelled
+              , this
+              , weak_ptr<paradice::client>(client)));
+            
+            user_interface->on_help_closed(bind(
+                &impl::on_help_closed
+              , this
+              , weak_ptr<paradice::client>(client)));
+            
+            user_interface->on_password_changed(bind(
+                &impl::on_password_changed
+              , this
+              , weak_ptr<paradice::client>(client)
+              , _1
+              , _2
+              , _3));
+            
+            user_interface->on_password_change_cancelled(bind(
+                &impl::on_password_change_cancelled
               , this
               , weak_ptr<paradice::client>(client)));
             
@@ -783,6 +809,75 @@ private :
     }
     
     // ======================================================================
+    // ON_HELP_CLOSED
+    // ======================================================================
+    void on_help_closed(
+        weak_ptr<paradice::client> weak_client)
+    {
+        BOOST_AUTO(client, weak_client.lock());
+        
+        if (client != NULL)
+        {
+            client->get_user_interface()->hide_help_window();
+        }
+    }
+    
+    // ======================================================================
+    // ON_PASSWORD_CHANGED
+    // ======================================================================
+    void on_password_changed(
+        weak_ptr<paradice::client>  weak_client
+      , string const               &old_password
+      , string const               &new_password
+      , string const               &new_password_verify)
+    {
+        BOOST_AUTO(client, weak_client.lock());
+        
+        if (client != NULL)
+        {
+            BOOST_AUTO(account, client->get_account());
+            BOOST_AUTO(user_interface, client->get_user_interface());
+            
+            attribute error_pen;
+            error_pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+                  
+            if (!account->password_match(old_password))
+            {
+                user_interface->set_statusbar_text(elements_from_string(
+                    "Old password did not match."
+                  , error_pen));
+                return;
+            }
+            
+            if (new_password != new_password_verify)
+            {
+                user_interface->set_statusbar_text(elements_from_string(
+                    "New passwords did not match."
+                  , error_pen));
+                return;
+            }
+            
+            account->set_password(new_password);
+            context_->save_account(account);
+            user_interface->select_face(hugin::FACE_MAIN);
+        }
+    }
+    
+    // ======================================================================
+    // ON_PASSWORD_CHANGE_CANCELLED
+    // ======================================================================
+    void on_password_change_cancelled(
+        weak_ptr<paradice::client> weak_client)
+    {
+        BOOST_AUTO(client, weak_client.lock());
+        
+        if (client != NULL)
+        {
+            client->get_user_interface()->select_face(hugin::FACE_MAIN);
+        }
+    }
+    
+    // ======================================================================
     // ON_COMMAND
     // ======================================================================
     void on_command(
@@ -807,14 +902,22 @@ private :
             return;
         }
     
+        BOOST_AUTO(admin_level, client->get_account()->get_admin_level());
+        
         // Search through the list for commands
         BOOST_FOREACH(command const &cur_command, command_list)
         {
             if (cur_command.command_ == arg.first)
             {
-                cur_command.function_(context_, arg.second, client);
-                client->set_last_command(input);
-                return;
+                // If the account in question has the required access rights,
+                // then execute the command.  Otherwise, pretend it doesn't
+                // exist.
+                if (admin_level >= cur_command.admin_level_required_)
+                {
+                    cur_command.function_(context_, arg.second, client);
+                    client->set_last_command(input);
+                    return;
+                }
             }
         }
     
@@ -823,7 +926,10 @@ private :
     
         BOOST_FOREACH(command const &cur_command, command_list)
         {
-            text += cur_command.command_ + " ";
+            if (admin_level >= cur_command.admin_level_required_)
+            {
+                text += cur_command.command_ + " ";
+            }
         }
     
         text += "\n";

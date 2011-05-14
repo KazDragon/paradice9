@@ -239,7 +239,8 @@ PARADICE_COMMAND_IMPL(help)
         }
         
         string text = 
-            "No help on that subject was found.  Available subjects are:\n";
+            help_header
+          + "No help on that subject was found.  Available subjects are:\n";
             
         for (size_t index = 0;
              index < (sizeof(help_table) / sizeof(*help_table));

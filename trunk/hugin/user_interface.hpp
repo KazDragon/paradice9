@@ -39,6 +39,7 @@ BOOST_STATIC_CONSTANT(std::string, FACE_INTRO            = "Intro");
 BOOST_STATIC_CONSTANT(std::string, FACE_ACCOUNT_CREATION = "AcctCreate");
 BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_SELECTION   = "CharSelect");
 BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_CREATION    = "CharCreate");
+BOOST_STATIC_CONSTANT(std::string, FACE_PASSWORD_CHANGE  = "PwdChange");
 BOOST_STATIC_CONSTANT(std::string, FACE_MAIN             = "Main");
 
 //* =========================================================================
@@ -79,6 +80,27 @@ public :
     //* =====================================================================
     void clear_main_screen();
     
+    //* =====================================================================
+    /// \brief Clears the password change screen.
+    //* =====================================================================
+    void clear_password_change_screen();
+    
+    //* =====================================================================
+    /// \brief Set a function to be called when the user inputs the details
+    /// for the change of a password.
+    //* =====================================================================
+    void on_password_changed(
+        boost::function<
+            void (std::string old_password
+                , std::string new_password
+                , std::string new_password_verify)> callback);
+    
+    //* =====================================================================
+    /// \brief Set a function to be called when the user cancels the change
+    /// of a password.
+    //* =====================================================================
+    void on_password_change_cancelled(boost::function<void ()> callback);
+
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a name
     /// on the intro screen.
@@ -182,6 +204,12 @@ public :
     /// \brief Hides the Help window.
     //* =====================================================================
     void hide_help_window();
+    
+    //* =====================================================================
+    /// \brief Set up a callback for when the close icon on the help
+    /// window is clicked.
+    //* =====================================================================
+    void on_help_closed(boost::function<void ()> callback);
     
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.

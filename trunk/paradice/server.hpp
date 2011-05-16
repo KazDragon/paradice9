@@ -71,6 +71,12 @@ public :
     //* =====================================================================
    ~server();
     
+    //* =====================================================================
+    /// \brief Shuts the server down by no longer accepting incoming
+    /// sockets.
+    //* =====================================================================
+    void shutdown();
+    
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

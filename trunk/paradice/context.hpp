@@ -101,6 +101,11 @@ public :
     /// \brief Saves a character.
     //* =====================================================================
     virtual void save_character(boost::shared_ptr<character> ch) = 0;
+
+    //* =====================================================================
+    /// \brief Enacts a server shutdown.
+    //* =====================================================================
+    virtual void shutdown() = 0;
 };
 
 }

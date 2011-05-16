@@ -102,7 +102,8 @@ struct server::impl
     // ======================================================================
     void cancel()
     {
-        acceptor_.cancel();
+        boost::system::error_code unused_error_code;
+        acceptor_.close(unused_error_code);
     }
     
     asio::io_service        &io_service_;
@@ -129,6 +130,14 @@ server::~server()
 {
     // Ensure that the server is stopped.  This allows pimpl_ to be destroyed
     // (eventually) in all cases.
+    pimpl_->cancel();
+}
+
+// ==========================================================================
+// SHUTDOWN
+// ==========================================================================
+void server::shutdown()
+{
     pimpl_->cancel();
 }
 

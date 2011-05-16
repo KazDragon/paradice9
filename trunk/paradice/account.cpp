@@ -35,7 +35,8 @@ namespace paradice {
 // CONSTRUCTOR
 // ==========================================================================
 account::account()
-    : command_mode_(command_mode_mud)
+    : admin_level_(0)
+    , command_mode_(command_mode_mud)
 {
 }
     

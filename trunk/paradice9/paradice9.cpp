@@ -44,7 +44,6 @@
 #include "odin/net/socket.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "odin/tokenise.hpp"
-#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
@@ -111,6 +110,7 @@ namespace {
       , PARADICE_CMD_ENTRY(logout)
       
       , PARADICE_ADMIN_ENTRY(admin_set_password, 100)
+      , PARADICE_ADMIN_ENTRY(admin_shutdown,     100)
     };
 
     #undef PARADICE_CMD_ENTRY_NOP
@@ -147,11 +147,11 @@ public :
         asio::io_service &io_service
       , unsigned int      port)
         : io_service_(io_service) 
-        , context_(make_shared<context_impl>())
-        , server_(
+        , server_(new paradice::server(
               io_service_
             , port
-            , bind(&impl::on_accept, this, _1))
+            , bind(&impl::on_accept, this, _1)))
+        , context_(make_shared<context_impl>(server_))
     {
     }
 
@@ -161,13 +161,6 @@ private :
     // ======================================================================
     void on_accept(shared_ptr<odin::net::socket> socket)
     {
-        // Begin the keepalive process.  This sends regular heartbeats to the
-        // client to help guard against his network settings timing him out
-        // due to lack of activity.
-        schedule_keepalive(
-            socket
-          , make_shared<asio::deadline_timer>(ref(io_service_)));
-    
         // Create the connection and client structures for the socket.
         BOOST_AUTO(connection, make_shared<paradice::connection>(socket));
         BOOST_AUTO(client, make_shared<paradice::client>());
@@ -938,45 +931,6 @@ private :
     }
     
     // ======================================================================
-    // ON_KEEPALIVE
-    // ======================================================================
-    void on_keepalive(
-        weak_ptr<odin::net::socket>              weak_socket
-      , shared_ptr<boost::asio::deadline_timer>  keepalive_timer
-      , boost::system::error_code const         &error)
-    {
-        BOOST_AUTO(socket, weak_socket.lock());
-    
-        if (socket)
-        {
-            odin::net::socket::output_value_type values[] = {
-                odin::telnet::IAC, odin::telnet::NOP
-            };
-    
-            socket->async_write(values, NULL);
-    
-            schedule_keepalive(socket, keepalive_timer);
-        }
-    }
-    
-    // ======================================================================
-    // SCHEDULE_KEEPALIVE
-    // ======================================================================
-    void schedule_keepalive(
-        shared_ptr<odin::net::socket>    socket
-      , shared_ptr<asio::deadline_timer> keepalive_timer)
-    {
-        keepalive_timer->expires_from_now(boost::posix_time::seconds(30));
-        keepalive_timer->async_wait(
-            bind(
-                &impl::on_keepalive
-              , this
-              , weak_ptr<odin::net::socket>(socket)
-              , keepalive_timer
-              , boost::asio::placeholders::error));
-    }
-    
-    // ======================================================================
     // REMOVE_DUPLICATE_ACCOUNTS
     // ======================================================================
     void remove_duplicate_accounts(shared_ptr<paradice::client> client)
@@ -1009,8 +963,8 @@ private :
     }
     
     asio::io_service              &io_service_;
+    shared_ptr<paradice::server>   server_;
     shared_ptr<paradice::context>  context_;
-    paradice::server               server_;
     
     // A vector of clients whose connections are being negotiated.
     vector< shared_ptr<paradice::client> > pending_clients_;

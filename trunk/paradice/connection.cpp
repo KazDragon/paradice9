@@ -37,6 +37,8 @@
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
 #include "odin/telnet/options/terminal_type_client.hpp"
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -142,19 +144,24 @@ struct ansi_input_visitor
 // ==========================================================================
 struct connection::impl
 {
-    // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    impl(shared_ptr<odin::net::socket> socket)
-    {
-        reconnect(socket);
-        window_ = make_shared<window>(ref(socket_->get_io_service()));
-    }
-    
     void reconnect(shared_ptr<odin::net::socket> socket)
     {
         socket_ = socket;
 
+        // Begin the keepalive process.  This sends regular heartbeats to the
+        // client to help guard against his network settings timing him out
+        // due to lack of activity.
+        keepalive_timer_ = 
+            make_shared<boost::asio::deadline_timer>(
+                ref(socket_->get_io_service()));
+        schedule_keepalive();
+        
+        // Set up the output window if not already done.
+        if (window_ == NULL)
+        {
+            window_ = make_shared<window>(ref(socket_->get_io_service()));
+        }
+        
         telnet_stream_ =
             make_shared<odin::telnet::stream>(
                 socket_
@@ -247,6 +254,36 @@ struct connection::impl
         schedule_next_read();
     }
 
+    // ======================================================================
+    // ON_KEEPALIVE
+    // ======================================================================
+    void on_keepalive(boost::system::error_code const &error)
+    {
+        if (!error && socket_->is_alive())
+        {
+            odin::net::socket::output_value_type values[] = {
+                odin::telnet::IAC, odin::telnet::NOP
+            };
+    
+            socket_->async_write(values, NULL);
+    
+            schedule_keepalive();
+        }
+    }
+    
+    // ======================================================================
+    // SCHEDULE_KEEPALIVE
+    // ======================================================================
+    void schedule_keepalive()
+    {
+        keepalive_timer_->expires_from_now(boost::posix_time::seconds(30));
+        keepalive_timer_->async_wait(
+            bind(
+                &impl::on_keepalive
+              , this
+              , boost::asio::placeholders::error));
+    }
+    
     // ======================================================================
     // ON_TEXT
     // ======================================================================
@@ -382,6 +419,7 @@ struct connection::impl
     function<void (odin::ansi::mouse_report)>       on_mouse_report_;
    
     deque<char>                                     input_buffer_;
+    shared_ptr<asio::deadline_timer>                keepalive_timer_;
     
     string                                          terminal_type_;
     vector< function<void (string)> >               terminal_type_requests_;
@@ -391,8 +429,9 @@ struct connection::impl
 // CONSTRUCTOR
 // ==========================================================================
 connection::connection(shared_ptr<odin::net::socket> socket)
-    : pimpl_(new impl(socket))
+    : pimpl_(new impl)
 {
+    pimpl_->reconnect(socket);
 }
 
 // ==========================================================================
@@ -400,6 +439,7 @@ connection::connection(shared_ptr<odin::net::socket> socket)
 // ==========================================================================
 connection::~connection()
 {
+    disconnect();
 }
 
 // ==========================================================================
@@ -450,8 +490,17 @@ void connection::on_control_sequence(
 // ==========================================================================
 void connection::disconnect()
 {
-    pimpl_->socket_->close();
-    pimpl_->socket_.reset();
+    if (pimpl_->keepalive_timer_ != NULL)
+    {
+        boost::system::error_code unused_error_code;
+        pimpl_->keepalive_timer_->cancel(unused_error_code);
+    }
+    
+    if (pimpl_->socket_ != NULL)
+    {
+        pimpl_->socket_->close();
+        pimpl_->socket_.reset();
+    }
 }
 
 // ==========================================================================

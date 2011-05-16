@@ -58,7 +58,8 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     void close()
     {
-        socket_->close();
+        boost::system::error_code unused_error_code;
+        socket_->close(unused_error_code);
     }
 
     // ======================================================================

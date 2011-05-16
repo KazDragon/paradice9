@@ -31,7 +31,8 @@
 
 namespace paradice {
 
-PARADICE_COMMAND_DECL(admin_set_password);   
+PARADICE_COMMAND_DECL(admin_set_password);
+PARADICE_COMMAND_DECL(admin_shutdown);
 
 }
 

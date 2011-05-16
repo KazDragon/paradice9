@@ -28,6 +28,7 @@
 #define PARADICE9_CONTEXT_IMPL_HPP_
 
 #include "paradice/context.hpp"
+#include "paradice/server.hpp"
 
 //* =========================================================================
 /// \brief Describes the context in which a Paradice server runs.
@@ -38,7 +39,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    context_impl();
+    context_impl(boost::shared_ptr<paradice::server> server);
     
     //* =====================================================================
     /// \brief Denstructor
@@ -101,6 +102,11 @@ public :
     /// \brief Saves a character.
     //* =====================================================================
     virtual void save_character(boost::shared_ptr<paradice::character> ch);
+    
+    //* =====================================================================
+    /// \brief Enacts a server shutdown.
+    //* =====================================================================
+    virtual void shutdown();
     
 private :
     struct impl;

@@ -168,6 +168,14 @@ namespace {
         "\n"
         "Clears all rolls from the specified category.\n";
         
+    static string const help_password =
+        "COMMAND: PASSWORD\n"
+        "\n"
+        " USAGE: password\n"
+        "\n"
+        "Switches to the password change screen.  Fill in the details "
+        "requested on that screen to change your password.\n";
+        
     static string const help_help = 
         "COMMAND: HELP\n" 
         "  USAGE:   help <subject>\n"
@@ -202,6 +210,7 @@ namespace {
       , { "rollprivate", help_rollprivate }
       , { "showrolls",   help_showrolls   }
       , { "clearrolls",  help_clearrolls  }
+      , { "password",    help_password    }
       , { "help",        help_help        }
     };
 }

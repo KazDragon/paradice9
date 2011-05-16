@@ -195,7 +195,7 @@ private :
     //* =====================================================================
     void on_document_changed(vector<rectangle> regions)
     {
-        render();
+        repaint();
     }
     
     //* =====================================================================
@@ -212,7 +212,7 @@ private :
             // ourselves and repaint.  Also set the cursor position to the
             // base.
             document_base_ = new_position.y;
-            render();
+            repaint();
             cursor_position_ = point(new_position.x, 0);
             self_.on_cursor_position_changed(cursor_position_);
         }
@@ -223,7 +223,7 @@ private :
             // ourselves to that the caret will be at the bottom, and
             // repaint.
             document_base_ = (new_position.y + 1) - self_.get_size().height;
-            render();
+            repaint();
             cursor_position_ = point(
                 new_position.x
               , new_position.y - document_base_);
@@ -240,9 +240,9 @@ private :
     }
     
     //* =====================================================================
-    /// \brief Called when we want to render the document.
+    /// \brief Called when we want to repaint the document.
     //* =====================================================================
-    void render()
+    void repaint()
     {
         rectangle redraw_region(point(), self_.get_size());
         vector<rectangle> redraw_regions;
@@ -307,7 +307,7 @@ private :
     void do_pgup_key_event()
     {
         // PgUp - shift the document base one page up, then shift the
-        // cursor one page up.  Then render.
+        // cursor one page up.  Then repaint.
         BOOST_AUTO(size, self_.get_size());
         
         if (document_base_ < u32(size.height))
@@ -332,7 +332,7 @@ private :
         
         document_->set_caret_position(caret_position);
         
-        render();
+        repaint();
     }
     
     //* =====================================================================
@@ -342,7 +342,7 @@ private :
     void do_pgdn_key_event()
     {
         // PgDn - shift the document base one page down, then shift the
-        // cursor one page down.  Then render.
+        // cursor one page down.  Then repaint.
         BOOST_AUTO(size, self_.get_size());
         BOOST_AUTO(lines, document_->get_number_of_lines());
         
@@ -360,7 +360,7 @@ private :
         
         document_->set_caret_position(caret_position);
         
-        render();
+        repaint();
     }
     
     //* =====================================================================
@@ -369,9 +369,12 @@ private :
     //* =====================================================================
     void do_del_key_event()
     {
-        BOOST_AUTO(caret_index, document_->get_caret_index());
-        document_->delete_text(
-            make_pair(caret_index, caret_index + 1));
+        if (self_.is_enabled())
+        {
+            BOOST_AUTO(caret_index, document_->get_caret_index());
+            document_->delete_text(
+                make_pair(caret_index, caret_index + 1));
+        }
     }
 
     //* =====================================================================
@@ -563,7 +566,7 @@ private :
                 
                 self_.get_document()->set_caret_position(point(
                     report.x_position_
-                  , report.y_position_));
+                  , document_base_ + report.y_position_));
             }
         }
     }
@@ -604,7 +607,7 @@ shared_ptr<munin::text::document> text_area::get_document()
 void text_area::do_set_size(extent const &size)
 {
     // On top of setting the size of this component, we also want to set
-    // the size of the document so that it can be rendered at the new
+    // the size of the document so that it can be repainted at the new
     // size.
     basic_component::do_set_size(size);
     pimpl_->set_size(size);

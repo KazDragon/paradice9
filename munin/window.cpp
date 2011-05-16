@@ -33,6 +33,7 @@
 #include "odin/ansi/protocol.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -258,6 +259,7 @@ namespace munin {
 // WINDOW IMPLEMENTATION STRUCTURE
 // ==========================================================================
 class window::impl
+    : public enable_shared_from_this<window::impl>
 {
 public :
     // ======================================================================
@@ -265,20 +267,40 @@ public :
     // ======================================================================
     impl(window &self, boost::asio::io_service &io_service)
         : self_(self)
+        , self_valid_(true)
         , io_service_(io_service)
         , content_(new basic_container)
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
         , repaint_scheduled_(false)
     {
-        content_->on_redraw.connect(
-            bind(&impl::redraw_handler, this, _1));
+        connections_.push_back(content_->on_redraw.connect(
+            bind(&impl::redraw_handler, this, _1)));
         
-        content_->on_cursor_state_changed.connect(
-            bind(&impl::schedule_repaint, this));
+        connections_.push_back(content_->on_cursor_state_changed.connect(
+            bind(&impl::schedule_repaint, this)));
         
-        content_->on_cursor_position_changed.connect(
-            bind(&impl::schedule_repaint, this));
+        connections_.push_back(content_->on_cursor_position_changed.connect(
+            bind(&impl::schedule_repaint, this)));
+    }
+    
+    // ======================================================================
+    // DESTRUCTOR
+    // ======================================================================
+    ~impl()
+    {
+        BOOST_FOREACH(boost::signals::connection& cnx, connections_)
+        {
+            cnx.disconnect();
+        }
+    }
+    
+    // ======================================================================
+    // INVALIDATE_SELF
+    // ======================================================================
+    void invalidate_self()
+    {
+        self_valid_ = false;
     }
     
     // ======================================================================
@@ -308,7 +330,7 @@ private :
         // any further repaint requests.
         if (!repaint_scheduled_)
         {
-            io_service_.post(bind(&impl::do_repaint, this));
+            io_service_.post(bind(&impl::do_repaint, shared_from_this()));
             repaint_scheduled_ = true;
         }
     }
@@ -417,7 +439,7 @@ private :
         
         // Finally, only if anything has been repainted, send the notification 
         // to any observers, telling them how it is done.
-        if (!output.empty())
+        if (!output.empty() && self_valid_)
         {
             self_.on_repaint(output);
         }
@@ -428,7 +450,9 @@ private :
         repaint_scheduled_ = false;
     }
 
-    window                       &self_;    
+    window                       &self_;
+    bool                          self_valid_;
+    
     boost::asio::io_service      &io_service_;
     boost::shared_ptr<container>  content_;
     canvas                        canvas_;
@@ -439,6 +463,8 @@ private :
     
     vector<rectangle>             redraw_regions_;
     bool                          repaint_scheduled_;
+    
+    vector<boost::signals::connection> connections_;
 };
     
 // ==========================================================================
@@ -454,6 +480,7 @@ window::window(boost::asio::io_service &io_service)
 // ==========================================================================
 window::~window()
 {
+    pimpl_->invalidate_self();
 }
 
 // ==========================================================================

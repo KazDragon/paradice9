@@ -105,5 +105,47 @@ PARADICE_COMMAND_IMPL(admin_set_password)
     send_to_player(ctx, "Passwords changed.\n", player);
 }
 
+// ==========================================================================
+// PARADICE COMMAND: ADMIN_SHUTDOWN
+// ==========================================================================
+PARADICE_COMMAND_IMPL(admin_shutdown)
+{
+    static string const usage =
+        "\n USAGE:    admin_shutdown now"
+        "\n\n";
+
+    pair<string, string> token = odin::tokenise(arguments);
+    
+    if (token.first != "now")
+    {
+        send_to_player(ctx, usage, player);
+        return;
+    }
+    
+    // For each client, save its character (if possible), then close its 
+    // socket.
+    BOOST_AUTO(clients, ctx->get_clients());
+    
+    BOOST_FOREACH(shared_ptr<client> current_client, clients)
+    {
+        BOOST_AUTO(ch, current_client->get_character());
+        
+        if (ch != NULL)
+        {
+            ctx->save_character(ch);
+        }
+        
+        BOOST_AUTO(conn, current_client->get_connection());
+        
+        if (conn != NULL)
+        {
+            conn->disconnect();
+        }
+    }
+
+    // shutdown
+    ctx->shutdown();
+}
+
 }
 

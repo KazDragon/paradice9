@@ -108,15 +108,17 @@ static string get_character_address(shared_ptr<paradice::character> &ch)
 // ==========================================================================
 struct context_impl::impl
 {
+    shared_ptr<paradice::server>           server_;
     vector< shared_ptr<paradice::client> > clients_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-context_impl::context_impl()
+context_impl::context_impl(shared_ptr<paradice::server> server)
     : pimpl_(new impl)
 {
+    pimpl_->server_ = server;
 }
     
 // ==========================================================================
@@ -295,5 +297,13 @@ void context_impl::save_character(shared_ptr<paradice::character> ch)
     ofstream out(character_path.string().c_str());
     xml_oarchive oa(out);
     oa << boost::serialization::make_nvp("character", *ch);
+}
+
+// ==========================================================================
+// SHUTDOWN
+// ==========================================================================
+void context_impl::shutdown()
+{
+    pimpl_->server_->shutdown();
 }
 

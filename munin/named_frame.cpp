@@ -29,6 +29,7 @@
 #include "munin/algorithm.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace munin::ansi;
@@ -161,8 +162,7 @@ public :
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(position, self_.get_position());
-        BOOST_AUTO(size,     self_.get_size());
+        BOOST_AUTO(size, self_.get_size());
         
         // Define the co-ordinates of the corners.
         rectangle topleft_rectangle(
@@ -195,29 +195,25 @@ public :
         // If so, paint them.
         if (topleft)
         {
-            cvs[position.x + topleft->origin.x]
-               [position.y + topleft->origin.y] = 
+            cvs[topleft->origin.x][topleft->origin.y] = 
                 munin::element_type(char(201), pen);
         }
         
         if (topright)
         {
-            cvs[position.x + topright->origin.x]
-               [position.y + topright->origin.y] = 
+            cvs[topright->origin.x][topright->origin.y] = 
                 munin::element_type(char(187), pen);
         }
 
         if (bottomleft)
         {
-            cvs[position.x + bottomleft->origin.x]
-               [position.y + bottomleft->origin.y] = 
+            cvs[bottomleft->origin.x][bottomleft->origin.y] = 
                 munin::element_type(char(200), pen);
         }
         
         if (bottomright)
         {
-            cvs[position.x + bottomright->origin.x]
-               [position.y + bottomright->origin.y] = 
+            cvs[bottomright->origin.x][bottomright->origin.y] = 
                 munin::element_type(char(188), pen);
         }
     }
@@ -229,7 +225,6 @@ public :
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(position, self_.get_position());
         BOOST_AUTO(size,     self_.get_size());
         
         // Define a rectangle that stretches across the top border.
@@ -258,8 +253,7 @@ public :
             
             for (s32 column = 0; column < rect.size.width; ++column)
             {
-                cvs[position.x + column + rect.origin.x]
-                   [position.y +          rect.origin.y] =
+                cvs[column + rect.origin.x][rect.origin.y] =
                     munin::element_type(char(205), pen);
             }
         }
@@ -270,8 +264,7 @@ public :
             
             for (s32 column = 0; column < rect.size.width; ++column)
             {
-                cvs[position.x + column + rect.origin.x]
-                   [position.y +          rect.origin.y] =
+                cvs[column + rect.origin.x][rect.origin.y] =
                     munin::element_type(char(205), pen);
             }
         }
@@ -284,7 +277,6 @@ public :
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(position, self_.get_position());
         BOOST_AUTO(size,     self_.get_size());
         
         // Define rectangles that stretches across the left and right borders.
@@ -312,8 +304,7 @@ public :
             
             for (s32 row = 0; row < rect.size.height; ++row)
             {
-                cvs[position.x +       rect.origin.x]
-                   [position.y + row + rect.origin.y] =
+                cvs[rect.origin.x][row + rect.origin.y] =
                     munin::element_type(char(186), pen);
             }
         }
@@ -324,8 +315,7 @@ public :
             
             for (s32 row = 0; row < rect.size.height; ++row)
             {
-                cvs[position.x +       rect.origin.x]
-                   [position.y + row + rect.origin.y] =
+                cvs[rect.origin.x][row + rect.origin.y] =
                     munin::element_type(char(186), pen);
             }
         }
@@ -347,7 +337,7 @@ private :
 // ==========================================================================
 named_frame::named_frame()
 {
-    pimpl_.reset(new impl(*this));
+    pimpl_ = make_shared<impl>(ref(*this));
 }
 
 // ==========================================================================

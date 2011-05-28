@@ -29,12 +29,11 @@
 
 #include "odin/types.hpp"
 #include "munin/types.hpp"
+#include "munin/container.hpp"
 #include <boost/shared_ptr.hpp>
+#include <boost/any.hpp>
 
 namespace munin {
-
-class component;
-class container;
 
 //* =========================================================================
 /// \brief A class that knows how to lay components out in a container in
@@ -60,13 +59,17 @@ public :
     /// if all components in it were at their preferred sizes.
     //* =====================================================================
     extent get_preferred_size(
-        boost::shared_ptr<container const> const &cont) const;
+        odin::runtime_array< boost::shared_ptr<component> > const &components
+      , odin::runtime_array< boost::any >                   const &hints) const;
     
     //* =====================================================================
-    /// \brief Performs the laying out of the components that were added to
-    /// this layout, within the context of the specified container.
+    /// \brief Performs a layout of the specified components within the
+    /// specified bounds.
     //* =====================================================================
-    void operator()(boost::shared_ptr<container> const &cont);
+    void operator()(
+        odin::runtime_array< boost::shared_ptr<component> > const &components
+      , odin::runtime_array< boost::any >                   const &hints
+      , extent                                                     size);
     
 protected :
     //* =====================================================================
@@ -75,7 +78,8 @@ protected :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        boost::shared_ptr<container const> const &cont) const = 0;
+        odin::runtime_array< boost::shared_ptr<component> > const &components
+      , odin::runtime_array< boost::any >                   const &hints) const = 0;
     
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this
@@ -83,7 +87,9 @@ protected :
     /// manner.
     //* =====================================================================
     virtual void do_layout(
-        boost::shared_ptr<container> const &cont) = 0;
+        odin::runtime_array< boost::shared_ptr<component> > const &components
+      , odin::runtime_array< boost::any >                   const &hints
+      , extent                                                     size) = 0;
 };
     
 }

@@ -26,7 +26,9 @@
 // ==========================================================================
 #include "munin/basic_component.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <boost/weak_ptr.hpp>
 #include <map>
 
 using namespace odin;
@@ -68,12 +70,13 @@ struct basic_component::impl
         }
     }
     
-    basic_component  &self_;
-    map<string, any>  attributes_;
-    rectangle         bounds_;
-    bool              can_focus_;
-    bool              has_focus_;
-    bool              enabled_;
+    basic_component     &self_;
+    weak_ptr<component>  parent_;
+    map<string, any>     attributes_;
+    rectangle            bounds_;
+    bool                 can_focus_;
+    bool                 has_focus_;
+    bool                 enabled_;
 };
 
 // ==========================================================================
@@ -81,7 +84,7 @@ struct basic_component::impl
 // ==========================================================================
 basic_component::basic_component()
 {
-    pimpl_.reset(new impl(*this));
+    pimpl_ = make_shared<impl>(ref(*this));
 }
 
 // ==========================================================================
@@ -127,6 +130,22 @@ void basic_component::do_set_size(extent const &size)
 extent basic_component::do_get_size() const
 {
     return pimpl_->bounds_.size;
+}
+
+// ==========================================================================
+// DO_SET_PARENT
+// ==========================================================================
+void basic_component::do_set_parent(shared_ptr<component> parent)
+{
+    pimpl_->parent_ = parent;
+}
+
+// ==========================================================================
+// DO_GET_PARENT
+// ==========================================================================
+shared_ptr<component> basic_component::do_get_parent() const
+{
+    return pimpl_->parent_.lock();
 }
 
 // ==========================================================================

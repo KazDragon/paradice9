@@ -30,6 +30,8 @@
 #include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/scope_exit.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace odin;
@@ -37,7 +39,11 @@ using namespace boost;
 using namespace std;
 
 namespace munin {
-    
+
+namespace {
+    typedef map< u32, shared_ptr<layout> > layered_layout_map;
+}
+
 // ==========================================================================
 // BASIC_CONTAINER::IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -53,7 +59,7 @@ struct basic_container::impl
         , enabled_(true)
     {
     }
-
+    
     // ======================================================================
     // SUBCOMPONENT_FOCUS_SET_HANDLER
     // ======================================================================
@@ -365,16 +371,18 @@ struct basic_container::impl
         }
     }
     
-    basic_container                 &self_;
-    map<string, any>                 attributes_;
-    vector< shared_ptr<component> >  components_;
-    vector< any >                    component_hints_;
-    vector< u32 >                    component_layers_;
-    shared_ptr<layout>               layout_;
-    rectangle                        bounds_;
-    bool                             has_focus_;
-    bool                             cursor_state_;
-    bool                             enabled_;
+    basic_container                               &self_;
+    weak_ptr<component>                            parent_;
+    map<string, any>                               attributes_;
+    vector< shared_ptr<component> >                components_;
+    vector< any >                                  component_hints_;
+    vector< u32 >                                  component_layers_;
+    vector< vector<boost::signals::connection > >  component_connections_;
+    layered_layout_map                             layouts_;
+    rectangle                                      bounds_;
+    bool                                           has_focus_;
+    bool                                           cursor_state_;
+    bool                                           enabled_;
 };
 
 // ==========================================================================
@@ -382,7 +390,7 @@ struct basic_container::impl
 // ==========================================================================
 basic_container::basic_container()
 {
-    pimpl_.reset(new impl(*this));
+    pimpl_ = make_shared<impl>(ref(*this));
 }
 
 // ==========================================================================
@@ -390,6 +398,15 @@ basic_container::basic_container()
 // ==========================================================================
 basic_container::~basic_container()
 {
+    BOOST_FOREACH(
+        vector<boost::signals::connection> &vec
+      , pimpl_->component_connections_)
+    {
+        BOOST_FOREACH(boost::signals::connection &cnx, vec)
+        {
+            cnx.disconnect();
+        }
+    }
 }
 
 // ==========================================================================
@@ -422,13 +439,7 @@ void basic_container::do_set_size(extent const &size)
     pimpl_->bounds_.size = size;
     redraw_regions.push_back(pimpl_->bounds_);
 
-    BOOST_AUTO(lyt, get_layout());
-
-    if (lyt)
-    {
-        (*lyt)(shared_from_this());
-    }
-
+    do_layout_container();
     on_redraw(redraw_regions);
 }
 
@@ -441,16 +452,91 @@ extent basic_container::do_get_size() const
 }
 
 // ==========================================================================
+// DO_SET_PARENT
+// ==========================================================================
+void basic_container::do_set_parent(shared_ptr<component> parent)
+{
+    pimpl_->parent_ = parent;
+}
+
+// ==========================================================================
+// DO_GET_PARENT
+// ==========================================================================
+shared_ptr<component> basic_container::do_get_parent() const
+{
+    return pimpl_->parent_.lock();
+}
+
+// ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent basic_container::do_get_preferred_size() const
 {
-    // If there is a layout, then ask it what the preferred size of this
-    // container should be.  Otherwise, we are happy with the size that
-    // we currently have.
-    return pimpl_->layout_ != NULL
-         ? pimpl_->layout_->get_preferred_size(shared_from_this())
-         : get_size();
+    // If there are any layouts, then find the union of their preferred
+    // sizes.  Otherwise, our current size is just fine.
+    if (pimpl_->layouts_.empty())
+    {
+        return get_size();
+    }
+    
+    extent preferred_size(0, 0);
+
+    // Sort the components/hints into layers
+    typedef map< u32, vector< shared_ptr<component> > > clmap;
+    typedef map< u32, vector< any > >                   chmap;
+    
+    clmap component_layers_map;
+    chmap component_hints_map;
+    
+    // Iterate through the components, sorting them by layer
+    for (u32 index = 0; index < pimpl_->components_.size(); ++index)
+    {
+        BOOST_AUTO(comp,  pimpl_->components_[index]);
+        BOOST_AUTO(hint,  pimpl_->component_hints_[index]);
+        BOOST_AUTO(layer, pimpl_->component_layers_[index]);
+        
+        component_layers_map[layer].push_back(comp);
+        component_hints_map[layer].push_back(hint);
+    }
+    
+    // Iterate through the layers, layout out each.
+    BOOST_FOREACH(clmap::value_type component_layer_pair, component_layers_map)
+    {
+        BOOST_AUTO(layer,      component_layer_pair.first);
+        BOOST_AUTO(components, component_layer_pair.second);
+        BOOST_AUTO(hints,      component_hints_map[layer]);
+
+        BOOST_AUTO(lyt, get_layout(layer));
+        
+        if (lyt == NULL || components.size() == 0) 
+        {
+            // Either there is no layout for this layer, or there are no
+            // components in this layer.  Hence no point in laying it out.
+            // Continue with the next layer.
+            continue;
+        }
+        
+        // Convert to runtime_array<>s to match the interface required.
+        runtime_array< shared_ptr<component> > components_array(
+            &*components.begin()
+          , runtime_array< shared_ptr<component> >::size_type(
+                components.size()));
+        
+        runtime_array<any> hints_array(
+            &*hints.begin()
+          , runtime_array<any>::size_type(hints.size()));
+        
+        BOOST_AUTO(
+            lp_preferred_size
+          , lyt->get_preferred_size(components_array, hints_array));
+        
+        preferred_size.width = 
+            (max)(preferred_size.width, lp_preferred_size.width);
+        preferred_size.height =
+            (max)(preferred_size.height, lp_preferred_size.height);
+    }
+
+    return preferred_size;
 }
 
 // ==========================================================================
@@ -474,48 +560,52 @@ void basic_container::do_add_component(
     pimpl_->component_hints_.push_back(hint);
     pimpl_->component_layers_.push_back(layer);
     
-    // TODO: Remove these callbacks when components are removed.
+    vector<boost::signals::connection> component_connections;
     
     // Register for callbacks for when the new subcomponent either gains
     // or loses focus.  We can make sure our own focus is correct based
     // on this information.
-    comp->on_focus_set.connect(
+    component_connections.push_back(comp->on_focus_set.connect(
         boost::bind(
             &basic_container::impl::subcomponent_focus_set_handler
           , pimpl_
-          , boost::weak_ptr<component>(comp)));
+          , boost::weak_ptr<component>(comp))));
 
-    comp->on_focus_lost.connect(
+    component_connections.push_back(comp->on_focus_lost.connect(
         boost::bind(
             &basic_container::impl::subcomponent_focus_lost_handler
           , pimpl_
-          , boost::weak_ptr<component>(comp)));
+          , boost::weak_ptr<component>(comp))));
     
     // Register for callbacks for when the subcomponent's cursor state
     // or position changes.
-    comp->on_cursor_state_changed.connect(
+    component_connections.push_back(comp->on_cursor_state_changed.connect(
         boost::bind(
             &basic_container::impl::subcomponent_cursor_state_change_handler
           , pimpl_
           , boost::weak_ptr<component>(comp)
-          , _1));
+          , _1)));
     
-    comp->on_cursor_position_changed.connect(
+    component_connections.push_back(comp->on_cursor_position_changed.connect(
         boost::bind(
             &basic_container::impl::subcomponent_cursor_position_change_handler
           , pimpl_
           , boost::weak_ptr<component>(comp)
-          , _1));
+          , _1)));
     
     // Register for callbacks for when the subcomponent's position
     // changes.
-    comp->on_position_changed.connect(
+    component_connections.push_back(comp->on_position_changed.connect(
         boost::bind(
             &basic_container::impl::subcomponent_position_change_handler
           , pimpl_
           , boost::weak_ptr<component>(comp)
           , _1
-          , _2));
+          , _2)));
+    
+    pimpl_->component_connections_.push_back(component_connections);
+    
+    comp->set_parent(shared_from_this());
 }
 
 // ==========================================================================
@@ -524,34 +614,45 @@ void basic_container::do_add_component(
 void basic_container::do_remove_component(
     shared_ptr<component> const &comp)
 {
+    // When we remove a component, we must also remove the associated hint,
+    // layer, and signal connections (which must also be disconnected).
     BOOST_AUTO(current_component, pimpl_->components_.begin());
-    BOOST_AUTO(current_hint, pimpl_->component_hints_.begin());
-    BOOST_AUTO(current_layer, pimpl_->component_layers_.begin());
+    BOOST_AUTO(current_hint,      pimpl_->component_hints_.begin());
+    BOOST_AUTO(current_layer,     pimpl_->component_layers_.begin());
+    BOOST_AUTO(current_signals,   pimpl_->component_connections_.begin());
     
     while (current_component != pimpl_->components_.end()
-        && current_hint != pimpl_->component_hints_.end()
-        && current_layer != pimpl_->component_layers_.end())
+        && current_hint      != pimpl_->component_hints_.end()
+        && current_layer     != pimpl_->component_layers_.end()
+        && current_signals   != pimpl_->component_connections_.end())
     {
         if (*current_component == comp)
         {
             current_component  = pimpl_->components_.erase(current_component);
             current_hint       = pimpl_->component_hints_.erase(current_hint);
             current_layer      = pimpl_->component_layers_.erase(current_layer);
+            
+            BOOST_FOREACH(boost::signals::connection &sig, *current_signals)
+            {
+                sig.disconnect();
+            }
+            
+            current_signals = pimpl_->component_connections_.erase(current_signals);
         }
         else
         {
             ++current_component;
             ++current_hint;
             ++current_layer;
+            ++current_signals;
         }
     }
-
-    BOOST_AUTO(lyt, get_layout());
-
-    if (lyt)
-    {
-        (*lyt)(shared_from_this());
-    }
+    
+    comp->set_parent(shared_ptr<component>());
+    
+    // Now that a component has been removed, it may require re-laying out
+    // of components.
+    do_layout_container();
 }
 
 // ==========================================================================
@@ -581,17 +682,39 @@ u32 basic_container::do_get_component_layer(u32 index) const
 // ==========================================================================
 // DO_SET_LAYOUT
 // ==========================================================================
-void basic_container::do_set_layout(shared_ptr<layout> const &lyt)
+void basic_container::do_set_layout(
+    shared_ptr<layout> const &lyt
+  , u32                       layer)
 {
-    pimpl_->layout_ = lyt;
+    pimpl_->layouts_[layer] = lyt;
 }
 
 // ==========================================================================
 // DO_GET_LAYOUT
 // ==========================================================================
-shared_ptr<layout> basic_container::do_get_layout() const
+shared_ptr<layout> basic_container::do_get_layout(u32 layer) const
 {
-    return pimpl_->layout_;
+    BOOST_AUTO(result, pimpl_->layouts_.find(layer));
+    
+    return result == pimpl_->layouts_.end()
+                   ? shared_ptr<layout>()
+                   : result->second;
+}
+
+// ==========================================================================
+// DO_GET_LAYOUT_LAYERS
+// ==========================================================================
+runtime_array<u32> basic_container::do_get_layout_layers() const
+{
+    runtime_array<u32> layers(pimpl_->layouts_.size());
+    
+    u32 index = 0;
+    BOOST_FOREACH(layered_layout_map::value_type lp, pimpl_->layouts_)
+    {
+        layers[index++] = lp.first;
+    }
+    
+    return layers;
 }
 
 // ==========================================================================
@@ -803,7 +926,7 @@ void basic_container::do_event(any const &event)
 // ==========================================================================
 bool basic_container::do_get_cursor_state() const
 {
-        return pimpl_->cursor_state_;
+    return pimpl_->cursor_state_;
 }
 
 // ==========================================================================
@@ -851,16 +974,78 @@ void basic_container::do_initialise_region(
     canvas          &cvs
   , rectangle const &region)
 {
-    BOOST_AUTO(position, get_position());
+    // Apply the region's origin as an offset to our canvas.  This means that
+    // the calculations below are done in terms of the region's origin.
+    cvs.apply_offset(region.origin.x, region.origin.y);
+
+    // Ensure that the offset is unapplied before any exit of this function.
+    BOOST_SCOPE_EXIT( (&cvs)(&region) )
+    {
+        cvs.apply_offset(-region.origin.x, -region.origin.y);
+    } BOOST_SCOPE_EXIT_END
     
     for (s32 row = 0; row < region.size.height; ++row)
     {
         for (s32 column = 0; column < region.size.width; ++column)
         {
-            cvs[position.x + region.origin.x + column]
-               [position.y + region.origin.y + row   ] 
-                    = element_type(' ', attribute());
+            cvs[column][row] = element_type(' ', attribute());
         }
+    }
+}
+
+// ==========================================================================
+// DO_LAYOUT_CONTAINER
+// ==========================================================================
+void basic_container::do_layout_container()
+{
+    // Sort the components/hints into layers
+    typedef map< u32, vector< shared_ptr<component> > > clmap;
+    typedef map< u32, vector< any > >                   chmap;
+    
+    clmap component_layers_map;
+    chmap component_hints_map;
+    
+    // Iterate through the components, sorting them by layer
+    for (u32 index = 0; index < pimpl_->components_.size(); ++index)
+    {
+        BOOST_AUTO(comp,  pimpl_->components_[index]);
+        BOOST_AUTO(hint,  pimpl_->component_hints_[index]);
+        BOOST_AUTO(layer, pimpl_->component_layers_[index]);
+        
+        component_layers_map[layer].push_back(comp);
+        component_hints_map[layer].push_back(hint);
+    }
+    
+    BOOST_AUTO(size, get_size());
+    
+    // Iterate through the layers, layout out each.
+    BOOST_FOREACH(clmap::value_type component_layer_pair, component_layers_map)
+    {
+        BOOST_AUTO(layer,      component_layer_pair.first);
+        BOOST_AUTO(components, component_layer_pair.second);
+        BOOST_AUTO(hints,      component_hints_map[layer]);
+
+        BOOST_AUTO(lyt, get_layout(layer));
+        
+        if (lyt == NULL || components.size() == 0) 
+        {
+            // Either there is no layout for this layer, or there are no
+            // components in this layer.  Hence no point in laying it out.
+            // Continue with the next layer.
+            continue;
+        }
+        
+        // Convert to runtime_array<>s to match the interface required.
+        runtime_array< shared_ptr<component> > components_array(
+            &*components.begin()
+          , runtime_array< shared_ptr<component> >::size_type(
+                components.size()));
+        
+        runtime_array<any> hints_array(
+            &*hints.begin()
+          , runtime_array<any>::size_type(hints.size()));
+        
+        (*lyt)(components_array, hints_array, size);
     }
 }
 

@@ -30,6 +30,7 @@
 #include "munin/window.hpp"
 #include "hugin/user_interface.hpp"
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
 #include <string>
@@ -40,8 +41,6 @@ using namespace boost;
 using namespace std;
 
 namespace paradice {
-
-vector< shared_ptr<client> > clients;
 
 // ==========================================================================
 // CLIENT IMPLEMENTATION STRUCTURE
@@ -61,7 +60,7 @@ struct client::impl
 // CONSTRUCTOR
 // ==========================================================================
 client::client()
-    : pimpl_(new impl)
+    : pimpl_(make_shared<impl>())
 {
 }
     
@@ -75,9 +74,9 @@ client::~client()
 // ==========================================================================
 // SET_CONNECTION
 // ==========================================================================
-void client::set_connection(shared_ptr<connection> const &new_connection)
+void client::set_connection(shared_ptr<connection> const &cnx)
 {
-    pimpl_->connection_ = new_connection;
+    pimpl_->connection_ = cnx;
 }
 
 // ==========================================================================

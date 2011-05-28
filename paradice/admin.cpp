@@ -32,7 +32,6 @@
 #include "connection.hpp"
 #include "context.hpp"
 #include "who.hpp"
-#include "hugin/user_interface.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>

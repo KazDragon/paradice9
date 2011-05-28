@@ -31,6 +31,7 @@
 #include "munin/layout.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -63,14 +64,13 @@ private :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        shared_ptr<container const> const &cont) const
+        runtime_array< shared_ptr<component> > const &components
+      , runtime_array< any >                   const &hints) const
     {
         extent preferred_size;
         
-        for (u32 index = 0; index < cont->get_number_of_components(); ++index)
+        BOOST_FOREACH(shared_ptr<component> comp, components)
         {
-            BOOST_AUTO(comp, cont->get_component(index));
-            
             preferred_size += comp->get_preferred_size();
         }
         
@@ -82,17 +82,17 @@ private :
     /// function in order to lay a container's components out in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_layout(shared_ptr<container> const &cont)
+    virtual void do_layout(
+        runtime_array< shared_ptr<component> > const &components
+      , runtime_array< any >                   const &hints
+      , extent                                        size)
     {
         // This layout expects only two subcomponents: a frame, and a central
-        // component.  It lays them out in the expected format.  In addition,
-        BOOST_AUTO(size, cont->get_size());
-
-        for (u32 index = 0; index < cont->get_number_of_components(); ++index)
+        // component.  It lays them out in the expected format.
+        for (u32 index = 0; index < components.size(); ++index)
         {
-            BOOST_AUTO(comp, cont->get_component(index));
-            BOOST_AUTO(any_hint, cont->get_component_hint(index));
-
+            BOOST_AUTO(comp,     components[index]);
+            BOOST_AUTO(any_hint, hints[index]);
             BOOST_AUTO(hint, any_cast<hint_type>(any_hint));
 
             if (hint == hint_border)
@@ -140,7 +140,7 @@ framed_component::framed_component(
     shared_ptr<frame>     border
   , shared_ptr<component> interior)
     : composite_component(make_shared<basic_container>())
-    , pimpl_(new impl)
+    , pimpl_(make_shared<impl>())
 {
     pimpl_->border_   = border;
     pimpl_->interior_ = interior;

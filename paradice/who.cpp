@@ -31,7 +31,6 @@
 #include "connection.hpp"
 #include "context.hpp"
 #include "utility.hpp"
-#include "hugin/user_interface.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"

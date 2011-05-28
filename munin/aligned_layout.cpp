@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/aligned_layout.hpp"
 #include "munin/container.hpp"
+#include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
@@ -40,17 +41,15 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent aligned_layout::do_get_preferred_size(
-    shared_ptr<container const> const &cont) const
+    runtime_array< shared_ptr<component> > const &components
+  , runtime_array< any >                   const &hints) const
 {
     // The preferred size of this component is the largest preferred
     // extents of all components.
     extent maximum_preferred_size(0, 0);
 
-    for (u32 index = 0;
-         index < cont->get_number_of_components();
-         ++index)
+    BOOST_FOREACH(shared_ptr<component> comp, components)
     {
-        BOOST_AUTO(comp,           cont->get_component(index));
         BOOST_AUTO(preferred_size, comp->get_preferred_size());
 
         maximum_preferred_size.width = (max)(
@@ -69,16 +68,14 @@ extent aligned_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void aligned_layout::do_layout(
-    shared_ptr<container> const &cont)
+    runtime_array< shared_ptr<component> > const &components
+  , runtime_array< any >                   const &hints
+  , extent                                        size)
 {
-    BOOST_AUTO(size, cont->get_size());
-    
-    for (u32 index = 0;
-         index < cont->get_number_of_components();
-         ++index)
+    for (u32 index = 0; index < components.size(); ++index)
     {
-        BOOST_AUTO(comp, cont->get_component(index));
-        BOOST_AUTO(hint, cont->get_component_hint(index));
+        BOOST_AUTO(comp, components[index]);
+        BOOST_AUTO(hint, hints[index]);
 
         alignment_data const *alignment_hint = 
             any_cast<alignment_data>(&hint);

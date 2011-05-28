@@ -152,13 +152,13 @@ public :
     //* =====================================================================
     ~small_buffer()
     {
+        for (iterator current = begin(); current != end(); ++current)
+        {
+            allocator_.destroy(current);
+        }
+        
         if (!is_pod_ || size_ > StaticDataSize)
         {
-            for (iterator current = begin(); current != end(); ++current)
-            {
-                allocator_.destroy(current);
-            }
-
             allocator_.deallocate(union_.get_dynamic_buffer(), 0);
         }
     }

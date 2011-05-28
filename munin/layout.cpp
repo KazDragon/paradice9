@@ -46,17 +46,21 @@ layout::~layout()
 // GET_PREFERRED_SIZE
 // ==========================================================================
 extent layout::get_preferred_size(
-    boost::shared_ptr<container const> const &cont) const
+    odin::runtime_array< boost::shared_ptr<component> > const &components
+  , odin::runtime_array< boost::any >                   const &hints) const
 {
-    return do_get_preferred_size(cont);
+    return do_get_preferred_size(components, hints);
 }
 
 // ==========================================================================
 // OPERATOR()
 // ==========================================================================
-void layout::operator()(boost::shared_ptr<container> const &cont)
+void layout::operator()(
+    odin::runtime_array< boost::shared_ptr<component> > const &components
+  , odin::runtime_array< boost::any >                   const &hints
+  , extent                                                     size)
 {
-    do_layout(cont);
+    do_layout(components, hints, size);
 }
 
 }

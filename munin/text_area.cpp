@@ -126,8 +126,6 @@ struct text_area::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(position, self_.get_position());
-
         for (u32 row_index = region.origin.y;
              row_index < u32(region.origin.y + region.size.height);
              ++row_index)
@@ -144,8 +142,7 @@ struct text_area::impl
               && column_index < u32(line.size());
                  ++column_index)
             {
-                cvs[position.x + column_index]
-                   [position.y + row_index   ] = line[column_index];
+                cvs[column_index][row_index] = line[column_index];
             }
             
             // Pad the rest with blanks
@@ -153,9 +150,7 @@ struct text_area::impl
                 column_index < u32(region.size.width);
                 ++column_index)
             {
-                cvs[position.x + column_index]
-                   [position.y + row_index   ] =
-                    element_type(' ', attribute());
+                cvs[column_index][row_index] = element_type(' ', attribute());
             }
         }
     }

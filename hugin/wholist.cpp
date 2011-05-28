@@ -25,12 +25,14 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "wholist.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/runtime_array.hpp"
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <vector>
 
@@ -68,29 +70,7 @@ struct wholist::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(position, self_.get_position());
-        
-        attribute pen;
-        pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
-        pen.intensity         = odin::ansi::graphics::INTENSITY_BOLD;
-        
-        for (s32 row = 0; row < region.size.height; ++row)
-        {
-            for (s32 column = 0; column < region.size.width; ++column)
-            {
-                BOOST_AUTO(x_coordinate, column + region.origin.x);
-                BOOST_AUTO(y_coordinate, row    + region.origin.y);
-                
-                element_type element = 
-                    x_coordinate >= s32(view_.size())
-                 || y_coordinate >= s32(view_[0].size())
-                     ? element_type(' ', attribute())
-                     : view_[x_coordinate][y_coordinate];
-
-                cvs[x_coordinate + position.x]
-                   [y_coordinate + position.y] = element;
-            }
-        }
+        copy_region(region, view_, cvs);
     }
     
     // ======================================================================
@@ -231,12 +211,7 @@ private :
         // If necessary, we will have to totally recreate the view
         if (size != current_size_)
         {
-            view_ = runtime_array< runtime_array<element_type> >(size.width);
-        
-            for (s32 column = 0; column < size.width; ++column)
-            {
-                view_[column] = runtime_array<element_type>(size.height);
-            }
+            view_.set_size(size);
         }
 
         current_size_ = size;
@@ -345,7 +320,7 @@ private :
 
     wholist                                      &self_;
     runtime_array<string>                         names_;
-    runtime_array< runtime_array<element_type> >  view_;
+    canvas                                        view_;
     munin::extent                                 current_size_;
     u32                                           name_index_;
     u32                                           current_selection_;
@@ -364,7 +339,7 @@ private :
 // ==========================================================================
 wholist::wholist()
 {
-    pimpl_.reset(new impl(*this));
+    pimpl_ = make_shared<impl>(ref(*this));
     on_focus_set.connect(bind(&impl::render, pimpl_.get()));
     on_focus_lost.connect(bind(&impl::render, pimpl_.get()));
 }

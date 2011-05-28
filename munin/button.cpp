@@ -45,15 +45,20 @@ namespace munin {
 // ==========================================================================
 struct button::impl
 {
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl()
+    {
+    }
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-button::button(
-    runtime_array<element_type> const &caption)
+button::button(runtime_array<element_type> const &caption)
     : composite_component(make_shared<basic_container>())
-    , pimpl_(new impl)
+    , pimpl_(make_shared<impl>())
 {
     BOOST_AUTO(img, make_shared<image>(caption));
     img->set_can_focus(true);

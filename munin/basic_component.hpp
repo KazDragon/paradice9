@@ -81,6 +81,20 @@ protected :
     virtual extent do_get_size() const;
 
     //* =====================================================================
+    /// \brief Called by set_parent().  Derived classes must override this
+    /// function in order to set the parent of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual void do_set_parent(boost::shared_ptr<component> parent);
+    
+    //* =====================================================================
+    /// \brief Called by get_parent().  Derived classes must override this
+    /// function in order to get the parent of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<component> do_get_parent() const;
+    
+    //* =====================================================================
     /// \brief Called by set_can_focus().  Derived classes must override this
     /// function in order to set whether this component can be focussed in
     /// a custom manner.

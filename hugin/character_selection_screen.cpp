@@ -91,7 +91,7 @@ struct character_selection_screen::impl
 // ==========================================================================
 character_selection_screen::character_selection_screen()
     : composite_component(make_shared<basic_container>())
-    , pimpl_(new impl)
+    , pimpl_(make_shared<impl>())
 {
     pimpl_->character_list_ = pimpl_->create_character_list();
     pimpl_->inner_content_  = pimpl_->create_inner_content();

@@ -26,6 +26,8 @@
 // ==========================================================================
 #include "munin/canvas.hpp"
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 #include <stdexcept>
 #include <vector>
 
@@ -237,7 +239,7 @@ canvas::row_proxy canvas::column_proxy::operator[](s32 row)
 // CONSTRUCTOR
 // ==========================================================================
 canvas::canvas()
-    : pimpl_(new impl)
+    : pimpl_(make_shared<impl>())
 {
 }
 
@@ -245,8 +247,8 @@ canvas::canvas()
 // COPY CONSTRUCTOR
 // ==========================================================================
 canvas::canvas(canvas const &other)
-    : pimpl_(new impl(*other.pimpl_))
 {
+    pimpl_ = make_shared<impl>(ref(*other.pimpl_));
 }
 
 // ==========================================================================

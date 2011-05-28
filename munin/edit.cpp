@@ -30,6 +30,7 @@
 #include "munin/canvas.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/foreach.hpp>
@@ -40,6 +41,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -105,13 +107,12 @@ struct edit::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(position, self_.get_position());
         BOOST_AUTO(document_size, document_->get_size());
         BOOST_AUTO(characters, document_size.width - document_base_);
         BOOST_AUTO(text, document_->get_line(0));
         
         s32 index = 0;
-    
+
         // Write whatever characters are required.
         if (password_element_.is_initialized())
         {
@@ -122,8 +123,7 @@ struct edit::impl
               && u32(region.origin.x + index) < characters;
                  ++index)
             {
-                cvs[position.x + index]
-                   [position.y + 0    ] = element;
+                cvs[index][0] = element;
             }
         }
         else
@@ -133,8 +133,7 @@ struct edit::impl
               && u32(region.origin.x + index) < characters;
                  ++index)
             {
-                cvs[position.x + index]
-                   [position.y + 0    ] = text[document_base_ + index];
+                cvs[index][0] = text[document_base_ + index];
             }
         }
         
@@ -143,8 +142,7 @@ struct edit::impl
              index < region.size.width;
              ++index)
         {
-            cvs[position.x + index]
-               [position.y + 0    ] = element_type(' ', attribute());
+            cvs[index][0] = element_type(' ', attribute());
         }
     }
 
@@ -187,11 +185,9 @@ struct edit::impl
         password_element_ = element;
         
         // Changing the password element will completely change how this
-        // component is rendered.  Therefore, we will need to redraw the
+        // component is drawn.  Therefore, we will need to redraw the
         // entire component.
-        vector<rectangle> regions;
-        regions.push_back(rectangle(point(), self_.get_size()));
-        self_.on_redraw(regions);
+        redraw();
     }
     
 private :
@@ -221,13 +217,12 @@ private :
         }
 
         // If we have any overlapping regions, then we need to redraw those
-        // portions of the document, and also schedule redraws for this
-        // renderer.
+        // portions of the document.
         
         // First naive implementation: redraw the entire component.
         if (!overlapping_changes.empty())
         {
-            render();
+            redraw();
         }
     }
 
@@ -242,20 +237,20 @@ private :
         if  (new_index < document_base_)
         {
             // The caret has gone to the left of the document base.  Rebase
-            // ourselves, and repaint.  Also set the cursor position to
+            // ourselves, and redraw.  Also set the cursor position to
             // the base.
             document_base_ = new_index;
-            render();
+            redraw();
             cursor_position_ = point();
             self_.on_cursor_position_changed(cursor_position_);
         }
         else if (new_index + 1 > (document_base_ + self_.get_size().width))
         {
             // The caret has gone beyond the right of the component.  Rebase
-            // ourselves so that the caret will be rightmost, and repaint.
+            // ourselves so that the caret will be rightmost, and redraw.
             // Also set the cursor position to the rightmost.
             document_base_ = (new_index + 1) - self_.get_size().width;
-            render();
+            redraw();
             cursor_position_ = point(self_.get_size().width - 1, 0);
             self_.on_cursor_position_changed(cursor_position_);
         }
@@ -268,40 +263,11 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called when we want to render the document.
+    /// \brief Called when we want to redraw the document.
     //* =====================================================================
-    void render()
+    void redraw()
     {
-        odin::runtime_array<element_type> document_view(
-            self_.get_size().width);
-        
-        fill(document_view.begin()
-           , document_view.end()
-           , element_type(' ', attribute()));
-        
-        // Find the segment of the document that we will display
-        BOOST_AUTO(line, document_->get_line(0));
-        
-        BOOST_AUTO(
-            start_index
-          , (min)(u32(line.size()), document_base_));
-        
-        BOOST_AUTO(
-            end_index
-          , (min)(u32(line.size())
-                , u32(document_base_ + document_view.size())));
-        
-        copy(
-            line.begin() + start_index
-          , line.begin() + end_index
-          , document_view.begin());
-        
-        rectangle redraw_region(
-            point()
-          , self_.get_size());
-        vector<rectangle> redraw_regions;
-        redraw_regions.push_back(redraw_region);
-        self_.on_redraw(redraw_regions);
+        self_.on_redraw(list_of(rectangle(point(), self_.get_size())));
     }
     
     //* =====================================================================
@@ -347,10 +313,7 @@ private :
         // Events called from this action should ensure that the view and
         // the cursor position are correctly placed.
         BOOST_AUTO(document_size, document_->get_size());
-
-        document_->set_caret_index(
-            document_size.width
-          * document_size.height);
+        document_->set_caret_index(document_size.width * document_size.height);
     }
     
     //* =====================================================================
@@ -460,7 +423,7 @@ private :
 // ==========================================================================
 edit::edit()
 {
-    pimpl_.reset(new impl(*this));
+    pimpl_ = make_shared<impl>(ref(*this));
 }
 
 // ==========================================================================

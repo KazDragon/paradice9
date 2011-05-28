@@ -27,6 +27,7 @@
 #include "munin/card.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <map>
 
@@ -68,7 +69,7 @@ struct card::impl
 // CONSTRUCTOR 
 // ==========================================================================
 card::card()
-    : pimpl_(new impl)
+    : pimpl_(make_shared<impl>())
 {
 }
 

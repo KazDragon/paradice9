@@ -28,6 +28,7 @@
 #define MUNIN_CONTAINER_HPP_
 
 #include "munin/component.hpp"
+#include "odin/runtime_array.hpp"
 
 namespace munin {
     
@@ -97,14 +98,23 @@ public :
     odin::u32 get_component_layer(odin::u32 index) const;
     
     //* =====================================================================
-    /// \brief Sets the container's current layout.
+    /// \brief Sets the container's current layout for a given layer
     //* =====================================================================
-    void set_layout(boost::shared_ptr<layout> const &layout);
+    void set_layout(
+        boost::shared_ptr<layout> const &layout
+      , odin::u32                        layer = DEFAULT_LAYER);
     
     //* =====================================================================
-    /// \brief Retrieves the current layout from the container.
+    /// \brief Retrieves the current layout from the container for a given
+    /// layer.
     //* =====================================================================
-    boost::shared_ptr<layout> get_layout() const;
+    boost::shared_ptr<layout> get_layout(
+        odin::u32 layer = DEFAULT_LAYER) const;
+    
+    //* =====================================================================
+    /// \brief Returns an array of layers that currently have layouts
+    //* =====================================================================
+    odin::runtime_array<odin::u32> get_layout_layers() const;
     
 protected :    
     //* =====================================================================
@@ -114,6 +124,11 @@ protected :
         canvas          &cvs
       , rectangle const &region) = 0;
 
+    //* =====================================================================
+    /// \brief Lays a container out
+    //* =====================================================================
+    virtual void do_layout_container() = 0;
+    
     //* =====================================================================
     /// \brief Called by get_number_of_components().  Derived classes must
     /// override this function in order to retrieve the number of components
@@ -165,13 +180,22 @@ protected :
     /// function in order to set a layout in a custom manner.
     //* =====================================================================
     virtual void do_set_layout(
-        boost::shared_ptr<layout> const &layout) = 0;
+        boost::shared_ptr<layout> const &layout
+      , odin::u32                        layer) = 0;
     
     //* =====================================================================
     /// \brief Called by get_layout.  Derived classes must override this
     /// function in order to get the container's layout in a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr<layout> do_get_layout() const = 0;
+    virtual boost::shared_ptr<layout> do_get_layout(
+        odin::u32 layer) const = 0;
+    
+    //* =====================================================================
+    /// \brief Called by get_layout_layers.  Derived classes must override 
+    /// this function in order to get the container's layout in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual odin::runtime_array<odin::u32> do_get_layout_layers() const = 0;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

@@ -28,6 +28,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 #include <deque>
 
 using namespace boost;
@@ -52,7 +53,7 @@ struct socket::impl : enable_shared_from_this<impl>
         , is_alive_(true)
     {
     }
-        
+    
     // ======================================================================
     // CLOSE
     // ======================================================================
@@ -372,7 +373,7 @@ private :
 // ==========================================================================
 socket::socket(
     shared_ptr<asio::ip::tcp::socket> const &socket)
-    : pimpl_(new impl(socket))
+    : pimpl_(make_shared<impl>(socket))
 {
 }
 

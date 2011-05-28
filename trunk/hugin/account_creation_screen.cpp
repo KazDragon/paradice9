@@ -38,6 +38,7 @@
 #include "munin/solid_frame.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -99,6 +100,7 @@ struct account_creation_screen::impl
     shared_ptr<button>                      cancel_button_;
     function<void (string, string, string)> on_account_created_;
     function<void ()>                       on_account_creation_cancelled_;
+    vector<boost::signals::connection>      connections_;
 };
 
 // ==========================================================================
@@ -106,7 +108,7 @@ struct account_creation_screen::impl
 // ==========================================================================
 account_creation_screen::account_creation_screen()
     : composite_component(make_shared<basic_container>())
-    , pimpl_(new impl)
+    , pimpl_(make_shared<impl>())
 {
     BOOST_AUTO(content, get_container());
     content->set_layout(make_shared<grid_layout>(1, 1));
@@ -192,13 +194,13 @@ account_creation_screen::account_creation_screen()
     // Create the OK and Cancel buttons.
     pimpl_->ok_button_ = make_shared<button>(
         elements_from_string("  OK  "));
-    pimpl_->ok_button_->on_click.connect(
-        bind(&impl::on_account_creation_ok, pimpl_));
+    pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
+        bind(&impl::on_account_creation_ok, pimpl_)));
     
     pimpl_->cancel_button_ = make_shared<button>(
         elements_from_string("Cancel"));
-    pimpl_->cancel_button_->on_click.connect(
-        bind(&impl::on_account_creation_cancelled, pimpl_));
+    pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
+        bind(&impl::on_account_creation_cancelled, pimpl_)));
     
     BOOST_AUTO(buttons_inner_container, make_shared<basic_container>());
     buttons_inner_container->set_layout(make_shared<grid_layout>(1, 2));
@@ -231,6 +233,17 @@ account_creation_screen::account_creation_screen()
     content->add_component(make_shared<framed_component>(
         screen_frame
       , inner_container3));
+}
+
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
+account_creation_screen::~account_creation_screen()
+{
+    BOOST_FOREACH(boost::signals::connection &cnx, pimpl_->connections_)
+    {
+        cnx.disconnect();
+    }
 }
 
 // ==========================================================================

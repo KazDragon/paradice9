@@ -109,8 +109,8 @@ PARADICE9_NAMES   = context_impl paradice9 main
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)
 
 TEST_L_DIRS       = -L.
-TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_system \
-                    -lboost_signals -lws2_32 -lwsock32
+TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_signals \
+                    -lboost_system -lboost_system -lws2_32 -lwsock32
 TEST_L_FLAGS      = --enable-auto-import
 TEST_FIXTURES     = ansi_parser \
                     dice_parser \

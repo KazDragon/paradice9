@@ -28,8 +28,10 @@
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
 #include "munin/layout.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/scope_exit.hpp>
 #include <boost/weak_ptr.hpp>
@@ -37,6 +39,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -146,7 +149,7 @@ struct container::impl
 // ==========================================================================
 container::container()
 {
-    pimpl_.reset(new impl(*this));
+    pimpl_ = make_shared<impl>(ref(*this));
 }
 
 // ==========================================================================
@@ -154,6 +157,15 @@ container::container()
 // ==========================================================================
 container::~container()
 {
+    BOOST_FOREACH(
+        component_connections_type &con
+      , pimpl_->component_connections_)
+    {
+        BOOST_FOREACH(boost::signals::connection &cnx, con.second)
+        {
+            cnx.disconnect();
+        }
+    }
 }
 
 // ==========================================================================
@@ -195,18 +207,10 @@ void container::add_component(
               , _1)));
     
     pimpl_->component_connections_.push_back(component_connections);
-    
-    BOOST_AUTO(current_layout, get_layout());
-    
-    if (current_layout != NULL)
-    {
-        (*current_layout)(shared_from_this());
-    }
-    
+    do_layout_container();
+
     // A redraw of the container is required.
-    std::vector<rectangle> regions;
-    regions.push_back(rectangle(point(), get_size()));
-    on_redraw(regions);
+    on_redraw(list_of(rectangle(point(), get_size())));
 }
 
 // ==========================================================================
@@ -235,17 +239,12 @@ void container::remove_component(shared_ptr<component> const &comp)
         }
     }
 
-    BOOST_AUTO(current_layout, get_layout());
-    
-    if (current_layout != NULL)
-    {
-        (*current_layout)(shared_from_this());
-    }
-    
+    // Now that the subcomponent has been removed, it becomes necessary
+    // to re-lay the container out.
+    do_layout_container();
+
     // A redraw of the container is required.
-    std::vector<rectangle> regions;
-    regions.push_back(rectangle(point(), get_size()));
-    on_redraw(regions);
+    on_redraw(list_of(rectangle(point(), get_size())));
     
     do_remove_component(comp);
 }
@@ -277,17 +276,27 @@ u32 container::get_component_layer(u32 index) const
 // ==========================================================================
 // SET_LAYOUT
 // ==========================================================================
-void container::set_layout(shared_ptr<layout> const &layout)
+void container::set_layout(
+    shared_ptr<layout> const &layout
+  , u32                       layer /*= DEFAULT_LAYER*/)
 {
-    do_set_layout(layout);
+    do_set_layout(layout, layer);
 }
 
 // ==========================================================================
 // GET_LAYOUT
 // ==========================================================================
-shared_ptr<layout> container::get_layout() const
+shared_ptr<layout> container::get_layout(u32 layer) const
 {
-    return do_get_layout();
+    return do_get_layout(layer);
+}
+
+// ==========================================================================
+// GET_LAYOUT_LAYERS
+// ==========================================================================
+runtime_array<u32> container::get_layout_layers() const
+{
+    return do_get_layout_layers();
 }
 
 // ==========================================================================
@@ -324,7 +333,7 @@ void container::do_draw(
             // The canvas must have an offset applied to it so that the
             // inner component can pretend that it is being drawn with its
             // container being at position (0,0).
-            point const position = this->get_position();
+            point const position = current_component->get_position();//this->get_position();
             cvs.apply_offset(position.x, position.y);
 
             // Ensure that the offset is unapplied before exit of this

@@ -77,6 +77,20 @@ protected :
     virtual extent do_get_size() const;
     
     //* =====================================================================
+    /// \brief Called by set_parent().  Derived classes must override this
+    /// function in order to set the parent of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual void do_set_parent(boost::shared_ptr<component> parent);
+    
+    //* =====================================================================
+    /// \brief Called by get_parent().  Derived classes must override this
+    /// function in order to get the parent of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<component> do_get_parent() const;
+
+    //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to get the size of the component in a custom 
     /// manner.
@@ -134,14 +148,23 @@ protected :
     /// function in order to set a layout in a custom manner.
     //* =====================================================================
     virtual void do_set_layout(
-        boost::shared_ptr<layout> const &layout);
+        boost::shared_ptr<layout> const &layout
+      , odin::u32                        layer);
     
     //* =====================================================================
     /// \brief Called by get_layout.  Derived classes must override this
-    /// function in order to get the basic_container's layout in a custom manner.
+    /// function in order to get the basic_container's layout in a custom 
+    /// manner.
     //* =====================================================================
-    virtual boost::shared_ptr<layout> do_get_layout() const;
+    virtual boost::shared_ptr<layout> do_get_layout(odin::u32 layer) const;
 
+    //* =====================================================================
+    /// \brief Called by get_layout_layers.  Derived classes must override 
+    /// this function in order to get the container's layout in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual odin::runtime_array<odin::u32> do_get_layout_layers() const;
+    
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
@@ -247,6 +270,11 @@ protected :
     virtual void do_initialise_region(
         canvas          &cvs
       , rectangle const &region);
+    
+    //* =====================================================================
+    /// \brief Lays a container out
+    //* =====================================================================
+    virtual void do_layout_container();
     
 private :
     struct impl;

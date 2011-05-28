@@ -25,11 +25,13 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/algorithm.hpp"
+#include "munin/canvas.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
 
+using namespace odin;
 using namespace boost;
 using namespace std;
 
@@ -248,9 +250,9 @@ static bool has_zero_dimension(munin::rectangle const &region)
     return region.size.width == 0 || region.size.height == 0;
 }
 
-// ======================================================================
+// ==========================================================================
 // CLIP_REGIONS
-// ======================================================================
+// ==========================================================================
 vector<rectangle> clip_regions(vector<rectangle> regions, extent size)
 {
     // Returns a vector of rectangles that is identical to the regions
@@ -265,9 +267,9 @@ vector<rectangle> clip_regions(vector<rectangle> regions, extent size)
     return regions;
 }
 
-// ======================================================================
+// ==========================================================================
 // PRUNE_REGIONS
-// ======================================================================
+// ==========================================================================
 vector<rectangle> prune_regions(vector<rectangle> regions)
 {
     regions.erase(
@@ -278,6 +280,28 @@ vector<rectangle> prune_regions(vector<rectangle> regions)
       , regions.end());
     
     return regions;
+}
+
+// ==========================================================================
+// COPY_REGION
+// ==========================================================================
+void copy_region(
+    rectangle const &region
+  , canvas          &source
+  , canvas          &destination)
+{
+    for (s32 y_coord = region.origin.y; 
+         y_coord < region.origin.y + region.size.height;
+         ++y_coord)
+    {
+        for (s32 x_coord = region.origin.x;
+             x_coord < region.origin.x + region.size.width;
+             ++x_coord)
+        {
+            destination[x_coord][y_coord] = 
+                element_type(source[x_coord][y_coord]);
+        }
+    }
 }
 
 }

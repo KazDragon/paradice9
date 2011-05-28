@@ -112,7 +112,7 @@ struct main_screen::impl
 // ==========================================================================
 main_screen::main_screen()
     : composite_component(make_shared<basic_container>())
-    , pimpl_(new impl)
+    , pimpl_(make_shared<impl>())
 {
     BOOST_AUTO(content, get_container());
     content->set_layout(make_shared<compass_layout>());

@@ -41,7 +41,8 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent compass_layout::do_get_preferred_size(
-    shared_ptr<container const> const &cont) const
+    runtime_array< shared_ptr<component> > const &components
+  , runtime_array< any >                   const &hints) const
 {
     // This isn't quite right as it doesn't take into account the order
     // of insertion like do_draw does, but it will do for now.
@@ -56,15 +57,13 @@ extent compass_layout::do_get_preferred_size(
     u32 centre_heights = 0;
     u32 west_heights   = 0;
     
-    for (u32 index = 0; 
-         index < cont->get_number_of_components();
-         ++index)
+    for (u32 index = 0; index < components.size(); ++index)
     {
-        BOOST_AUTO(comp, cont->get_component(index));
-        BOOST_AUTO(hint, cont->get_component_hint(index));
+        BOOST_AUTO(comp, components[index]);
+        BOOST_AUTO(hint, hints[index]);
         
         u32 *direction_hint = any_cast<u32>(&hint);
-        u32 direction = COMPASS_LAYOUT_CENTRE;
+        u32 direction = COMPASS_LAYOUT_SOUTH;
         
         if (direction_hint != NULL)
         {
@@ -121,22 +120,21 @@ extent compass_layout::do_get_preferred_size(
 // ==========================================================================
 // DO_LAYOUT
 // ==========================================================================
-void compass_layout::do_layout(shared_ptr<container> const &cont)
+void compass_layout::do_layout(
+    runtime_array< shared_ptr<component> > const &components
+  , runtime_array< any >                   const &hints
+  , extent                                        size)
 {
-    BOOST_AUTO(size, cont->get_size());
-    
     vector< shared_ptr<component> > centre_components;
     u32 west_used = 0;
     u32 north_used = 0;
     u32 south_used = 0;
     u32 east_used = 0;
     
-    for (u32 index = 0;
-         index < cont->get_number_of_components(); 
-         ++index)
+    for (u32 index = 0; index < components.size(); ++index)
     {
-        BOOST_AUTO(comp, cont->get_component(index));
-        BOOST_AUTO(hint, cont->get_component_hint(index));
+        BOOST_AUTO(comp, components[index]);
+        BOOST_AUTO(hint, hints[index]);
 
         u32 *direction = any_cast<u32>(&hint);
         

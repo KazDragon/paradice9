@@ -29,6 +29,7 @@
 #include <functional>
 #include <vector>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace odin;
@@ -184,7 +185,7 @@ struct default_multiline_document::impl
 // CONSTRUCTOR
 // ==========================================================================
 default_multiline_document::default_multiline_document()
-  : pimpl_(new impl)
+  : pimpl_(make_shared<impl>())
 {
 }
 

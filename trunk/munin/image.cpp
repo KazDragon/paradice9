@@ -30,6 +30,7 @@
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
 
@@ -58,7 +59,7 @@ runtime_array< runtime_array<element_type> >
 // ==========================================================================
 // IMAGE::IMPLEMENTATION STRUCTURE
 // ==========================================================================
-struct image::impl
+struct image::impl : boost::noncopyable
 {
     runtime_array< runtime_array<element_type> > elements_;
     bool                                         can_focus_;    
@@ -68,7 +69,7 @@ struct image::impl
 // CONSTRUCTOR
 // ==========================================================================
 image::image(runtime_array< runtime_array<element_type> > elements)
-    : pimpl_(new impl)
+    : pimpl_(make_shared<impl>())
 {
     pimpl_->elements_  = elements;
     pimpl_->can_focus_ = false;
@@ -78,7 +79,7 @@ image::image(runtime_array< runtime_array<element_type> > elements)
 // CONSTRUCTOR
 // ==========================================================================
 image::image(runtime_array<element_type> elements)
-    : pimpl_(new impl)
+    : pimpl_(make_shared<impl>())
 {
     pimpl_->elements_ = runtime_array< runtime_array<element_type> >(
         &elements, 1);
@@ -133,8 +134,6 @@ void image::do_draw(
     canvas          &cvs
   , rectangle const &region)
 {
-    BOOST_AUTO(position, get_position());
-    
     for (u32 row = region.origin.y; 
          row < u32(region.origin.y + region.size.height);
          ++row)
@@ -143,23 +142,14 @@ void image::do_draw(
              column < u32(region.origin.x + region.size.width);
              ++column)
         {
-            if (row < pimpl_->elements_.size())
+            if (row < pimpl_->elements_.size()
+             && column < pimpl_->elements_[row].size())
             {
-                if (column < pimpl_->elements_[row].size())
-                {
-                    cvs[position.x + column]
-                       [position.y + row   ] = pimpl_->elements_[row][column];
-                }
-                else
-                {
-                    cvs[position.x + column]
-                       [position.y + row   ] = element_type(' ', attribute());
-                }
+                cvs[column][row] = pimpl_->elements_[row][column];
             }
             else
             {
-                cvs[position.x + column]
-                   [position.y + row   ] = element_type(' ', attribute());
+                cvs[column][row] = element_type(' ', attribute());
             }
         }
     }

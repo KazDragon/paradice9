@@ -36,6 +36,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace boost;
@@ -269,7 +270,7 @@ public :
         : self_(self)
         , self_valid_(true)
         , io_service_(io_service)
-        , content_(new basic_container)
+        , content_(make_shared<basic_container>())
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
         , repaint_scheduled_(false)
@@ -348,6 +349,33 @@ private :
     }
     
     // ======================================================================
+    // CREATE_REPAINT_SLICES
+    // ======================================================================
+    vector<rectangle> create_repaint_slices()
+    {
+        // In this function, we take the redraw regions and work out what
+        // portions of the screen need to be sent to the client.  In
+        // addition, we try and optimise this so that the smallest amount
+        // of data will be sent.
+        
+        // First, clip all of the regions so that they are bound by the size
+        // of our content - no point in drawing anything that's off-screen.
+        BOOST_AUTO(
+            clipped_regions
+          , clip_regions(redraw_regions_, content_->get_size()));
+        
+        // Next, prune out any regions with 0-sized dimensions, since they
+        // don't exist.
+        BOOST_AUTO(pruned_regions, prune_regions(clipped_regions));
+        
+        // Next, redistribute the regions into slices that have a height
+        // of only one.
+        BOOST_AUTO(slices, rectangular_slice(pruned_regions));
+        
+        return slices;
+    }
+    
+    // ======================================================================
     // DO_REPAINT
     // ======================================================================
     void do_repaint()
@@ -367,12 +395,12 @@ private :
         // are going to paint.
         canvas_.set_size(size);
 
+        // Create the slices that we aim to repaint.
         // Since we are going to repaint as little as possible, we first
         // clip all the redraw regions to the size of the content, prune out
         // any regions whose dimensions are zero, then cut those regions
         // into horizontal slices.
-        vector<rectangle> slices = rectangular_slice(
-            prune_regions(clip_regions(redraw_regions_, size)));
+        BOOST_AUTO(slices, create_repaint_slices());
         
         // Take a copy of the canvas.  We will want to check against this
         // after the draw operations to see if anything has changed.
@@ -395,6 +423,8 @@ private :
             if (repaint_all
              || !canvas_region_compare(slice, canvas_, canvas_clone))
             {
+                // TODO: output += canvas_region_diff_string(...)
+                // This would only output the differences in the two regions
                 output += canvas_region_string(pen_, slice, canvas_);
             }
         }
@@ -472,7 +502,7 @@ private :
 // ==========================================================================
 window::window(boost::asio::io_service &io_service)
 {
-    pimpl_.reset(new impl(*this, io_service));
+    pimpl_ = make_shared<impl>(ref(*this), ref(io_service));
 }
 
 // ==========================================================================

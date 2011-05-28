@@ -33,6 +33,8 @@
 
 namespace munin {
     
+class canvas;
+
 //* =========================================================================
 /// \brief Returns the intersection of two rectangles.
 //* =========================================================================
@@ -67,6 +69,14 @@ std::vector<rectangle> clip_regions(
 /// height or width of 0 are omitted.
 //* =========================================================================
 std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
+
+//* =========================================================================
+/// \brief Copies a region from one canvas to another.
+//* =========================================================================
+void copy_region(
+    rectangle const &region
+  , canvas          &source
+  , canvas          &destination);
 
 }
     

@@ -85,6 +85,19 @@ public :
     extent get_size() const;
     
     //* =====================================================================
+    /// \brief Sets the parent of this component.
+    /// \note The parent should be stored as a weak pointer so that there
+    /// are no cyclic lifetimes.
+    //* =====================================================================
+    void set_parent(boost::shared_ptr<component> parent);
+    
+    //* =====================================================================
+    /// \brief Retrieves the parent of this component.  The pointer will be
+    /// empty if this component has no parent.
+    //* =====================================================================
+    boost::shared_ptr<component> get_parent() const;
+    
+    //* =====================================================================
     /// \brief Retrieves the preferred size of this component.
     /// \par
     /// The preferred size of a component is the size at which all elements
@@ -295,6 +308,20 @@ protected :
     //* =====================================================================
     virtual extent do_get_size() const = 0;
 
+    //* =====================================================================
+    /// \brief Called by set_parent().  Derived classes must override this
+    /// function in order to set the parent of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual void do_set_parent(boost::shared_ptr<component> parent) = 0;
+    
+    //* =====================================================================
+    /// \brief Called by get_parent().  Derived classes must override this
+    /// function in order to get the parent of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual boost::shared_ptr<component> do_get_parent() const = 0;
+    
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
     /// this function in order to get the size of the component in a custom 

@@ -1,4 +1,5 @@
 #include "runtime_array_fixture.hpp"
+#include "odin/small_buffer.hpp"
 #include "odin/runtime_array.hpp"
 #include <sstream>
 

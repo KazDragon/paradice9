@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/card.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -33,6 +34,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -180,11 +182,7 @@ void card::select_face(string const &name)
 
         // The face of the card has changed.  Fire an on_redraw event for
         // the entire component.
-        rectangle region(point(), get_size());
-        vector<rectangle> regions;
-        regions.push_back(region);
-
-        on_redraw(regions);
+        on_redraw(list_of(rectangle(point(), get_size())));
     }
 }
 

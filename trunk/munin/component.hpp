@@ -232,28 +232,6 @@ public :
     > on_position_changed;
     
     //* =====================================================================
-    /// \fn on_size_changed
-    /// \param from The size from which the component changed.
-    /// \param to   The size to which the component changed.
-    /// \brief Connect to this signal in order to receive notifications
-    /// about when the component changes size.
-    //* =====================================================================
-    boost::signal
-    <
-        void (extent from, extent to)
-    > on_size_changed;
-    
-    //* =====================================================================
-    /// \fn on_preferred_size_changed
-    /// \brief Connect to this signal in order to receive notifications about
-    /// when the component's preferred size changes.
-    //* =====================================================================
-    boost::signal
-    <
-        void ()
-    > on_preferred_size_changed;
-    
-    //* =====================================================================
     /// \fn on_focus_set
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component has gained focus.

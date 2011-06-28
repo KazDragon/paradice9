@@ -5,8 +5,10 @@ MAKE         = make -C
 DEBUG        = #-ggdb
 OPTIM        = -O2 -DNDEBUG
 PROF         = #-pg
+CRYPT        = -DPARADICE_USE_CRYPTOPP
 D_FLAGS      = -D_WIN32_WINNT=0x0501 -D__USE_W32_SOCKETS
-C_FLAGS      = -ansi -pedantic -Wall $(D_FLAGS) $(DEBUG) $(OPTIM) $(PROF)
+C_FLAGS      = -ansi -pedantic -Wall $(D_FLAGS) $(DEBUG) $(OPTIM) $(PROF) \
+               $(CRYPT)
 NAME_IS      = -o
 I_DIRS       = -I.
 NOLINK       = -c
@@ -53,6 +55,7 @@ MUNIN_NAMES       = algorithm \
                     frame \
                     framed_component \
                     grid_layout \
+                    horizontal_scroll_bar \
                     horizontal_squeeze_layout \
                     horizontal_strip_layout \
                     image \
@@ -64,7 +67,9 @@ MUNIN_NAMES       = algorithm \
                     text/default_singleline_document \
                     text/document \
                     types \
+                    vertical_scroll_bar \
                     vertical_squeeze_layout \
+                    viewport \
                     window
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
 MUNIN_LIB         = libmunin.a
@@ -84,6 +89,7 @@ HUGIN_LIB         = libhugin.a
 GUIBUILDER_NAMES  = client \
                     main \
                     server \
+                    socket \
                     ui
 GUIBUILDER_O_FILES= $(GUIBUILDER_NAMES:%=guibuilder/%.o)
 

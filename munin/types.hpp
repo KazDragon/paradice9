@@ -30,6 +30,7 @@
 #include "munin/attribute.hpp"
 #include "odin/types.hpp"
 #include <iosfwd>
+#include <utility>
 
 namespace munin {
     
@@ -163,3 +164,4 @@ std::ostream &operator<<(std::ostream &out, element_type const &element);
 }
 
 #endif
+

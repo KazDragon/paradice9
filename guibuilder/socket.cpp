@@ -216,7 +216,7 @@ struct socket::impl : enable_shared_from_this<impl>
 };
 
 socket::socket(
-    shared_ptr<asio::ip::tcp::socket> const &socket)
+    shared_ptr<boost::asio::ip::tcp::socket> const &socket)
     : pimpl_(new impl)
 {
     pimpl_->socket_ = socket;
@@ -308,3 +308,4 @@ void socket::kill()
 }
 
 }
+

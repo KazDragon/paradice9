@@ -28,12 +28,13 @@
 #define GUIBUILDER_UI_HPP_
 
 #include "munin/composite_component.hpp"
-#include "munin/ansi/ansi_types.hpp"
+#include "munin/types.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace guibuilder {
 
 class ui 
-    : public munin::composite_component<munin::ansi::element_type>
+    : public munin::composite_component
 {
 public :
     ui();

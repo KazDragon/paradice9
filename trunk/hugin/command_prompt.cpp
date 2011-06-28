@@ -117,62 +117,68 @@ void command_prompt::do_event(any const &ev)
         if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
          && sequence->command_ == odin::ansi::CURSOR_UP)
         {
-            u32 amount = sequence->arguments_.empty()
-                       ? 1
-                       : atoi(sequence->arguments_.c_str());
-
-            u32 index = (min)(
-                pimpl_->current_history_ + amount
-              , u32(pimpl_->history_.size()));
-
-            if (index != pimpl_->current_history_)
+            if (!pimpl_->history_.empty())
             {
-                BOOST_AUTO(document, get_document());
+                u32 amount = sequence->arguments_.empty()
+                           ? 1
+                           : atoi(sequence->arguments_.c_str());
 
-                if (pimpl_->current_history_ == 0)
+                u32 index = (min)(
+                    pimpl_->current_history_ + amount
+                  , u32(pimpl_->history_.size()));
+
+                if (index != pimpl_->current_history_)
                 {
-                    // Remember our current text in case we come back.
-                    pimpl_->current_text_ = document->get_line(0);
+                    BOOST_AUTO(document, get_document());
+
+                    if (pimpl_->current_history_ == 0)
+                    {
+                        // Remember our current text in case we come back.
+                        pimpl_->current_text_ = document->get_line(0);
+                    }
+
+                    pimpl_->current_history_ = index;
+                    
+                    document->delete_text(
+                        make_pair(0, document->get_text_size()));
+
+                    document->insert_text(munin::ansi::elements_from_string(
+                        pimpl_->history_[index - 1]));
                 }
-
-                pimpl_->current_history_ = index;
-                
-                document->delete_text(
-                    make_pair(0, document->get_text_size()));
-
-                document->insert_text(munin::ansi::elements_from_string(
-                    pimpl_->history_[index - 1]));
             }
         }
         else if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
             && sequence->command_ == odin::ansi::CURSOR_DOWN)
         {
-            u32 amount = sequence->arguments_.empty()
-                       ? 1
-                       : atoi(sequence->arguments_.c_str());
-
-            u32 index = amount > pimpl_->current_history_
-                      ? 0
-                      : pimpl_->current_history_ - amount;
-
-            if (index != pimpl_->current_history_)
+            if (!pimpl_->history_.empty())
             {
-                BOOST_AUTO(document, get_document());
+                u32 amount = sequence->arguments_.empty()
+                           ? 1
+                           : atoi(sequence->arguments_.c_str());
 
-                document->delete_text(
-                    make_pair(0, document->get_text_size()));
+                u32 index = amount > pimpl_->current_history_
+                          ? 0
+                          : pimpl_->current_history_ - amount;
 
-                pimpl_->current_history_ = index;
-
-                if (pimpl_->current_history_ == 0)
+                if (index != pimpl_->current_history_)
                 {
-                    document->insert_text(pimpl_->current_text_);
-                }
-                else
-                {
-                    document->insert_text(
-                        munin::ansi::elements_from_string(
-                            pimpl_->history_[index - 1]));
+                    BOOST_AUTO(document, get_document());
+
+                    document->delete_text(
+                        make_pair(0, document->get_text_size()));
+
+                    pimpl_->current_history_ = index;
+
+                    if (pimpl_->current_history_ == 0)
+                    {
+                        document->insert_text(pimpl_->current_text_);
+                    }
+                    else
+                    {
+                        document->insert_text(
+                            munin::ansi::elements_from_string(
+                                pimpl_->history_[index - 1]));
+                    }
                 }
             }
         }

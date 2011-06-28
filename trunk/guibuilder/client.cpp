@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "client.hpp"
-#include "munin/ansi/window.hpp"
+#include "munin/window.hpp"
 #include "odin/ansi/parser.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
@@ -35,6 +35,7 @@
 #include "odin/telnet/options/echo_server.hpp"
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
@@ -42,7 +43,7 @@
 
 using namespace std;
 using namespace boost;
-using namespace munin::ansi;
+using namespace munin;
 
 namespace guibuilder {
 
@@ -53,8 +54,10 @@ struct ansi_input_visitor
 {
     ansi_input_visitor(
         function<void (odin::ansi::control_sequence)> on_control_sequence
+      , function<void (odin::ansi::mouse_report)>     on_mouse_report
       , function<void (string)>                       on_text)
         : on_control_sequence_(on_control_sequence)
+        , on_mouse_report_(on_mouse_report)
         , on_text_(on_text)
     {
     }
@@ -92,12 +95,24 @@ struct ansi_input_visitor
         }
     }
     
-    void operator()(odin::ansi::mouse_report const &report)
+    void operator()(odin::ansi::mouse_report report)
     {
+        // Mouse reports are all offset by 32 in the protocol, ostensibly to
+        // avoid any other protocol errors.  It then has (1,1) as the origin
+        // where we have (0,0), so we must compensate for that too.
+        report.button_     -= 32;
+        report.x_position_ -= 33;
+        report.y_position_ -= 33;
+        
         printf("[BUTTON=%d, X=%d, Y=%d]\n",
             int(report.button_), 
             int(report.x_position_),
             int(report.y_position_));
+        
+        if (on_mouse_report_)
+        {
+            on_mouse_report_(report);
+        }
     }
     
     void operator()(string const &text)
@@ -109,6 +124,7 @@ struct ansi_input_visitor
     }
     
     function<void (odin::ansi::control_sequence)> on_control_sequence_;
+    function<void (odin::ansi::mouse_report)>     on_mouse_report_;
     function<void (string)>                       on_text_;
 };
 
@@ -220,7 +236,8 @@ struct client::impl
         BOOST_AUTO(end,   input_buffer_.end());
         BOOST_AUTO(result, parse(begin, end));
         
-        ansi_input_visitor visitor(on_control_sequence_, on_text_);
+        ansi_input_visitor visitor(
+            on_control_sequence_, on_mouse_report_, on_text_);
 
         BOOST_FOREACH(odin::ansi::parser::element_type value, result)
         {
@@ -257,6 +274,7 @@ struct client::impl
     function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     function<void (string)>                         on_text_;
     function<void (odin::ansi::control_sequence)>   on_control_sequence_;
+    function<void (odin::ansi::mouse_report)>       on_mouse_report_;
    
     deque<char>                                     input_buffer_;
 };
@@ -292,6 +310,12 @@ void client::on_control_sequence(
     function<void (odin::ansi::control_sequence)> callback)
 {
     pimpl_->on_control_sequence_ = callback;
+}
+
+void client::on_mouse_report(
+    function<void (odin::ansi::mouse_report)> callback)
+{
+    pimpl_->on_mouse_report_ = callback;
 }
 
 }

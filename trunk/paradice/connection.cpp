@@ -73,7 +73,10 @@ struct ansi_input_visitor
     
     void operator()(odin::ansi::control_sequence const &control_sequence)
     {
-        printf("[META: %s CSI: 0x%02X ('%c') CMD: 0x%02X('%c')\n"
+        printf("Control Sequence(\n"
+               "    META: %s\n"
+               "    CSI:  0x%02X ('%c')\n"
+               "    CMD:  0x%02X ('%c')\n"
           , (control_sequence.meta_ ? "Yes" : "No")
           , int(control_sequence.initiator_)
           , control_sequence.initiator_
@@ -83,11 +86,11 @@ struct ansi_input_visitor
 
         if (!control_sequence.arguments_.empty())
         {
-            printf("ARGUMENTS:\n");
+            printf("    ARGUMENTS:\n");
             
             BOOST_FOREACH(char ch, control_sequence.arguments_)
             {
-                printf("    [0x%02X]", int(ch));
+                printf("        [0x%02X]", int(ch));
                 
                 if (isprint(ch))
                 {
@@ -97,6 +100,8 @@ struct ansi_input_visitor
                 printf("\n");
             }
         }
+
+        printf(")\n");
         
         if (on_control_sequence_)
         {

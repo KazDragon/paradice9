@@ -37,9 +37,9 @@ namespace boost { namespace asio {
     class io_service;
 }}
 
-namespace munin { namespace ansi {
+namespace munin {
     class window;
-}}
+}
 
 namespace guibuilder {
 
@@ -54,7 +54,7 @@ public :
 
     ~client();
 
-    boost::shared_ptr<munin::ansi::window> get_window();
+    boost::shared_ptr<munin::window> get_window();
 
     void on_window_size_changed(
         boost::function<void (odin::u16 width, odin::u16 height)> callback);
@@ -63,6 +63,9 @@ public :
 
     void on_control_sequence(
         boost::function<void (odin::ansi::control_sequence)> callback);
+    
+    void on_mouse_report(
+        boost::function<void (odin::ansi::mouse_report)> callback);
     
 private :
     struct impl;

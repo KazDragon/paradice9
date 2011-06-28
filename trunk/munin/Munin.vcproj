@@ -212,6 +212,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\horizontal_scroll_bar.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\horizontal_squeeze_layout.cpp"
 				>
 			</File>
@@ -241,6 +245,10 @@
 			</File>
 			<File
 				RelativePath=".\types.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\vertical_scroll_bar.cpp"
 				>
 			</File>
 			<File
@@ -322,6 +330,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\horizontal_scroll_bar.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\horizontal_squeeze_layout.hpp"
 				>
 			</File>
@@ -351,6 +363,10 @@
 			</File>
 			<File
 				RelativePath=".\types.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\vertical_scroll_bar.hpp"
 				>
 			</File>
 			<File

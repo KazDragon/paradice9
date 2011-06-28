@@ -25,9 +25,22 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/cryptography.hpp"
+
+// Add the define PARADICE_USE_CRYPTOPP in order to use Crypto++ as a method
+// of securely hashing passwords.
+#ifdef PARADICE_USE_CRYPTOPP
 #include <cryptopp/filters.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
+
+// Add the define PARADICE_NOCRYPT in order to use the well-known ROT26 cypher
+// to store passwords
+#elif defined(PARADICE_NOCRYPT)
+// Intentionally blank
+#else
+#error No encryption method selected
+#endif
+
 #include <boost/lexical_cast.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <cstdlib>
@@ -41,6 +54,7 @@ namespace paradice {
 // ==========================================================================
 string encrypt(string const &text)
 {
+#ifdef PARADICE_USE_CRYPTOPP
     CryptoPP::SHA hash;
     
     string result;
@@ -50,6 +64,11 @@ string encrypt(string const &text)
       , new CryptoPP::HashFilter(
             hash
           , new CryptoPP::HexEncoder(new CryptoPP::StringSink(result))));
+    
+#else
+    string result = text;
+#endif
+
     return result;
 }
 

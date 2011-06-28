@@ -175,6 +175,11 @@ struct control_sequence
 // Mouse
 struct mouse_report
 {
+    static odin::u8 const LEFT_BUTTON_DOWN   = odin::u8(0);
+    static odin::u8 const MIDDLE_BUTTON_DOWN = odin::u8(1);
+    static odin::u8 const RIGHT_BUTTON_DOWN  = odin::u8(2);
+    static odin::u8 const BUTTON_UP          = odin::u8(3);
+    
     odin::u8 button_;
     odin::u8 x_position_;
     odin::u8 y_position_;

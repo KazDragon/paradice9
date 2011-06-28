@@ -30,13 +30,14 @@
 #include "ui.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
-#include "munin/ansi/window.hpp"
+#include "munin/window.hpp"
 #include "munin/grid_layout.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -146,6 +147,21 @@ void on_control_sequence(
     }
 }
 
+// ======================================================================
+// ON_MOUSE_REPORT
+// ======================================================================
+void on_mouse_report(
+    weak_ptr<munin::window>         weak_window
+  , odin::ansi::mouse_report const &report)
+{
+    BOOST_AUTO(window, weak_window.lock());
+    
+    if (window != NULL)
+    {
+        window->event(report);
+    }
+}
+
 static void on_accept(shared_ptr<guibuilder::socket> socket)
 {
     schedule_keepalive(
@@ -176,7 +192,14 @@ static void on_accept(shared_ptr<guibuilder::socket> socket)
           , boost::weak_ptr<guibuilder::client>(client)
           , _1));
     
-    BOOST_AUTO(window,  client->get_window());
+    BOOST_AUTO(window, client->get_window());
+
+    client->on_mouse_report(
+        bind(
+            &on_mouse_report
+          , weak_ptr<munin::window>(window)
+          , _1));
+    
     BOOST_AUTO(content, window->get_content());
 
     window->on_repaint.connect(
@@ -185,15 +208,15 @@ static void on_accept(shared_ptr<guibuilder::socket> socket)
     BOOST_AUTO(user_interface, make_shared<guibuilder::ui>());
 
     content->set_size(munin::extent(80, 24));
-    content->set_layout(
-        make_shared< munin::grid_layout<munin::ansi::element_type> >(1, 1));
+    content->set_layout(make_shared<munin::grid_layout>(1, 1));
 
     content->add_component(user_interface);
     content->set_focus();
+    window->enable_mouse_tracking();
     
     std::string string_data = munin::ansi::set_window_title(
         "Paradice9 Sample");
-    
+
     odin::runtime_array<odin::u8> data(string_data.size());
     copy(string_data.begin(), string_data.end(), data.begin());
     socket->async_write(data, NULL);

@@ -256,6 +256,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\viewport.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\window.cpp"
 				>
 			</File>
@@ -371,6 +375,10 @@
 			</File>
 			<File
 				RelativePath=".\vertical_squeeze_layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\viewport.hpp"
 				>
 			</File>
 			<File

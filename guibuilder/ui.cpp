@@ -145,15 +145,22 @@ ui::ui()
         bind(on_left, weak_ptr<horizontal_scroll_bar>(hscrollbar)));
     hscrollbar->on_page_right.connect(
         bind(on_right, weak_ptr<horizontal_scroll_bar>(hscrollbar)));
+
+    glyph tlglyph(
+        char(201)
+      , odin::ansi::character_set::CHARACTER_SET_G0
+      , odin::ansi::character_set::LOCALE_SCO);
     
-    attribute pen;
-    pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-    pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-    element_type tlelement(char(201), pen);
+    element_type tlelement(tlglyph, attribute());
     element_type tlelements[] = { tlelement };
     BOOST_AUTO(tlcorner, make_shared<image>(tlelements));
     
-    element_type trelement(char(187), pen);
+    glyph trglyph(
+        char(187)
+      , odin::ansi::character_set::CHARACTER_SET_G0
+      , odin::ansi::character_set::LOCALE_SCO);
+    
+    element_type trelement(trglyph, attribute());
     element_type trelements[] = { trelement };
     BOOST_AUTO(trcorner, make_shared<image>(trelements));
     

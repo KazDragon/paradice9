@@ -156,9 +156,9 @@ framed_component::framed_component(
     interior->on_focus_set.connect(bind(&impl::update_pen, pimpl_.get()));
     interior->on_focus_lost.connect(bind(&impl::update_pen, pimpl_.get()));
     
-    pimpl_->focussed_pen_.foreground_colour = 
+    pimpl_->focussed_pen_.foreground_colour_ = 
         odin::ansi::graphics::COLOUR_CYAN;
-    pimpl_->focussed_pen_.intensity = 
+    pimpl_->focussed_pen_.intensity_ = 
         odin::ansi::graphics::INTENSITY_BOLD;
 }
 

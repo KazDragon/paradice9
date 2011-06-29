@@ -73,7 +73,7 @@ struct default_multiline_document::impl
         // the document, caching each start of each line.
         for (u32 index = current_line_index; index < text_.size(); ++index)
         {
-            if (text_[index].first == '\n')
+            if (text_[index].glyph_.character_ == '\n')
             {
                 line_indices_.push_back(index + 1);
                 current_line_index = index + 1;
@@ -335,7 +335,7 @@ void default_multiline_document::do_insert_text(
     
     BOOST_FOREACH(munin::element_type ch, text)
     {
-        if (isprint(ch.first) || ch.first == '\n')
+        if (isprint(ch.glyph_.character_) || ch.glyph_.character_ == '\n')
         {
             stripped_text.push_back(ch);
         }
@@ -452,7 +452,7 @@ runtime_array<munin::element_type>
         // Count forwards until we either move onto the next line or hit a \n.
         while (line_length < pimpl_->width_
            &&  line_begin + line_length < pimpl_->text_.size()
-           &&  pimpl_->text_[line_begin + line_length].first != '\n')
+           &&  pimpl_->text_[line_begin + line_length].glyph_.character_ != '\n')
         {
             ++line_length;
         }

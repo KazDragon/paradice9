@@ -156,10 +156,10 @@ PARADICE_COMMAND_IMPL(roll)
     attribute max_roll_pen;
     attribute total_pen;
     
-    max_roll_pen.intensity         = odin::ansi::graphics::INTENSITY_BOLD;
-    max_roll_pen.foreground_colour = odin::ansi::graphics::COLOUR_GREEN;
+    max_roll_pen.intensity_         = odin::ansi::graphics::INTENSITY_BOLD;
+    max_roll_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_GREEN;
     
-    total_pen.intensity = odin::ansi::graphics::INTENSITY_BOLD;
+    total_pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
     
     runtime_array<element_type> total_description;    
     s32                         total_score = 0;
@@ -365,10 +365,10 @@ PARADICE_COMMAND_IMPL(rollprivate)
     attribute max_roll_pen;
     attribute total_pen;
     
-    max_roll_pen.intensity         = odin::ansi::graphics::INTENSITY_BOLD;
-    max_roll_pen.foreground_colour = odin::ansi::graphics::COLOUR_GREEN;
+    max_roll_pen.intensity_         = odin::ansi::graphics::INTENSITY_BOLD;
+    max_roll_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_GREEN;
     
-    total_pen.intensity = odin::ansi::graphics::INTENSITY_BOLD;
+    total_pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
     
     runtime_array<element_type> total_description;    
     s32                         total_score = 0;

@@ -28,15 +28,52 @@
 #include "munin/canvas.hpp"
 #include "munin/algorithm.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
 
+static glyph const top_left_corner(
+    char(201)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+    
+static glyph const top_right_close_corner(
+    char(191)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const top_right_corner(
+    char(187)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const bottom_left_corner(
+    char(200)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const bottom_right_corner(
+    char(188)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+    
+static glyph const horizontal_beam(
+    char(205)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const vertical_beam(
+    char(186)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+                    
 // ==========================================================================
 // FRAME IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -61,13 +98,9 @@ public :
         BOOST_AUTO(position, self_.get_position());
         BOOST_AUTO(size,     self_.get_size());
         
-        rectangle corner_region(
+        self_.on_redraw(list_of(rectangle(
             point((position.x + size.width) - 1, 0)
-          , extent(1, 1));
-        
-        vector<rectangle> regions;
-        regions.push_back(corner_region);
-        self_.on_redraw(regions);
+          , extent(1, 1))));
     }
     
     // ======================================================================
@@ -142,44 +175,40 @@ public :
         BOOST_AUTO(
             bottomright, munin::intersection(bottomright_rectangle, region));
         
-        BOOST_AUTO(pen, pen_);
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-        
         // If so, paint them.
         if (topleft)
         {
             cvs[topleft->origin.x][topleft->origin.y] = 
-                munin::element_type(char(201), pen);
+                munin::element_type(top_left_corner, pen_);
         }
         
         if (topright)
         {
             if (closeable_)
             {
-                BOOST_AUTO(close_pen, pen);
-                close_pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+                BOOST_AUTO(close_pen, pen_);
+                close_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
 
                 cvs[topright->origin.x][topright->origin.y] = 
-                    munin::element_type(char(191), close_pen);
+                    munin::element_type(top_right_close_corner, close_pen);
             }
             else
             {
                 cvs[topright->origin.x][topright->origin.y] = 
-                    munin::element_type(char(187), pen);
+                    munin::element_type(top_right_corner, pen_);
             }
         }
 
         if (bottomleft)
         {
             cvs[bottomleft->origin.x][bottomleft->origin.y] = 
-                munin::element_type(char(200), pen);
+                munin::element_type(bottom_left_corner, pen_);
         }
         
         if (bottomright)
         {
             cvs[bottomright->origin.x][bottomright->origin.y] = 
-                munin::element_type(char(188), pen);
+                munin::element_type(bottom_right_corner, pen_);
         }
     }
 
@@ -207,10 +236,6 @@ public :
             bottom_border
           , munin::intersection(bottom_border_rectangle, region));
         
-        BOOST_AUTO(pen, pen_);
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-        
         // If so, paint it.
         if (top_border)
         {
@@ -219,7 +244,7 @@ public :
             for (s32 column = 0; column < rect.size.width; ++column)
             {
                 cvs[column + rect.origin.x][rect.origin.y] =
-                    munin::element_type(char(205), pen);
+                    munin::element_type(horizontal_beam, pen_);
             }
         }
         
@@ -230,7 +255,7 @@ public :
             for (s32 column = 0; column < rect.size.width; ++column)
             {
                 cvs[column + rect.origin.x][rect.origin.y] =
-                    munin::element_type(char(205), pen);
+                    munin::element_type(horizontal_beam, pen_);
             }
         }
     }
@@ -258,10 +283,6 @@ public :
         BOOST_AUTO(
             right_border, munin::intersection(right_border_rectangle, region));
         
-        BOOST_AUTO(pen, pen_);
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-        
         // If so, paint them.
         if (left_border)
         {
@@ -270,7 +291,7 @@ public :
             for (s32 row = 0; row < rect.size.height; ++row)
             {
                 cvs[rect.origin.x][row + rect.origin.y] =
-                    munin::element_type(char(186), pen);
+                    munin::element_type(vertical_beam, pen_);
             }
         }
 
@@ -281,7 +302,7 @@ public :
             for (s32 row = 0; row < rect.size.height; ++row)
             {
                 cvs[rect.origin.x][row + rect.origin.y] =
-                    munin::element_type(char(186), pen);
+                    munin::element_type(vertical_beam, pen_);
             }
         }
     }
@@ -373,29 +394,27 @@ void solid_frame::do_set_attribute(string const &name, any const &attr)
             
             BOOST_AUTO(size, get_size());
 
-            vector<rectangle> regions;
-
-            // Upper border
-            regions.push_back(rectangle(
-                point()
-              , extent(size.width, get_frame_height())));
-
-            // Lower border
-            regions.push_back(rectangle(
-                point(0, size.height - get_frame_height())
-              , extent(size.width, get_frame_height())));
-
-            // Left border
-            regions.push_back(rectangle(
-                point()
-              , extent(get_frame_width(), size.height)));
-
-            // Right border
-            regions.push_back(rectangle(
-                point(size.width - get_frame_width(), 0)
-              , extent(get_frame_width(), size.height)));
-
-            on_redraw(regions);
+            on_redraw(list_of
+                // Upper border
+                (rectangle(
+                    point()
+                  , extent(size.width, get_frame_height())))
+                
+                // Lower border
+                (rectangle(
+                    point(0, size.height - get_frame_height())
+                  , extent(size.width, get_frame_height())))
+                
+                // Left border
+                (rectangle(
+                    point()
+                  , extent(get_frame_width(), size.height)))
+                
+                // Right border
+                (rectangle(
+                    point(size.width - get_frame_width(), 0)
+                  , extent(get_frame_width(), size.height)))
+            );
         }
     }
 }

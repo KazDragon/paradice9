@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -35,6 +36,7 @@
 using namespace odin;
 using namespace std;
 using namespace boost;
+using namespace boost::assign;
 
 namespace munin { namespace text {
 
@@ -135,7 +137,7 @@ void default_singleline_document::do_insert_text(
 
     BOOST_FOREACH(munin::element_type ch, text)
     {
-        if (ch.first != '\n' && ch.first != '\r')
+        if (ch.glyph_.character_ != '\n' && ch.glyph_.character_ != '\r')
         {
             stripped_text.push_back(ch);
         }
@@ -148,10 +150,9 @@ void default_singleline_document::do_insert_text(
 
     set_caret_index(get_caret_index() + stripped_text.size());
     
-    vector<munin::rectangle> regions;
-    regions.push_back(munin::rectangle(
-        munin::point(old_index, 0), munin::extent(s32(text.size()), 0)));
-    on_redraw(regions);
+    on_redraw(list_of(rectangle(
+        munin::point(old_index, 0)
+      , munin::extent(s32(text.size()), 0))));
 }
 
 // ==========================================================================
@@ -190,12 +191,9 @@ void default_singleline_document::do_delete_text(pair<u32, u32> range)
     }
     
     // Finally, notify that the document has changed.
-    munin::rectangle region(
+    on_redraw(list_of(rectangle(
         munin::point(range.first, 0)
-      , munin::extent(pimpl_->text_.size() - range.first, 1));
-    vector<munin::rectangle> regions;
-    regions.push_back(region);
-    on_redraw(regions);
+      , munin::extent(pimpl_->text_.size() - range.first, 1))));
 }
 
 // ==========================================================================

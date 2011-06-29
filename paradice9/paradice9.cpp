@@ -502,7 +502,7 @@ private :
                 if (account == NULL)
                 {
                     attribute pen;
-                    pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+                    pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
                     
                     user_interface->set_statusbar_text(elements_from_string(
                         "Invalid username/password combination"
@@ -513,7 +513,7 @@ private :
                 if (!account->password_match(password))
                 {
                     attribute pen;
-                    pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+                    pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
                     
                     user_interface->set_statusbar_text(elements_from_string(
                         "Invalid username/password combination"
@@ -568,7 +568,7 @@ private :
             BOOST_AUTO(user_interface, client->get_user_interface());
             
             attribute pen;
-            pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+            pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
             
             // Check that the account name is valid.  If not, report an
             // error message and return.  This also removes cases where the
@@ -740,7 +740,7 @@ private :
             if (!paradice::is_acceptible_name(character_name))
             {
                 attribute pen;
-                pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+                pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
                 
                 user_interface->set_statusbar_text(elements_from_string(
                     "Name must be alphabetic only and at least three "
@@ -755,7 +755,7 @@ private :
             if (test_character != NULL)
             {
                 attribute pen;
-                pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+                pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
                 
                 user_interface->set_statusbar_text(elements_from_string(
                     "A character with that name already exists"
@@ -832,7 +832,7 @@ private :
             BOOST_AUTO(user_interface, client->get_user_interface());
             
             attribute error_pen;
-            error_pen.foreground_colour = odin::ansi::graphics::COLOUR_RED;
+            error_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
                   
             if (!account->password_match(old_password))
             {

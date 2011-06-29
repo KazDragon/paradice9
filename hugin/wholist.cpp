@@ -158,7 +158,7 @@ private :
             if (current_name_index < names_.size())
             {
                 attribute pen;
-                pen.underlining = 
+                pen.underlining_ = 
                     current_name_index == current_selection_
                  && self_.has_focus()
                     ? odin::ansi::graphics::UNDERLINING_UNDERLINED

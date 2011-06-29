@@ -35,6 +35,57 @@ using namespace std;
 namespace munin {
     
 // ==========================================================================
+// ELEMENT_TYPE DEFAULT CONSTRUCTOR
+// ==========================================================================
+element_type::element_type()
+{
+}
+
+// ==========================================================================
+// ELEMENT_TYPE CONSTRUCTOR
+// ==========================================================================
+element_type::element_type(glyph gly, attribute attr)
+    : glyph_(gly)
+    , attribute_(attr)
+{
+}
+
+// ==========================================================================
+// ELEMENT_TYPE OPERATOR==
+// ==========================================================================
+bool operator==(element_type const &lhs, element_type const &rhs)
+{
+    return lhs.glyph_     == rhs.glyph_
+        && lhs.attribute_ == rhs.attribute_;
+}
+
+// ==========================================================================
+// OSTREAM << ELEMENT_TYPE
+// ==========================================================================
+ostream &operator<<(ostream &out, element_type const &element)
+{
+    out << "element['";
+    
+    if (isprint(element.glyph_.character_))
+    {
+        out << element.glyph_.character_;
+    }
+    else
+    {
+        out << format("0x%02X") 
+                   % int((unsigned char)(element.glyph_.character_));
+    }
+    
+    out << "', ";
+    
+    out << element.attribute_;
+    
+    out << "]";
+    
+    return out;
+}
+    
+// ==========================================================================
 // POINT CONSTRUCTOR
 // ==========================================================================
 point::point()
@@ -238,31 +289,6 @@ bool operator!=(rectangle const &lhs, rectangle const &rhs)
 ostream &operator<<(ostream &out, rectangle const &rect)
 {
     out << "rectangle[" << rect.origin << ", " << rect.size << "]";
-    return out;
-}
-
-// ==========================================================================
-// OSTREAM << ELEMENT_TYPE
-// ==========================================================================
-ostream &operator<<(ostream &out, element_type const &element)
-{
-    out << "element['";
-    
-    if (isprint(element.first))
-    {
-        out << element.first;
-    }
-    else
-    {
-        out << format("0x%02X") % int((unsigned char)(element.first));
-    }
-    
-    out << "', ";
-    
-    out << element.second;
-    
-    out << "]";
-    
     return out;
 }
 

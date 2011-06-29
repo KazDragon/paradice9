@@ -54,6 +54,7 @@ MUNIN_NAMES       = algorithm \
                     edit \
                     frame \
                     framed_component \
+                    glyph \
                     grid_layout \
                     horizontal_scroll_bar \
                     horizontal_squeeze_layout \

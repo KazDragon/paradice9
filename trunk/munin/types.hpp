@@ -28,11 +28,49 @@
 #define MUNIN_TYPES_HPP_
 
 #include "munin/attribute.hpp"
+#include "munin/glyph.hpp"
 #include "odin/types.hpp"
 #include <iosfwd>
 #include <utility>
 
 namespace munin {
+    
+//* =========================================================================
+/// \brief The type of an element in an ANSI component.  Each element is a
+/// character glyph and a set of attributes (such as boldness, colour, etc.).
+//* =========================================================================
+struct element_type
+{
+    //* =====================================================================
+    /// \brief Default Constructor
+    /// \par
+    /// Constructs an element with a character of '\0' in the default locale
+    /// and character set, with no special attributes.
+    //* =====================================================================
+    element_type();
+    
+    //* =====================================================================
+    /// \brief Constructor
+    /// \par
+    /// Constructs the element with the given parameters.
+    //* =====================================================================
+    element_type(munin::glyph gly, munin::attribute attr);
+    
+    munin::glyph     glyph_;
+    munin::attribute attribute_;
+};
+
+//* =========================================================================
+/// \brief Equality Operator
+//* =========================================================================
+bool operator==(element_type const &lhs, element_type const &rhs);
+
+//* =========================================================================
+/// \brief Output stream operator
+//* =========================================================================
+std::ostream &operator<<(std::ostream &out, element_type const &element);
+
+
     
 //* =========================================================================
 /// \brief A class that represents a position in space.
@@ -150,16 +188,6 @@ bool operator==(rectangle const &lhs, rectangle const &rhs);
 bool operator!=(rectangle const &lhs, rectangle const &rhs);
 rectangle operator+(point const &pt, extent const &ext);
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
-
-//* =========================================================================
-/// \brief The type of an element in an ANSI component.  Each element is a
-/// normal character and can optionally have attributes (such as boldness,
-/// colour, font, etc.) applied to it.  A lack of an attribute indicates that
-/// the character has the "default" attribute.
-//* =========================================================================
-typedef std::pair<char, munin::attribute> element_type;
-  
-std::ostream &operator<<(std::ostream &out, element_type const &element);
 
 }
 

@@ -29,16 +29,53 @@
 #include "munin/algorithm.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace munin::ansi;
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
 
+static glyph const top_left_corner(
+    char(201)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+    
+static glyph const top_right_close_corner(
+    char(191)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const top_right_corner(
+    char(187)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const bottom_left_corner(
+    char(200)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const bottom_right_corner(
+    char(188)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+    
+static glyph const horizontal_beam(
+    char(205)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+static glyph const vertical_beam(
+    char(186)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+                    
 // ==========================================================================
 // FRAME IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -47,6 +84,7 @@ struct named_frame::impl
 public :
     impl(named_frame &self)
         : self_(self)
+        , closeable_(false)
     {
     }
     
@@ -154,6 +192,50 @@ public :
             }
         }
     }
+
+    // ======================================================================
+    // SET_CLOSEABLE
+    // ======================================================================
+    void set_closeable(bool closeable)
+    {
+        closeable_ = closeable;
+        
+        // Also redraw the top right corner, which is where the close button
+        // would be.
+        BOOST_AUTO(position, self_.get_position());
+        BOOST_AUTO(size,     self_.get_size());
+        
+        self_.on_redraw(list_of(rectangle(
+            point((position.x + size.width) - 1, 0)
+          , extent(1, 1))));
+    }
+    
+    // ======================================================================
+    // HANDLE_MOUSE_CLICK
+    // ======================================================================
+    bool handle_mouse_click(odin::ansi::mouse_report const *report)
+    {
+        bool handled = false;
+        
+        // If we're closeable, then check to see if the close button has been
+        // pressed.  If so, fire the close signal.
+        if (closeable_)
+        {
+            BOOST_AUTO(position, self_.get_position());
+            BOOST_AUTO(size,     self_.get_size());
+            
+            point close_button((position.x + size.width) - 1, 0);
+            
+            if (report->x_position_ == close_button.x
+             && report->y_position_ == close_button.y)
+            {
+                self_.on_close();
+                handled = true;
+            }
+        }
+        
+        return handled;
+    }
     
     // ======================================================================
     // DRAW_CORNERS
@@ -188,33 +270,40 @@ public :
         BOOST_AUTO(
             bottomright, munin::intersection(bottomright_rectangle, region));
         
-        BOOST_AUTO(pen, pen_);
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-        
         // If so, paint them.
         if (topleft)
         {
             cvs[topleft->origin.x][topleft->origin.y] = 
-                munin::element_type(char(201), pen);
+                munin::element_type(top_left_corner, pen_);
         }
         
         if (topright)
         {
-            cvs[topright->origin.x][topright->origin.y] = 
-                munin::element_type(char(187), pen);
+            if (closeable_)
+            {
+                BOOST_AUTO(close_pen, pen_);
+                close_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
+
+                cvs[topright->origin.x][topright->origin.y] = 
+                    munin::element_type(top_right_close_corner, close_pen);
+            }
+            else
+            {
+                cvs[topright->origin.x][topright->origin.y] = 
+                    munin::element_type(top_right_corner, pen_);
+            }
         }
 
         if (bottomleft)
         {
             cvs[bottomleft->origin.x][bottomleft->origin.y] = 
-                munin::element_type(char(200), pen);
+                munin::element_type(bottom_left_corner, pen_);
         }
         
         if (bottomright)
         {
             cvs[bottomright->origin.x][bottomright->origin.y] = 
-                munin::element_type(char(188), pen);
+                munin::element_type(bottom_right_corner, pen_);
         }
     }
 
@@ -225,7 +314,7 @@ public :
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(size,     self_.get_size());
+        BOOST_AUTO(size, self_.get_size());
         
         // Define a rectangle that stretches across the top border.
         rectangle top_border_rectangle(
@@ -242,10 +331,6 @@ public :
             bottom_border
           , munin::intersection(bottom_border_rectangle, region));
         
-        BOOST_AUTO(pen, pen_);
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-        
         // If so, paint it.
         if (top_border)
         {
@@ -254,7 +339,7 @@ public :
             for (s32 column = 0; column < rect.size.width; ++column)
             {
                 cvs[column + rect.origin.x][rect.origin.y] =
-                    munin::element_type(char(205), pen);
+                    munin::element_type(horizontal_beam, pen_);
             }
         }
         
@@ -265,7 +350,7 @@ public :
             for (s32 column = 0; column < rect.size.width; ++column)
             {
                 cvs[column + rect.origin.x][rect.origin.y] =
-                    munin::element_type(char(205), pen);
+                    munin::element_type(horizontal_beam, pen_);
             }
         }
     }
@@ -277,7 +362,7 @@ public :
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(size,     self_.get_size());
+        BOOST_AUTO(size, self_.get_size());
         
         // Define rectangles that stretches across the left and right borders.
         rectangle left_border_rectangle(
@@ -293,10 +378,6 @@ public :
         BOOST_AUTO(
             right_border, munin::intersection(right_border_rectangle, region));
         
-        BOOST_AUTO(pen, pen_);
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
-        
         // If so, paint them.
         if (left_border)
         {
@@ -305,7 +386,7 @@ public :
             for (s32 row = 0; row < rect.size.height; ++row)
             {
                 cvs[rect.origin.x][row + rect.origin.y] =
-                    munin::element_type(char(186), pen);
+                    munin::element_type(vertical_beam, pen_);
             }
         }
 
@@ -316,7 +397,7 @@ public :
             for (s32 row = 0; row < rect.size.height; ++row)
             {
                 cvs[rect.origin.x][row + rect.origin.y] =
-                    munin::element_type(char(186), pen);
+                    munin::element_type(vertical_beam, pen_);
             }
         }
     }
@@ -328,8 +409,9 @@ public :
     
 private :
     named_frame                 &self_;
-    runtime_array<munin::element_type>  name_;
+    runtime_array<element_type>  name_;
     attribute                    pen_;
+    bool                         closeable_;
 };
 
 // ==========================================================================
@@ -353,12 +435,15 @@ named_frame::~named_frame()
 void named_frame::set_name(string const &name)
 {
     pimpl_->set_name(name);
-    
-    vector<rectangle> redraw_regions;
-    redraw_regions.push_back(rectangle(
-        point(0, 0)
-      , extent(get_size().width, 1)));
-    on_redraw(redraw_regions);
+    on_redraw(list_of(rectangle(point(), extent(get_size().width, 1))));
+}
+
+// ==========================================================================
+// SET_CLOSEABLE
+// ==========================================================================
+void named_frame::set_closeable(bool closeable)
+{
+    pimpl_->set_closeable(closeable);
 }
 
 // ==========================================================================
@@ -414,31 +499,51 @@ void named_frame::do_set_attribute(string const &name, any const &attr)
             
             BOOST_AUTO(size, get_size());
 
-            vector<rectangle> regions;
-
-            // Upper border
-            regions.push_back(rectangle(
-                point()
-              , extent(size.width, get_frame_height())));
-
-            // Lower border
-            regions.push_back(rectangle(
-                point(0, size.height - get_frame_height())
-              , extent(size.width, get_frame_height())));
-
-            // Left border
-            regions.push_back(rectangle(
-                point()
-              , extent(get_frame_width(), size.height)));
-
-            // Right border
-            regions.push_back(rectangle(
-                point(size.width - get_frame_width(), 0)
-              , extent(get_frame_width(), size.height)));
-
-            on_redraw(regions);
+            on_redraw(list_of
+                // Upper border
+                (rectangle(
+                    point()
+                  , extent(size.width, get_frame_height())))
+                
+                // Lower border
+                (rectangle(
+                    point(0, size.height - get_frame_height())
+                  , extent(size.width, get_frame_height())))
+                
+                // Left border
+                (rectangle(
+                    point()
+                  , extent(get_frame_width(), size.height)))
+                
+                // Right border
+                (rectangle(
+                    point(size.width - get_frame_width(), 0)
+                  , extent(get_frame_width(), size.height)))
+            );
         }
     }
 }
 
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void named_frame::do_event(any const &event)
+{
+    bool handled = false;
+    
+    odin::ansi::mouse_report const *report =
+        any_cast<odin::ansi::mouse_report>(&event);
+     
+    if (report != NULL)
+    {
+        handled = pimpl_->handle_mouse_click(report);
+    }
+    
+    if (!handled)
+    {
+        frame::do_event(event);
+    }
 }
+
+}
+

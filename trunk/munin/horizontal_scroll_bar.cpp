@@ -28,6 +28,7 @@
 #include "munin/canvas.hpp"
 #include "munin/algorithm.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -36,6 +37,7 @@
 using namespace munin;
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -73,9 +75,10 @@ struct horizontal_scroll_bar::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        attribute pen;
-        pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-        pen.locale        = odin::ansi::character_set::LOCALE_SCO;
+        glyph hbeam(
+            char(205)
+          , odin::ansi::character_set::CHARACTER_SET_G0
+          , odin::ansi::character_set::LOCALE_SCO);
         
         // Draws the beam on which the slider is placed.
         for (s32 y_coord = region.origin.y;
@@ -86,7 +89,7 @@ struct horizontal_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = element_type(char(205), pen);
+                cvs[x_coord][y_coord] = element_type(hbeam, attribute());
             }
         }
     }
@@ -143,11 +146,12 @@ struct horizontal_scroll_bar::impl
             region
           , rectangle(point(slider_position_, 0), extent(1, 1))))
         {
-            attribute pen;
-            pen.character_set = odin::ansi::character_set::CHARACTER_SET_G0;
-            pen.locale        = odin::ansi::character_set::LOCALE_SCO;
+            glyph hslider(
+                char(216)
+              , odin::ansi::character_set::CHARACTER_SET_G0
+              , odin::ansi::character_set::LOCALE_SCO);
             
-            cvs[slider_position_][0] = element_type(char(216), pen);
+            cvs[slider_position_][0] = element_type(hslider, attribute());
         }
     }
     
@@ -212,13 +216,9 @@ void horizontal_scroll_bar::set_slider_position(optional<u8> percentage)
         // The new percentage has caused the slider position to move.
         // Therefore, we need to redraw both where the slider was, and
         // where the slider now is.
-        vector<rectangle> regions;
-        regions.push_back(rectangle(
-            point(old_slider_position, 0), extent(1, 1)));
-        regions.push_back(rectangle(
-            point(pimpl_->slider_position_, 0), extent(1, 1)));
-        
-        on_redraw(regions);
+        on_redraw(list_of
+            (rectangle(point(old_slider_position, 0), extent(1, 1)))
+            (rectangle(point(pimpl_->slider_position_, 0), extent(1, 1))));
     }
 }
 

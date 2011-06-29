@@ -538,7 +538,7 @@ private :
             }
             else if (isprint(ch) || ch == '\n')
             {
-                element_type data[] = { make_pair(ch, attribute()) };
+                element_type data[] = { element_type(ch, attribute()) };
                 document_->insert_text(data, optional<u32>());
             }
         }

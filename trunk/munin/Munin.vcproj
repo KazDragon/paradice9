@@ -208,6 +208,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\glyph.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\grid_layout.cpp"
 				>
 			</File>
@@ -327,6 +331,10 @@
 			</File>
 			<File
 				RelativePath=".\framed_component.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\glyph.hpp"
 				>
 			</File>
 			<File

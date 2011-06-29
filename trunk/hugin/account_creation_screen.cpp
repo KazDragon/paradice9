@@ -151,8 +151,8 @@ account_creation_screen::account_creation_screen()
     pimpl_->password_verify_field_ = make_shared<edit>();
     
     element_type password_element;
-    password_element.first = '*';
-    password_element.second.foreground_colour =
+    password_element.glyph_ = '*';
+    password_element.attribute_.foreground_colour_ =
         odin::ansi::graphics::COLOUR_RED;
     pimpl_->password_field_->set_attribute(
         EDIT_PASSWORD_ELEMENT

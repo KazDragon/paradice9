@@ -80,20 +80,20 @@ static bool canvas_region_compare(
 /// \brief Returns a string that is an ANSI sequence that will change the
 /// output style from 'from' to 'to'.  Assigns the latter to the former.  
 //* =========================================================================
-static string change_pen(munin::attribute &from, munin::attribute to)
+static string change_attribute(munin::attribute &from, munin::attribute to)
 {
     // Some terminal clients are particularly bad at handling colour changes
-    // using the 'default', and leave the pen as whatever it was last.  We
-    // can work around this by using the 'reset attributes' key in advance.
+    // using the 'default', and leave the attribute as whatever it was last.  
+    // We can work around this by using the 'reset attributes' key in advance.
     // However, this will also mean that we need to send all other attributes
     // afterwards.  We can do that by making the 'from' attribute default in
     // all cases.
     string default_sequence;
     
-    if ((from.foreground_colour != to.foreground_colour
-      && to.foreground_colour == odin::ansi::graphics::COLOUR_DEFAULT)
-     || (from.background_colour != to.background_colour
-      && to.background_colour == odin::ansi::graphics::COLOUR_DEFAULT))
+    if ((from.foreground_colour_ != to.foreground_colour_
+      && to.foreground_colour_ == odin::ansi::graphics::COLOUR_DEFAULT)
+     || (from.background_colour_ != to.background_colour_
+      && to.background_colour_ == odin::ansi::graphics::COLOUR_DEFAULT))
     {
         default_sequence = string()
             + odin::ansi::ESCAPE
@@ -107,7 +107,7 @@ static string change_pen(munin::attribute &from, munin::attribute to)
 
     string graphics_sequence;
 
-    if (from.foreground_colour != to.foreground_colour)
+    if (from.foreground_colour_ != to.foreground_colour_)
     {
         graphics_sequence += string()
                           + odin::ansi::ESCAPE
@@ -115,12 +115,12 @@ static string change_pen(munin::attribute &from, munin::attribute to)
                        
         graphics_sequence += str(format("%s")
             % int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE
-                + to.foreground_colour));
+                + to.foreground_colour_));
         
-        from.foreground_colour = to.foreground_colour;
+        from.foreground_colour_ = to.foreground_colour_;
     }
     
-    if (from.background_colour != to.background_colour)
+    if (from.background_colour_ != to.background_colour_)
     {
         if (graphics_sequence.empty())
         {
@@ -135,12 +135,12 @@ static string change_pen(munin::attribute &from, munin::attribute to)
         
         graphics_sequence += str(format("%s")
             % int(odin::ansi::graphics::BACKGROUND_COLOUR_BASE
-                + to.background_colour));
+                + to.background_colour_));
         
-        from.background_colour = to.background_colour;
+        from.background_colour_ = to.background_colour_;
     }
     
-    if (from.intensity != to.intensity)
+    if (from.intensity_ != to.intensity_)
     {
         if (graphics_sequence.empty())
         {
@@ -153,12 +153,12 @@ static string change_pen(munin::attribute &from, munin::attribute to)
             graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
         }
         
-        graphics_sequence += str(format("%s") % int(to.intensity));
+        graphics_sequence += str(format("%s") % int(to.intensity_));
         
-        from.intensity = to.intensity;
+        from.intensity_ = to.intensity_;
     }
     
-    if (from.polarity != to.polarity)
+    if (from.polarity_ != to.polarity_)
     {
         if (graphics_sequence.empty())
         {
@@ -171,12 +171,12 @@ static string change_pen(munin::attribute &from, munin::attribute to)
             graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
         }
         
-        graphics_sequence += str(format("%s") % int(to.polarity));
+        graphics_sequence += str(format("%s") % int(to.polarity_));
         
-        from.polarity = to.polarity;
+        from.polarity_ = to.polarity_;
     }
 
-    if (from.underlining != to.underlining)
+    if (from.underlining_ != to.underlining_)
     {
         if (graphics_sequence.empty())
         {
@@ -189,9 +189,9 @@ static string change_pen(munin::attribute &from, munin::attribute to)
             graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
         }
         
-        graphics_sequence += str(format("%s") % int(to.underlining));
+        graphics_sequence += str(format("%s") % int(to.underlining_));
         
-        from.underlining = to.underlining;
+        from.underlining_ = to.underlining_;
     }
     
     if (!graphics_sequence.empty())
@@ -199,6 +199,7 @@ static string change_pen(munin::attribute &from, munin::attribute to)
         graphics_sequence += odin::ansi::SELECT_GRAPHICS_RENDITION;
     }
 
+    /*
     string charset_sequence;
     
     if (from.locale != to.locale || from.character_set != to.character_set)
@@ -211,8 +212,37 @@ static string change_pen(munin::attribute &from, munin::attribute to)
         from.locale        = to.locale;
         from.character_set = to.character_set;
     }
+    */
+    return default_sequence + graphics_sequence;// + charset_sequence;
+}
+
+//* =========================================================================
+/// \brief Returns a string that is an ANSI sequence of commands required
+/// to draw the selected glyph.  Character set and locale are only output
+/// if they have changed.
+//* =========================================================================
+static string write_glyph(
+    munin::glyph &last_glyph
+  , munin::glyph  current_glyph)
+{
+    string charset_sequence;
     
-    return default_sequence + graphics_sequence + charset_sequence;
+    if (last_glyph.locale_        != current_glyph.locale_
+     || last_glyph.character_set_ != current_glyph.character_set_)
+    {
+        last_glyph.locale_        = current_glyph.locale_;
+        last_glyph.character_set_ = current_glyph.character_set_;
+        
+        charset_sequence += string()
+                          + odin::ansi::ESCAPE
+                          + current_glyph.character_set_
+                          + current_glyph.locale_;
+                          
+    }
+    
+    last_glyph.character_ = current_glyph.character_;
+    
+    return charset_sequence + current_glyph.character_;
 }
 
 //* =========================================================================
@@ -220,7 +250,8 @@ static string change_pen(munin::attribute &from, munin::attribute to)
 /// canvas.
 //* =========================================================================
 static string canvas_region_string(
-    munin::attribute       &pen
+    munin::glyph           &last_glyph
+  , munin::attribute       &last_attribute
   , munin::rectangle const &region
   , munin::canvas          &cvs)
 {
@@ -239,13 +270,12 @@ static string canvas_region_string(
                    [row    + region.origin.y];
 
             // Apply any attribute changes that are required.
-            if (!(pen == element.second))
+            if (!(last_attribute == element.attribute_))
             {
-                output += change_pen(pen, element.second);
+                output += change_attribute(last_attribute, element.attribute_);
             }
             
-            // With the attributes set, output the actual character.
-            output.push_back(element.first);
+            output += write_glyph(last_glyph, element.glyph_);
         }
     }
     
@@ -423,9 +453,9 @@ private :
             if (repaint_all
              || !canvas_region_compare(slice, canvas_, canvas_clone))
             {
-                // TODO: output += canvas_region_diff_string(...)
                 // This would only output the differences in the two regions
-                output += canvas_region_string(pen_, slice, canvas_);
+                output += canvas_region_string(
+                    glyph_, attribute_, slice, canvas_);
             }
         }
 
@@ -486,7 +516,8 @@ private :
     boost::asio::io_service      &io_service_;
     boost::shared_ptr<container>  content_;
     canvas                        canvas_;
-    attribute                     pen_;
+    glyph                         glyph_;
+    attribute                     attribute_;
     
     point                         last_cursor_position_;
     bool                          last_cursor_state_;

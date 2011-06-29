@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin ANSI Attribute Constants.
+// Munin ANSI Attribute.
 //
 // Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
@@ -31,20 +31,24 @@
 
 namespace munin {
 
+//* =========================================================================
+/// \brief A structure that carries around the presentation attributes of
+/// an ANSI element.
+//* =========================================================================
 struct attribute
 {
+    //* =====================================================================
+    /// \brief Initialises the attribute to having the default colour,
+    /// no intensity, no underlining, and normal polarity.
+    //* =====================================================================
     attribute();
     
     // Graphics Attributes
-    char foreground_colour;
-    char background_colour;
-    char intensity;
-    char underlining;
-    char polarity;
-    
-    // Character Set Attributes
-    char character_set;
-    char locale;
+    char foreground_colour_;
+    char background_colour_;
+    char intensity_;
+    char underlining_;
+    char polarity_;
 };
 
 bool operator==(attribute const &lhs, attribute const &rhs);

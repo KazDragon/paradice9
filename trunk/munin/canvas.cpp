@@ -105,7 +105,7 @@ public :
                     // This co-ordinate is a new element.  Create a default
                     // character.
                     new_elements[(row * size.width) + column] =
-                        make_pair(' ', attribute());
+                        element_type(' ', attribute());
                 }
             }
         }

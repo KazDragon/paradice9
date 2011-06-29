@@ -63,7 +63,7 @@ string string_from_elements(
     
     for (u32 index = 0; index < elements.size(); ++index)
     {
-        text[index] = elements[index].first;
+        text[index] = elements[index].glyph_.character_;
     }
     
     return text;

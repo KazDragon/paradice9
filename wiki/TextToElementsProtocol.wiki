@@ -1,0 +1,99 @@
+#summary Describes a text protocol whereby colour codes, locales, etc.
+
+= Introduction =
+
+Some components may require colours or other types of manipulation.  For example, drawing a border on an image component using the extended ASCII drawing characters requires changing both the character set to G1 and the locale to SCO.
+
+This document describes a method whereby these codes can be placed in-line in text, so that a function may convert this to an array of `element_type`.
+
+= Details =
+
+== Default ==
+  * \x: set all attributes to their default values
+
+E.g. \x
+
+== Character Set ==
+
+  * \c_?_
+    * _?_ = x: default character set (currently G0)
+    * _?_ = 0: character set G0
+    * _?_ = 1: character set G1
+
+E.g. \c1
+
+== Locale ==
+
+  * \l_?_ (lowercase L)
+    * _?_ = x: default locale (currently US ASCII)
+    * _?_ = 0: DEC locale
+    * _?_ = A: UK locale
+    * _?_ = B: US ASCII locale
+    * _?_ = U: SCO locale
+
+E.g. \lB
+
+== Intensity ==
+
+  * \i_?_ 
+    * _?_ = x: default intensity (currenly normal)
+    * _?_ = >: bold intensity
+    * _?_ = =: normal intensity
+    * _?_ = <: faint intensity
+
+E.g. \i>
+
+== Polarity ==
+
+  * \p_?_
+    * _?_ = x: default polarity (currently positive)
+    * _?_ = +: positive polarity
+    * _?_ = -: negative polarity
+
+E.g. \p-
+
+== Underlining ==
+
+  * \u_?_
+    * _?_ = x: default underlining (currently off)
+    * _?_ = +: underlining on
+    * _?_ = -: underlining off
+
+E.g. \u+
+
+== Colours ==
+
+=== 16-colours ===
+
+See http://www.mudpedia.org/wiki/ANSI_colors for exact colours
+
+  * \[_?0?1_
+    * _?0_ = +: optionally, the bold version.
+    * _?1_ = 0..9: change the foreground colour.
+
+  * \]_?0?1_
+    * _?0_ = +: optionally, the bold version.
+    * _?1_ = 0..9: change the background colour.
+
+E.g. {{{\[+6\]0}}} (bold cyan on a black background)
+
+=== 256-colours ===
+
+See http://www.mudpedia.org/wiki/Xterm_256_colors for exact colour codes.  Note that there are three segments: overlap with the original 16-colours (the only place where true black lies), a central coloured section of 232 colours, a greyscale section of 24 colours.
+
+  * \<_?R?G?B_
+    * _?R_ = a..f: intensity of red value as foreground
+    * _?G_ = a..f: intensity of green value as foreground
+    * _?B_ = a..f: intensity of blue value as foreground
+
+To match up to the colour chart, the following conversion is applied:
+
+a..f == 0..5
+colour = (_?R_ x 36) + (_?G_ x 6) + (_?B_) + 16
+
+E.g. {{{\<fba}}}: (5 x 36) + (1 x 6) + (0) + 16 = colour 202, a deep orange.
+
+  * \>_?R?G?B_
+    * _?R_ = a..f: intensity of red value as background
+    * _?G_ = a..f: intensity of green value as background
+    * _?B_ = a..f: intensity of blue value as background

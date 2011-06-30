@@ -67,20 +67,6 @@ protected :
     virtual extent do_get_preferred_size() const;
     
     //* =====================================================================
-    /// \brief Called by can_focus().  Derived classes must override this
-    /// function in order to return whether this component can be focused in
-    /// a custom manner.
-    //* =====================================================================
-    virtual bool do_can_focus() const;
-    
-    //* =====================================================================
-    /// \brief Called by set_can_focus().  Derived classes must override this
-    /// function in order to set whether this component can be focussed in
-    /// a custom manner.
-    //* =====================================================================
-    virtual void do_set_can_focus(bool focus);
-    
-    //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
     /// in order to draw onto the passed canvas.  A component must only draw 
     /// the part of itself specified by the region.

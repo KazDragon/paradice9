@@ -189,6 +189,14 @@ bool operator!=(rectangle const &lhs, rectangle const &rhs);
 rectangle operator+(point const &pt, extent const &ext);
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
 
+// Finally, some common attribute names.
+
+// Changing the glyph attribute will change some elements' glyphs.
+static const std::string ATTRIBUTE_GLYPH = "Glyph";
+
+// Changing the penattribute will change some elements' attributes.
+static const std::string ATTRIBUTE_PEN = "Pen";
+
 }
 
 #endif

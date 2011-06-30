@@ -27,46 +27,54 @@
 #ifndef MUNIN_FRAME_HPP_
 #define MUNIN_FRAME_HPP_
 
-#include "munin/basic_component.hpp"
+#include "munin/composite_component.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace munin {
 
-static const std::string ATTRIBUTE_PEN = "Pen";
-
-class frame : public munin::basic_component
+//* =========================================================================
+/// \brief A base class that takes a series of components and uses them to
+/// construct a frame.
+/// \par ATTRIBUTE_PEN
+/// Set the ATTRIBUTE_PEN attribute to an value of type munin::attribute.
+/// This will be passed down to subcomponents.  You can use this, for 
+/// example, to show a border highlight when the interior component has
+/// focus.
+//* =========================================================================
+class frame : public munin::composite_component
 {
 public :
     //* =====================================================================
-    /// \brief Retrieves the height of the frame.
+    /// \brief Constructor
+    /// \par
+    /// Takes 8 components.  The are arranged in the following manner:
+    /// 1 2 3
+    /// 4   5
+    /// 6 7 8
+    ///
+    /// These form the frame outlines.
     //* =====================================================================
-    odin::u32 get_frame_height() const;
-
-    //* =====================================================================
-    /// \brief Retreives the width of the frame.
-    //* =====================================================================
-    odin::u32 get_frame_width() const;
+    frame(
+        boost::shared_ptr<component> top_left
+      , boost::shared_ptr<component> top
+      , boost::shared_ptr<component> top_right
+      , boost::shared_ptr<component> left
+      , boost::shared_ptr<component> right
+      , boost::shared_ptr<component> bottom_left
+      , boost::shared_ptr<component> bottom
+      , boost::shared_ptr<component> bottom_right);
 
 protected :
     //* =====================================================================
-    /// \brief Called by can_focus().  Derived classes must override this
-    /// function in order to return whether this component can be focused in
-    /// a custom manner.
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
     //* =====================================================================
-    virtual bool do_can_focus() const;
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr);
 
-    //* =====================================================================
-    /// \brief Called by get_frame_width().  Derived classes must override 
-    /// this function in order to get the width of the frame in a custom
-    /// manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_frame_width() const = 0;
-
-    //* =====================================================================
-    /// \brief Called by get_frame_height().  Derived classes must override 
-    /// this function in order to get the height of the frame in a custom
-    /// manner.
-    //* =====================================================================
-    virtual odin::u32 do_get_frame_height() const = 0;
+private :
+    struct impl;
+    boost::shared_ptr<impl> pimpl_;
 };
 
 }

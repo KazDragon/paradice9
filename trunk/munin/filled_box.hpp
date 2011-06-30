@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Named Frame.
+// Munin Filled Box Component.
 //
 // Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,58 +24,70 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_NAMED_FRAME_HPP_
-#define MUNIN_NAMED_FRAME_HPP_
+#ifndef MUNIN_FILLED_BOX_HPP_
+#define MUNIN_FILLED_BOX_HPP_
 
-#include "munin/composite_component.hpp"
-#include <string>
+#include "munin/basic_component.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace munin {
 
+// Changing this boolean attribute to true will stop other attributes from 
+// changing until the attribute is once again false.
+static const std::string ATTRIBUTE_LOCK = "Lock";
+
 //* =========================================================================
-/// \brief An object that represents a frame that has a title on its
-/// northern edge.
+/// \brief A class that models a box that is always completely filled with
+/// a given element.  It allows changing the attribute and glyph of the
+/// element independently.
 //* =========================================================================
-class named_frame : public composite_component
+class filled_box : public munin::basic_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    named_frame();
-    
+    filled_box(element_type const &element);
+
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~named_frame();
-    
+    virtual ~filled_box();
+
     //* =====================================================================
-    /// \brief Sets the name displayed on the top border of the frame.
+    /// \brief Sets the preferred size of this box.  The default is (1,1).
     //* =====================================================================
-    void set_name(std::string const &name);
-    
-    //* =====================================================================
-    /// \brief Sets whether the frame is 'closeable' or not.  That is,
-    /// whether it has a close icon that can be clicked.
-    //* =====================================================================
-    void set_closeable(bool closeable);
-    
-    //* =====================================================================
-    /// \fn on_close
-    /// \brief A signal that is raised whenever the close icon is clicked.
-    //* =====================================================================
-    boost::signal<
-        void ()
-    > on_close;
-    
+    void set_preferred_size(extent preferred_size);
+
 protected :
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
     //* =====================================================================
-    virtual void do_event(boost::any const &event);
+    virtual extent do_get_preferred_size() const;
     
-private :    
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr);
+
+    //* =====================================================================
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw 
+    /// the part of itself specified by the region.
+    ///
+    /// \param cvs the canvas in which the component should draw itself.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
+    //* =====================================================================
+    virtual void do_draw(
+        canvas          &cvs
+      , rectangle const &region);
+    
+private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
@@ -83,3 +95,4 @@ private :
 }
 
 #endif
+

@@ -371,7 +371,6 @@ struct basic_container::impl
     
     basic_container                               &self_;
     weak_ptr<component>                            parent_;
-    map<string, any>                               attributes_;
     vector< shared_ptr<component> >                components_;
     vector< any >                                  component_hints_;
     vector< u32 >                                  component_layers_;
@@ -962,7 +961,12 @@ void basic_container::do_set_attribute(
     string const &name
   , any    const &attr)
 {
-    pimpl_->attributes_[name] = attr;
+    // There's no reason that a container should have any attributes set,
+    // so instead this is passed on to all contained components.
+    BOOST_FOREACH(shared_ptr<component> comp, pimpl_->components_)
+    {
+        comp->set_attribute(name, attr);
+    }
 }
 
 // ==========================================================================

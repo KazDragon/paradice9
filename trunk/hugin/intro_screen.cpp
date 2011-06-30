@@ -95,8 +95,7 @@ struct intro_screen::impl
 // CONSTRUCTOR
 // ==========================================================================
 intro_screen::intro_screen()
-    : composite_component(make_shared<basic_container>())
-    , pimpl_(make_shared<impl>())
+    : pimpl_(make_shared<impl>())
 {
     BOOST_AUTO(inner_content, make_shared<basic_container>());
     inner_content->set_layout(make_shared<compass_layout>());

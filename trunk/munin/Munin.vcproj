@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\filled_box.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\frame.cpp"
 				>
 			</File>
@@ -323,6 +327,10 @@
 			</File>
 			<File
 				RelativePath=".\edit.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\filled_box.hpp"
 				>
 			</File>
 			<File

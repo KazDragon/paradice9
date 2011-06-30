@@ -48,11 +48,8 @@ class composite_component
 public :
     //* =====================================================================
     /// \brief Constructor
-    /// \param underlying_container A container that this component will
-    /// wrap.
     //* =====================================================================
-    composite_component(
-        boost::shared_ptr<container> underlying_container);
+    composite_component();
 
     //* =====================================================================
     /// \brief Destructor

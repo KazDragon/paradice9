@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Solid Frame.
+// Munin ANSI Glyph.
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,54 +24,39 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_SOLID_FRAME_HPP_
-#define MUNIN_SOLID_FRAME_HPP_
+#ifndef MUNIN_ANSI_GLYPH_HPP_
+#define MUNIN_ANSI_GLYPH_HPP_
 
-#include "munin/composite_component.hpp"
+#include <iosfwd>
+#include "odin/ansi/protocol.hpp"
 
 namespace munin {
 
 //* =========================================================================
-/// \brief An object that represents a frame, or frame.
+/// \brief A structure that carries around the character attributes of an
+/// ANSI element.
 //* =========================================================================
-class solid_frame : public composite_component
+struct glyph
 {
-public :
     //* =====================================================================
-    /// \brief Constructor
+    /// \brief Default Constructor
     //* =====================================================================
-    solid_frame();
-    
-    //* =====================================================================
-    /// \brief Destructor
-    //* =====================================================================
-    virtual ~solid_frame();
-    
-    //* =====================================================================
-    /// \brief Sets whether the frame is 'closeable' or not.  That is,
-    /// whether it has a close icon that can be clicked.
-    //* =====================================================================
-    void set_closeable(bool closeable);
-    
-    //* =====================================================================
-    /// \fn on_close
-    /// \brief A signal that is raised whenever the close icon is clicked.
-    //* =====================================================================
-    boost::signal<
-        void ()
-    > on_close;
-    
-protected :
-    //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
-    //* =====================================================================
-    virtual void do_event(boost::any const &event);
+    glyph(
+        char character     = '\0'
+      , char character_set = odin::ansi::character_set::CHARACTER_SET_G0
+      , char locale        = odin::ansi::character_set::LOCALE_US_ASCII);
 
-private :    
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    // Character
+    char character_;
+    
+    // Character Set Attributes
+    char character_set_;
+    char locale_;
 };
+
+bool operator==(glyph const &lhs, glyph const &rhs);
+
+std::ostream &operator<<(std::ostream &out, glyph const &attr);
 
 }
 

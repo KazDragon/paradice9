@@ -67,14 +67,24 @@ private :
         runtime_array< shared_ptr<component> > const &components
       , runtime_array< any >                   const &hints) const
     {
-        extent preferred_size;
-        
-        BOOST_FOREACH(shared_ptr<component> comp, components)
+        // TODO: Fix this when anything has a border that is not height and
+        // width 1. Will require the fix to compass layout's preferred_size
+        // before being solved.
+        extent preferred_interior_size;
+
+        for (u32 index = 0; index < components.size(); ++index)
         {
-            preferred_size += comp->get_preferred_size();
+            BOOST_AUTO(comp,     components[index]);
+            BOOST_AUTO(any_hint, hints[index]);
+            BOOST_AUTO(hint, any_cast<hint_type>(any_hint));
+
+            if (hint == hint_interior)
+            {
+                preferred_interior_size = comp->get_preferred_size();
+            }
         }
-        
-        return preferred_size;
+
+        return preferred_interior_size + extent(2, 2);
     }
 
     //* =====================================================================
@@ -126,7 +136,7 @@ struct framed_component::impl
                 : unfocussed_pen_);
     }
     
-    shared_ptr<frame>     border_;
+    shared_ptr<component> border_;
     shared_ptr<component> interior_;
     
     attribute focussed_pen_;
@@ -137,10 +147,9 @@ struct framed_component::impl
 // CONSTRUCTOR
 // ==========================================================================
 framed_component::framed_component(
-    shared_ptr<frame>     border
+    shared_ptr<component> border
   , shared_ptr<component> interior)
-    : composite_component(make_shared<basic_container>())
-    , pimpl_(make_shared<impl>())
+    : pimpl_(make_shared<impl>())
 {
     pimpl_->border_   = border;
     pimpl_->interior_ = interior;
@@ -149,9 +158,9 @@ framed_component::framed_component(
     
     container->set_layout(make_shared<framed_component_layout>());
     container->add_component(
-        interior, framed_component_layout::hint_interior);
-    container->add_component(
         border, framed_component_layout::hint_border);
+    container->add_component(
+        interior, framed_component_layout::hint_interior);
     
     interior->on_focus_set.connect(bind(&impl::update_pen, pimpl_.get()));
     interior->on_focus_lost.connect(bind(&impl::update_pen, pimpl_.get()));
@@ -213,13 +222,24 @@ void framed_component::do_event(any const &event)
             BOOST_AUTO(position, pimpl_->interior_->get_position());
             BOOST_AUTO(size,     pimpl_->interior_->get_size());
             
-            // If this intersects the edit box, then just handle it normally.
-            // Otherwise, it's clicking the frame, so we set focus instead.
-            if (!intersection(
+            // If this intersects the interior, then we send the event onto 
+            // that.  Otherwise, it's clicking the frame, so we set focus 
+            // instead.
+            if (intersection(
                 rectangle(pimpl_->interior_->get_position()
                         , pimpl_->interior_->get_size())
               , rectangle(point(report->x_position_, report->y_position_)
                         , extent(1, 1))))
+            {
+                BOOST_AUTO(position, pimpl_->interior_->get_position());
+                odin::ansi::mouse_report subreport;
+                subreport.button_     = report->button_;
+                subreport.x_position_ = u8(report->x_position_ - position.x);
+                subreport.y_position_ = u8(report->y_position_ - position.y);
+
+                pimpl_->interior_->event(subreport);
+            }
+            else
             {
                 set_focus();
                 handled = true;

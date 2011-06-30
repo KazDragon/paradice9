@@ -31,8 +31,6 @@
 
 namespace munin {
 
-class frame;
-
 BOOST_STATIC_CONSTANT(std::string, 
     FOCUSSED_BORDER_PEN = "Focussed.Border.Pen");
 BOOST_STATIC_CONSTANT(std::string, 
@@ -50,7 +48,7 @@ public :
     /// \brief Constructor
     //* =====================================================================
     framed_component(
-        boost::shared_ptr<frame>     border
+        boost::shared_ptr<component> border
       , boost::shared_ptr<component> interior); 
 
     //* =====================================================================

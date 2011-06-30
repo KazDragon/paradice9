@@ -25,34 +25,89 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/frame.hpp"
+#include "munin/basic_component.hpp"
+#include "munin/basic_container.hpp"
+#include "munin/compass_layout.hpp"
+#include <boost/make_shared.hpp>
+#include <boost/typeof/typeof.hpp>
 
 using namespace odin;
+using namespace boost;
+using namespace std;
 
 namespace munin {
 
 // ==========================================================================
-// GET_FRAME_HEIGHT
+// FRAME::IMPLEMENTATION_STRUCTURE
 // ==========================================================================
-u32 frame::get_frame_height() const
+struct frame::impl
 {
-    return do_get_frame_height();
+    shared_ptr<component> top_left_;
+    shared_ptr<component> top_;
+    shared_ptr<component> top_right_;
+    shared_ptr<component> left_;
+    shared_ptr<component> right_;
+    shared_ptr<component> bottom_left_;
+    shared_ptr<component> bottom_;
+    shared_ptr<component> bottom_right_;
+};
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+frame::frame(
+    shared_ptr<component> top_left
+  , shared_ptr<component> top
+  , shared_ptr<component> top_right
+  , shared_ptr<component> left
+  , shared_ptr<component> right
+  , shared_ptr<component> bottom_left
+  , shared_ptr<component> bottom
+  , shared_ptr<component> bottom_right)
+  : pimpl_(make_shared<impl>())
+{
+    pimpl_->top_left_     = top_left;
+    pimpl_->top_          = top;
+    pimpl_->top_right_    = top_right;
+    pimpl_->left_         = left;
+    pimpl_->right_        = right;
+    pimpl_->bottom_left_  = bottom_left;
+    pimpl_->bottom_       = bottom;
+    pimpl_->bottom_right_ = bottom_right;
+
+    BOOST_AUTO(top_container, make_shared<basic_container>());
+    top_container->set_layout(make_shared<compass_layout>());
+    top_container->add_component(top_left,  COMPASS_LAYOUT_WEST);
+    top_container->add_component(top,       COMPASS_LAYOUT_CENTRE);
+    top_container->add_component(top_right, COMPASS_LAYOUT_EAST);
+
+    BOOST_AUTO(bottom_container, make_shared<basic_container>());
+    bottom_container->set_layout(make_shared<compass_layout>());
+    bottom_container->add_component(bottom_left,  COMPASS_LAYOUT_WEST);
+    bottom_container->add_component(bottom,       COMPASS_LAYOUT_CENTRE);
+    bottom_container->add_component(bottom_right, COMPASS_LAYOUT_EAST);
+
+    BOOST_AUTO(content, get_container());
+    content->set_layout(make_shared<compass_layout>());
+    content->add_component(top_container,         COMPASS_LAYOUT_NORTH);
+    content->add_component(bottom_container,      COMPASS_LAYOUT_SOUTH);
+    content->add_component(left,                  COMPASS_LAYOUT_WEST);
+    content->add_component(right,                 COMPASS_LAYOUT_EAST);
 }
 
 // ==========================================================================
-// GET_FRAME_WIDTH
+// DO_SET_ATTRIBUTE
 // ==========================================================================
-u32 frame::get_frame_width() const
+void frame::do_set_attribute(string const &name, any const &attr)
 {
-    return do_get_frame_width();
-}
-
-// ==========================================================================
-// DO_CAN_FOCUS
-// ==========================================================================
-bool frame::do_can_focus() const
-{
-    // By default, frames cannot be focussed.
-    return false;
+    pimpl_->top_left_->set_attribute(name, attr);
+    pimpl_->top_->set_attribute(name, attr);
+    pimpl_->top_right_->set_attribute(name, attr);
+    pimpl_->left_->set_attribute(name, attr);
+    pimpl_->right_->set_attribute(name, attr);
+    pimpl_->bottom_left_->set_attribute(name, attr);
+    pimpl_->bottom_->set_attribute(name, attr);
+    pimpl_->bottom_right_->set_attribute(name, attr);
 }
 
 }

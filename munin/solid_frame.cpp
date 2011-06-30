@@ -25,8 +25,11 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/solid_frame.hpp"
-#include "munin/canvas.hpp"
 #include "munin/algorithm.hpp"
+#include "munin/canvas.hpp"
+#include "munin/filled_box.hpp"
+#include "munin/frame.hpp"
+#include "munin/grid_layout.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
@@ -92,15 +95,24 @@ public :
     void set_closeable(bool closeable)
     {
         closeable_ = closeable;
-        
-        // Also redraw the top right corner, which is where the close button
-        // would be.
-        BOOST_AUTO(position, self_.get_position());
-        BOOST_AUTO(size,     self_.get_size());
-        
-        self_.on_redraw(list_of(rectangle(
-            point((position.x + size.width) - 1, 0)
-          , extent(1, 1))));
+
+        if (closeable_)
+        {
+            attribute pen;
+            pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
+            pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
+
+            top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
+            top_right_->set_attribute(ATTRIBUTE_GLYPH, top_right_close_corner);
+            top_right_->set_attribute(ATTRIBUTE_PEN,   pen);
+            top_right_->set_attribute(ATTRIBUTE_LOCK,  true);
+        }
+        else
+        {
+            top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
+            top_right_->set_attribute(ATTRIBUTE_GLYPH, top_right_corner);
+            top_right_->set_attribute(ATTRIBUTE_PEN,   attribute());
+        }
     }
     
     // ======================================================================
@@ -130,192 +142,9 @@ public :
         return handled;
     }
     
-    // ======================================================================
-    // DRAW
-    // ======================================================================
-    void draw(
-        canvas          &cvs
-      , rectangle const &region)
-    {
-        draw_corners(cvs, region);
-        draw_horizontal_borders(cvs, region);
-        draw_vertical_borders(cvs, region);
-    }
-    
-    // ======================================================================
-    // DRAW_CORNERS
-    // ======================================================================
-    void draw_corners(
-        canvas          &cvs
-      , rectangle const &region)
-    {
-        BOOST_AUTO(size, self_.get_size());
-        
-        // Define the co-ordinates of the corners.
-        rectangle topleft_rectangle(
-            point(0, 0)
-          , extent(1, 1));
-        rectangle topright_rectangle(
-            point(size.width - 1, 0)
-          , extent(1, 1));
-        rectangle bottomleft_rectangle(
-            point(0, size.height - 1)
-          , extent(1, 1));
-        rectangle bottomright_rectangle(
-            point(size.width - 1, size.height - 1)
-          , extent(1, 1));
-        
-        // Find out if they intersect with the draw region.
-        BOOST_AUTO(
-            topleft, munin::intersection(topleft_rectangle, region));
-        BOOST_AUTO(
-            topright, munin::intersection(topright_rectangle, region));
-        BOOST_AUTO(
-            bottomleft, munin::intersection(bottomleft_rectangle, region));
-        BOOST_AUTO(
-            bottomright, munin::intersection(bottomright_rectangle, region));
-        
-        // If so, paint them.
-        if (topleft)
-        {
-            cvs[topleft->origin.x][topleft->origin.y] = 
-                munin::element_type(top_left_corner, pen_);
-        }
-        
-        if (topright)
-        {
-            if (closeable_)
-            {
-                BOOST_AUTO(close_pen, pen_);
-                close_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
-
-                cvs[topright->origin.x][topright->origin.y] = 
-                    munin::element_type(top_right_close_corner, close_pen);
-            }
-            else
-            {
-                cvs[topright->origin.x][topright->origin.y] = 
-                    munin::element_type(top_right_corner, pen_);
-            }
-        }
-
-        if (bottomleft)
-        {
-            cvs[bottomleft->origin.x][bottomleft->origin.y] = 
-                munin::element_type(bottom_left_corner, pen_);
-        }
-        
-        if (bottomright)
-        {
-            cvs[bottomright->origin.x][bottomright->origin.y] = 
-                munin::element_type(bottom_right_corner, pen_);
-        }
-    }
-
-    // ======================================================================
-    // DRAW_HORIZONTAL_BORDERS
-    // ======================================================================
-    void draw_horizontal_borders(
-        canvas          &cvs
-      , rectangle const &region)
-    {
-        BOOST_AUTO(size, self_.get_size());
-        
-        // Define a rectangle that stretches across the top border.
-        rectangle top_border_rectangle(
-            point(1,0)
-          , extent(size.width - 2, 1));
-        rectangle bottom_border_rectangle(
-            point(1, size.height - 1)
-          , extent(size.width - 2, 1));
-        
-        // Find out if this intersects the draw region.
-        BOOST_AUTO(
-            top_border, munin::intersection(top_border_rectangle, region));
-        BOOST_AUTO(
-            bottom_border
-          , munin::intersection(bottom_border_rectangle, region));
-        
-        // If so, paint it.
-        if (top_border)
-        {
-            BOOST_AUTO(rect, top_border.get());
-            
-            for (s32 column = 0; column < rect.size.width; ++column)
-            {
-                cvs[column + rect.origin.x][rect.origin.y] =
-                    munin::element_type(horizontal_beam, pen_);
-            }
-        }
-        
-        if (bottom_border)
-        {
-            BOOST_AUTO(rect, bottom_border.get());
-            
-            for (s32 column = 0; column < rect.size.width; ++column)
-            {
-                cvs[column + rect.origin.x][rect.origin.y] =
-                    munin::element_type(horizontal_beam, pen_);
-            }
-        }
-    }
-
-    // ======================================================================
-    // DRAW_VERTICAL_BORDERS
-    // ======================================================================
-    void draw_vertical_borders(
-        canvas          &cvs
-      , rectangle const &region)
-    {
-        BOOST_AUTO(size, self_.get_size());
-        
-        // Define rectangles that stretches across the left and right borders.
-        rectangle left_border_rectangle(
-            point(0, 1)
-          , extent(1, size.height - 2));
-        rectangle right_border_rectangle(
-            point(size.width - 1, 1)
-          , extent(1, size.height - 2));
-        
-        // Find out if they intersect the draw region.
-        BOOST_AUTO(
-            left_border, munin::intersection(left_border_rectangle, region));
-        BOOST_AUTO(
-            right_border, munin::intersection(right_border_rectangle, region));
-        
-        // If so, paint them.
-        if (left_border)
-        {
-            BOOST_AUTO(rect, left_border.get());
-            
-            for (s32 row = 0; row < rect.size.height; ++row)
-            {
-                cvs[rect.origin.x][row + rect.origin.y] =
-                    munin::element_type(vertical_beam, pen_);
-            }
-        }
-
-        if (right_border)
-        {
-            BOOST_AUTO(rect, right_border.get());
-            
-            for (s32 row = 0; row < rect.size.height; ++row)
-            {
-                cvs[rect.origin.x][row + rect.origin.y] =
-                    munin::element_type(vertical_beam, pen_);
-            }
-        }
-    }
-    
-    void set_pen(attribute const &pen)
-    {
-        pen_ = pen;
-    }
-    
-private :
-    solid_frame &self_;
-    attribute    pen_;
-    bool         closeable_;
+    solid_frame           &self_;
+    shared_ptr<component>  top_right_;
+    bool                   closeable_;
 };
 
 // ==========================================================================
@@ -324,6 +153,32 @@ private :
 solid_frame::solid_frame()
 {
     pimpl_ = make_shared<impl>(ref(*this));
+
+    element_type top_left_element(top_left_corner, attribute());
+    element_type top_element(horizontal_beam, attribute());
+    element_type top_right_element(top_right_corner, attribute());
+    element_type left_element(vertical_beam, attribute());
+    element_type right_element(vertical_beam, attribute());
+    element_type bottom_left_element(bottom_left_corner, attribute());
+    element_type bottom_element(horizontal_beam, attribute());
+    element_type bottom_right_element(bottom_right_corner, attribute());
+
+    BOOST_AUTO(top_left,     make_shared<filled_box>(top_left_element));
+    BOOST_AUTO(top,          make_shared<filled_box>(top_element));
+    pimpl_->top_right_ =     make_shared<filled_box>(top_right_element);
+    BOOST_AUTO(left,         make_shared<filled_box>(left_element));
+    BOOST_AUTO(right,        make_shared<filled_box>(right_element));
+    BOOST_AUTO(bottom_left,  make_shared<filled_box>(bottom_left_element));
+    BOOST_AUTO(bottom,       make_shared<filled_box>(bottom_element));
+    BOOST_AUTO(bottom_right, make_shared<filled_box>(bottom_right_element));
+
+    BOOST_AUTO(content, get_container());
+    content->set_layout(make_shared<grid_layout>(1, 1));
+
+    content->add_component(make_shared<frame>(
+        top_left, top, pimpl_->top_right_
+      , left, right
+      , bottom_left, bottom, bottom_right));
 }
 
 // ==========================================================================
@@ -339,84 +194,6 @@ solid_frame::~solid_frame()
 void solid_frame::set_closeable(bool closeable)
 {
     pimpl_->set_closeable(closeable);
-}
-
-// ==========================================================================
-// DO_GET_FRAME_WIDTH
-// ==========================================================================
-u32 solid_frame::do_get_frame_width() const
-{
-    return 1;
-}
-
-// ==========================================================================
-// DO_GET_FRAME_HEIGHT
-// ==========================================================================
-u32 solid_frame::do_get_frame_height() const
-{
-    return 1;
-}
-
-// ==========================================================================
-// DO_GET_PREFERRED_SIZE
-// ==========================================================================
-extent solid_frame::do_get_preferred_size() const
-{
-    return extent(
-        get_frame_width() * 2
-      , get_frame_height() * 2);
-}
-
-// ==========================================================================
-// DO_DRAW
-// ==========================================================================
-void solid_frame::do_draw(
-    canvas          &cvs
-  , rectangle const &region)
-{
-    pimpl_->draw(cvs, region);
-}
-
-// ==========================================================================
-// DO_SET_ATTRIBUTE
-// ==========================================================================
-void solid_frame::do_set_attribute(string const &name, any const &attr)
-{
-    munin::frame::do_set_attribute(name, attr);
-    
-    if (name == ATTRIBUTE_PEN)
-    {
-        attribute const *pen = any_cast<attribute>(&attr);
-        
-        if (pen != NULL)
-        {
-            pimpl_->set_pen(*pen);
-            
-            BOOST_AUTO(size, get_size());
-
-            on_redraw(list_of
-                // Upper border
-                (rectangle(
-                    point()
-                  , extent(size.width, get_frame_height())))
-                
-                // Lower border
-                (rectangle(
-                    point(0, size.height - get_frame_height())
-                  , extent(size.width, get_frame_height())))
-                
-                // Left border
-                (rectangle(
-                    point()
-                  , extent(get_frame_width(), size.height)))
-                
-                // Right border
-                (rectangle(
-                    point(size.width - get_frame_width(), 0)
-                  , extent(get_frame_width(), size.height)))
-            );
-        }
-    }
 }
 
 // ==========================================================================
@@ -436,7 +213,7 @@ void solid_frame::do_event(any const &event)
     
     if (!handled)
     {
-        frame::do_event(event);
+        composite_component::do_event(event);
     }
 }
 

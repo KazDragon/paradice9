@@ -25,8 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/composite_component.hpp"
-#include "munin/container.hpp"
+#include "munin/basic_container.hpp"
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 using namespace boost;
 using namespace std;
@@ -44,11 +45,10 @@ struct composite_component::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-composite_component::composite_component(
-    shared_ptr<container> underlying_container)
+composite_component::composite_component()
     : pimpl_(new impl)
 {
-    pimpl_->container_ = underlying_container;
+    pimpl_->container_ = make_shared<basic_container>();
     
     // Connect the underlying container's default signals to the signals
     // of this component.

@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Button.
+// Munin ANSI Glyph Constants.
 //
-// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,84 +24,44 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "munin/button.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/framed_component.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/image.hpp"
-#include "munin/solid_frame.hpp"
+#include "munin/glyph.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
+#include <iostream>
 
 namespace munin {
-    
-// ==========================================================================
-// BUTTON::IMPLEMENTATION STRUCTURE
-// ==========================================================================
-struct button::impl
-{
-    // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    impl()
-    {
-    }
-};
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-button::button(runtime_array<element_type> const &caption)
-    : pimpl_(make_shared<impl>())
-{
-    BOOST_AUTO(img, make_shared<image>(caption));
-    img->set_can_focus(true);
-    
-    get_container()->set_layout(
-        make_shared<grid_layout>(1, 1));
-    
-    get_container()->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
-          , img));
-}
-
-// ==========================================================================
-// DESTRUCTOR
-// ==========================================================================
-button::~button()
+glyph::glyph(char character, char character_set, char locale)
+    : character_(character)
+    , character_set_(character_set)
+    , locale_(locale)
 {
 }
 
 // ==========================================================================
-// DO_EVENT
+// OPERATOR==
 // ==========================================================================
-void button::do_event(any const &event)
+bool operator==(glyph const &lhs, glyph const &rhs)
 {
-    BOOST_AUTO(ch, any_cast<char>(&event));
-    
-    if (ch != NULL)
-    {
-        if (*ch == ' ' || *ch == '\n')
-        {
-            on_click();
-        }
-    }
+    return lhs.character_     == rhs.character_
+        && lhs.character_set_ == rhs.character_set_
+        && lhs.locale_        == rhs.locale_;
+}
 
-    BOOST_AUTO(report, any_cast<odin::ansi::mouse_report>(&event));
-        
-    if (report != NULL)
-    {
-        if (report->button_ == 0)
-        {
-            on_click();
-        }
-    }
+// ==========================================================================
+// OPERATOR<<
+// ==========================================================================
+std::ostream &operator<<(std::ostream &out, glyph const &attr)
+{
+    out << "glyph[";
+
+    // TODO: add glyphs.
+
+    out << "]";
+
+    return out;
 }
 
 }

@@ -63,8 +63,7 @@ struct command_prompt::impl
 // CONSTRUCTOR
 // ==========================================================================
 command_prompt::command_prompt()
-    : composite_component(make_shared<basic_container>())
-    ,  pimpl_(make_shared<impl>())
+    : pimpl_(make_shared<impl>())
 {
     pimpl_->edit_ = make_shared<edit>();
 

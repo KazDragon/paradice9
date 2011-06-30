@@ -64,8 +64,7 @@ struct user_interface::impl
 // CONSTRUCTOR
 // ==========================================================================
 user_interface::user_interface()
-    : composite_component(make_shared<basic_container>())
-    , pimpl_(make_shared<impl>())
+    : pimpl_(make_shared<impl>())
 {
     pimpl_->active_screen_              = make_shared<card>();
     pimpl_->intro_screen_               = make_shared<intro_screen>();

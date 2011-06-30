@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Image Component.
+// Munin Filled Box Component.
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,96 +24,118 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "munin/image.hpp"
+#include "munin/filled_box.hpp"
 #include "munin/canvas.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
-#include "odin/ascii/protocol.hpp"
-#include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
-#include <algorithm>
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
 
 // ==========================================================================
-// IMAGE_FROM_TEXT
+// FILLED_BOX::IMPLEMENTATION STRUCTURE
 // ==========================================================================
-runtime_array< runtime_array<element_type> >
-    image_from_text(runtime_array<string> const &text)
+struct filled_box::impl
 {
-    runtime_array< runtime_array<element_type> > elements(text.size());
-
-    for (u32 index = 0; index < elements.size(); ++index)
-    {
-        elements[index] = munin::ansi::elements_from_string(text[index]);
-    }
-    
-    return elements;
-}
-
-// ==========================================================================
-// IMAGE::IMPLEMENTATION STRUCTURE
-// ==========================================================================
-struct image::impl : boost::noncopyable
-{
-    runtime_array< runtime_array<element_type> > elements_;
+    element_type element_;
+    extent       preferred_size_;
+    bool         locked_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-image::image(runtime_array< runtime_array<element_type> > elements)
+filled_box::filled_box(element_type const &element)
     : pimpl_(make_shared<impl>())
 {
-    pimpl_->elements_  = elements;
-    set_can_focus(false);
-}
-
-// ==========================================================================
-// CONSTRUCTOR
-// ==========================================================================
-image::image(runtime_array<element_type> elements)
-    : pimpl_(make_shared<impl>())
-{
-    pimpl_->elements_ = runtime_array< runtime_array<element_type> >(
-        &elements, 1);
+    pimpl_->element_        = element;
+    pimpl_->preferred_size_ = extent(1, 1);
+    pimpl_->locked_         = false;
     set_can_focus(false);
 }
 
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-image::~image()
+filled_box::~filled_box()
 {
+}
+
+// ==========================================================================
+// SET_PREFERRED_SIZE
+// ==========================================================================
+void filled_box::set_preferred_size(extent preferred_size)
+{
+    pimpl_->preferred_size_ = preferred_size;
 }
 
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent image::do_get_preferred_size() const
+extent filled_box::do_get_preferred_size() const
 {
-    extent preferred_size;
-    preferred_size.height = pimpl_->elements_.size();
-    
-    BOOST_FOREACH(runtime_array<element_type> row, pimpl_->elements_)
+    return pimpl_->preferred_size_;
+}
+
+// ==========================================================================
+// DO_SET_ATTRIBUTE
+// ==========================================================================
+void filled_box::do_set_attribute(string const &name, any const &attr)
+{
+    bool attribute_changed = false;
+
+    if (name == ATTRIBUTE_LOCK)
     {
-        preferred_size.width = (max)(
-            u32(preferred_size.width)
-          , u32(row.size()));
+        BOOST_AUTO(lock, any_cast<bool>(&attr));
+
+        if (lock != NULL)
+        {
+            pimpl_->locked_ = *lock;
+        }
     }
-    
-    return preferred_size;
+
+    if (pimpl_->locked_)
+    {
+        return;
+    }
+
+    if (name == ATTRIBUTE_GLYPH)
+    {
+        BOOST_AUTO(gly, any_cast<glyph>(&attr));
+
+        if (gly != NULL)
+        {
+            pimpl_->element_.glyph_ = *gly;
+            attribute_changed = true;
+        }
+    }
+
+    if (name == ATTRIBUTE_PEN)
+    {
+        BOOST_AUTO(pen, any_cast<attribute>(&attr));
+
+        if (pen != NULL)
+        {
+            pimpl_->element_.attribute_ = *pen;
+            attribute_changed = true;
+        }
+    }
+
+    if (attribute_changed)
+    {
+        on_redraw(list_of(rectangle(point(), get_size())));
+    }
 }
 
 // ==========================================================================
 // DO_DRAW
 // ==========================================================================
-void image::do_draw(
+void filled_box::do_draw(
     canvas          &cvs
   , rectangle const &region)
 {
@@ -125,15 +147,7 @@ void image::do_draw(
              column < u32(region.origin.x + region.size.width);
              ++column)
         {
-            if (row < pimpl_->elements_.size()
-             && column < pimpl_->elements_[row].size())
-            {
-                cvs[column][row] = pimpl_->elements_[row][column];
-            }
-            else
-            {
-                cvs[column][row] = element_type(' ', attribute());
-            }
+            cvs[column][row] = pimpl_->element_;
         }
     }
 }

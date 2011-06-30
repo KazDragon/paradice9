@@ -108,8 +108,7 @@ struct password_change_screen::impl
 // CONSTRUCTOR
 // ==========================================================================
 password_change_screen::password_change_screen()
-    : composite_component(make_shared<basic_container>())
-    , pimpl_(make_shared<impl>())
+    : pimpl_(make_shared<impl>())
 {
     BOOST_AUTO(content, get_container());
     content->set_layout(make_shared<grid_layout>(1, 1));

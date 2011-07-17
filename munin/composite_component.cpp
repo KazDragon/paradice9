@@ -58,6 +58,12 @@ composite_component::composite_component()
     get_container()->on_position_changed.connect(
         bind(ref(on_position_changed), _1, _2));
 
+    get_container()->on_size_changed.connect(
+        bind(ref(on_size_changed)));
+
+    get_container()->on_preferred_size_changed.connect(
+        bind(ref(on_preferred_size_changed)));
+
     get_container()->on_focus_set.connect(
         bind(ref(on_focus_set)));
 

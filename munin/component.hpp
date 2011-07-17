@@ -220,6 +220,27 @@ public :
     > on_redraw;
     
     //* =====================================================================
+    /// \fn on_preferred_size_changed
+    /// \brief Certain components sizes want to change during their lifetime,
+    /// such as text controls that grow with the text within them.  Connect
+    /// to this signal in order to receive notifications about this.
+    //* =====================================================================
+    boost::signal
+    <
+        void ()
+    > on_preferred_size_changed;
+
+    //* =====================================================================
+    /// \fn on_size_changed
+    /// \brief Certain components sizes change during their lifetime.
+    /// Connect to this signal in order to receive notifications about this.
+    //* =====================================================================
+    boost::signal
+    <
+        void ()
+    > on_size_changed;
+
+    //* =====================================================================
     /// \fn on_position_changed
     /// \param from The position from which the component moved.
     /// \param to   The position to which the component moved.

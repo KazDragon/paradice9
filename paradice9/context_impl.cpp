@@ -235,13 +235,27 @@ shared_ptr<paradice::account> context_impl::load_account(string const &name)
     
     if (exists(account_path))
     {
-        ifstream in(account_path.string().c_str());
-        xml_iarchive ia(in);
-        
-        shared_ptr<paradice::account> account(new paradice::account);
-        ia >> boost::serialization::make_nvp("account", *account);
-        
-        return account;
+        try
+        {
+            ifstream in(account_path.string().c_str());
+            xml_iarchive ia(in);
+            
+            shared_ptr<paradice::account> account(new paradice::account);
+            ia >> boost::serialization::make_nvp("account", *account);
+            
+            return account;
+        }
+        catch (std::exception &ex)
+        {
+            cerr << "Exception caught trying to load account: "
+                 << account_path.string()
+                 << "\n"
+                 << "    Error: "
+                 << ex.what()
+                 << endl;
+
+            return shared_ptr<paradice::account>();
+        }
     }
     
     return shared_ptr<paradice::account>();
@@ -256,9 +270,21 @@ void context_impl::save_account(shared_ptr<paradice::account> acct)
         account_path
       , get_accounts_path() / acct->get_name());
     
-    ofstream out(account_path.string().c_str());
-    xml_oarchive oa(out);
-    oa << boost::serialization::make_nvp("account", *acct);
+    try
+    {
+        ofstream out(account_path.string().c_str());
+        xml_oarchive oa(out);
+        oa << boost::serialization::make_nvp("account", *acct);
+    }
+    catch (std::exception &ex)
+    {
+        cerr << "Exception caught trying to save account: "
+             << account_path.string()
+             << "\n"
+             << "    Error: "
+             << ex.what()
+             << endl;
+    }
 }
 
 // ==========================================================================
@@ -273,13 +299,27 @@ shared_ptr<paradice::character> context_impl::load_character(
     
     if (exists(character_path))
     {
-        ifstream in(character_path.string().c_str());
-        xml_iarchive ia(in);
-        
-        shared_ptr<paradice::character> character(new paradice::character);
-        ia >> boost::serialization::make_nvp("character", *character);
-        
-        return character;
+        try
+        {
+            ifstream in(character_path.string().c_str());
+            xml_iarchive ia(in);
+            
+            shared_ptr<paradice::character> character(new paradice::character);
+            ia >> boost::serialization::make_nvp("character", *character);
+            
+            return character;
+        }
+        catch (std::exception &ex)
+        {
+            cerr << "Exception caught trying to load character: "
+                 << character_path.string()
+                 << "\n"
+                 << "    Error: "
+                 << ex.what()
+                 << endl;
+
+            return shared_ptr<paradice::character>();
+        }
     }
     
     return shared_ptr<paradice::character>();
@@ -294,9 +334,21 @@ void context_impl::save_character(shared_ptr<paradice::character> ch)
         character_path
       , get_characters_path() / ch->get_name());
     
-    ofstream out(character_path.string().c_str());
-    xml_oarchive oa(out);
-    oa << boost::serialization::make_nvp("character", *ch);
+    try
+    {
+        ofstream out(character_path.string().c_str());
+        xml_oarchive oa(out);
+        oa << boost::serialization::make_nvp("character", *ch);
+    }
+    catch (std::exception &ex)
+    {
+        cerr << "Exception caught trying to save character: "
+             << character_path.string()
+             << "\n"
+             << "    Error: "
+             << ex.what()
+             << endl;
+    }
 }
 
 // ==========================================================================

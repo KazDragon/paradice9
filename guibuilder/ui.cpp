@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "ui.hpp"
+#include "sized_block.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
@@ -34,6 +35,7 @@
 #include "munin/image.hpp"
 #include "munin/edit.hpp"
 #include "munin/framed_component.hpp"
+#include "munin/scroll_pane.hpp"
 #include "munin/solid_frame.hpp"
 #include "munin/text_area.hpp"
 #include "munin/vertical_scroll_bar.hpp"
@@ -135,11 +137,25 @@ void on_up(weak_ptr<vertical_scroll_bar> weak_scroll_bar)
 }
 
 ui::ui()
-    : composite_component(make_shared<basic_container>())
 {
     BOOST_AUTO(container, get_container());
-    container->set_layout(make_shared<compass_layout>());
+    container->set_layout(make_shared<grid_layout>(1, 1));
 
+    glyph plusglyph(
+        char(206)
+      , odin::ansi::character_set::CHARACTER_SET_G0
+      , odin::ansi::character_set::LOCALE_SCO);
+
+    attribute pen;
+    pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
+    pen.intensity_         = odin::ansi::graphics::INTENSITY_BOLD;
+
+    element_type element(plusglyph, pen);
+
+    BOOST_AUTO(block, make_shared<sized_block>(element, munin::extent(120, 40)));
+
+    container->add_component(make_shared<scroll_pane>(block));
+    /*
     BOOST_AUTO(hscrollbar, make_shared<horizontal_scroll_bar>());
     hscrollbar->on_page_left.connect(
         bind(on_left, weak_ptr<horizontal_scroll_bar>(hscrollbar)));
@@ -189,7 +205,7 @@ ui::ui()
     container->add_component(
         vscrollbar
       , COMPASS_LAYOUT_WEST);
-    
+    */
     
    
     /*

@@ -312,7 +312,14 @@ void viewport::do_draw(
         cvs.apply_offset(offset.x, offset.y);
     } BOOST_SCOPE_EXIT_END
     
-    pimpl_->component_->draw(cvs, region);
+    // So with the canvas offset, we also need to recalculate the draw region
+    // by that same offset.
+    rectangle offset_region(
+        point(region.origin.x + offset.x,
+              region.origin.y + offset.y),
+              region.size);
+
+    pimpl_->component_->draw(cvs, offset_region);
 }
 
 // ==========================================================================

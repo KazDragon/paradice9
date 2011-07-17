@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Solid Frame.
+// Guibuilder Sized Block Component.
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,48 +24,70 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_SOLID_FRAME_HPP_
-#define MUNIN_SOLID_FRAME_HPP_
+#ifndef GUIBUILDER_SIZED_BLOCK_HPP_
+#define GUIBUILDER_SIZED_BLOCK_HPP_
 
-#include "munin/composite_component.hpp"
+#include "munin/basic_component.hpp"
+#include "odin/runtime_array.hpp"
+#include <boost/shared_ptr.hpp>
 
-namespace munin {
+namespace guibuilder {
 
-class solid_frame : public composite_component
+//* =========================================================================
+/// \brief A class that models a single-line text control with a frame
+/// bordering it.
+//* =========================================================================
+class sized_block : public munin::basic_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    solid_frame();
-    
+    sized_block(
+        munin::element_type const &element
+      , munin::extent              size);
+
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~solid_frame();
-    
-    //* =====================================================================
-    /// \brief Sets whether the frame is 'closeable' or not.  That is,
-    /// whether it has a close icon that can be clicked.
-    //* =====================================================================
-    void set_closeable(bool closeable);
-    
-    //* =====================================================================
-    /// \fn on_close
-    /// \brief A signal that is raised whenever the close icon is clicked.
-    //* =====================================================================
-    boost::signal<
-        void ()
-    > on_close;
-    
+    virtual ~sized_block();
+
 protected :
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
+    /// \brief Called by set_size().  Derived classes must override this 
+    /// function in order to set the size of the component in a custom 
+    /// manner.
     //* =====================================================================
-    virtual void do_event(boost::any const &event);
+    virtual void do_set_size(munin::extent const &size);
 
-private :    
+    //* =====================================================================
+    /// \brief Called by get_size().  Derived classes must override this
+    /// function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual munin::extent do_get_size() const;
+
+    //* =====================================================================
+    /// \brief Called by get_preferred_size().  Derived classes must override
+    /// this function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual munin::extent do_get_preferred_size() const;
+    
+    //* =====================================================================
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw 
+    /// the part of itself specified by the region.
+    ///
+    /// \param cvs the canvas in which the component should draw itself.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
+    //* =====================================================================
+    virtual void do_draw(
+        munin::canvas          &cvs
+      , munin::rectangle const &region);
+    
+private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
@@ -73,3 +95,4 @@ private :
 }
 
 #endif
+

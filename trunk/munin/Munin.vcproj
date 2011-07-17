@@ -244,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\scroll_pane.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\solid_frame.cpp"
 				>
 			</File>
@@ -371,6 +375,10 @@
 			</File>
 			<File
 				RelativePath=".\named_frame.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\scroll_pane.hpp"
 				>
 			</File>
 			<File

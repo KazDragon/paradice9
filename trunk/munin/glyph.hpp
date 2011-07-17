@@ -58,6 +58,43 @@ bool operator==(glyph const &lhs, glyph const &rhs);
 
 std::ostream &operator<<(std::ostream &out, glyph const &attr);
 
+// Some common glyphs
+
+glyph const single_lined_top_right_corner(
+    char(191)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+glyph const double_lined_top_left_corner(
+    char(201)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+    
+glyph const double_lined_top_right_corner(
+    char(187)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+glyph const double_lined_bottom_left_corner(
+    char(200)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+glyph const double_lined_bottom_right_corner(
+    char(188)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+    
+glyph const double_lined_horizontal_beam(
+    char(205)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
+glyph const double_lined_vertical_beam(
+    char(186)
+  , odin::ansi::character_set::CHARACTER_SET_G0
+  , odin::ansi::character_set::LOCALE_SCO);
+
 }
 
 #endif

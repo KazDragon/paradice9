@@ -238,9 +238,18 @@ void framed_component::do_event(any const &event)
                 subreport.y_position_ = u8(report->y_position_ - position.y);
 
                 pimpl_->interior_->event(subreport);
+                handled = true;
             }
             else
             {
+                BOOST_AUTO(position, pimpl_->border_->get_position());
+                odin::ansi::mouse_report subreport;
+                subreport.button_     = report->button_;
+                subreport.x_position_ = u8(report->x_position_ - position.x);
+                subreport.y_position_ = u8(report->y_position_ - position.y);
+
+                pimpl_->border_->event(subreport);
+
                 set_focus();
                 handled = true;
             }

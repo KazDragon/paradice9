@@ -230,20 +230,24 @@ struct scroll_pane::impl
     // ======================================================================
     // CALCULATE_HORIZONTAL_SCROLLBAR
     // ======================================================================
-    u8 calculate_horizontal_scrollbar()
+    optional<u8> calculate_horizontal_scrollbar()
     {
         BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, self_.get_size());
+        BOOST_AUTO(size, viewport_->get_size());
         BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
 
         u8 slider_position = 0;
 
+        if (underlying_component_size.width <= size.width)
+        {
+            return optional<u8>();
+        }
+
         if (origin.x != 0)
         {
-            BOOST_AUTO(max_right,
-                (underlying_component_size.width < size.width
-              ? 0
-              : underlying_component_size.width - size.width));
+            BOOST_AUTO(
+                max_right
+              , underlying_component_size.width - size.width);
 
             if (origin.x == max_right)
             {
@@ -271,20 +275,24 @@ struct scroll_pane::impl
     // ======================================================================
     // CALCULATE_VERTICAL_SCROLLBAR
     // ======================================================================
-    u8 calculate_vertical_scrollbar()
+    optional<u8> calculate_vertical_scrollbar()
     {
         BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, self_.get_size());
+        BOOST_AUTO(size, viewport_->get_size());
         BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
 
         u8 slider_position = 0;
 
+        if (underlying_component_size.height <= size.height)
+        {
+            return optional<u8>();
+        }
+
         if (origin.y != 0)
         {
-            BOOST_AUTO(max_bottom,
-                (underlying_component_size.height < size.height
-              ? 0
-              : underlying_component_size.height - size.height));
+            BOOST_AUTO(
+                max_bottom
+              , underlying_component_size.height - size.height);
 
             if (origin.y == max_bottom)
             {
@@ -315,7 +323,6 @@ struct scroll_pane::impl
     void calculate_scrollbars()
     {
         // Fix the scrollbars to be at the correct percentages.
-        printf("calculate_scrollbars\n");
         BOOST_AUTO(
             horizontal_slider_position
           , calculate_horizontal_scrollbar());
@@ -341,6 +348,15 @@ scroll_pane::scroll_pane(shared_ptr<component> underlying_component)
     pimpl_->viewport_ = make_shared<viewport>(underlying_component);
     pimpl_->scroll_frame_ = make_shared<scroll_frame>();
     pimpl_->underlying_component_ = underlying_component;
+
+    pimpl_->viewport_->on_size_changed.connect(
+        bind(&impl::calculate_scrollbars, pimpl_.get()));
+
+    pimpl_->viewport_->on_subcomponent_size_changed.connect(
+        bind(&impl::calculate_scrollbars, pimpl_.get()));
+
+    pimpl_->viewport_->on_origin_changed.connect(
+        bind(&impl::calculate_scrollbars, pimpl_.get()));
 
     pimpl_->scroll_frame_->horizontal_scroll_bar_->on_page_left.connect(
         bind(&impl::on_page_left, pimpl_.get()));

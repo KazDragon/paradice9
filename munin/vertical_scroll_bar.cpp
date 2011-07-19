@@ -28,6 +28,7 @@
 #include "munin/canvas.hpp"
 #include "munin/algorithm.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -36,6 +37,7 @@
 using namespace munin;
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -50,7 +52,6 @@ struct vertical_scroll_bar::impl
     // ======================================================================
     impl(vertical_scroll_bar &self)
         : self_(self)
-        , percentage_(0)
     {
         calculate_slider_position();
     }
@@ -63,7 +64,12 @@ struct vertical_scroll_bar::impl
       , rectangle const &region)
     {
         draw_beam(cvs, region);
-        draw_slider(cvs, region);
+
+        // Only draw the slider if the percentage is initialized
+        if (percentage_.is_initialized())
+        {
+            draw_slider(cvs, region);
+        }
     }
 
     // ======================================================================
@@ -87,7 +93,7 @@ struct vertical_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = element_type(vbeam, attribute());
+                cvs[x_coord][y_coord] = element_type(vbeam, pen_);
             }
         }
     }
@@ -123,11 +129,11 @@ struct vertical_scroll_bar::impl
         // is slightly inwards.
         slider_position_ = (percentage == 0) 
                          ? 0
-                         : (std::max)(slider_position_, u32(1));
+                         : (std::max)(slider_position_, s32(1));
                         
         slider_position_ = (percentage == 100)
                          ? (size.height - 1)
-                         : (std::min)(slider_position_, u32(size.height - 2)); 
+                         : (std::min)(slider_position_, s32(size.height - 2)); 
 
     }
 
@@ -144,12 +150,12 @@ struct vertical_scroll_bar::impl
             region
           , rectangle(point(0, slider_position_), extent(1, 1))))
         {
-            glyph vslider(
+            static glyph const vslider(
                 char(215)
               , odin::ansi::character_set::CHARACTER_SET_G0
               , odin::ansi::character_set::LOCALE_SCO);
             
-            cvs[0][slider_position_] = element_type(vslider, attribute());
+            cvs[0][slider_position_] = element_type(vslider, pen_);
         }
     }
     
@@ -172,7 +178,8 @@ struct vertical_scroll_bar::impl
     }
     
     vertical_scroll_bar &self_;
-    u32                    slider_position_;
+    attribute              pen_;
+    s32                    slider_position_;
     optional<u8>           percentage_;
 };
 
@@ -182,6 +189,7 @@ struct vertical_scroll_bar::impl
 vertical_scroll_bar::vertical_scroll_bar()
 {
     pimpl_ = make_shared<impl>(ref(*this));
+    set_can_focus(false);
 }
 
 // ==========================================================================
@@ -205,6 +213,7 @@ optional<u8> vertical_scroll_bar::get_slider_position() const
 void vertical_scroll_bar::set_slider_position(optional<u8> percentage)
 {
     BOOST_AUTO(old_slider_position, pimpl_->slider_position_);
+    BOOST_AUTO(old_percentage, pimpl_->percentage_);
 
     pimpl_->percentage_ = percentage;
     pimpl_->calculate_slider_position();
@@ -214,13 +223,15 @@ void vertical_scroll_bar::set_slider_position(optional<u8> percentage)
         // The new percentage has caused the slider position to move.
         // Therefore, we need to redraw both where the slider was, and
         // where the slider now is.
-        vector<rectangle> regions;
-        regions.push_back(rectangle(
-            point(0, old_slider_position), extent(1, 1)));
-        regions.push_back(rectangle(
-            point(0, pimpl_->slider_position_), extent(1, 1)));
-        
-        on_redraw(regions);
+        on_redraw(list_of
+            (rectangle(point(0, old_slider_position), extent(1, 1)))
+            (rectangle(point(0, pimpl_->slider_position_), extent(1, 1))));
+    }
+    else if (old_percentage.is_initialized() == percentage.is_initialized())
+    {
+        // The slider has been turned either on or off.  Redraw it.
+        on_redraw(list_of
+            (rectangle(point(pimpl_->slider_position_, 0), extent(1, 1))));
     }
 }
 
@@ -262,6 +273,24 @@ void vertical_scroll_bar::do_event(any const &event)
     if (report != NULL)
     {
         pimpl_->on_mouse_event(*report);
+    }
+}
+
+// ==========================================================================
+// DO_SET_ATTRIBUTE
+// ==========================================================================
+void vertical_scroll_bar::do_set_attribute(string const &name, any const &attr)
+{
+    if (name == ATTRIBUTE_PEN)
+    {
+        BOOST_AUTO(pen, any_cast<attribute>(&attr));
+
+        if (pen != NULL)
+        {
+            pimpl_->pen_ = *pen;
+        }
+
+        on_redraw(list_of(rectangle(point(), get_size())));
     }
 }
 

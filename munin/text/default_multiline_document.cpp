@@ -258,9 +258,16 @@ void default_multiline_document::do_set_caret_position(munin::point const& pt)
     BOOST_AUTO(
         line_length
       , pimpl_->get_line_length(pimpl_->caret_position_.y));
-    
-    pimpl_->caret_position_.x =
-        (min)(u32(pt.x), u32(line_length));
+
+    if (line_length != 0)
+    {
+        pimpl_->caret_position_.x = 
+            (min)(u32(pt.x), u32(line_length - 1));
+    }
+    else
+    {
+        pimpl_->caret_position_.x = 0;
+    }
 }
 
 // ==========================================================================

@@ -186,6 +186,11 @@ public :
     point get_cursor_position() const;
     
     //* =====================================================================
+    /// \brief Sets the cursor's current position within the component.
+    //* =====================================================================
+    void set_cursor_position(point const &position);
+
+    //* =====================================================================
     /// \brief Sets an implementation-specific attribute of the component.
     //* =====================================================================
     void set_attribute(std::string const &name, boost::any const &attr);
@@ -424,6 +429,13 @@ protected :
     //* =====================================================================
     virtual point do_get_cursor_position() const = 0;
     
+    //* =====================================================================
+    /// \brief Called by set_cursor_position().  Derived classes must
+    /// override this function in order to set the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_cursor_position(point const &position) = 0;
+
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.

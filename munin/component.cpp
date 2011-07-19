@@ -203,6 +203,14 @@ point component::get_cursor_position() const
 }
 
 // ==========================================================================
+// SET_CURSOR_POSITION
+// ==========================================================================
+void component::set_cursor_position(point const &position)
+{
+    do_set_cursor_position(position);
+}
+
+// ==========================================================================
 // SET_ATTRIBUTE
 // ==========================================================================
 void component::set_attribute(std::string const &name, boost::any const &attr)

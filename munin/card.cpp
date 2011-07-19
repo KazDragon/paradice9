@@ -399,6 +399,19 @@ point card::do_get_cursor_position() const
 }
 
 // ==========================================================================
+// DO_SET_CURSOR_POSITION
+// ==========================================================================
+void card::do_set_cursor_position(point const &position)
+{
+    BOOST_AUTO(current_face, pimpl_->get_current_face());
+
+    if (current_face.is_initialized())
+    {
+        return current_face.get()->set_cursor_position(position);
+    }
+}
+
+// ==========================================================================
 // DO_SET_ATTRIBUTE
 // ==========================================================================
 void card::do_set_attribute(

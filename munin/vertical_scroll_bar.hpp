@@ -119,6 +119,13 @@ protected :
     //* =====================================================================
     virtual void do_event(boost::any const &event);
     
+    //* =====================================================================
+    /// \brief Called by set_attribute().  Derived classes must override this
+    /// function in order to set an attribute in a custom manner.
+    //* =====================================================================
+    virtual void do_set_attribute(
+        std::string const &name, boost::any const &attr);
+
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

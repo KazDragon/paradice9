@@ -955,6 +955,30 @@ point basic_container::do_get_cursor_position() const
 }
 
 // ==========================================================================
+// DO_SET_CURSOR_POSITIONG
+// ==========================================================================
+void basic_container::do_set_cursor_position(point const &position)
+{
+    // If we have no focus, then ignore this.
+    if (pimpl_->has_focus_ && pimpl_->cursor_state_)
+    {
+        // Find the subcomponent that has focus and set its cursor 
+        // position.  This must then be offset by the subcomponent's 
+        // position within our container.
+        BOOST_FOREACH(
+            boost::shared_ptr<component> current_component
+          , pimpl_->components_)
+        {
+            if (current_component->has_focus())
+            {
+                current_component->set_cursor_position(
+                    position - current_component->get_position());
+            }
+        }
+    }
+}
+
+// ==========================================================================
 // DO_SET_ATTRIBUTE
 // ==========================================================================
 void basic_container::do_set_attribute(

@@ -253,6 +253,14 @@ point composite_component::do_get_cursor_position() const
 }
 
 // ==========================================================================
+// DO_SET_CURSOR_POSITION
+// ==========================================================================
+void composite_component::do_set_cursor_position(point const &position)
+{
+    pimpl_->container_->set_cursor_position(position);
+}
+
+// ==========================================================================
 // DO_DRAW
 // ==========================================================================
 void composite_component::do_draw(

@@ -263,6 +263,13 @@ point basic_component::do_get_cursor_position() const
 }
 
 // ==========================================================================
+// DO_SET_CURSOR_POSITION
+// ==========================================================================
+void basic_component::do_set_cursor_position(point const &position)
+{
+}
+
+// ==========================================================================
 // GET_ATTRIBUTE
 // ==========================================================================
 any basic_component::get_attribute(string const &name) const

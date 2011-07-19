@@ -30,6 +30,7 @@
 #include "munin/canvas.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -38,6 +39,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -52,7 +54,6 @@ struct text_area::impl
         , document_(
               make_shared<munin::text::default_multiline_document>())
         , cursor_state_(true)
-        , document_base_(0)
     {
         document_->on_redraw.connect(
             bind(&impl::on_document_changed, this, _1));
@@ -70,29 +71,19 @@ struct text_area::impl
     }
     
     //* =====================================================================
-    /// \brief Sets the size of the document
+    /// \brief Gets the size of the document.
+    //* =====================================================================
+    extent get_size() const
+    {
+        return document_->get_size();
+    }
+
+    //* =====================================================================
+    /// \brief Sets the size of the document.
     //* =====================================================================
     void set_size(extent const &size)
     {
         document_->set_size(size);
-        
-        // If the size has shrunk, then it may mean that our document base is 
-        // far too low, leaving only one line at the top, and many blank lines
-        // below.  Therefore, we check that our document base is as low as
-        // possible.
-        BOOST_AUTO(height,          self_.get_size().height);
-        BOOST_AUTO(document_height, document_->get_size().height);
-        BOOST_AUTO(
-            highest_document_base,
-            document_height < height
-          ? 0
-          : document_height - height);
-        
-        if (document_base_ > u32(highest_document_base))
-        {
-            document_base_ = highest_document_base;
-            document_->set_caret_index(document_->get_caret_index());
-        }
     }
     
     //* =====================================================================
@@ -116,9 +107,17 @@ struct text_area::impl
     //* =====================================================================
     point get_cursor_position() const
     {
-        return cursor_position_;
+        return document_->get_caret_position();
     }
-    
+
+    //* =====================================================================
+    /// \brief Sets the cursor position.
+    //* =====================================================================
+    void set_cursor_position(point const &position)
+    {
+        document_->set_caret_position(position);
+    }
+
     //* =====================================================================
     /// \brief Draws the document onto the canvas. 
     //* =====================================================================
@@ -132,7 +131,7 @@ struct text_area::impl
         {
             BOOST_AUTO(
                 line
-              , document_->get_line(document_base_ + row_index));
+              , document_->get_line(row_index));
             
             u32 column_index = region.origin.x;
             
@@ -190,6 +189,14 @@ private :
     //* =====================================================================
     void on_document_changed(vector<rectangle> regions)
     {
+        BOOST_AUTO(size, self_.get_size());
+        BOOST_AUTO(preferred_size, document_->get_size());
+
+        if (size != preferred_size)
+        {
+            self_.on_preferred_size_changed();
+        }
+
         repaint();
     }
     
@@ -199,39 +206,7 @@ private :
     //* =====================================================================
     void on_caret_position_changed()
     {
-        BOOST_AUTO(new_position, document_->get_caret_position());
-        
-        if (u32(new_position.y) < document_base_)
-        {
-            // The caret has gone off the top of our document base.  Rebase
-            // ourselves and repaint.  Also set the cursor position to the
-            // base.
-            document_base_ = new_position.y;
-            repaint();
-            cursor_position_ = point(new_position.x, 0);
-            self_.on_cursor_position_changed(cursor_position_);
-        }
-        else if (
-            u32(new_position.y + 1) > document_base_ + self_.get_size().height)
-        {
-            // The caret has gone off the bottom of our component.  Rebase
-            // ourselves to that the caret will be at the bottom, and
-            // repaint.
-            document_base_ = (new_position.y + 1) - self_.get_size().height;
-            repaint();
-            cursor_position_ = point(
-                new_position.x
-              , new_position.y - document_base_);
-            self_.on_cursor_position_changed(cursor_position_);
-        }
-        else
-        {
-            // Simply set the cursor position.
-            cursor_position_ = point(
-                new_position.x
-              , new_position.y - document_base_);
-            self_.on_cursor_position_changed(cursor_position_);
-        }
+        self_.on_cursor_position_changed(document_->get_caret_position());
     }
     
     //* =====================================================================
@@ -239,10 +214,7 @@ private :
     //* =====================================================================
     void repaint()
     {
-        rectangle redraw_region(point(), self_.get_size());
-        vector<rectangle> redraw_regions;
-        redraw_regions.push_back(redraw_region);
-        self_.on_redraw(redraw_regions);
+        self_.on_redraw(list_of(rectangle(point(), self_.get_size())));
     }
     
     //* =====================================================================
@@ -293,69 +265,6 @@ private :
     void do_cursor_forward_key_event(u32 times)
     {
         document_->set_caret_index(document_->get_caret_index() + times);
-    }
-    
-    //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the PGUP key
-    /// has been pressed.
-    //* =====================================================================
-    void do_pgup_key_event()
-    {
-        // PgUp - shift the document base one page up, then shift the
-        // cursor one page up.  Then repaint.
-        BOOST_AUTO(size, self_.get_size());
-        
-        if (document_base_ < u32(size.height))
-        {
-            document_base_ = 0;
-        }
-        else
-        {
-            document_base_ -= size.height;
-        }
-        
-        BOOST_AUTO(caret_position, document_->get_caret_position());
-        
-        if (caret_position.y < size.height)
-        {
-            caret_position.y = 0;
-        }
-        else
-        {
-            caret_position.y -= size.height;
-        }
-        
-        document_->set_caret_position(caret_position);
-        
-        repaint();
-    }
-    
-    //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the PGDN key
-    /// has been pressed.
-    //* =====================================================================
-    void do_pgdn_key_event()
-    {
-        // PgDn - shift the document base one page down, then shift the
-        // cursor one page down.  Then repaint.
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(lines, document_->get_number_of_lines());
-        
-        // We don't want the document base to be more than one page before
-        // the end.
-        u32 maximum_base = lines <= u32(size.height)
-                         ? 0
-                         : lines - size.height;
-                         
-        document_base_ = 
-            (min)(u32(document_base_ + size.height), maximum_base);
-        
-        BOOST_AUTO(caret_position, document_->get_caret_position());
-        caret_position.y += size.height;
-        
-        document_->set_caret_position(caret_position);
-        
-        repaint();
     }
     
     //* =====================================================================
@@ -497,18 +406,6 @@ private :
                         do_end_key_event();
                     }
                 }
-                // Check for the PGUP key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '5')
-                {
-                    do_pgup_key_event();
-                }
-                // Check for the PGDN key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '6')
-                {
-                    do_pgdn_key_event();
-                }
                 // Check for the DEL key
                 if (sequence.arguments_.size() == 1
                  && sequence.arguments_[0] == '3')
@@ -539,7 +436,7 @@ private :
             else if (isprint(ch) || ch == '\n')
             {
                 element_type data[] = { element_type(ch, attribute()) };
-                document_->insert_text(data, optional<u32>());
+                document_->insert_text(data);
             }
         }
     }
@@ -559,18 +456,16 @@ private :
                     self_.set_focus();
                 }
                 
-                self_.get_document()->set_caret_position(point(
+                self_.set_cursor_position(point(
                     report.x_position_
-                  , document_base_ + report.y_position_));
+                  , report.y_position_));
             }
         }
     }
     
     text_area                         &self_;
     shared_ptr<munin::text::document>  document_;
-    point                              cursor_position_;
     bool                               cursor_state_;
-    u32                                document_base_;
 };
 
 // ==========================================================================
@@ -597,14 +492,19 @@ shared_ptr<munin::text::document> text_area::get_document()
 }
 
 // ==========================================================================
+// DO_GET_SIZE
+// ==========================================================================
+extent text_area::do_get_size() const
+{
+    return pimpl_->get_size();
+}
+
+// ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
 void text_area::do_set_size(extent const &size)
 {
-    // On top of setting the size of this component, we also want to set
-    // the size of the document so that it can be repainted at the new
-    // size.
-    basic_component::do_set_size(size);
+    // The size is a property owned by the document, not this area.
     pimpl_->set_size(size);
 }
 
@@ -631,7 +531,15 @@ point text_area::do_get_cursor_position() const
 {
     return pimpl_->get_cursor_position();
 }
-    
+
+// ==========================================================================
+// DO_SET_CURSOR_POSITION
+// ==========================================================================
+void text_area::do_set_cursor_position(point const &position)
+{
+    pimpl_->set_cursor_position(position);
+}
+
 // ==========================================================================
 // DO_DRAW
 // ==========================================================================

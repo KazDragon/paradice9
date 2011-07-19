@@ -58,6 +58,13 @@ public :
     
 protected :
     //* =====================================================================
+    /// \brief Called by get_size().  Derived classes must override this
+    /// function in order to get the size of the component in a custom 
+    /// manner.
+    //* =====================================================================
+    virtual extent do_get_size() const;
+
+    //* =====================================================================
     /// \brief Called by set_size().  Derived classes must override this 
     /// function in order to set the size of the component in a custom 
     /// manner.
@@ -84,6 +91,13 @@ protected :
     //* =====================================================================
     virtual point do_get_cursor_position() const;
     
+    //* =====================================================================
+    /// \brief Called by set_cursor_position().  Derived classes must
+    /// override this function in order to set the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_cursor_position(point const &position);
+
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
     /// in order to draw onto the passed canvas.  A component must only draw 

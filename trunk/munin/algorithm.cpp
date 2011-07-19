@@ -215,6 +215,18 @@ vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
 static munin::rectangle clip_region(
     munin::rectangle region, munin::extent size)
 {
+    if (region.origin.x < 0)
+    {
+        size.width += region.origin.x;
+        region.origin.x = 0;
+    }
+
+    if (region.origin.y < 0)
+    {
+        size.height += region.origin.y;
+        region.origin.y = 0;
+    }
+   
     if (region.origin.x >= size.width)
     {
         region.size.width = 0;
@@ -238,7 +250,7 @@ static munin::rectangle clip_region(
             region.size.height = size.height - region.origin.y;
         }
     }
-    
+
     return region;
 }
 

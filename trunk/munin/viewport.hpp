@@ -69,6 +69,24 @@ public :
     //* =====================================================================
     void set_origin(point origin);
 
+    //* =====================================================================
+    /// \fn on_subcomponent_size_changed
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the subcomponent's size has changed.
+    //* =====================================================================
+    boost::signal<
+        void ()
+    > on_subcomponent_size_changed;
+
+    //* =====================================================================
+    /// \fn on_origin_changed
+    /// \brief Connect to this signal in order to receive notifications about
+    /// when the viewport's origin changes.
+    //* =====================================================================
+    boost::signal<
+        void ()
+    > on_origin_changed;
+
 protected :
     //* =====================================================================
     /// \brief Retrieve the underlying component.

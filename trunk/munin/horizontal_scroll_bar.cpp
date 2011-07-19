@@ -52,7 +52,6 @@ struct horizontal_scroll_bar::impl
     // ======================================================================
     impl(horizontal_scroll_bar &self)
         : self_(self)
-        , percentage_(0)
     {
         calculate_slider_position();
     }
@@ -65,7 +64,12 @@ struct horizontal_scroll_bar::impl
       , rectangle const &region)
     {
         draw_beam(cvs, region);
-        draw_slider(cvs, region);
+
+        // Only draw the slider if the percentage is initialized
+        if (percentage_.is_initialized())
+        {
+            draw_slider(cvs, region);
+        }
     }
 
     // ======================================================================
@@ -89,7 +93,7 @@ struct horizontal_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = element_type(hbeam, attribute());
+                cvs[x_coord][y_coord] = element_type(hbeam, pen_);
             }
         }
     }
@@ -146,12 +150,12 @@ struct horizontal_scroll_bar::impl
             region
           , rectangle(point(slider_position_, 0), extent(1, 1))))
         {
-            glyph hslider(
+            static glyph const hslider(
                 char(216)
               , odin::ansi::character_set::CHARACTER_SET_G0
               , odin::ansi::character_set::LOCALE_SCO);
             
-            cvs[slider_position_][0] = element_type(hslider, attribute());
+            cvs[slider_position_][0] = element_type(hslider, pen_);
         }
     }
     
@@ -174,6 +178,7 @@ struct horizontal_scroll_bar::impl
     }
     
     horizontal_scroll_bar &self_;
+    attribute              pen_;
     u32                    slider_position_;
     optional<u8>           percentage_;
 };
@@ -184,6 +189,7 @@ struct horizontal_scroll_bar::impl
 horizontal_scroll_bar::horizontal_scroll_bar()
 {
     pimpl_ = make_shared<impl>(ref(*this));
+    set_can_focus(false);
 }
 
 // ==========================================================================
@@ -207,6 +213,7 @@ optional<u8> horizontal_scroll_bar::get_slider_position() const
 void horizontal_scroll_bar::set_slider_position(optional<u8> percentage)
 {
     BOOST_AUTO(old_slider_position, pimpl_->slider_position_);
+    BOOST_AUTO(old_percentage, pimpl_->percentage_);
 
     pimpl_->percentage_ = percentage;
     pimpl_->calculate_slider_position();
@@ -218,6 +225,12 @@ void horizontal_scroll_bar::set_slider_position(optional<u8> percentage)
         // where the slider now is.
         on_redraw(list_of
             (rectangle(point(old_slider_position, 0), extent(1, 1)))
+            (rectangle(point(pimpl_->slider_position_, 0), extent(1, 1))));
+    }
+    else if (old_percentage.is_initialized() == percentage.is_initialized())
+    {
+        // The slider has been turned either on or off.  Redraw it.
+        on_redraw(list_of
             (rectangle(point(pimpl_->slider_position_, 0), extent(1, 1))));
     }
 }
@@ -260,6 +273,24 @@ void horizontal_scroll_bar::do_event(any const &event)
     if (report != NULL)
     {
         pimpl_->on_mouse_event(*report);
+    }
+}
+
+// ==========================================================================
+// DO_SET_ATTRIBUTE
+// ==========================================================================
+void horizontal_scroll_bar::do_set_attribute(string const &name, any const &attr)
+{
+    if (name == ATTRIBUTE_PEN)
+    {
+        BOOST_AUTO(pen, any_cast<attribute>(&attr));
+
+        if (pen != NULL)
+        {
+            pimpl_->pen_ = *pen;
+        }
+
+        on_redraw(list_of(rectangle(point(), get_size())));
     }
 }
 

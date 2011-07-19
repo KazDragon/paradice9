@@ -181,6 +181,13 @@ protected :
     virtual point do_get_cursor_position() const;
     
     //* =====================================================================
+    /// \brief Called by set_cursor_position().  Derived classes must
+    /// override this function in order to set the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_cursor_position(point const &position);
+
+    //* =====================================================================
     /// \brief Returns an attribute with a specified name.
     //* =====================================================================
     boost::any get_attribute(std::string const &name) const;

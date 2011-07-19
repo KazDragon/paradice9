@@ -34,6 +34,7 @@
 #include "munin/framed_component.hpp"
 #include "munin/solid_frame.hpp"
 #include "munin/named_frame.hpp"
+#include "munin/scroll_pane.hpp"
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include "odin/ansi/protocol.hpp"
@@ -139,9 +140,7 @@ main_screen::main_screen()
     pimpl_->output_field_ = make_shared<text_area>();
     pimpl_->output_field_->disable();
     pimpl_->output_container_->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
-          , pimpl_->output_field_));
+        make_shared<scroll_pane>(pimpl_->output_field_));
     
     pimpl_->help_field_ = make_shared<text_area>();
     pimpl_->help_field_->disable();

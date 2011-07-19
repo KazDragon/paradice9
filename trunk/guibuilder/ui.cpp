@@ -81,8 +81,6 @@ void on_left(weak_ptr<horizontal_scroll_bar> weak_scroll_bar)
           ? 0
           : slider_position - SLIDER_STEP);
     }
-
-    printf("Left\n");
 }
 
 void on_right(weak_ptr<horizontal_scroll_bar> weak_scroll_bar)
@@ -98,8 +96,6 @@ void on_right(weak_ptr<horizontal_scroll_bar> weak_scroll_bar)
           ? 100
           : slider_position + SLIDER_STEP);
     }
-
-    printf("Right\n");
 }
 
 void on_down(weak_ptr<vertical_scroll_bar> weak_scroll_bar)
@@ -115,9 +111,7 @@ void on_down(weak_ptr<vertical_scroll_bar> weak_scroll_bar)
           ? 100
           : slider_position + SLIDER_STEP);
     }
-    
-    printf("Down\n");
-}
+}    
 
 void on_up(weak_ptr<vertical_scroll_bar> weak_scroll_bar)
 {
@@ -132,8 +126,6 @@ void on_up(weak_ptr<vertical_scroll_bar> weak_scroll_bar)
           ? 0
           : slider_position - SLIDER_STEP);
     }
-    
-    printf("Up\n");
 }
 
 ui::ui()
@@ -141,6 +133,7 @@ ui::ui()
     BOOST_AUTO(container, get_container());
     container->set_layout(make_shared<grid_layout>(1, 1));
 
+    /*
     glyph plusglyph(
         char(206)
       , odin::ansi::character_set::CHARACTER_SET_G0
@@ -153,8 +146,11 @@ ui::ui()
     element_type element(plusglyph, pen);
 
     BOOST_AUTO(block, make_shared<sized_block>(element, munin::extent(120, 40)));
+    */
 
-    container->add_component(make_shared<scroll_pane>(block));
+    BOOST_AUTO(text, make_shared<text_area>());
+
+    container->add_component(make_shared<scroll_pane>(text));
     /*
     BOOST_AUTO(hscrollbar, make_shared<horizontal_scroll_bar>());
     hscrollbar->on_page_left.connect(

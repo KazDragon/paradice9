@@ -180,9 +180,9 @@ struct mouse_report
     static odin::u8 const RIGHT_BUTTON_DOWN  = odin::u8(2);
     static odin::u8 const BUTTON_UP          = odin::u8(3);
     
-    odin::u8 button_;
-    odin::u8 x_position_;
-    odin::u8 y_position_;
+    odin::u8  button_;
+    odin::s32 x_position_;
+    odin::s32 y_position_;
 };
 
 bool operator==(control_sequence const& lhs, control_sequence const& rhs);

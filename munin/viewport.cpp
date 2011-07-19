@@ -390,6 +390,29 @@ void viewport::set_origin(point origin)
 {
     pimpl_->origin_ = origin;
 
+    // Check to see if this has moved the cursor off of our screen.  If so,
+    // we will need to move the cursor.
+    BOOST_AUTO(size, get_size());
+    BOOST_AUTO(cursor_position, get_component()->get_cursor_position());
+
+    // Only perform these checks if there's anywhere that a cursor could 
+    // possibly be.
+    if (size.height != 0)
+    {
+        // Check to see if it's off the top.
+        if (cursor_position.y < origin.y)
+        {
+            cursor_position.y = origin.y;
+            get_component()->set_cursor_position(cursor_position);
+        }
+        // Check to see if it's off the bottom.
+        else if (cursor_position.y >= origin.y + size.height)
+        {
+            cursor_position.y = (origin.y + size.height) - 1;
+            get_component()->set_cursor_position(cursor_position);
+        }
+    }
+
     // It is highly likely that this will require redrawing the entire
     // contained object.
     on_redraw(list_of(rectangle(point(), get_size())));

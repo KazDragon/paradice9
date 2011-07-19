@@ -129,11 +129,11 @@ struct horizontal_scroll_bar::impl
         // is slightly inwards.
         slider_position_ = (percentage == 0) 
                          ? 0
-                         : (std::max)(slider_position_, u32(1));
+                         : (std::max)(slider_position_, s32(1));
                         
         slider_position_ = (percentage == 100)
                          ? (size.width - 1)
-                         : (std::min)(slider_position_, u32(size.width - 2)); 
+                         : (std::min)(slider_position_, s32(size.width - 2)); 
 
     }
 
@@ -179,7 +179,7 @@ struct horizontal_scroll_bar::impl
     
     horizontal_scroll_bar &self_;
     attribute              pen_;
-    u32                    slider_position_;
+    s32                    slider_position_;
     optional<u8>           percentage_;
 };
 

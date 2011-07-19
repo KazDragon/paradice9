@@ -176,7 +176,7 @@ struct scroll_pane::impl
     {
         point new_origin;
         BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, self_.get_size());
+        BOOST_AUTO(size, viewport_->get_size());
         BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
 
         new_origin = origin;
@@ -198,7 +198,7 @@ struct scroll_pane::impl
     {
         point new_origin;
         BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, self_.get_size());
+        BOOST_AUTO(size, viewport_->get_size());
         BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
 
         // Find out how far over to the right the maximum origin should be.

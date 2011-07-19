@@ -112,9 +112,15 @@ private :
             }
             else if (hint == hint_interior)
             {
-                comp->set_position(point(1, 1));
-                comp->set_size(
-                    extent(size.width - 2, size.height - 2));
+                point position(
+                    (min)(size.width, s32(1))
+                  , (min)(size.height, s32(1)));
+
+                comp->set_position(position);
+
+                size.width  = (max)(size.width - 2, s32(0));
+                size.height = (max)(size.height - 2, s32(0));
+                comp->set_size(size);
             }
         }
     }

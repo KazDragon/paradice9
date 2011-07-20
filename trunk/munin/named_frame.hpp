@@ -28,6 +28,7 @@
 #define MUNIN_NAMED_FRAME_HPP_
 
 #include "munin/composite_component.hpp"
+#include "odin/runtime_array.hpp"
 #include <string>
 
 namespace munin {
@@ -53,6 +54,11 @@ public :
     /// \brief Sets the name displayed on the top border of the frame.
     //* =====================================================================
     void set_name(std::string const &name);
+    
+    //* =====================================================================
+    /// \brief Sets the name displayed on the top border of the frame.
+    //* =====================================================================
+    void set_name(odin::runtime_array<element_type> const &name);
     
     //* =====================================================================
     /// \brief Sets whether the frame is 'closeable' or not.  That is,

@@ -77,6 +77,82 @@ static bool canvas_region_compare(
 }
 
 //* =========================================================================
+/// \brief Returns a string that will be a foreground colour representation
+/// of the passed attribute colour.
+//* =========================================================================
+static string foreground_colour_string(munin::attribute::colour const &colour)
+{
+    BOOST_AUTO(low_colour, get<munin::attribute::low_colour>(&colour.value_));
+    
+    if (low_colour != NULL)
+    {
+        return string()
+             + odin::ansi::ESCAPE
+             + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+             + str(format("%s")
+                 % (int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE)
+                    + low_colour->value_));
+                 
+    }
+    
+    BOOST_AUTO(high_colour, get<munin::attribute::high_colour>(&colour.value_));
+    
+    if (high_colour != NULL)
+    {
+        return str(format("38;5;%s")
+             % munin::ansi::colour_string(*high_colour));
+    }
+    
+    BOOST_AUTO(
+        greyscale_colour
+      , get<munin::attribute::greyscale_colour>(&colour.value_));
+    
+    if (greyscale_colour != NULL)
+    {
+        return str(format("38;5;%s")
+            % munin::ansi::colour_string(*greyscale_colour));
+    }
+
+    return string();
+}
+
+//* =========================================================================
+/// \brief Returns a string that will be a background colour representation
+/// of the passed attribute colour.
+//* =========================================================================
+static string background_colour_string(munin::attribute::colour const &colour)
+{
+    BOOST_AUTO(low_colour, get<munin::attribute::low_colour>(&colour.value_));
+    
+    if (low_colour != NULL)
+    {
+        return str(format("%s")
+             % (int(odin::ansi::graphics::BACKGROUND_COLOUR_BASE)
+                 + low_colour->value_));
+    }
+    
+    BOOST_AUTO(high_colour, get<munin::attribute::high_colour>(&colour.value_));
+    
+    if (high_colour != NULL)
+    {
+        return str(format("48;5;%s")
+             % munin::ansi::colour_string(*high_colour));
+    }
+    
+    BOOST_AUTO(
+        greyscale_colour
+      , get<munin::attribute::greyscale_colour>(&colour.value_));
+    
+    if (greyscale_colour != NULL)
+    {
+        return str(format("48;5;%s")
+            % munin::ansi::colour_string(*greyscale_colour));
+    }
+    
+    return string();
+}
+
+//* =========================================================================
 /// \brief Returns a string that is an ANSI sequence that will change the
 /// output style from 'from' to 'to'.  Assigns the latter to the former.  
 //* =========================================================================
@@ -89,7 +165,7 @@ static string change_attribute(munin::attribute &from, munin::attribute to)
     // afterwards.  We can do that by making the 'from' attribute default in
     // all cases.
     string default_sequence;
-    
+
     if ((from.foreground_colour_ != to.foreground_colour_
       && to.foreground_colour_ == odin::ansi::graphics::COLOUR_DEFAULT)
      || (from.background_colour_ != to.background_colour_
@@ -110,36 +186,31 @@ static string change_attribute(munin::attribute &from, munin::attribute to)
     if (from.foreground_colour_ != to.foreground_colour_)
     {
         graphics_sequence += string()
-                          + odin::ansi::ESCAPE
-                          + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-                       
-        graphics_sequence += str(format("%s")
-            % int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE
-                + to.foreground_colour_));
-        
+                           + odin::ansi::ESCAPE
+                           + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+                           + foreground_colour_string(to.foreground_colour_);
+                           
         from.foreground_colour_ = to.foreground_colour_;
     }
-    
+
     if (from.background_colour_ != to.background_colour_)
     {
         if (graphics_sequence.empty())
         {
             graphics_sequence += string()
-                              + odin::ansi::ESCAPE
-                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+                               + odin::ansi::ESCAPE
+                               + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
         }
         else
         {
             graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
         }
         
-        graphics_sequence += str(format("%s")
-            % int(odin::ansi::graphics::BACKGROUND_COLOUR_BASE
-                + to.background_colour_));
+        graphics_sequence += background_colour_string(to.background_colour_);
         
         from.background_colour_ = to.background_colour_;
     }
-    
+
     if (from.intensity_ != to.intensity_)
     {
         if (graphics_sequence.empty())
@@ -199,21 +270,7 @@ static string change_attribute(munin::attribute &from, munin::attribute to)
         graphics_sequence += odin::ansi::SELECT_GRAPHICS_RENDITION;
     }
 
-    /*
-    string charset_sequence;
-    
-    if (from.locale != to.locale || from.character_set != to.character_set)
-    {
-        charset_sequence += string()
-                          + odin::ansi::ESCAPE
-                          + to.character_set
-                          + to.locale;
-                          
-        from.locale        = to.locale;
-        from.character_set = to.character_set;
-    }
-    */
-    return default_sequence + graphics_sequence;// + charset_sequence;
+    return default_sequence + graphics_sequence;
 }
 
 //* =========================================================================

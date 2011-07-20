@@ -54,7 +54,9 @@ struct element_type
     /// \par
     /// Constructs the element with the given parameters.
     //* =====================================================================
-    element_type(munin::glyph gly, munin::attribute attr);
+    explicit element_type(
+        munin::glyph gly
+      , munin::attribute attr = munin::attribute());
     
     munin::glyph     glyph_;
     munin::attribute attribute_;

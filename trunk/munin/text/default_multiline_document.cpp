@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -35,6 +36,7 @@
 using namespace odin;
 using namespace std;
 using namespace boost;
+using namespace boost::assign;
 
 namespace munin { namespace text {
 
@@ -54,6 +56,12 @@ struct default_multiline_document::impl
     //* =====================================================================
     void reindex(u32 line)
     {
+        // Ignore this if the width is 0.
+        if (width_ == 0)
+        {
+            return;
+        }
+        
         // Remove all indexed line values from the selected line onwards.
         line_indices_.erase(
             line_indices_.begin() + line
@@ -214,10 +222,8 @@ void default_multiline_document::do_set_size(munin::extent size)
         // discover all the new line ends.
         pimpl_->reindex(0);
         
-        // The entire document may well have changed.  Redraw it all.    
-        vector<munin::rectangle> regions;
-        regions.push_back(munin::rectangle(munin::point(), get_size()));
-        on_redraw(regions);
+        // The entire document may well have changed.  Redraw it all.
+        on_redraw(list_of(munin::rectangle(munin::point(), get_size())));
         
         // Update the caret position based on the caret index before the
         // resize.
@@ -367,13 +373,9 @@ void default_multiline_document::do_insert_text(
     }
     
     // Finally, since this could affect all regions from the insert row 
-    // downwards, schedule those portions of the document for a redraw.    
-    vector<munin::rectangle> regions;
-    regions.push_back(munin::rectangle(
-        munin::point(0, insert_position.y)
-      , get_size()));
-    
-    on_redraw(regions);
+    // downwards, schedule those portions of the document for a redraw.
+    on_redraw(list_of(
+        munin::rectangle(munin::point(0, insert_position.y), get_size())));    
 }
 
 // ==========================================================================
@@ -419,14 +421,11 @@ void default_multiline_document::do_delete_text(pair<u32, u32> range)
     }
     
     // Finally, notify that the document has changed.
-    munin::rectangle region(
+    on_redraw(list_of(munin::rectangle(
         munin::point(0, range_start_position.y)
       , munin::extent(
           pimpl_->width_
-        , pimpl_->line_indices_.size() - range_start_position.y));
-    vector<munin::rectangle> regions;
-    regions.push_back(region);
-    on_redraw(regions);
+        , pimpl_->line_indices_.size() - range_start_position.y))));
 }
 
 // ==========================================================================

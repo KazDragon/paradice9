@@ -174,21 +174,22 @@ struct scroll_pane::impl
     // ======================================================================
     void on_page_up()
     {
-        point new_origin;
         BOOST_AUTO(origin, viewport_->get_origin());
         BOOST_AUTO(size, viewport_->get_size());
-        BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
 
-        new_origin = origin;
-        
-        // TODO: tab a page, not a line.
-        if (new_origin.y != 0)
+        // If we would tab over the top of the viewport, then move to the
+        // top instead.
+        if (size.height >= origin.y)
         {
-            --new_origin.y;
+            origin.y = 0;
         }
-
-        viewport_->set_origin(new_origin);
-        calculate_scrollbars();
+        // Otherwise, move up by a page.
+        else
+        {
+            origin.y -= size.height;
+        }
+        
+        viewport_->set_origin(origin);
     }
 
     // ======================================================================
@@ -220,11 +221,9 @@ struct scroll_pane::impl
         // Now, move the origin over to the right by one page, up to the
         // maximum to the right.
         new_origin.x = (min)(origin.x, max_right);
-        //new_origin.y = (min)(origin.y + size.height, max_bottom);
-        new_origin.y = min(origin.y + 1, max_bottom);
+        new_origin.y = (min)(origin.y + size.height, max_bottom);
 
         viewport_->set_origin(new_origin);
-        calculate_scrollbars();
     }
 
     // ======================================================================

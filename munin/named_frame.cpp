@@ -186,7 +186,7 @@ private :
             {
                 BOOST_AUTO(index, x_coord - 2);
 
-                if (index == -1 || index == title_.size())
+                if (index == -1 || index == s32(title_.size()))
                 {
                     cvs[x_coord][y_coord] = element_type(' ', attribute());
                 }
@@ -217,9 +217,9 @@ public :
     // ======================================================================
     // SET_NAME
     // ======================================================================
-    void set_name(string const &name)
+    void set_name(runtime_array<element_type> const &name)
     {
-        title_bar_->set_title(elements_from_string(name));
+        title_bar_->set_title(name);
     }
     
     // ======================================================================
@@ -326,6 +326,14 @@ named_frame::~named_frame()
 // SET_NAME
 // ==========================================================================
 void named_frame::set_name(string const &name)
+{
+    set_name(elements_from_string(name));
+}
+
+// ==========================================================================
+// SET_NAME
+// ==========================================================================
+void named_frame::set_name(runtime_array<element_type> const &name)
 {
     pimpl_->set_name(name);
     on_redraw(list_of(rectangle(point(), extent(get_size().width, 1))));

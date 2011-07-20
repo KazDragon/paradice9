@@ -52,6 +52,7 @@ MUNIN_NAMES       = algorithm \
                     composite_component \
                     container \
                     edit \
+                    filled_box \
                     frame \
                     framed_component \
                     glyph \
@@ -62,6 +63,7 @@ MUNIN_NAMES       = algorithm \
                     image \
                     layout \
                     named_frame \
+                    scroll_pane \
                     solid_frame \
                     text_area \
                     text/default_multiline_document \

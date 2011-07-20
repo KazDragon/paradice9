@@ -170,5 +170,22 @@ string set_normal_cursor_keys()
          % odin::ansi::DECRST);
 }
 
+// ==========================================================================
+// COLOUR_STRING
+// ==========================================================================
+string colour_string(attribute::high_colour const &colour)
+{
+    return str(format("%s")
+        % ((colour.red_ * 36) + (colour.green_ * 6) + colour.blue_ + 16)); 
+}
+
+// ==========================================================================
+// COLOUR_STRING
+// ==========================================================================
+string colour_string(attribute::greyscale_colour const &colour)
+{
+    return str(format("%s")% (colour.shade_ + 232));
+}
+
 }}
 

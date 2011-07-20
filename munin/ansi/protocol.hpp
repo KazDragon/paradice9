@@ -81,6 +81,17 @@ std::string set_window_title(std::string const &text);
 //* =========================================================================
 std::string set_normal_cursor_keys();
 
+//* =========================================================================
+/// \brief Returns a colour value for a high-colour RGB value.
+//* =========================================================================
+std::string colour_string(munin::attribute::high_colour const &colour);
+
+//* =========================================================================
+/// \brief Returns a colour value for a greyscale value.
+//* =========================================================================
+std::string colour_string(munin::attribute::greyscale_colour const &colour);
+
 }}
 
 #endif
+

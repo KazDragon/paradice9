@@ -26,7 +26,10 @@
 // ==========================================================================
 #include "munin/attribute.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/typeof/typeof.hpp>
 #include <iostream>
+
+using namespace boost;
 
 namespace munin {
 
@@ -42,6 +45,9 @@ attribute::attribute()
 {
 }
 
+// ==========================================================================
+// EQUALITY OPERATOR
+// ==========================================================================
 bool operator==(attribute const &lhs, attribute const &rhs)
 {
     return lhs.foreground_colour_ == rhs.foreground_colour_
@@ -51,6 +57,88 @@ bool operator==(attribute const &lhs, attribute const &rhs)
         && lhs.polarity_          == rhs.polarity_;
 }
 
+// ==========================================================================
+// EQUALITY_OPERATOR
+// ==========================================================================
+bool operator==(attribute::colour const &lhs, attribute::colour const &rhs)
+{
+    BOOST_AUTO(low_colour_lhs, get<attribute::low_colour>(&lhs.value_));
+    
+    if (low_colour_lhs != NULL)
+    {
+        BOOST_AUTO(low_colour_rhs, get<attribute::low_colour>(&rhs.value_));
+        return low_colour_rhs != NULL
+            && *low_colour_lhs == *low_colour_rhs;
+    }
+    
+    BOOST_AUTO(high_colour_lhs, get<attribute::high_colour>(&lhs.value_));
+    
+    if (high_colour_lhs != NULL)
+    {
+        BOOST_AUTO(high_colour_rhs, get<attribute::high_colour>(&rhs.value_));
+        return high_colour_rhs != NULL
+            && *high_colour_lhs == *high_colour_rhs;
+    }
+    
+    BOOST_AUTO(
+        greyscale_colour_lhs
+      , get<attribute::greyscale_colour>(&lhs.value_));
+    
+    if (greyscale_colour_lhs != NULL)
+    {
+        BOOST_AUTO(
+            greyscale_colour_rhs
+          , get<attribute::greyscale_colour>(&rhs.value_));
+        return greyscale_colour_rhs != NULL
+            && *greyscale_colour_lhs == *greyscale_colour_rhs;
+    }
+    
+    return false;
+}
+
+// ==========================================================================
+// INEQUALITY_OPERATOR
+// ==========================================================================
+bool operator!=(attribute::colour const &lhs, attribute::colour const &rhs)
+{
+    return !(lhs == rhs);
+}
+
+// ==========================================================================
+// EQUALITY_OPERATOR
+// ==========================================================================
+bool operator==(
+    attribute::low_colour const &lhs
+  , attribute::low_colour const &rhs)
+{
+    return lhs.value_ == rhs.value_;
+}
+
+// ==========================================================================
+// EQUALITY_OPERATOR
+// ==========================================================================
+bool operator==(
+    attribute::high_colour const &lhs
+  , attribute::high_colour const &rhs)
+{
+    return lhs.red_   == rhs.red_
+        && lhs.green_ == rhs.green_
+        && lhs.blue_  == rhs.blue_;
+}
+
+// ==========================================================================
+// EQUALITY_OPERATOR
+// ==========================================================================
+bool operator==(
+    attribute::greyscale_colour const &lhs
+  , attribute::greyscale_colour const &rhs)
+{
+    return lhs.shade_ == rhs.shade_;
+}
+
+// ==========================================================================
+// STREAM OPERATOR
+// ==========================================================================
 std::ostream &operator<<(std::ostream &out, attribute const &attr)
 {
     out << "attr[";

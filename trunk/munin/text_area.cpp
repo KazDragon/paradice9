@@ -189,14 +189,7 @@ private :
     //* =====================================================================
     void on_document_changed(vector<rectangle> regions)
     {
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(preferred_size, document_->get_size());
-
-        if (size != preferred_size)
-        {
-            self_.on_preferred_size_changed();
-        }
-
+        self_.on_preferred_size_changed();
         repaint();
     }
     

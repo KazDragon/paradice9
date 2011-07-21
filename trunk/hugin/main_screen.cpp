@@ -101,10 +101,6 @@ struct main_screen::impl
     shared_ptr<text_area>           output_field_;
     shared_ptr<text_area>           help_field_;
     shared_ptr<scroll_pane>         help_field_frame_;
-    /*
-    shared_ptr<solid_frame>         help_field_inner_frame_;
-    shared_ptr<framed_component>    help_field_frame_;
-    */
     bool                            help_field_visible_;
     
     function<void (string)>         on_input_entered_;
@@ -149,17 +145,6 @@ main_screen::main_screen()
     pimpl_->help_field_->disable();
     
     pimpl_->help_field_frame_ = make_shared<scroll_pane>(pimpl_->help_field_);
-    /*
-    pimpl_->help_field_inner_frame_ = make_shared<solid_frame>();
-    pimpl_->help_field_inner_frame_->set_closeable(true);
-    
-    pimpl_->help_field_inner_frame_->on_close.connect(
-        bind(&impl::fire_help_closed, ref(*pimpl_)));
-    
-    pimpl_->help_field_frame_ = make_shared<framed_component>(
-        pimpl_->help_field_inner_frame_
-      , pimpl_->help_field_);
-      */
     
     content->add_component(pimpl_->output_container_, COMPASS_LAYOUT_CENTRE);
 }

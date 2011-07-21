@@ -89,12 +89,12 @@ E.g. {{{\[+6\]0}}} (bold cyan on a black background)
 
 === 256-colours ===
 
-See http://www.mudpedia.org/wiki/Xterm_256_colors for exact colour codes.  Note that there are three segments: overlap with the original 16 colours (the only place where true black lies), a central coloured section of 232 colours, a greyscale section of 24 colours.
+See http://www.mudpedia.org/wiki/Xterm_256_colors for exact colour codes.  Note that there are three segments: overlap with the original 16 colours (the only place where true black lies), a central coloured section of 216 colours, a greyscale section of 24 colours.
 
 ==== Overlapping Colours ====
 For the overlap with the original 16 colours, use the 16-colour codes above.
 
-==== Central 232 Colours ====
+==== Central 216 Colours ====
 
   * \<_?R?G?B_
     * _?R_ = a..f: intensity of red value as foreground

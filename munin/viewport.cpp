@@ -161,6 +161,8 @@ struct viewport::impl
                 point(0, preferred_size.height)
               , extent(size.width, size.height - preferred_size.height))));
         }
+        
+        self_.on_subcomponent_size_changed();
     }
 
     // ======================================================================
@@ -327,7 +329,7 @@ struct viewport::impl
         {
             for (s32 column = 0; column < region.size.width; ++column)
             {
-                cvs[column][row ] = element_type(' ', attribute());
+                cvs[column][row] = element_type(' ');
             }
         }
     }

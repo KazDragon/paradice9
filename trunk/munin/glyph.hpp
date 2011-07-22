@@ -58,42 +58,62 @@ bool operator==(glyph const &lhs, glyph const &rhs);
 
 std::ostream &operator<<(std::ostream &out, glyph const &attr);
 
-// Some common glyphs
+// Some uncommon glyphs that are very useful.
 
-glyph const single_lined_top_right_corner(
-    char(191)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
+#define DECLARE_G0SCO_GLYPH(name, val) \
+static glyph const name ( \
+    char(val) \
+  , odin::ansi::character_set::CHARACTER_SET_G0 \
+  , odin::ansi::character_set::LOCALE_SCO) \
 
-glyph const double_lined_top_left_corner(
-    char(201)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-    
-glyph const double_lined_top_right_corner(
-    char(187)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
+// Single lined box drawing
+DECLARE_G0SCO_GLYPH(single_lined_top_left_corner, 218);
+DECLARE_G0SCO_GLYPH(single_lined_top_right_corner, 191);
+DECLARE_G0SCO_GLYPH(single_lined_bottom_left_corner, 192);
+DECLARE_G0SCO_GLYPH(single_lined_bottom_right_corner, 217);
+DECLARE_G0SCO_GLYPH(single_lined_horizontal_beam, 196);
+DECLARE_G0SCO_GLYPH(single_lined_vertical_beam, 179);
+DECLARE_G0SCO_GLYPH(single_lined_top_tee, 194);
+DECLARE_G0SCO_GLYPH(single_lined_left_tee, 195);
+DECLARE_G0SCO_GLYPH(single_lined_bottom_tee, 193);
+DECLARE_G0SCO_GLYPH(single_lined_right_tee, 180);
+DECLARE_G0SCO_GLYPH(single_lined_cross, 197);
 
-glyph const double_lined_bottom_left_corner(
-    char(200)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
+// Double-lined box drawing
+DECLARE_G0SCO_GLYPH(double_lined_top_left_corner, 201);
+DECLARE_G0SCO_GLYPH(double_lined_top_right_corner, 187);
+DECLARE_G0SCO_GLYPH(double_lined_bottom_left_corner, 200);
+DECLARE_G0SCO_GLYPH(double_lined_bottom_right_corner, 188);
+DECLARE_G0SCO_GLYPH(double_lined_horizontal_beam, 205);
+DECLARE_G0SCO_GLYPH(double_lined_vertical_beam, 186);
+DECLARE_G0SCO_GLYPH(double_lined_top_tee, 203);
+DECLARE_G0SCO_GLYPH(double_lined_left_tee, 204);
+DECLARE_G0SCO_GLYPH(double_lined_bottom_tee, 202);
+DECLARE_G0SCO_GLYPH(double_lined_right_tee, 185);
+DECLARE_G0SCO_GLYPH(double_lined_cross, 206);
 
-glyph const double_lined_bottom_right_corner(
-    char(188)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-    
-glyph const double_lined_horizontal_beam(
-    char(205)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
+// Mix-lined box drawing.  v and h describe whether the single-line component
+// is horizontal or vertical
+DECLARE_G0SCO_GLYPH(mix_lined_vright_tee, 181);
+DECLARE_G0SCO_GLYPH(mix_lined_hright_tee, 182);
+DECLARE_G0SCO_GLYPH(mix_lined_htop_right_corner, 183);
+DECLARE_G0SCO_GLYPH(mix_lined_vtop_right_corner, 184);
+DECLARE_G0SCO_GLYPH(mix_lined_hbottom_right_corner, 189);
+DECLARE_G0SCO_GLYPH(mix_lined_vbottom_right_corner, 190);
+DECLARE_G0SCO_GLYPH(mix_lined_vleft_tee, 198);
+DECLARE_G0SCO_GLYPH(mix_lined_hleft_tee, 199);
+DECLARE_G0SCO_GLYPH(mix_lined_vbottom_tee, 207);
+DECLARE_G0SCO_GLYPH(mix_lined_hbottom_tee, 208);
+DECLARE_G0SCO_GLYPH(mix_lined_vtop_tee, 209);
+DECLARE_G0SCO_GLYPH(mix_lined_htop_tee, 210);
+DECLARE_G0SCO_GLYPH(mix_lined_hbottom_left_corner, 211);
+DECLARE_G0SCO_GLYPH(mix_lined_vbottom_left_corner, 212);
+DECLARE_G0SCO_GLYPH(mix_lined_vtop_left_corner, 213);
+DECLARE_G0SCO_GLYPH(mix_lined_htop_left_corner, 214);
+DECLARE_G0SCO_GLYPH(mix_lined_hcross, 215);
+DECLARE_G0SCO_GLYPH(mix_lined_vcross, 216);
 
-glyph const double_lined_vertical_beam(
-    char(186)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
+#undef DECLARE_G0SCO_GLYPH
 
 }
 

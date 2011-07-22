@@ -56,7 +56,7 @@ struct viewport::impl
         : self_(self)
     {
     }
-        
+
     // ======================================================================
     // ON_REDRAW
     // ======================================================================
@@ -133,34 +133,33 @@ struct viewport::impl
     }
 
     // ======================================================================
+    // SET_SUBCOMPONENT_SIZE
+    // ======================================================================
+    void set_subcomponent_size()
+    {
+        BOOST_AUTO(size, self_.get_size());
+        
+        // First, we set the subcomponent's size to the viewport size.
+        // This means that any boundary that the component shares with the
+        // viewport (such as a text area's or list's width) is kept.
+        component_->set_size(size);
+        
+        // We then ask it its preferred size.  Finally, we set its size again
+        // so that it is at least as big as the viewport.
+        BOOST_AUTO(preferred_size, component_->get_preferred_size());
+        preferred_size.width  = (max)(size.width, preferred_size.width);
+        preferred_size.height = (max)(size.height, preferred_size.height);
+        
+        component_->set_size(preferred_size);
+    }
+    
+    // ======================================================================
     // ON_SUBCOMPONENT_PREFERRED_SIZE_CHANGED
     // ======================================================================
     void on_subcomponent_preferred_size_changed()
     {
-        // If the new preferred_size is shrinking, and is smaller than our 
-        // component, then we will need to redraw the non-overlapping 
-        // portions to ensure they get blanked correctly.
-        BOOST_AUTO(component_size, component_->get_size());
-        BOOST_AUTO(preferred_size, component_->get_preferred_size());
-        BOOST_AUTO(size, self_.get_size());
-
-        component_->set_size(component_->get_preferred_size());
-
-        if (preferred_size.width < component_size.width
-         && preferred_size.width < size.width)
-        {
-            on_redraw(list_of(rectangle(
-                point(preferred_size.width, 0)
-              , extent(size.width - preferred_size.width, size.height))));
-        }
-
-        if (preferred_size.height < component_size.height
-         && preferred_size.height < size.height)
-        {
-            on_redraw(list_of(rectangle(
-                point(0, preferred_size.height)
-              , extent(size.width, size.height - preferred_size.height))));
-        }
+        set_subcomponent_size();
+        on_redraw(list_of(rectangle(point(0, 0), self_.get_size())));
         
         self_.on_subcomponent_size_changed();
     }
@@ -344,7 +343,7 @@ viewport::viewport(shared_ptr<component> underlying_component)
     pimpl_->component_ = underlying_component;
     
     get_component()->on_redraw.connect(
-        bind(&impl::on_redraw, pimpl_, _1));
+        bind(&impl::on_redraw, pimpl_.get(), _1));
     
     get_component()->on_focus_set.connect(
         bind(ref(on_focus_set)));
@@ -353,7 +352,7 @@ viewport::viewport(shared_ptr<component> underlying_component)
         bind(ref(on_focus_lost)));
     
     get_component()->on_preferred_size_changed.connect(
-        bind(&impl::on_subcomponent_preferred_size_changed, pimpl_));
+        bind(&impl::on_subcomponent_preferred_size_changed, pimpl_.get()));
 
     get_component()->on_size_changed.connect(
         bind(ref(on_subcomponent_size_changed)));
@@ -362,7 +361,7 @@ viewport::viewport(shared_ptr<component> underlying_component)
         bind(ref(on_cursor_state_changed), _1));
 
     get_component()->on_cursor_position_changed.connect(
-        bind(&impl::on_cursor_position_changed, pimpl_, _1));
+        bind(&impl::on_cursor_position_changed, pimpl_.get(), _1));
 
     // A component in a viewport is allowed to be whatever size it wants to be.
     // Therefore, the first thing we do is set it to that size.  It will then
@@ -439,7 +438,7 @@ shared_ptr<component> viewport::get_component()
 void viewport::do_set_size(extent const &size) 
 {
     basic_component::do_set_size(size);
-    get_component()->set_size(size);
+    pimpl_->set_subcomponent_size();
 
     // Check if the cursor for the underlying component is within our bounds.
     // If not, scroll the component.
@@ -456,6 +455,8 @@ void viewport::do_set_size(extent const &size)
         origin.y = cursor_position.y - size.height;
         set_origin(origin);
     }
+
+    on_redraw(list_of(rectangle(point(0, 0), size)));
 }
 
 // ==========================================================================

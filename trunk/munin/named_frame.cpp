@@ -44,42 +44,6 @@ using namespace std;
 
 namespace munin {
 
-static glyph const top_left_corner(
-    char(201)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-    
-static glyph const top_right_close_corner(
-    char(191)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-
-static glyph const top_right_corner(
-    char(187)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-
-static glyph const bottom_left_corner(
-    char(200)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-
-static glyph const bottom_right_corner(
-    char(188)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-    
-static glyph const horizontal_beam(
-    char(205)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-
-static glyph const vertical_beam(
-    char(186)
-  , odin::ansi::character_set::CHARACTER_SET_G0
-  , odin::ansi::character_set::LOCALE_SCO);
-               
-
 // ==========================================================================
 // TITLE_BAR
 // ==========================================================================
@@ -236,14 +200,14 @@ public :
             pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
 
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
-            top_right_->set_attribute(ATTRIBUTE_GLYPH, top_right_close_corner);
+            top_right_->set_attribute(ATTRIBUTE_GLYPH, single_lined_top_right_corner);
             top_right_->set_attribute(ATTRIBUTE_PEN,   pen);
             top_right_->set_attribute(ATTRIBUTE_LOCK,  true);
         }
         else
         {
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
-            top_right_->set_attribute(ATTRIBUTE_GLYPH, top_right_corner);
+            top_right_->set_attribute(ATTRIBUTE_GLYPH, double_lined_top_right_corner);
             top_right_->set_attribute(ATTRIBUTE_PEN,   attribute());
         }
     }
@@ -288,14 +252,14 @@ named_frame::named_frame()
 {
     pimpl_ = make_shared<impl>(ref(*this));
 
-    element_type top_left_element(top_left_corner, attribute());
-    element_type top_element(horizontal_beam, attribute());
-    element_type top_right_element(top_right_corner, attribute());
-    element_type left_element(vertical_beam, attribute());
-    element_type right_element(vertical_beam, attribute());
-    element_type bottom_left_element(bottom_left_corner, attribute());
-    element_type bottom_element(horizontal_beam, attribute());
-    element_type bottom_right_element(bottom_right_corner, attribute());
+    element_type top_left_element(double_lined_top_left_corner);
+    element_type top_element(double_lined_horizontal_beam);
+    element_type top_right_element(double_lined_top_right_corner);
+    element_type left_element(double_lined_vertical_beam);
+    element_type right_element(double_lined_vertical_beam);
+    element_type bottom_left_element(double_lined_bottom_left_corner);
+    element_type bottom_element(double_lined_horizontal_beam);
+    element_type bottom_right_element(double_lined_bottom_right_corner);
 
     BOOST_AUTO(top_left,     make_shared<filled_box>(top_left_element));
     pimpl_->title_bar_ =     make_shared<title_bar>(elements_from_string(""), top_element);

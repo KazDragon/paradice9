@@ -62,6 +62,7 @@ MUNIN_NAMES       = algorithm \
                     horizontal_strip_layout \
                     image \
                     layout \
+                    list \
                     named_frame \
                     scroll_pane \
                     solid_frame \

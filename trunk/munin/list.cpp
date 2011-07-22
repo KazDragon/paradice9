@@ -44,16 +44,123 @@ namespace munin {
 // ==========================================================================
 struct list::impl
 {
-    runtime_array< runtime_array<element_type> > items_;
-    s32                                          item_index_;
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl(list &self)
+        : self_(self)
+    {
+    }
+        
+    // ======================================================================
+    // DO_CHARACTER_EVENT
+    // ======================================================================
+    void do_character_event(char ch)
+    {
+    }
+    
+    // ======================================================================
+    // DO_CURSOR_UP_KEY_EVENT
+    // ======================================================================
+    void do_cursor_up_key_event(u32 times)
+    {
+        if (s32(times) >= item_index_)
+        {
+            self_.set_item_index(0);
+        }
+        else
+        {
+            self_.set_item_index(item_index_ - times);
+        }
+    }
+    
+    // ======================================================================
+    // DO_CURSOR_DOWN_KEY_EVENT
+    // ======================================================================
+    void do_cursor_down_key_event(u32 times)
+    {
+        self_.set_item_index(item_index_ + times);
+    }
+
+    // ======================================================================
+    // DO_HOME_KEY_EVENT
+    // ======================================================================
+    void do_home_key_event()
+    {
+        self_.set_item_index(0);
+    }
+
+    // ======================================================================
+    // DO_END_KEY_EVENT
+    // ======================================================================
+    void do_end_key_event()
+    {
+        self_.set_item_index(items_.size() - 1);
+    }
+
+    // ======================================================================
+    // DO_ANSI_CONTROL_SEQUENCE_EVENT
+    // ======================================================================
+    void do_ansi_control_sequence_event(
+        odin::ansi::control_sequence const &sequence)
+    {
+        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        {
+            // Check for the up arrow key
+            if (sequence.command_ == odin::ansi::CURSOR_UP)
+            {
+                u32 times = sequence.arguments_.empty()
+                          ? 1
+                          : atoi(sequence.arguments_.c_str());
+                          
+                do_cursor_up_key_event(times);
+            }
+            // Check for the down arrow key
+            else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
+            {
+                u32 times = sequence.arguments_.empty()
+                          ? 1
+                          : atoi(sequence.arguments_.c_str());
+                          
+                do_cursor_down_key_event(times);
+            }
+            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
+            {
+                // Check for the HOME key
+                if (sequence.arguments_.size() == 1
+                 && sequence.arguments_[0] == '1')
+                {
+                    do_home_key_event();
+                }
+                // Check for the END key
+                if (sequence.arguments_.size() == 1
+                 && sequence.arguments_[0] == '4')
+                {
+                    do_end_key_event();
+                }
+            }
+        }
+    }
+    
+    // ======================================================================
+    // DO_ANSI_MOUSE_REPORT_EVENT
+    // ======================================================================
+    void do_ansi_mouse_report_event(
+        odin::ansi::mouse_report const &mouse_report)
+    {
+    }
+
+    list                                         &self_;
+    runtime_array< runtime_array<element_type> >  items_;
+    s32                                           item_index_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 list::list()
-    : pimpl_(make_shared<impl>())
 {
+    pimpl_ = make_shared<impl>(ref(*this));
     pimpl_->item_index_ = -1;
 }
 
@@ -90,6 +197,12 @@ void list::set_items(runtime_array< runtime_array<element_type> > const &items)
 void list::set_item_index(s32 index)
 {
     BOOST_AUTO(old_index, pimpl_->item_index_);
+    
+    if (index >= s32(pimpl_->items_.size()))
+    {
+        index = pimpl_->items_.size() - 1;
+    }
+    
     pimpl_->item_index_ = index;
 
     // We will need to redraw the item both at the old index and the new
@@ -109,6 +222,9 @@ void list::set_item_index(s32 index)
             point(0, index)
           , extent(size.width, 1))));
     }
+    
+    on_item_changed(pimpl_->item_index_);
+    on_cursor_position_changed(get_cursor_position());
 }
 
 // ==========================================================================
@@ -147,6 +263,25 @@ extent list::do_get_preferred_size() const
 }
 
 // ==========================================================================
+// DO_GET_CURSOR_POSITION
+// ==========================================================================
+point list::do_get_cursor_position() const
+{
+    // The 'cursor' is the selected element, or (0,0) if none is selected.
+    return point(
+        0
+      , pimpl_->item_index_ == -1 ? 0 : pimpl_->item_index_);
+}
+
+// ==========================================================================
+// DO_SET_CURSOR_POSITION
+// ==========================================================================
+void list::do_set_cursor_position(point const &position)
+{
+    set_item_index(position.y);
+}
+
+// ==========================================================================
 // DO_DRAW
 // ==========================================================================
 void list::do_draw(
@@ -161,7 +296,7 @@ void list::do_draw(
         {
             bool is_selected_item = 
                 y_coord >= 0
-             && u32(y_coord) == pimpl_->item_index_;
+             && y_coord == pimpl_->item_index_;
 
             runtime_array<element_type> const &item = pimpl_->items_[y_coord];
 
@@ -193,6 +328,35 @@ void list::do_draw(
                 cvs[x_coord][y_coord] = element_type(' ');
             }
         }
+    }
+}
+
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void list::do_event(any const &event)
+{
+    char const *ch = any_cast<char>(&event);
+    
+    if (ch != NULL)
+    {
+        pimpl_->do_character_event(*ch);
+    }
+    
+    odin::ansi::control_sequence const *sequence = 
+        any_cast<odin::ansi::control_sequence>(&event);
+        
+    if (sequence != NULL)
+    {
+        pimpl_->do_ansi_control_sequence_event(*sequence);
+    }
+
+    odin::ansi::mouse_report const *report =
+        boost::any_cast<odin::ansi::mouse_report>(&event);
+    
+    if (report != NULL)
+    {
+        pimpl_->do_ansi_mouse_report_event(*report);
     }
 }
 

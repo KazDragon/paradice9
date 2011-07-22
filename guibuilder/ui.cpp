@@ -42,6 +42,8 @@
 #include "munin/vertical_scroll_bar.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -57,17 +59,19 @@ ui::ui()
     BOOST_AUTO(container, get_container());
     container->set_layout(make_shared<grid_layout>(1, 1));
 
-    static string const names[] = {
-        "Item #1"
-      , "Item #2"
-      , "Item #3"
-    };
+    runtime_array<string> names(20);
+    for (size_t index = 0; index < names.size(); ++index)
+    {
+        names[index] = str(format("Item #%d") % index);
+    }
+    
+    BOOST_AUTO(list, make_shared<munin::list>());
+    BOOST_AUTO(scroller, make_shared<scroll_pane>(list));
 
-    BOOST_AUTO(name_list, make_shared<munin::list>());
-    name_list->set_items(list_from_text(names));
-    name_list->set_item_index(0);
-
-    container->add_component(name_list);
+    list->set_items(list_from_text(names));
+    list->set_item_index(0);
+    
+    container->add_component(scroller);
 }
 
 void ui::do_event(any const &ev)

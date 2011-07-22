@@ -35,7 +35,7 @@
 namespace munin {
 
 //* =========================================================================
-/// \brief A class that models a list of elements.
+/// \brief A class that models a list of items.
 //* =========================================================================
 class list : public munin::basic_component
 {
@@ -75,6 +75,15 @@ public :
     //* =====================================================================
     odin::runtime_array<element_type> get_item() const;
 
+    //* =====================================================================
+    /// \fn on_item_changed
+    /// \brief Connect to this signal to receive updates about when the
+    /// selected item changes.
+    //* =====================================================================
+    boost::signal<
+        void (odin::s32)
+    > on_item_changed;
+    
 protected :
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
@@ -83,6 +92,20 @@ protected :
     //* =====================================================================
     virtual extent do_get_preferred_size() const;
     
+    //* =====================================================================
+    /// \brief Called by get_cursor_position().  Derived classes must
+    /// override this function in order to return the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual point do_get_cursor_position() const;
+
+    //* =====================================================================
+    /// \brief Called by set_cursor_position().  Derived classes must
+    /// override this function in order to set the cursor position in
+    /// a custom manner.
+    //* =====================================================================
+    virtual void do_set_cursor_position(point const &position);
+
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
     /// in order to draw onto the passed canvas.  A component must only draw 
@@ -95,6 +118,12 @@ protected :
     virtual void do_draw(
         canvas          &cvs
       , rectangle const &region);
+    
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event);
     
 private :
     struct impl;

@@ -79,11 +79,6 @@ struct vertical_scroll_bar::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        glyph vbeam(
-            char(186)
-          , odin::ansi::character_set::CHARACTER_SET_G0
-          , odin::ansi::character_set::LOCALE_SCO);
-        
         // Draws the beam on which the slider is placed.
         for (s32 y_coord = region.origin.y;
              y_coord < region.origin.y + region.size.height;
@@ -93,7 +88,8 @@ struct vertical_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = element_type(vbeam, pen_);
+                cvs[x_coord][y_coord] = 
+                    element_type(double_lined_vertical_beam, pen_);
             }
         }
     }
@@ -150,12 +146,7 @@ struct vertical_scroll_bar::impl
             region
           , rectangle(point(0, slider_position_), extent(1, 1))))
         {
-            static glyph const vslider(
-                char(215)
-              , odin::ansi::character_set::CHARACTER_SET_G0
-              , odin::ansi::character_set::LOCALE_SCO);
-            
-            cvs[0][slider_position_] = element_type(vslider, pen_);
+            cvs[0][slider_position_] = element_type(mix_lined_hcross, pen_);
         }
     }
     

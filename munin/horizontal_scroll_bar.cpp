@@ -79,11 +79,6 @@ struct horizontal_scroll_bar::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        glyph hbeam(
-            char(205)
-          , odin::ansi::character_set::CHARACTER_SET_G0
-          , odin::ansi::character_set::LOCALE_SCO);
-        
         // Draws the beam on which the slider is placed.
         for (s32 y_coord = region.origin.y;
              y_coord < region.origin.y + region.size.height;
@@ -93,7 +88,8 @@ struct horizontal_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = element_type(hbeam, pen_);
+                cvs[x_coord][y_coord] = 
+                    element_type(double_lined_horizontal_beam, pen_);
             }
         }
     }
@@ -150,12 +146,7 @@ struct horizontal_scroll_bar::impl
             region
           , rectangle(point(slider_position_, 0), extent(1, 1))))
         {
-            static glyph const hslider(
-                char(216)
-              , odin::ansi::character_set::CHARACTER_SET_G0
-              , odin::ansi::character_set::LOCALE_SCO);
-            
-            cvs[slider_position_][0] = element_type(hslider, pen_);
+            cvs[slider_position_][0] = element_type(mix_lined_vcross, pen_);
         }
     }
     

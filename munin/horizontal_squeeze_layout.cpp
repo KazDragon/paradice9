@@ -41,8 +41,8 @@ extent horizontal_squeeze_layout::do_get_preferred_size(
     runtime_array< shared_ptr<component> > const &components
   , runtime_array< any >                   const &hints) const
 {
-    // The preferred size of the whol component is the maximum preferred
-    // height, and the maximum preferred width multiplied by the number
+    // The preferred size of the whole component is the maximum preferred
+    // height, and the maximum preferred height multiplied by the number
     // of components.
     extent maximum_preferred_size(0, 0);
 
@@ -59,7 +59,7 @@ extent horizontal_squeeze_layout::do_get_preferred_size(
           , preferred_size.height);
     }
     
-    maximum_preferred_size.width *= components.size();
+    maximum_preferred_size.height *= components.size();
 
     return maximum_preferred_size;
 }

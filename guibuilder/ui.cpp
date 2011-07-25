@@ -27,9 +27,11 @@
 #include "ui.hpp"
 #include "sized_block.hpp"
 #include "munin/aligned_layout.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/composite_component.hpp"
+#include "munin/dropdown_list.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/horizontal_scroll_bar.hpp"
 #include "munin/image.hpp"
@@ -48,6 +50,7 @@
 #include <boost/typeof/typeof.hpp>
 
 using namespace munin;
+using namespace munin::ansi;
 using namespace odin;
 using namespace boost;
 using namespace std;
@@ -57,7 +60,7 @@ namespace guibuilder {
 ui::ui()
 {
     BOOST_AUTO(container, get_container());
-    container->set_layout(make_shared<grid_layout>(1, 1));
+    container->set_layout(make_shared<compass_layout>());
 
     runtime_array<string> names(20);
     for (size_t index = 0; index < names.size(); ++index)
@@ -68,10 +71,15 @@ ui::ui()
     BOOST_AUTO(list, make_shared<munin::list>());
     BOOST_AUTO(scroller, make_shared<scroll_pane>(list));
 
-    list->set_items(list_from_text(names));
+    list->set_items(elements_from_strings(names));
     list->set_item_index(0);
     
-    container->add_component(scroller);
+    BOOST_AUTO(dropdown_list, make_shared<munin::dropdown_list>());
+    dropdown_list->set_items(elements_from_strings(names));
+    dropdown_list->set_item_index(0);
+
+    container->add_component(dropdown_list, COMPASS_LAYOUT_NORTH);
+    container->add_component(scroller, COMPASS_LAYOUT_CENTRE);
 }
 
 void ui::do_event(any const &ev)

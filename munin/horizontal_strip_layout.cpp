@@ -72,10 +72,9 @@ void horizontal_strip_layout::do_layout(
     BOOST_FOREACH(shared_ptr<component> comp, components)
     {    
         BOOST_AUTO(preferred_size, comp->get_preferred_size());
-        BOOST_AUTO(width,          (std::min)(preferred_size.width, size.width));
         
         comp->set_position(point(0, y_coord));
-        comp->set_size(extent(width, preferred_size.height));
+        comp->set_size(extent(size.width, preferred_size.height));
         
         y_coord += preferred_size.height;
     }

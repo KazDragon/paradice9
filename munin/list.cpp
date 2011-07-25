@@ -360,20 +360,4 @@ void list::do_event(any const &event)
     }
 }
 
-// ==========================================================================
-// LIST_FROM_TEXT
-// ==========================================================================
-runtime_array< runtime_array<element_type> >
-    list_from_text(runtime_array<string> const &text)
-{
-    runtime_array< runtime_array<element_type> > elements(text.size());
-
-    for (u32 index = 0; index < elements.size(); ++index)
-    {
-        elements[index] = munin::ansi::elements_from_string(text[index]);
-    }
-    
-    return elements;
-}
-
 }

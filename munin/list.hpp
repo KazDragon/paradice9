@@ -29,7 +29,6 @@
 
 #include "munin/basic_component.hpp"
 #include "odin/runtime_array.hpp"
-#include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace munin {
@@ -129,14 +128,6 @@ private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;
 };
-
-//* =========================================================================
-/// \brief Converts a runtime_array<> of strings into a runtime_array<> of
-/// runtime_array<>s of ANSI elements that are suitable for use with the
-/// munin::ansi::list component.
-//* =========================================================================
-odin::runtime_array< odin::runtime_array<element_type> >
-    list_from_text(odin::runtime_array<std::string> const &text);
 
 }
 

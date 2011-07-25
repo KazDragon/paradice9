@@ -32,7 +32,14 @@
 #include <string>
 
 namespace munin { namespace ansi {
-    
+
+//* =========================================================================
+/// \brief Creates an array of array of elements from an array of strings.
+//* =========================================================================
+odin::runtime_array< odin::runtime_array<element_type> > 
+    elements_from_strings(odin::runtime_array<std::string> const &strings
+  , attribute const &attr = attribute());
+
 //* =========================================================================
 /// \brief Converts a string into a line of runtime_array<> of ANSI elements.
 /// \param source_line a string of text to be converted
@@ -40,7 +47,7 @@ namespace munin { namespace ansi {
 //* =========================================================================
 odin::runtime_array<munin::element_type> elements_from_string(
     std::string const &source_line
-  , attribute attr = attribute());
+  , attribute const &attr = attribute());
 
 //* =========================================================================
 /// \brief Converts a runtime_array<> of ANSI elements into a string.

@@ -29,6 +29,7 @@
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -36,6 +37,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -90,6 +92,16 @@ image::image(runtime_array<element_type> elements)
 // ==========================================================================
 image::~image()
 {
+}
+
+// ==========================================================================
+// SET_IMAGE
+// ==========================================================================
+void image::set_image(runtime_array< runtime_array<element_type> > elements)
+{
+    pimpl_->elements_ = elements;
+    on_preferred_size_changed();
+    on_redraw(list_of(rectangle(point(), get_size())));
 }
 
 // ==========================================================================

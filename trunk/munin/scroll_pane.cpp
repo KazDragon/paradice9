@@ -52,7 +52,7 @@ public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    scroll_frame()
+    scroll_frame(bool top_border)
     {
         element_type top_left_element(double_lined_top_left_corner, attribute());
         element_type top_element(double_lined_horizontal_beam, attribute());
@@ -64,9 +64,17 @@ public :
         vertical_scroll_bar_ = make_shared<vertical_scroll_bar>();
         horizontal_scroll_bar_ = make_shared<horizontal_scroll_bar>();
 
-        BOOST_AUTO(top_left,     make_shared<filled_box>(top_left_element));
-        BOOST_AUTO(top,          make_shared<filled_box>(top_element));
-        BOOST_AUTO(top_right,    make_shared<filled_box>(top_right_element));
+        shared_ptr<filled_box> top_left;
+        shared_ptr<filled_box> top;
+        shared_ptr<filled_box> top_right;
+
+        if (top_border)
+        {
+            top_left  = make_shared<filled_box>(top_left_element);
+            top       = make_shared<filled_box>(top_element);
+            top_right = make_shared<filled_box>(top_right_element);
+        }
+
         BOOST_AUTO(left,         make_shared<filled_box>(left_element));
         BOOST_AUTO(bottom_left,  make_shared<filled_box>(bottom_left_element));
         BOOST_AUTO(bottom_right, make_shared<filled_box>(bottom_right_element));
@@ -340,12 +348,14 @@ struct scroll_pane::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-scroll_pane::scroll_pane(shared_ptr<component> underlying_component)
+scroll_pane::scroll_pane(
+    shared_ptr<component> underlying_component
+  , bool                  top_border)
 {
     pimpl_ = make_shared<impl>(ref(*this));
 
     pimpl_->viewport_ = make_shared<viewport>(underlying_component);
-    pimpl_->scroll_frame_ = make_shared<scroll_frame>();
+    pimpl_->scroll_frame_ = make_shared<scroll_frame>(top_border);
     pimpl_->underlying_component_ = underlying_component;
 
     pimpl_->viewport_->on_size_changed.connect(

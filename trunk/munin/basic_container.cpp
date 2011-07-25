@@ -228,6 +228,20 @@ struct basic_container::impl
     }
 
     // ======================================================================
+    // SUBCOMPONENT_PREFERRED_SIZE_CHANGE_HANDLER
+    // ======================================================================
+    void subcomponent_preferred_size_changed_handler(
+        weak_ptr<component> const &weak_subcomponent)
+    {
+        BOOST_AUTO(subcomponent, weak_subcomponent.lock());
+
+        if (subcomponent)
+        {
+            self_.on_preferred_size_changed();
+        }
+    }
+
+    // ======================================================================
     // FOCUS_NEXT_HAS_FOCUS
     // ======================================================================
     void focus_next_has_focus()
@@ -600,6 +614,14 @@ void basic_container::do_add_component(
           , _1
           , _2)));
     
+    // Register for callbacks for when the subcomponent's preferred size
+    // changes.
+    component_connections.push_back(comp->on_preferred_size_changed.connect(
+        boost::bind(
+            &basic_container::impl::subcomponent_preferred_size_changed_handler
+           , pimpl_
+           , boost::weak_ptr<component>(comp))));
+
     pimpl_->component_connections_.push_back(component_connections);
     
     comp->set_parent(shared_from_this());

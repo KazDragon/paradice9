@@ -105,7 +105,7 @@ intro_screen::intro_screen()
 
     BOOST_AUTO(
         greetings_image
-      , make_shared<image>(image_from_text(main_image)));
+      , make_shared<image>(elements_from_strings(main_image)));
     image_container->add_component(greetings_image);
 
     inner_content->add_component(image_container, COMPASS_LAYOUT_CENTRE);
@@ -161,7 +161,7 @@ intro_screen::intro_screen()
     BOOST_AUTO(instructions_container, make_shared<basic_container>());
     instructions_container->set_layout(make_shared<aligned_layout>());
     instructions_container->add_component(
-        make_shared<image>(image_from_text(instructions_label_elements))
+        make_shared<image>(elements_from_strings(instructions_label_elements))
       , alignment);
     
     BOOST_AUTO(bottom_container, make_shared<basic_container>());

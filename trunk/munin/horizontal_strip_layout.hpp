@@ -34,13 +34,14 @@ namespace munin {
 
 //* =========================================================================
 /// \brief A class that knows how to lay components out in a container in
-/// horizontal strips.  Each component is given its preferred amount of 
-/// width, with the maximum preferred height of all the components.
+/// horizontal strips.  Each component is given all the available width,
+/// with the sum of the preferred height of all the components.
 ///
 /// +----------+
-/// |+-----+   |
-/// ||     |   |
-/// |+-----+-+ |
+/// |+-------+ |
+/// ||       | |
+/// |+-------+ |
+/// ||       | |
 /// ||       | |
 /// |+-------+ |
 /// +----------+

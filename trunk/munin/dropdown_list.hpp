@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Image Component.
+// Munin Drop-Down List Component.
 //
-// Copyright (C) 2010 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,66 +24,71 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_IMAGE_HPP_
-#define MUNIN_IMAGE_HPP_
+#ifndef MUNIN_DROPDOWN_LIST_HPP_
+#define MUNIN_DROPDOWN_LIST_HPP_
 
-#include "munin/basic_component.hpp"
+#include "munin/composite_component.hpp"
 #include "odin/runtime_array.hpp"
 #include <boost/shared_ptr.hpp>
 
 namespace munin {
 
 //* =========================================================================
-/// \brief A class that models a single-line text control with a frame
-/// bordering it.
+/// \brief A class that models a dropdown_list of items.
 //* =========================================================================
-class image : public munin::basic_component
+class dropdown_list : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
-    /// \param elements - a multidimentional array with each element
-    /// representing one horizontal line of the image.
     //* =====================================================================
-    image(odin::runtime_array< odin::runtime_array<element_type> > elements);
-
-    //* =====================================================================
-    /// \brief Constructor
-    /// \param elements - an array representing a single-lined image.
-    //* =====================================================================
-    image(odin::runtime_array<munin::element_type> elements);
-    
-    //* =====================================================================
-    /// \brief Sets the image displayed
-    //* =====================================================================
-    void set_image(
-        odin::runtime_array< odin::runtime_array< element_type> > elements);
+    dropdown_list();
 
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~image();
+    virtual ~dropdown_list();
 
+    //* =====================================================================
+    /// \brief Sets the items in the drop-down list.
+    //* =====================================================================
+    void set_items(
+        odin::runtime_array< 
+            odin::runtime_array<element_type> 
+        > const &items);
+
+    //* =====================================================================
+    /// \brief Selects an item with the given index.
+    /// \param selected_item the item to select, or -1 for no item.
+    //* =====================================================================
+    void set_item_index(odin::s32 index);
+
+    //* =====================================================================
+    /// \brief Gets the index of the currently selected item, or -1 if no 
+    /// item is selected.
+    //* =====================================================================
+    odin::s32 get_item_index() const;
+
+    //* =====================================================================
+    /// \brief Gets the value of the currently selected item.
+    //* =====================================================================
+    odin::runtime_array<element_type> get_item() const;
+
+    //* =====================================================================
+    /// \fn on_item_changed
+    /// \brief Connect to this signal to receive updates about when the
+    /// selected item changes.
+    //* =====================================================================
+    boost::signal<
+        void (odin::s32)
+    > on_item_changed;
+    
 protected :
     //* =====================================================================
-    /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
-    /// manner.
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const;
-    
-    //* =====================================================================
-    /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw 
-    /// the part of itself specified by the region.
-    ///
-    /// \param cvs the canvas in which the component should draw itself.
-    /// \param region the region relative to this component's origin that
-    /// should be drawn.
-    //* =====================================================================
-    virtual void do_draw(
-        canvas          &cvs
-      , rectangle const &region);
+    virtual void do_event(boost::any const &event);
     
 private :
     struct impl;

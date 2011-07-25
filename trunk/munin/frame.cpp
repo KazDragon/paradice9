@@ -75,11 +75,16 @@ frame::frame(
     pimpl_->bottom_       = bottom;
     pimpl_->bottom_right_ = bottom_right;
 
-    BOOST_AUTO(top_container, make_shared<basic_container>());
-    top_container->set_layout(make_shared<compass_layout>());
-    top_container->add_component(top_left,  COMPASS_LAYOUT_WEST);
-    top_container->add_component(top,       COMPASS_LAYOUT_CENTRE);
-    top_container->add_component(top_right, COMPASS_LAYOUT_EAST);
+    shared_ptr<basic_container> top_container;
+
+    if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
+    {
+        top_container = make_shared<basic_container>();
+        top_container->set_layout(make_shared<compass_layout>());
+        top_container->add_component(top_left,  COMPASS_LAYOUT_WEST);
+        top_container->add_component(top,       COMPASS_LAYOUT_CENTRE);
+        top_container->add_component(top_right, COMPASS_LAYOUT_EAST);
+    }
 
     BOOST_AUTO(bottom_container, make_shared<basic_container>());
     bottom_container->set_layout(make_shared<compass_layout>());
@@ -89,7 +94,11 @@ frame::frame(
 
     BOOST_AUTO(content, get_container());
     content->set_layout(make_shared<compass_layout>());
-    content->add_component(top_container,         COMPASS_LAYOUT_NORTH);
+
+    if (top_container)
+    {
+        content->add_component(top_container,     COMPASS_LAYOUT_NORTH);
+    }
     content->add_component(bottom_container,      COMPASS_LAYOUT_SOUTH);
     content->add_component(left,                  COMPASS_LAYOUT_WEST);
     content->add_component(right,                 COMPASS_LAYOUT_EAST);
@@ -100,9 +109,13 @@ frame::frame(
 // ==========================================================================
 void frame::do_set_attribute(string const &name, any const &attr)
 {
-    pimpl_->top_left_->set_attribute(name, attr);
-    pimpl_->top_->set_attribute(name, attr);
-    pimpl_->top_right_->set_attribute(name, attr);
+    if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
+    {
+        pimpl_->top_left_->set_attribute(name, attr);
+        pimpl_->top_->set_attribute(name, attr);
+        pimpl_->top_right_->set_attribute(name, attr);
+    }
+
     pimpl_->left_->set_attribute(name, attr);
     pimpl_->right_->set_attribute(name, attr);
     pimpl_->bottom_left_->set_attribute(name, attr);

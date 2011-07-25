@@ -370,6 +370,9 @@ public :
         
         connections_.push_back(content_->on_cursor_position_changed.connect(
             bind(&impl::schedule_repaint, this)));
+
+        connections_.push_back(content_->on_preferred_size_changed.connect(
+            bind(&impl::preferred_size_change_handler, this)));
     }
     
     // ======================================================================
@@ -435,6 +438,15 @@ private :
         schedule_repaint();
     }
     
+    // ======================================================================
+    // PREFERRED_SIZE_CHANGE_HANDLER
+    // ======================================================================
+    void preferred_size_change_handler()
+    {
+        // Force the content to re-lay itself out.
+        content_->set_size(content_->get_size());
+    }
+
     // ======================================================================
     // CREATE_REPAINT_SLICES
     // ======================================================================

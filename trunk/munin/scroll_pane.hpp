@@ -42,7 +42,9 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    scroll_pane(boost::shared_ptr<component> underlying_component);
+    scroll_pane(
+        boost::shared_ptr<component> underlying_component
+      , bool                         top_border = true);
 
     //* =====================================================================
     /// \brief Destructor

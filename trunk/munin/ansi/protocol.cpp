@@ -27,8 +27,10 @@
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
+#include <boost/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
+#include <algorithm>
 
 using namespace std;
 using namespace boost;
@@ -37,11 +39,28 @@ using namespace odin;
 namespace munin { namespace ansi {
     
 // ==========================================================================
+// ELEMENTS_FROM_STRINGS
+// ==========================================================================
+runtime_array< runtime_array<element_type> > 
+    elements_from_strings(runtime_array<string> const &strings
+  , attribute const &attr)
+{
+    runtime_array< runtime_array<element_type> > elements(strings.size());
+
+    transform(
+        strings.begin(), strings.end()
+      , elements.begin()
+      , bind(elements_from_string, _1, attr));
+    
+    return elements;
+}
+
+// ==========================================================================
 // ELEMENTS_FROM_STRING
 // ==========================================================================
 runtime_array<element_type> elements_from_string(
-    string const &source_line
-  , attribute     attr)
+    string const    &source_line
+  , attribute const &attr)
 {
     runtime_array<munin::element_type> dest_line(source_line.size());
     

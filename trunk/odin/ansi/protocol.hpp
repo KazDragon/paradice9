@@ -179,6 +179,8 @@ struct mouse_report
     static odin::u8 const MIDDLE_BUTTON_DOWN = odin::u8(1);
     static odin::u8 const RIGHT_BUTTON_DOWN  = odin::u8(2);
     static odin::u8 const BUTTON_UP          = odin::u8(3);
+    static odin::u8 const SCROLLWHEEL_UP     = odin::u8(32);
+    static odin::u8 const SCROLLWHEEL_DOWN   = odin::u8(33);
     
     odin::u8  button_;
     odin::s32 x_position_;

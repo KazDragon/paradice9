@@ -98,6 +98,11 @@ std::string colour_string(munin::attribute::high_colour const &colour);
 //* =========================================================================
 std::string colour_string(munin::attribute::greyscale_colour const &colour);
 
+//* =========================================================================
+/// \brief Returns a string that will clear the screen.
+//* =========================================================================
+std::string clear_screen();
+
 }}
 
 #endif

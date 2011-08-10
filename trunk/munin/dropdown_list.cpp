@@ -127,8 +127,19 @@ struct dropdown_list::impl
     // ======================================================================
     void on_item_changed(s32)
     {
+        runtime_array<element_type> const &arr = self_.get_item();
+
         selected_text_->set_image(
-            runtime_array< runtime_array<element_type> >(&self_.get_item(), 1));
+            runtime_array< runtime_array<element_type> >(&arr, 1));
+    }
+
+    // ======================================================================
+    // ON_DROPDOWN_LOST_FOCUS
+    // ======================================================================
+    void on_dropdown_lost_focus()
+    {
+        close_dropdown();
+        dropdown_button_->set_focus();
     }
 
     // ======================================================================
@@ -193,10 +204,18 @@ struct dropdown_list::impl
     // ======================================================================
     bool do_character_event(char ch)
     {
-        if (dropdown_open_ && ch == '\n')
+        if (ch == '\n')
         {
-            close_dropdown();
-            return true;
+            if (dropdown_open_)
+            {
+                close_dropdown();
+                return true;
+            }
+            else
+            {
+                open_dropdown();
+                return true;
+            }
         }
 
         return false;
@@ -358,6 +377,8 @@ dropdown_list::dropdown_list()
     pimpl_->list_ = make_shared<list>();
     pimpl_->list_->on_item_changed.connect(
         bind(&impl::on_item_changed, pimpl_.get(), _1));
+    pimpl_->list_->on_focus_lost.connect(
+        bind(&impl::on_dropdown_lost_focus, pimpl_.get()));
     BOOST_AUTO(scroller, make_shared<scroll_pane>(pimpl_->list_, false));
 
     // Put the scrollpane in a fixed-height layout so that it doesn't prefer to

@@ -244,7 +244,7 @@ void intro_screen::do_event(any const &ev)
             
             handled = true;
         }
-        else if (*ch == '\n')
+        else if (*ch == '\n' || *ch == '\r')
         {
             pimpl_->on_account_details_entered();
             handled = true;

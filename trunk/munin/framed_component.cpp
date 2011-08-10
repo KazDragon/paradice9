@@ -57,6 +57,15 @@ public :
       , hint_interior
     };
 
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    framed_component_layout()
+        : frame_width_(2)
+        , frame_height_(2)
+    {
+    }
+        
 private :
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
@@ -71,6 +80,7 @@ private :
         // width 1. Will require the fix to compass layout's preferred_size
         // before being solved.
         extent preferred_interior_size;
+        extent preferred_border_size;
 
         for (u32 index = 0; index < components.size(); ++index)
         {
@@ -82,9 +92,28 @@ private :
             {
                 preferred_interior_size = comp->get_preferred_size();
             }
+            else if (hint == hint_border)
+            {
+                BOOST_AUTO(border, dynamic_pointer_cast<frame>(comp));
+                
+                if (border == NULL)
+                {
+                    preferred_border_size = comp->get_preferred_size();
+                    // TODO: fix this
+                    preferred_border_size.height = 2;
+                }
+                else
+                {
+                    preferred_border_size = extent(
+                        border->get_border_width()
+                      , border->get_border_height());
+                }
+            }
         }
 
-        return preferred_interior_size + extent(2, 2);
+        return extent(
+            preferred_interior_size.width  + preferred_border_size.width
+          , preferred_interior_size.height + preferred_border_size.height);
     }
 
     //* =====================================================================
@@ -113,17 +142,20 @@ private :
             else if (hint == hint_interior)
             {
                 point position(
-                    (min)(size.width, s32(1))
-                  , (min)(size.height, s32(1)));
+                    (min)(size.width, s32(frame_width_ / 2))
+                  , (min)(size.height, s32(frame_height_ / 2)));
 
                 comp->set_position(position);
 
-                size.width  = (max)(size.width - 2, s32(0));
-                size.height = (max)(size.height - 2, s32(0));
+                size.width  = (max)(size.width - frame_width_, s32(0));
+                size.height = (max)(size.height - frame_height_, s32(0));
                 comp->set_size(size);
             }
         }
     }
+    
+    mutable s32 frame_width_;
+    mutable s32 frame_height_;
 };
 
 }

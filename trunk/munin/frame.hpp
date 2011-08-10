@@ -53,6 +53,9 @@ public :
     /// 6 7 8
     ///
     /// These form the frame outlines.
+    ///
+    /// Components 1, 2 and 3 are optional.  Leaving these NULL will create
+    /// a frame without a top border.
     //* =====================================================================
     frame(
         boost::shared_ptr<component> top_left
@@ -64,7 +67,35 @@ public :
       , boost::shared_ptr<component> bottom
       , boost::shared_ptr<component> bottom_right);
 
+    //* =====================================================================
+    /// \brief Returns the total border height of the top and bottom borders.
+    /// For example, if each border has a height of 1, then this will return
+    /// 2.
+    //* =====================================================================
+    odin::s32 get_border_height() const;
+    
+    //* =====================================================================
+    /// \brief Returns the total border width of the left and right borders.
+    /// For example, if each border has a width of 1, then this will return
+    /// 2.
+    //* =====================================================================
+    odin::s32 get_border_width() const;
+
 protected :
+    //* =====================================================================
+    /// \brief Called by get_border_height.  Derived classes must override 
+    /// this function in order to retrieve the total border height in a
+    /// custom manner.
+    //* =====================================================================
+    virtual odin::s32 do_get_border_height() const;
+
+    //* =====================================================================
+    /// \brief Called by get_border_width.  Derived classes must override 
+    /// this function in order to retrieve the total border width in a
+    /// custom manner.
+    //* =====================================================================
+    virtual odin::s32 do_get_border_width() const;
+
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.

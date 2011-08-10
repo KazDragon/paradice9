@@ -105,6 +105,59 @@ frame::frame(
 }
 
 // ==========================================================================
+// GET_BORDER_HEIGHT
+// ==========================================================================
+s32 frame::get_border_height() const
+{
+    return do_get_border_height();
+}
+
+// ==========================================================================
+// GET_BORDER_WIDTH
+// ==========================================================================
+s32 frame::get_border_width() const
+{
+    return do_get_border_width();
+}
+
+// ==========================================================================
+// DO_GET_BORDER_HEIGHT
+// ==========================================================================
+s32 frame::do_get_border_height() const
+{
+    // By default, we look at the preferred heights of the top, and the
+    // preferred heights of the bottom edges, and add them up.
+    s32 preferred_height_top    = 0;
+    s32 preferred_height_bottom = 0;
+    
+    if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
+    {
+        preferred_height_top =
+            (max)(pimpl_->top_left_->get_preferred_size().height
+          , (max)(pimpl_->top_->get_preferred_size().height
+          ,       pimpl_->top_right_->get_preferred_size().height));
+    }
+
+    if (pimpl_->bottom_left_ && pimpl_->bottom_ && pimpl_->bottom_right_)
+    {
+        preferred_height_bottom =
+            (max)(pimpl_->bottom_left_->get_preferred_size().height
+          , (max)(pimpl_->bottom_->get_preferred_size().height
+          ,       pimpl_->bottom_right_->get_preferred_size().height));
+    }
+    
+    return preferred_height_top + preferred_height_bottom;
+}
+
+// ==========================================================================
+// DO_GET_BORDER_WIDTH
+// ==========================================================================
+s32 frame::do_get_border_width() const
+{
+    return 2;
+}
+
+// ==========================================================================
 // DO_SET_ATTRIBUTE
 // ==========================================================================
 void frame::do_set_attribute(string const &name, any const &attr)

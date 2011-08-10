@@ -206,5 +206,16 @@ string colour_string(attribute::greyscale_colour const &colour)
     return str(format("%s")% (colour.shade_ + 232));
 }
 
+// ==========================================================================
+// CLEAR_SCREEN
+// ==========================================================================
+string clear_screen()
+{
+    return str(format("%c%c2%c")
+        % odin::ansi::ESCAPE
+        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+        % odin::ansi::ERASE_DATA);
+}
+
 }}
 

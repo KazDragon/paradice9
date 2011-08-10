@@ -101,14 +101,6 @@ namespace {
         "Sets the text that comes after your name in the list of currently "
         "active players.\n";
         
-    static string const help_rename =
-        "COMMAND: RENAME\n"
-        "\n"
-        " USAGE:   rename <text>\n"
-        " EXAMPLE: rename Boffo\n"
-        "\n"
-        "Renames your character.\n";
-        
     static string const help_prefix =
         "COMMAND: PREFIX, HONORIFIC\n"
         "\n"
@@ -203,7 +195,6 @@ namespace {
       , { "set",         help_set         }
       , { "title",       help_title       }
       , { "surname",     help_title       }
-      , { "rename",      help_rename      }
       , { "prefix",      help_prefix      }
       , { "honorific",   help_prefix      }
       , { "roll",        help_roll        }

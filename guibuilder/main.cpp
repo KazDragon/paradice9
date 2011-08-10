@@ -25,9 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "server.hpp"
-#include "socket.hpp"
 #include "client.hpp"
 #include "ui.hpp"
+#include "odin/net/socket.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/window.hpp"
@@ -53,11 +53,11 @@ boost::asio::io_service io_service;
 vector< shared_ptr<guibuilder::client> > clients;
 
 static void schedule_keepalive(
-    boost::shared_ptr<guibuilder::socket>   socket
+    boost::shared_ptr<odin::net::socket>    socket
   , shared_ptr<boost::asio::deadline_timer> keepalive_timer);
 
 void on_repaint(
-    weak_ptr<guibuilder::socket>  weak_socket
+    weak_ptr<odin::net::socket>   weak_socket
   , string const                 &paint_data)
 {
     // TODO: This should take a client instead so that it can filter down the
@@ -74,7 +74,7 @@ void on_repaint(
 }
 
 void on_keepalive(
-    weak_ptr<guibuilder::socket>             weak_socket
+    weak_ptr<odin::net::socket>              weak_socket
   , shared_ptr<boost::asio::deadline_timer>  keepalive_timer
   , boost::system::error_code const         &error)
 {
@@ -82,7 +82,7 @@ void on_keepalive(
 
     if (socket)
     {
-        guibuilder::socket::output_value_type values[] = {
+        odin::net::socket::output_value_type values[] = {
             odin::telnet::IAC, odin::telnet::NOP
         };
 
@@ -162,7 +162,7 @@ void on_mouse_report(
     }
 }
 
-static void on_accept(shared_ptr<guibuilder::socket> socket)
+static void on_accept(shared_ptr<odin::net::socket> socket)
 {
     schedule_keepalive(
         socket
@@ -203,7 +203,7 @@ static void on_accept(shared_ptr<guibuilder::socket> socket)
     BOOST_AUTO(content, window->get_content());
 
     window->on_repaint.connect(
-        bind(&on_repaint, weak_ptr<guibuilder::socket>(socket), _1));
+        bind(&on_repaint, weak_ptr<odin::net::socket>(socket), _1));
 
     BOOST_AUTO(user_interface, make_shared<guibuilder::ui>());
 
@@ -223,14 +223,14 @@ static void on_accept(shared_ptr<guibuilder::socket> socket)
 }
 
 static void schedule_keepalive(
-    boost::shared_ptr<guibuilder::socket>   socket
+    boost::shared_ptr<odin::net::socket>    socket
   , boost::shared_ptr<asio::deadline_timer> keepalive_timer)
 {
     keepalive_timer->expires_from_now(boost::posix_time::seconds(30));
     keepalive_timer->async_wait(
         bind(
             on_keepalive
-          , boost::weak_ptr<guibuilder::socket>(socket)
+          , boost::weak_ptr<odin::net::socket>(socket)
           , keepalive_timer
           , boost::asio::placeholders::error));
 }

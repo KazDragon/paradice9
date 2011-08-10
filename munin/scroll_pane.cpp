@@ -46,46 +46,32 @@ namespace munin {
 
 namespace {
 
-class scroll_frame : public composite_component
+class scroll_frame : public frame
 {
 public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    scroll_frame(bool top_border)
+    scroll_frame(
+        shared_ptr<horizontal_scroll_bar> hscroll_bar
+      , shared_ptr<vertical_scroll_bar>   vscroll_bar
+      , bool                              top_border)
+        : frame(
+              top_border 
+            ? make_shared<filled_box>(element_type(double_lined_top_left_corner))
+            : shared_ptr<filled_box>()
+            , top_border
+            ? make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+            : shared_ptr<filled_box>()
+            , top_border
+            ? make_shared<filled_box>(element_type(double_lined_top_right_corner))
+            : shared_ptr<filled_box>()
+            , make_shared<filled_box>(element_type(double_lined_vertical_beam))
+            , vscroll_bar
+            , make_shared<filled_box>(element_type(double_lined_bottom_left_corner))
+            , hscroll_bar
+            , make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
     {
-        element_type top_left_element(double_lined_top_left_corner, attribute());
-        element_type top_element(double_lined_horizontal_beam, attribute());
-        element_type top_right_element(double_lined_top_right_corner, attribute());
-        element_type left_element(double_lined_vertical_beam, attribute());
-        element_type bottom_left_element(double_lined_bottom_left_corner, attribute());
-        element_type bottom_right_element(double_lined_bottom_right_corner, attribute());
-
-        vertical_scroll_bar_ = make_shared<vertical_scroll_bar>();
-        horizontal_scroll_bar_ = make_shared<horizontal_scroll_bar>();
-
-        shared_ptr<filled_box> top_left;
-        shared_ptr<filled_box> top;
-        shared_ptr<filled_box> top_right;
-
-        if (top_border)
-        {
-            top_left  = make_shared<filled_box>(top_left_element);
-            top       = make_shared<filled_box>(top_element);
-            top_right = make_shared<filled_box>(top_right_element);
-        }
-
-        BOOST_AUTO(left,         make_shared<filled_box>(left_element));
-        BOOST_AUTO(bottom_left,  make_shared<filled_box>(bottom_left_element));
-        BOOST_AUTO(bottom_right, make_shared<filled_box>(bottom_right_element));
-
-        BOOST_AUTO(content, get_container());
-        content->set_layout(make_shared<grid_layout>(1, 1));
-
-        content->add_component(make_shared<frame>(
-            top_left, top, top_right
-          , left, vertical_scroll_bar_
-          , bottom_left, horizontal_scroll_bar_, bottom_right));
     }
 
     // ======================================================================
@@ -94,9 +80,6 @@ public :
     ~scroll_frame()
     {
     }
-
-    shared_ptr<horizontal_scroll_bar> horizontal_scroll_bar_;
-    shared_ptr<vertical_scroll_bar>   vertical_scroll_bar_;
 };
 
 }
@@ -114,10 +97,12 @@ struct scroll_pane::impl
     {
     }
 
-    scroll_pane              &self_;
-    shared_ptr<scroll_frame>  scroll_frame_;
-    shared_ptr<viewport>      viewport_;
-    shared_ptr<component>     underlying_component_;
+    scroll_pane                       &self_;
+    shared_ptr<component>              underlying_component_;
+    shared_ptr<viewport>               viewport_;
+    shared_ptr<horizontal_scroll_bar>  horizontal_scroll_bar_;
+    shared_ptr<vertical_scroll_bar>    vertical_scroll_bar_;
+    shared_ptr<scroll_frame>           scroll_frame_;
 
     // ======================================================================
     // ON_PAGE_LEFT
@@ -338,10 +323,8 @@ struct scroll_pane::impl
             vertical_slider_position
           , calculate_vertical_scrollbar());
 
-        scroll_frame_->horizontal_scroll_bar_->set_slider_position(
-            horizontal_slider_position);
-        scroll_frame_->vertical_scroll_bar_->set_slider_position(
-            vertical_slider_position);
+        horizontal_scroll_bar_->set_slider_position(horizontal_slider_position);
+        vertical_scroll_bar_->set_slider_position(vertical_slider_position);
     }
 };
 
@@ -354,30 +337,32 @@ scroll_pane::scroll_pane(
 {
     pimpl_ = make_shared<impl>(ref(*this));
 
-    pimpl_->viewport_ = make_shared<viewport>(underlying_component);
-    pimpl_->scroll_frame_ = make_shared<scroll_frame>(top_border);
     pimpl_->underlying_component_ = underlying_component;
 
+    pimpl_->viewport_ = make_shared<viewport>(pimpl_->underlying_component_);
     pimpl_->viewport_->on_size_changed.connect(
         bind(&impl::calculate_scrollbars, pimpl_.get()));
-
     pimpl_->viewport_->on_subcomponent_size_changed.connect(
         bind(&impl::calculate_scrollbars, pimpl_.get()));
-
     pimpl_->viewport_->on_origin_changed.connect(
         bind(&impl::calculate_scrollbars, pimpl_.get()));
 
-    pimpl_->scroll_frame_->horizontal_scroll_bar_->on_page_left.connect(
+    pimpl_->horizontal_scroll_bar_ = make_shared<horizontal_scroll_bar>();
+    pimpl_->horizontal_scroll_bar_->on_page_left.connect(
         bind(&impl::on_page_left, pimpl_.get()));
-
-    pimpl_->scroll_frame_->horizontal_scroll_bar_->on_page_right.connect(
+    pimpl_->horizontal_scroll_bar_->on_page_right.connect(
         bind(&impl::on_page_right, pimpl_.get()));
 
-    pimpl_->scroll_frame_->vertical_scroll_bar_->on_page_up.connect(
+    pimpl_->vertical_scroll_bar_ = make_shared<vertical_scroll_bar>();
+    pimpl_->vertical_scroll_bar_->on_page_up.connect(
         bind(&impl::on_page_up, pimpl_.get()));
-
-    pimpl_->scroll_frame_->vertical_scroll_bar_->on_page_down.connect(
+    pimpl_->vertical_scroll_bar_->on_page_down.connect(
         bind(&impl::on_page_down, pimpl_.get()));
+        
+    pimpl_->scroll_frame_ = make_shared<scroll_frame>(
+        pimpl_->horizontal_scroll_bar_
+      , pimpl_->vertical_scroll_bar_
+      , top_border);
 
     BOOST_AUTO(content, get_container());
     content->set_layout(make_shared<grid_layout>(1, 1));

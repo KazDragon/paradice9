@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "server.hpp"
-#include "socket.hpp"
+#include "odin/net/socket.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/bind.hpp>
@@ -40,9 +40,9 @@ namespace guibuilder
     
 struct server::impl
 {
-    impl(asio::io_service                          &io_service
-       , uint16_t                                   port
-       , function<void (shared_ptr<socket>)> const &on_accept)
+    impl(asio::io_service                                     &io_service
+       , uint16_t                                              port
+       , function<void (shared_ptr<odin::net::socket>)> const &on_accept)
         : io_service_(io_service)
         , acceptor_(
             io_service
@@ -60,7 +60,9 @@ struct server::impl
     {
         if (!error)
         {
-            BOOST_AUTO(paradice_socket, make_shared<socket>(new_socket));
+            BOOST_AUTO(
+                paradice_socket
+              , make_shared<odin::net::socket>(new_socket));
             on_accept_(paradice_socket);
 
             schedule_accept();
@@ -82,16 +84,16 @@ struct server::impl
             , asio::placeholders::error));
     }
     
-    asio::io_service                   &io_service_;
-    asio::ip::tcp::acceptor             acceptor_;
+    asio::io_service                               &io_service_;
+    asio::ip::tcp::acceptor                         acceptor_;
     
-    function<void (shared_ptr<socket>)> on_accept_;
+    function<void (shared_ptr<odin::net::socket>)>  on_accept_;
 };
 
 server::server(
-    asio::io_service                          &io_service
-  , uint16_t                                   port
-  , function<void (shared_ptr<socket>)> const &on_accept)
+    asio::io_service                                     &io_service
+  , uint16_t                                              port
+  , function<void (shared_ptr<odin::net::socket>)> const &on_accept)
     : pimpl_(new impl(io_service, port, on_accept))
 {
 }

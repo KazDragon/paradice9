@@ -87,7 +87,7 @@ void button::do_event(any const &event)
     
     if (ch != NULL)
     {
-        if (*ch == ' ' || *ch == '\n')
+        if (*ch == ' ' || *ch == '\n' || *ch == '\r')
         {
             on_click();
         }

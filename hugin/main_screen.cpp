@@ -264,12 +264,7 @@ void main_screen::do_event(any const &ev)
 
     if (pimpl_->input_field_->has_focus() && ch != NULL)
     {
-        if (*ch == '\r' || *ch == '\0')
-        {
-            // Consume these characters and ignore them.
-            handled = true;
-        }
-        else if (*ch == '\n')
+        if (*ch == '\n' || *ch == '\r' || *ch == '\0')
         {
             pimpl_->on_input_entered();
             handled = true;

@@ -330,6 +330,7 @@ private :
             content->set_focus();
         
             window->enable_mouse_tracking();
+            window->on_repaint(clear_screen());
             window->on_repaint(set_normal_cursor_keys());
         }
     }

@@ -96,10 +96,11 @@ public :
     {
         using boost::spirit::qi::lit;
         using boost::spirit::qi::char_;
+        using boost::spirit::qi::omit;
 
         // The IAC byte is byte 255 on its own.  It is either a special
         // character or an escape code, so has no attribute.
-        iac_ = lit("\xFF");
+        iac_ = omit[char_(odin::telnet::IAC)];
 
         // The IAC byte twice is an escaped IAC byte, and counts as itself.
         escaped_iac_ = iac_ >> char_(odin::telnet::IAC);
@@ -132,9 +133,9 @@ public :
         // option id, then any number of bytes.  It is terminated by IAC
         // followed by SE.
         telnet_subnegotiation_ = 
-            iac_ >> lit("\xFA") >> char_
+            iac_ >> omit[char_(odin::telnet::SB)] >> char_
          >> *telnet_byte_
-         >> iac_ >> lit("\xF0");
+         >> iac_ >> omit[char_(odin::telnet::SE)];
 
         telnet_bytes_ = +telnet_byte_;
         

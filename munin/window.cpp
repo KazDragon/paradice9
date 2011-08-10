@@ -86,10 +86,7 @@ static string foreground_colour_string(munin::attribute::colour const &colour)
     
     if (low_colour != NULL)
     {
-        return string()
-             + odin::ansi::ESCAPE
-             + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-             + str(format("%s")
+        return str(format("%s")
                  % (int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE)
                     + low_colour->value_));
                  
@@ -514,6 +511,13 @@ private :
         // Prepare a string that is a collection of the ANSI data required
         // to update the window.         
         string output;
+        
+        // First, if we are repainting everything, then clear the screen to
+        // ensure that nothing is left from the previous data.
+        if (repaint_all)
+        {
+            output += munin::ansi::clear_screen();
+        }
         
         // For each slice, see if it has changed between the canvas that was
         // updated and the clone of the original.

@@ -299,7 +299,7 @@ vector<rectangle> prune_regions(vector<rectangle> regions)
 // ==========================================================================
 void copy_region(
     rectangle const &region
-  , canvas          &source
+  , canvas const    &source
   , canvas          &destination)
 {
     for (s32 y_coord = region.origin.y; 
@@ -311,7 +311,7 @@ void copy_region(
              ++x_coord)
         {
             destination[x_coord][y_coord] = 
-                element_type(source[x_coord][y_coord]);
+                source[x_coord][y_coord];
         }
     }
 }

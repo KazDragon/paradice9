@@ -52,8 +52,8 @@ namespace {
 //* =========================================================================
 static vector<munin::rectangle> find_different_subslices(
     munin::rectangle const &region
-  , munin::canvas          &lhs
-  , munin::canvas          &rhs)
+  , munin::canvas const    &lhs
+  , munin::canvas const    &rhs)
 {
     vector<munin::rectangle> subslices;
     
@@ -322,7 +322,7 @@ static string canvas_region_string(
     munin::glyph           &last_glyph
   , munin::attribute       &last_attribute
   , munin::rectangle const &region
-  , munin::canvas          &cvs)
+  , munin::canvas const    &cvs)
 {
     string output;
     
@@ -585,7 +585,7 @@ private :
         
         // Take a copy of the canvas.  We will want to check against this
         // after the draw operations to see if anything has changed.
-        canvas canvas_clone = canvas_;
+        canvas const canvas_clone = canvas_;
 
         // Draw each slice on the canvas.
         BOOST_FOREACH(rectangle region, slices)

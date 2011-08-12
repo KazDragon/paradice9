@@ -129,6 +129,8 @@ void image::do_draw(
     canvas          &cvs
   , rectangle const &region)
 {
+    static element_type const default_element(' ');
+
     for (u32 row = region.origin.y; 
          row < u32(region.origin.y + region.size.height);
          ++row)
@@ -144,7 +146,7 @@ void image::do_draw(
             }
             else
             {
-                cvs[column][row] = element_type(' ', attribute());
+                cvs[column][row] = default_element;
             }
         }
     }

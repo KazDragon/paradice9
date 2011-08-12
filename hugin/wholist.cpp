@@ -217,13 +217,14 @@ private :
         current_size_ = size;
         
         attribute pen;
+        element_type const blank_element(' ', pen);
         
         // Blank out the view.
         for (s32 column = 0; column < size.width; ++column)
         {
             for (s32 row = 0; row < size.height; ++row)
             {
-                view_[column][row] = element_type(' ', pen);
+                view_[column][row] = blank_element;
             }
         }
     }

@@ -307,31 +307,6 @@ struct viewport::impl
 
         return false;
     }
-
-    // ======================================================================
-    // INITIALISE_REGION
-    // ======================================================================
-    void initialise_region(canvas &cvs, rectangle const &region) 
-    {
-        // Apply the region's origin as an offset to our canvas.  This means that
-        // the calculations below are done in terms of the region's origin.
-        cvs.apply_offset(region.origin.x, region.origin.y);
-
-        // Ensure that the offset is unapplied before any exit of this function.
-        BOOST_SCOPE_EXIT( (&cvs)(&region) )
-        {
-            cvs.apply_offset(-region.origin.x, -region.origin.y);
-        } BOOST_SCOPE_EXIT_END
-        
-        // Now, blank out the region.
-        for (s32 row = 0; row < region.size.height; ++row)
-        {
-            for (s32 column = 0; column < region.size.width; ++column)
-            {
-                cvs[column][row] = element_type(' ');
-            }
-        }
-    }
 };
 
 // ==========================================================================
@@ -597,9 +572,6 @@ void viewport::do_draw(
     canvas          &cvs
   , rectangle const &region) 
 {
-    // First, initialise the region on the canvas.
-    pimpl_->initialise_region(cvs, region);
-
     // If we are looking at the component from (3,5) and the region we want
     // to redraw is (0,0)->[2,2], then we need to offset the canvas by
     // (-3,-5) in order for it to render in our screen coordinates.

@@ -84,6 +84,8 @@ public :
             return;
         }
         
+        static element_type const default_element(' ');
+
         // Create a new elements array and fill it with data from the old
         // array if necessary or with default spaces.
         vector<element_type> new_elements;
@@ -105,7 +107,7 @@ public :
                     // This co-ordinate is a new element.  Create a default
                     // character.
                     new_elements[(row * size.width) + column] =
-                        element_type(' ', attribute());
+                        default_element;
                 }
             }
         }

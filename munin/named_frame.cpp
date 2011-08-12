@@ -140,6 +140,8 @@ private :
         canvas          &cvs
       , rectangle const &region)
     {
+        static element_type const default_element(' ');
+
         for (s32 y_coord = region.origin.y; 
              y_coord < region.origin.y + region.size.height; 
              ++y_coord)
@@ -152,7 +154,7 @@ private :
 
                 if (index == -1 || index == s32(title_.size()))
                 {
-                    cvs[x_coord][y_coord] = element_type(' ', attribute());
+                    cvs[x_coord][y_coord] = default_element;
                 }
                 else if (index >= 0 && index < s32(title_.size()))
                 {

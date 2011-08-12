@@ -138,11 +138,12 @@ struct edit::impl
         }
         
         // Pad the rest with blanks.
+        static element_type const blank_element(' ');
         for (;
              index < region.size.width;
              ++index)
         {
-            cvs[index][0] = element_type(' ', attribute());
+            cvs[index][0] = blank_element;
         }
     }
 

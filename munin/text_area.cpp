@@ -145,11 +145,12 @@ struct text_area::impl
             }
             
             // Pad the rest with blanks
+            static element_type const default_element(' ');
             for (;
                 column_index < u32(region.size.width);
                 ++column_index)
             {
-                cvs[column_index][row_index] = element_type(' ', attribute());
+                cvs[column_index][row_index] = default_element;
             }
         }
     }

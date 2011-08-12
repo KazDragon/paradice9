@@ -323,15 +323,20 @@ private :
             context_->add_client(client);
             context_->update_names();
             
-            content->set_size(munin::extent(80, 24));
             content->set_layout(make_shared<grid_layout>(1, 1));
-        
             content->add_component(user_interface);
             content->set_focus();
         
             window->enable_mouse_tracking();
             window->on_repaint(clear_screen());
             window->on_repaint(set_normal_cursor_keys());
+
+            // Set the window's size only if it hasn't already been
+            // set by the NAWS process.
+            if (window->get_size() == munin::extent())
+            {
+                window->set_size(munin::extent(80, 24));
+            }
         }
     }
     

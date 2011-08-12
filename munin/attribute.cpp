@@ -62,38 +62,7 @@ bool operator==(attribute const &lhs, attribute const &rhs)
 // ==========================================================================
 bool operator==(attribute::colour const &lhs, attribute::colour const &rhs)
 {
-    BOOST_AUTO(low_colour_lhs, get<attribute::low_colour>(&lhs.value_));
-    
-    if (low_colour_lhs != NULL)
-    {
-        BOOST_AUTO(low_colour_rhs, get<attribute::low_colour>(&rhs.value_));
-        return low_colour_rhs != NULL
-            && *low_colour_lhs == *low_colour_rhs;
-    }
-    
-    BOOST_AUTO(high_colour_lhs, get<attribute::high_colour>(&lhs.value_));
-    
-    if (high_colour_lhs != NULL)
-    {
-        BOOST_AUTO(high_colour_rhs, get<attribute::high_colour>(&rhs.value_));
-        return high_colour_rhs != NULL
-            && *high_colour_lhs == *high_colour_rhs;
-    }
-    
-    BOOST_AUTO(
-        greyscale_colour_lhs
-      , get<attribute::greyscale_colour>(&lhs.value_));
-    
-    if (greyscale_colour_lhs != NULL)
-    {
-        BOOST_AUTO(
-            greyscale_colour_rhs
-          , get<attribute::greyscale_colour>(&rhs.value_));
-        return greyscale_colour_rhs != NULL
-            && *greyscale_colour_lhs == *greyscale_colour_rhs;
-    }
-    
-    return false;
+    return lhs.value_ == rhs.value_;
 }
 
 // ==========================================================================

@@ -288,6 +288,8 @@ void list::do_draw(
     canvas          &cvs
   , rectangle const &region)
 {
+    static element_type const default_element(' ');
+
     for (s32 y_coord = region.origin.y;
         y_coord < region.origin.y + region.size.height;
         ++y_coord)
@@ -306,7 +308,7 @@ void list::do_draw(
             {
                 element_type element = x_coord < s32(item.size())
                                      ? item[x_coord]
-                                     : element_type(' ');
+                                     : default_element;
 
                 if (is_selected_item)
                 {
@@ -325,7 +327,7 @@ void list::do_draw(
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = element_type(' ');
+                cvs[x_coord][y_coord] = default_element;
             }
         }
     }

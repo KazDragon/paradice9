@@ -121,9 +121,9 @@ struct attribute
     // Graphics Attributes
     colour foreground_colour_;
     colour background_colour_;
-    char  intensity_;
-    char  underlining_;
-    char  polarity_;
+    char   intensity_;
+    char   underlining_;
+    char   polarity_;
 };
 
 bool operator==(attribute const &lhs, attribute const &rhs);

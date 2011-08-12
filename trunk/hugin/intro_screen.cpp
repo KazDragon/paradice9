@@ -30,6 +30,7 @@
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
+#include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
@@ -180,6 +181,15 @@ intro_screen::intro_screen()
     
     outer_content->add_component(inner_content, COMPASS_LAYOUT_CENTRE);
     outer_content->add_component(pimpl_->statusbar_, COMPASS_LAYOUT_SOUTH);
+
+    // Add a filler to ensure that the background is opaque.
+    outer_content->set_layout(
+        make_shared<grid_layout>(1, 1)
+      , munin::LOWEST_LAYER);
+    outer_content->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , any()
+      , munin::LOWEST_LAYER);
 }
 
 // ==========================================================================
@@ -244,7 +254,7 @@ void intro_screen::do_event(any const &ev)
             
             handled = true;
         }
-        else if (*ch == '\n' || *ch == '\r')
+        else if (*ch == '\n')
         {
             pimpl_->on_account_details_entered();
             handled = true;

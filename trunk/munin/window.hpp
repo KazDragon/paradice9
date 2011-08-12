@@ -27,6 +27,7 @@
 #ifndef MUNIN_ANSI_WINDOW_HPP_
 #define MUNIN_ANSI_WINDOW_HPP_
 
+#include "munin/types.hpp"
 #include <boost/any.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
@@ -58,6 +59,12 @@ public :
     /// \brief Destructor
     //* =====================================================================
     ~window();
+
+    //* =====================================================================
+    /// \brief Sets the size of the window.  Following this, the contents
+    /// of the window are re-laid out.
+    //* =====================================================================
+    void set_size(munin::extent size);
 
     //* =====================================================================
     /// \brief Sets the title of the window.

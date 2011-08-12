@@ -387,7 +387,7 @@ private :
             
             if (window != NULL)
             {
-                window->get_content()->set_size(munin::extent(width, height));
+                window->set_size(munin::extent(width, height));
             }
         }
     }

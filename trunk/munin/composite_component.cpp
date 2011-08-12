@@ -55,6 +55,9 @@ composite_component::composite_component()
     get_container()->on_redraw.connect(
         bind(ref(on_redraw), _1));
 
+    get_container()->on_layout_change.connect(
+        bind(ref(on_layout_change)));
+    
     get_container()->on_position_changed.connect(
         bind(ref(on_position_changed), _1, _2));
 
@@ -258,6 +261,14 @@ point composite_component::do_get_cursor_position() const
 void composite_component::do_set_cursor_position(point const &position)
 {
     pimpl_->container_->set_cursor_position(position);
+}
+
+// ==========================================================================
+// DO_LAYOUT
+// ==========================================================================
+void composite_component::do_layout()
+{
+    pimpl_->container_->layout();
 }
 
 // ==========================================================================

@@ -31,6 +31,7 @@
 #include "munin/canvas.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -46,34 +47,48 @@ using namespace odin;
 namespace {
 
 //* =========================================================================
-/// \brief Returns true if the specified region is identical between the
-/// two canvases, false otherwise.
+/// \brief Returns a set of subregions within the region where the canvases
+/// are different.  This assumes that the region has a height of 1.
 //* =========================================================================
-static bool canvas_region_compare(
+static vector<munin::rectangle> find_different_subslices(
     munin::rectangle const &region
   , munin::canvas          &lhs
   , munin::canvas          &rhs)
 {
-    bool compare_equal = true;
+    vector<munin::rectangle> subslices;
     
-    for (s32 row = 0;
-         row < region.size.height && compare_equal; 
-         ++row)
+    munin::rectangle current_rectangle(region.origin, munin::extent(0, 1));
+    BOOST_AUTO(y_coord, region.origin.y);
+    
+    for (s32 x_coord = region.origin.x; 
+         x_coord < region.origin.x + region.size.width;
+         ++x_coord)
     {
-        for (s32 column = 0;
-             column < region.size.width && compare_equal;
-             ++column)
+        munin::element_type const &lhs_element = lhs[x_coord][y_coord];
+        munin::element_type const &rhs_element = rhs[x_coord][y_coord];
+        
+        if (lhs_element == rhs_element)
         {
-            munin::element_type const &lhs_element =
-                lhs[column + region.origin.x][row + region.origin.y];
-            munin::element_type const &rhs_element =
-                rhs[column + region.origin.x][row + region.origin.y];
-                
-            compare_equal = lhs_element == rhs_element;
+            if (current_rectangle.size.width != 0)
+            {
+                subslices.push_back(current_rectangle);
+            }
+
+            current_rectangle = munin::rectangle(
+                munin::point(x_coord + 1, y_coord), munin::extent(0, 1));
+        }
+        else
+        {
+            ++current_rectangle.size.width;
         }
     }
     
-    return compare_equal;
+    if (current_rectangle.size.width != 0)
+    {
+        subslices.push_back(current_rectangle);
+    }
+    
+    return subslices;
 }
 
 //* =========================================================================
@@ -358,6 +373,9 @@ public :
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
         , repaint_scheduled_(false)
+        , layout_scheduled_(false)
+        , handling_newline_(false)
+        , newline_char_('\0')
     {
         connections_.push_back(content_->on_redraw.connect(
             bind(&impl::redraw_handler, this, _1)));
@@ -370,6 +388,9 @@ public :
 
         connections_.push_back(content_->on_preferred_size_changed.connect(
             bind(&impl::preferred_size_change_handler, this)));
+        
+        connections_.push_back(content_->on_layout_change.connect(
+            bind(&impl::schedule_layout, this)));
     }
     
     // ======================================================================
@@ -404,7 +425,57 @@ public :
     // ======================================================================
     void event(boost::any const &event)
     {
-        content_->event(event);
+        // Here we handle newlines.  These come in as either:
+        // \n
+        // \n\r (bad, bad Dikus)
+        // \r\n
+        // \r\0
+        
+        // Therefore, we translate \r into \n, and ignore the next character 
+        // if it is either \n or \0.
+        char const *ch = boost::any_cast<char>(&event);
+        
+        if (ch != NULL)
+        {
+            if (handling_newline_)
+            {
+                if ((newline_char_ == '\r' && (*ch == '\n' || *ch == '\0'))
+                 || (newline_char_ == '\n' && (*ch == '\r' || *ch == '\0')))
+                {
+                    // This is the matching newline character.  Ignore it.
+                }
+                else
+                {
+                    // This requires no special handling.  Handle this event as 
+                    // normal.
+                    content_->event(event);
+                }
+                
+                // Whatever happened, we're done handling that now.
+                handling_newline_ = false;
+            }
+            else
+            {
+                if (*ch == '\r' || *ch == '\n')
+                {
+                    newline_char_ = *ch;
+                    handling_newline_ = true;
+                    
+                    // Always send '\n' for a newline.  It's easier for the GUI
+                    // to parse, that way.
+                    content_->event('\n');
+                }
+                else
+                {
+                    // This requires no special handling.
+                    content_->event(event);
+                }
+            }
+        }
+        else
+        {
+            content_->event(event);
+        }
     }
     
 private :
@@ -423,6 +494,20 @@ private :
         }
     }
     
+    // ======================================================================
+    // SCHEDULE_LAYOUT
+    // ======================================================================
+    void schedule_layout()
+    {
+        // As with schedule_repaint, we don't need to schedule a layout
+        // if there's one already scheduled.
+        if (!layout_scheduled_)
+        {
+            io_service_.post(bind(&impl::do_layout, shared_from_this()));
+            layout_scheduled_ = true;
+        }
+    }
+
     // ======================================================================
     // REDRAW_HANDLER
     // ======================================================================
@@ -523,12 +608,22 @@ private :
         // updated and the clone of the original.
         BOOST_FOREACH(rectangle slice, slices)
         {
-            if (repaint_all
-             || !canvas_region_compare(slice, canvas_, canvas_clone))
+            vector<rectangle> subslices;
+            
+            if (repaint_all)
             {
-                // This would only output the differences in the two regions
+                subslices.push_back(slice);
+            }
+            else
+            {
+                subslices = find_different_subslices(
+                    slice, canvas_, canvas_clone);
+            }
+            
+            BOOST_FOREACH(rectangle subslice, subslices)
+            {
                 output += canvas_region_string(
-                    glyph_, attribute_, slice, canvas_);
+                    glyph_, attribute_, subslice, canvas_);
             }
         }
 
@@ -583,6 +678,18 @@ private :
         repaint_scheduled_ = false;
     }
 
+    // ======================================================================
+    // DO_LAYOUT
+    // ======================================================================
+    void do_layout()
+    {
+        content_->layout();
+        layout_scheduled_ = false;
+        
+        redraw_handler(boost::assign::list_of(
+            rectangle(content_->get_position(), content_->get_size())));
+    }
+    
     window                       &self_;
     bool                          self_valid_;
     
@@ -597,7 +704,11 @@ private :
     
     vector<rectangle>             redraw_regions_;
     bool                          repaint_scheduled_;
-    
+    bool                          layout_scheduled_;
+
+    bool                          handling_newline_;    
+    char                          newline_char_;
+
     vector<boost::signals::connection> connections_;
 };
     
@@ -615,6 +726,15 @@ window::window(boost::asio::io_service &io_service)
 window::~window()
 {
     pimpl_->invalidate_self();
+}
+
+// ==========================================================================
+// SET_SIZE
+// ==========================================================================
+void window::set_size(extent size)
+{
+    get_content()->set_size(size);
+    get_content()->on_layout_change();
 }
 
 // ==========================================================================

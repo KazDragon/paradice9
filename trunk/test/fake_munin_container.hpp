@@ -23,22 +23,6 @@ private :
         return preferred_size_;
     }
 
-    void do_initialise_region(
-        munin::canvas<ElementType> &cvs
-      , munin::rectangle const     &region)
-    {
-        munin::point const position = this->get_position();
-                
-        for (odin::s32 row = 0; row < region.size.width; ++row)
-        {
-            for (odin::s32 column = 0; column < region.size.height; ++column)
-            {
-                cvs[region.origin.x + row   ]
-                   [region.origin.y + column] = back_brush_;
-            }
-        }
-    }
-
     ElementType   back_brush_;
     munin::extent preferred_size_;
 };

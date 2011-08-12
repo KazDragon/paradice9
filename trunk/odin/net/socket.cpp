@@ -154,11 +154,11 @@ struct socket::impl : enable_shared_from_this<impl>
         {
             char ch[2] = { data[i], 0 };
             
-            printf("[0x%02X] %s\n", 
+            printf(" IN [0x%02X] %s\n", 
                 (int)(unsigned char)ch[0]
               , isprint(ch[0]) ? ch : "(*)");
         }
-        */
+        //*/
         
         return data;
     }
@@ -195,6 +195,17 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     socket::output_size_type write(runtime_array<u8> const &values)
     {
+        /* OUTPUT DEBUGGING 
+        for(size_t i = 0; i < values.size(); ++i)
+        {
+            char ch[2] = { values[i], 0 };
+            
+            printf("OUT [0x%02X] %s\n", 
+                (int)(unsigned char)ch[0]
+              , isprint(ch[0]) ? ch : "(*)");
+        }
+        //*/
+        
         boost::system::error_code ec;
         return socket_->write_some(
             asio::buffer(values.begin(), values.size()), ec);
@@ -248,6 +259,17 @@ private :
     // ======================================================================
     void write_first_request()
     {
+        /* OUTPUT DEBUGGING 
+        for(size_t i = 0; i < write_requests_.front().values_.size(); ++i)
+        {
+            char ch[2] = { write_requests_.front().values_[i], 0 };
+            
+            printf("OUT [0x%02X] %s\n", 
+                (int)(unsigned char)ch[0]
+              , isprint(ch[0]) ? ch : "(*)");
+        }
+        //*/
+        
         boost::asio::async_write(
             *socket_.get()
           , buffer(
@@ -316,7 +338,7 @@ private :
             {
                 char ch[2] = { read_requests_.front().values_[i], 0 };
                 
-                printf("[0x%02X] %s\n", 
+                printf(" IN [0x%02X] %s\n", 
                     (int)(unsigned char)ch[0]
                   , isprint(ch[0]) ? ch : "(*)");
             }

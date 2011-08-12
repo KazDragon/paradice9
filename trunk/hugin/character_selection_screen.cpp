@@ -28,6 +28,7 @@
 #include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/grid_layout.hpp"
+#include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
@@ -106,6 +107,15 @@ character_selection_screen::character_selection_screen()
     content->add_component(make_shared<framed_component>(
         border
       , pimpl_->inner_content_));
+
+    // Add a filler to ensure that the background is opaque.
+    content->set_layout(
+        make_shared<grid_layout>(1, 1)
+      , munin::LOWEST_LAYER);
+    content->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , any()
+      , munin::LOWEST_LAYER);
 }
 
 // ==========================================================================

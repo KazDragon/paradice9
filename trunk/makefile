@@ -1,7 +1,10 @@
+# TOOLS
 CC           = g++
 AR           = ar -r
 RM           = rm -f
 MAKE         = make -C
+
+# COMPILER FLAGS
 DEBUG        = #-ggdb
 OPTIM        = -O2 -DNDEBUG
 PROF         = #-pg
@@ -13,12 +16,16 @@ NAME_IS      = -o
 I_DIRS       = -I.
 NOLINK       = -c
 L_DIRS       = -L.
+
+# REQUIRED LIBRARIES
 G_LIBS       = -lmunin -lodin -lboost_program_options -lboost_system \
                -lboost_signals -lws2_32 -lwsock32
 LIBS         = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
                -lboost_filesystem -lboost_system -lboost_signals \
                -lboost_serialization -lcryptopp \
-               -lws2_32 -lwsock32 
+               -lws2_32 -lwsock32
+               
+# EXECUTABLES               
 E_NAME       = paradice.exe
 G_NAME       = guibuilder.exe
 
@@ -36,6 +43,7 @@ ODIN_NAMES        = ansi/protocol \
                     telnet/options/terminal_type_client \
                     tokenise
 ODIN_O_FILES      = $(ODIN_NAMES:%=odin/%.o)
+ODIN_D_FILES      = $(ODIN_O_FILES:.o=.d)
 ODIN_LIB          = libodin.a
 
 MUNIN_NAMES       = algorithm \
@@ -51,6 +59,7 @@ MUNIN_NAMES       = algorithm \
                     component \
                     composite_component \
                     container \
+                    dropdown_list \
                     edit \
                     filled_box \
                     frame \
@@ -76,6 +85,7 @@ MUNIN_NAMES       = algorithm \
                     viewport \
                     window
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
+MUNIN_D_FILES     = $(MUNIN_O_FILES:.o=.d)
 MUNIN_LIB         = libmunin.a
 
 HUGIN_NAMES       = account_creation_screen \
@@ -88,6 +98,7 @@ HUGIN_NAMES       = account_creation_screen \
                     user_interface \
                     wholist
 HUGIN_O_FILES     = $(HUGIN_NAMES:%=hugin/%.o)
+HUGIN_D_FILES     = $(HUGIN_O_FILES:.o=.d)
 HUGIN_LIB         = libhugin.a
 
 GUIBUILDER_NAMES  = client \
@@ -113,11 +124,12 @@ PARADICE_NAMES    = account \
                     utility \
                     who
 PARADICE_O_FILES  = $(PARADICE_NAMES:%=paradice/%.o)
+PARADICE_D_FILES  = $(PARADICE_O_FILES:.o=.d)
 PARADICE_LIB      = libparadice.a
 
 PARADICE9_NAMES   = context_impl paradice9 main
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)
-
+PARADICE9_D_FILES = $(PARADICE9_O_FILES:.o=.d)
 TEST_L_DIRS       = -L.
 TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_signals \
                     -lboost_system -lboost_system -lws2_32 -lwsock32
@@ -145,8 +157,12 @@ TEST_FIXTURES     = ansi_parser \
                     telnet_input_visitor
 TEST_NAMES        = paradice_test $(TEST_FIXTURES:%=%_fixture)
 TEST_O_FILES      = $(TEST_NAMES:%=test/%.o)
+TEST_D_FILES      = $(TEST_O_FILES:.o=.d)
 TEST_EXE          = paradice_test.exe
 
+ALL_D_FILES = $(ODIN_D_FILES) $(MUNIN_D_FILES) $(HUGIN_D_FILES) \
+              $(PARADICE_D_FILES) $(PARADICE9_D_FILES)
+              
 $(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(HUGIN_LIB) $(PARADICE_LIB) \
            $(TEST_EXE) $(PARADICE9_O_FILES)
 	$(CC) $(NAME_IS) $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS)
@@ -161,25 +177,23 @@ clean:
           $(HUGIN_LIB) $(HUGIN_O_FILES) \
           $(MUNIN_LIB) $(MUNIN_O_FILES) \
           $(ODIN_LIB) $(ODIN_O_FILES) \
-          $(TEST_EXE) $(TEST_O_FILES)
+          $(TEST_EXE) $(TEST_O_FILES) \
+          $(ALL_D_FILES)
     
 libodin.a: $(ODIN_O_FILES)
-	$(AR) $@ $(ODIN_O_FILES)
-
 libmunin.a: $(MUNIN_O_FILES)
-	$(AR) $@ $(MUNIN_O_FILES)
-
 libhugin.a: $(HUGIN_O_FILES)
-	$(AR) $@ $(HUGIN_O_FILES)
-
 libparadice.a: $(PARADICE_O_FILES)
-	$(AR) $@ $(PARADICE_O_FILES)
-
+%.a:
+	$(AR) $@ $?
+	
 $(TEST_EXE): $(TEST_O_FILES) $(ODIN_LIB) $(PARADICE_LIB) \
              $(MUNIN_LIB) $(HUGIN_LIB)
 	$(CC) $(NAME_IS) $@ $(TEST_O_FILES) $(TEST_L_DIRS) $(TEST_LIBS)
 	./$@    
     
+-include $(ALL_D_FILES)              
+
 %.o: %.cpp
-	$(CC) $(NAME_IS) $@ $(NOLINK) $(C_FLAGS) $(I_DIRS) $<
+	$(CC) -MMD -MF $*.d -MT '$@' $(NAME_IS) $@ $(NOLINK) $(C_FLAGS) $(I_DIRS) $<
 

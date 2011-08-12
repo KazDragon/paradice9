@@ -206,8 +206,12 @@ void container::add_component(
               , boost::weak_ptr<component>(comp)
               , _1)));
     
+    component_connections.second.push_back(
+        comp->on_layout_change.connect(
+            boost::bind(boost::ref(on_layout_change))));
+    
     pimpl_->component_connections_.push_back(component_connections);
-    do_layout_container();
+    on_layout_change();
 
     // A redraw of the container is required.
     on_redraw(list_of(rectangle(point(), get_size())));
@@ -239,14 +243,11 @@ void container::remove_component(shared_ptr<component> const &comp)
         }
     }
 
+    do_remove_component(comp);
+
     // Now that the subcomponent has been removed, it becomes necessary
     // to re-lay the container out.
-    do_layout_container();
-
-    // A redraw of the container is required.
-    on_redraw(list_of(rectangle(point(), get_size())));
-    
-    do_remove_component(comp);
+    on_layout_change();
 }
 
 // ==========================================================================
@@ -277,10 +278,10 @@ u32 container::get_component_layer(u32 index) const
 // SET_LAYOUT
 // ==========================================================================
 void container::set_layout(
-    shared_ptr<layout> const &layout
-  , u32                       layer /*= DEFAULT_LAYER*/)
+    shared_ptr<munin::layout> const &lyt
+  , u32                              layer /*= DEFAULT_LAYER*/)
 {
-    do_set_layout(layout, layer);
+    do_set_layout(lyt, layer);
 }
 
 // ==========================================================================
@@ -306,9 +307,6 @@ void container::do_draw(
     canvas          &cvs
   , rectangle const &region)
 {
-    // First, initialise that region to an undrawn state.
-    do_initialise_region(cvs, region);
-
     // First, we obtain a list of components sorted by layer from lowest
     // to highest.
     BOOST_AUTO(components, pimpl_->get_components_sorted());

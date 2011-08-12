@@ -291,6 +291,14 @@ void basic_component::do_set_attribute(
 }
 
 // ==========================================================================
+// DO_LAYOUT
+// ==========================================================================
+void basic_component::do_layout()
+{
+    // By default, components are single entities and don't need laying out.
+}
+
+// ==========================================================================
 // DO_EVENT
 // ==========================================================================
 void basic_component::do_event(any const &event)

@@ -132,36 +132,14 @@ string show_cursor()
 // ==========================================================================    
 string cursor_position(munin::point const &position)
 {
-    // First work out the co-ordinate representations.  These are a bit funky 
-    // because of three things:
-    // 1) ANSI co-ordinates are 1-based, so a point of (1,0) is actually (2,1)
-    // 2) A co-ordinate position of 1 (ANSI) can be omitted.
-    // 3) If the second co-ordinate position can be omitted, then so can the
-    //    semi-colon that separates the arguments.
-    
-    // In the interest of brevity, we should take advantage of this.
-
-    string x_coordinate = 
-        position.x == 0 
-      ? string("")
-      : str(format("%s") % (position.x + 1));
-      
-    string y_coordinate = 
-        position.y == 0 
-      ? string("")
-      : str(format("%s") % (position.y + 1));
-                    
-    string separator =
-        (position.x == 0)
-      ? ""
-      : ";";
-      
-    return str(format("%c%c%s%s%s%c")
+    // We would like to take advantage of some of the space-saving features
+    // of ANSI here, but Ubuntu Telnet chokes on them.  So we always use the
+    // long-hand version.
+    return str(format("%c%c%s;%s%c")
         % odin::ansi::ESCAPE
         % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        % y_coordinate
-        % separator
-        % x_coordinate
+        % (position.y + 1)
+        % (position.x + 1)
         % odin::ansi::CURSOR_POSITION);
 }
 

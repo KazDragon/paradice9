@@ -148,15 +148,15 @@ protected :
     /// function in order to set a layout in a custom manner.
     //* =====================================================================
     virtual void do_set_layout(
-        boost::shared_ptr<layout> const &layout
-      , odin::u32                        layer);
+        boost::shared_ptr<munin::layout> const &lyt
+      , odin::u32                               layer);
     
     //* =====================================================================
     /// \brief Called by get_layout.  Derived classes must override this
     /// function in order to get the basic_container's layout in a custom 
     /// manner.
     //* =====================================================================
-    virtual boost::shared_ptr<layout> do_get_layout(odin::u32 layer) const;
+    virtual boost::shared_ptr<munin::layout> do_get_layout(odin::u32 layer) const;
 
     //* =====================================================================
     /// \brief Called by get_layout_layers.  Derived classes must override 
@@ -272,17 +272,12 @@ protected :
         std::string const &name, boost::any const &attr);
     
     //* =====================================================================
-    /// \brief Initialises a region prior to drawing.
+    /// \brief Called by layout().  Derived classes must override this 
+    /// function in order to lay the component out.  If the component 
+    /// contains subcomponents, these must also be laid out.
     //* =====================================================================
-    virtual void do_initialise_region(
-        canvas          &cvs
-      , rectangle const &region);
-    
-    //* =====================================================================
-    /// \brief Lays a container out
-    //* =====================================================================
-    virtual void do_layout_container();
-    
+    virtual void do_layout();
+
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

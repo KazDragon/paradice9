@@ -131,13 +131,13 @@ void default_singleline_document::do_insert_text(
 {
     BOOST_AUTO(old_index, pimpl_->caret_index_);
     
-    // This is a single-line control, so we remove any \ns or \rs first.
+    // This is a single-line control, so we remove any \ns first.
     vector<munin::element_type> stripped_text;
     stripped_text.reserve(text.size());
 
     BOOST_FOREACH(munin::element_type ch, text)
     {
-        if (ch.glyph_.character_ != '\n' && ch.glyph_.character_ != '\r')
+        if (ch.glyph_.character_ != '\n')
         {
             stripped_text.push_back(ch);
         }

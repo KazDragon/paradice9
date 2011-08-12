@@ -341,7 +341,7 @@ void default_multiline_document::do_insert_text(
     
     BOOST_AUTO(insert_position, pimpl_->position_from_index(insert_index));
     
-    // First, strip any '\r' or non-printable characters out of the
+    // First, strip any non-printable characters out of the
     // text.  We leave in '\n's because they serve as end-of-line markers.
     vector<munin::element_type> stripped_text;
     stripped_text.reserve(text.size());

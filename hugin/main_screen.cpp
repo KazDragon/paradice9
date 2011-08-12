@@ -264,7 +264,7 @@ void main_screen::do_event(any const &ev)
 
     if (pimpl_->input_field_->has_focus() && ch != NULL)
     {
-        if (*ch == '\n' || *ch == '\r' || *ch == '\0')
+        if (*ch == '\n')
         {
             pimpl_->on_input_entered();
             handled = true;

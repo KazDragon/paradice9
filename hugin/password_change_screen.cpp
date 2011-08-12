@@ -31,6 +31,7 @@
 #include "munin/button.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
+#include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
@@ -236,6 +237,15 @@ password_change_screen::password_change_screen()
     content->add_component(make_shared<framed_component>(
         screen_frame
       , inner_container3));
+
+    // Add a filler to ensure that the background is opaque.
+    content->set_layout(
+        make_shared<grid_layout>(1, 1)
+      , munin::LOWEST_LAYER);
+    content->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , any()
+      , munin::LOWEST_LAYER);
 }
 
 // ==========================================================================

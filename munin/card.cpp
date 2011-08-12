@@ -96,6 +96,9 @@ void card::add_face(
     comp->on_redraw.connect(
         boost::bind(boost::ref(on_redraw), _1));
 
+    comp->on_layout_change.connect(
+        boost::bind(boost::ref(on_layout_change)));
+
     comp->on_position_changed.connect(
         boost::bind(boost::ref(on_position_changed), _1, _2));
 
@@ -235,6 +238,17 @@ void card::do_set_focus()
 extent card::do_get_preferred_size() const
 {
     return extent();
+}
+
+// ==========================================================================
+// DO_LAYOUT
+// ==========================================================================
+void card::do_layout()
+{
+    BOOST_FOREACH(impl::face_map_type::value_type face_pair, pimpl_->faces_)
+    {
+        face_pair.second->layout();
+    }
 }
 
 // ==========================================================================

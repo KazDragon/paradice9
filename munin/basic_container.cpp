@@ -441,17 +441,8 @@ point basic_container::do_get_position() const
 // ==========================================================================
 void basic_container::do_set_size(extent const &size)
 {
-    // After changing the size, the larger region of the two will need
-    // redrawing.  For now, we can just put both regions in and let the
-    // pruner take care of it.
-    vector<rectangle> redraw_regions;
-    redraw_regions.push_back(pimpl_->bounds_);
-
     pimpl_->bounds_.size = size;
-    redraw_regions.push_back(pimpl_->bounds_);
-
-    do_layout_container();
-    on_redraw(redraw_regions);
+    on_layout_change();
 }
 
 // ==========================================================================
@@ -668,10 +659,6 @@ void basic_container::do_remove_component(
     }
     
     comp->set_parent(shared_ptr<component>());
-    
-    // Now that a component has been removed, it may require re-laying out
-    // of components.
-    do_layout_container();
 }
 
 // ==========================================================================
@@ -702,8 +689,8 @@ u32 basic_container::do_get_component_layer(u32 index) const
 // DO_SET_LAYOUT
 // ==========================================================================
 void basic_container::do_set_layout(
-    shared_ptr<layout> const &lyt
-  , u32                       layer)
+    shared_ptr<munin::layout> const &lyt
+  , u32                              layer)
 {
     pimpl_->layouts_[layer] = lyt;
 }
@@ -716,7 +703,7 @@ shared_ptr<layout> basic_container::do_get_layout(u32 layer) const
     BOOST_AUTO(result, pimpl_->layouts_.find(layer));
     
     return result == pimpl_->layouts_.end()
-                   ? shared_ptr<layout>()
+                   ? shared_ptr<munin::layout>()
                    : result->second;
 }
 
@@ -1016,35 +1003,9 @@ void basic_container::do_set_attribute(
 }
 
 // ==========================================================================
-// DO_INITIALISE_REGION
+// DO_LAYOUT
 // ==========================================================================
-void basic_container::do_initialise_region(
-    canvas          &cvs
-  , rectangle const &region)
-{
-    // Apply the region's origin as an offset to our canvas.  This means that
-    // the calculations below are done in terms of the region's origin.
-    cvs.apply_offset(region.origin.x, region.origin.y);
-
-    // Ensure that the offset is unapplied before any exit of this function.
-    BOOST_SCOPE_EXIT( (&cvs)(&region) )
-    {
-        cvs.apply_offset(-region.origin.x, -region.origin.y);
-    } BOOST_SCOPE_EXIT_END
-    
-    for (s32 row = 0; row < region.size.height; ++row)
-    {
-        for (s32 column = 0; column < region.size.width; ++column)
-        {
-            cvs[column][row] = element_type(' ', attribute());
-        }
-    }
-}
-
-// ==========================================================================
-// DO_LAYOUT_CONTAINER
-// ==========================================================================
-void basic_container::do_layout_container()
+void basic_container::do_layout()
 {
     // Sort the components/hints into layers
     typedef map< u32, vector< shared_ptr<component> > > clmap;
@@ -1094,6 +1055,13 @@ void basic_container::do_layout_container()
           , runtime_array<any>::size_type(hints.size()));
         
         (*lyt)(components_array, hints_array, size);
+    }
+    
+    // Now that all the sizes are correct for this container, iterate through 
+    // each subcomponent, and lay them out in turn.
+    BOOST_FOREACH(shared_ptr<component> comp, pimpl_->components_)
+    {
+        comp->layout();
     }
 }
 

@@ -211,16 +211,16 @@ void compass_layout::do_layout(
         {
             centre_components.push_back(comp);
         }
-        
-        BOOST_FOREACH(
-            shared_ptr<component> comp
-          , centre_components)
-        {
-            comp->set_position(point(west_used, north_used));
-            comp->set_size(extent(
-                (size.width - west_used) - east_used
-              , (size.height - north_used) - south_used));
-        }
+    }
+
+    BOOST_FOREACH(
+        shared_ptr<component> comp
+      , centre_components)
+    {
+        comp->set_position(point(west_used, north_used));
+        comp->set_size(extent(
+            (size.width - west_used) - east_used
+          , (size.height - north_used) - south_used));
     }
 }
 

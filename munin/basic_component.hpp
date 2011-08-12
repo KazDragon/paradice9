@@ -200,6 +200,13 @@ protected :
         std::string const &name, boost::any const &attr);
     
     //* =====================================================================
+    /// \brief Called by layout().  Derived classes must override this 
+    /// function in order to lay the component out.  If the component 
+    /// contains subcomponents, these must also be laid out.
+    //* =====================================================================
+    virtual void do_layout();
+
+    //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 
     /// function in order to handle events in a custom manner.
     //* =====================================================================

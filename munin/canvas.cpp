@@ -157,7 +157,7 @@ public :
     // ======================================================================
     // GET_VALUE
     // ======================================================================
-    element_type get_value(s32 column, s32 row) const
+    element_type const &get_value(s32 column, s32 row) const
     {
         column += offset_columns_;
         row    += offset_rows_;
@@ -177,9 +177,31 @@ public :
     }
     
     // ======================================================================
+    // GET_VALUE
+    // ======================================================================
+    element_type &get_value(s32 column, s32 row)
+    {
+        column += offset_columns_;
+        row    += offset_rows_;
+        
+        if (column >= size_.width || row >= size_.height)
+        {
+            throw std::out_of_range(str(format(
+                "Access (read) of element (%d, %d) in canvas with extents "
+                "[%d, %d]")
+                    % column
+                    % row
+                    % size_.width
+                    % size_.height));
+        }
+        
+        return elements_[(row * size_.width) + column];
+    }
+
+    // ======================================================================
     // APPLY_OFFSET
     // ======================================================================
-    void apply_offset(odin::s32 columns, odin::s32 rows)
+    void apply_offset(s32 columns, s32 rows)
     {
         offset_columns_ += columns;
         offset_rows_    += rows;
@@ -213,7 +235,7 @@ void canvas::row_proxy::operator=(element_type value)
 // ==========================================================================
 // CONVERSION OPERATOR: ELEMENT TYPE
 // ==========================================================================
-canvas::row_proxy::operator element_type()
+canvas::row_proxy::operator element_type &()
 {
     return canvas_.pimpl_->get_value(column_, row_);
 }
@@ -232,7 +254,26 @@ canvas::column_proxy::column_proxy(canvas &canvas, s32 column)
 // ==========================================================================
 canvas::row_proxy canvas::column_proxy::operator[](s32 row)
 {
-    return canvas::row_proxy(canvas_, column_, row);
+    return row_proxy(canvas_, column_, row);
+}
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+canvas::const_column_proxy::const_column_proxy(
+    canvas const &canvas
+  , s32           column)
+  : canvas_(canvas)
+  , column_(column)
+{
+}
+    
+// ==========================================================================
+// OPERATOR[]
+// ==========================================================================
+element_type const &canvas::const_column_proxy::operator[](s32 row) const
+{
+    return canvas_.pimpl_->get_value(column_, row);
 }
 
 // ==========================================================================
@@ -284,6 +325,14 @@ canvas::column_proxy canvas::operator[](s32 column)
 }
 
 // ==========================================================================
+// OPERATOR[]
+// ==========================================================================
+canvas::const_column_proxy canvas::operator[](s32 column) const
+{
+    return const_column_proxy(*this, column);
+}
+
+// ==========================================================================
 // SET_SIZE
 // ==========================================================================
 void canvas::set_size(extent const &size)
@@ -302,7 +351,7 @@ extent canvas::get_size() const
 // ==========================================================================
 // APPLY_OFFSET
 // ==========================================================================
-void canvas::apply_offset(odin::s32 columns, odin::s32 rows)
+void canvas::apply_offset(s32 columns, s32 rows)
 {
     pimpl_->apply_offset(columns, rows);
 }

@@ -75,7 +75,7 @@ std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
 //* =========================================================================
 void copy_region(
     rectangle const &region
-  , canvas          &source
+  , canvas const    &source
   , canvas          &destination);
 
 }

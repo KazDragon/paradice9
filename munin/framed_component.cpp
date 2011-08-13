@@ -61,8 +61,10 @@ public :
     /// \brief Constructor
     //* =====================================================================
     framed_component_layout()
-        : frame_width_(2)
-        , frame_height_(2)
+        : border_top_height_(0)
+        , border_bottom_height_(0)
+        , border_left_width_(0)
+        , border_right_width_(0)
     {
     }
         
@@ -76,9 +78,6 @@ private :
         runtime_array< shared_ptr<component> > const &components
       , runtime_array< any >                   const &hints) const
     {
-        // TODO: Fix this when anything has a border that is not height and
-        // width 1. Will require the fix to compass layout's preferred_size
-        // before being solved.
         extent preferred_interior_size;
         extent preferred_border_size;
 
@@ -95,19 +94,15 @@ private :
             else if (hint == hint_border)
             {
                 BOOST_AUTO(border, dynamic_pointer_cast<frame>(comp));
-                
-                if (border == NULL)
-                {
-                    preferred_border_size = comp->get_preferred_size();
-                    // TODO: fix this
-                    preferred_border_size.height = 2;
-                }
-                else
-                {
-                    preferred_border_size = extent(
-                        border->get_border_width()
-                      , border->get_border_height());
-                }
+
+                border_top_height_    = border->get_top_border_height();
+                border_bottom_height_ = border->get_bottom_border_height();
+                border_left_width_    = border->get_left_border_width();
+                border_right_width_   = border->get_right_border_width();
+
+                preferred_border_size = extent(
+                    border_left_width_ + border_right_width_
+                  , border_top_height_ + border_bottom_height_);
             }
         }
 
@@ -138,24 +133,32 @@ private :
             {
                 comp->set_position(point(0, 0));
                 comp->set_size(size);
+
+                BOOST_AUTO(border, dynamic_pointer_cast<frame>(comp));
+
+                border_top_height_    = border->get_top_border_height();
+                border_bottom_height_ = border->get_bottom_border_height();
+                border_left_width_    = border->get_left_border_width();
+                border_right_width_   = border->get_right_border_width();
             }
             else if (hint == hint_interior)
             {
-                point position(
-                    (min)(size.width, s32(frame_width_ / 2))
-                  , (min)(size.height, s32(frame_height_ / 2)));
+                comp->set_position(point(
+                    border_left_width_
+                  , border_top_height_));
 
-                comp->set_position(position);
-
-                size.width  = (max)(size.width - frame_width_, s32(0));
-                size.height = (max)(size.height - frame_height_, s32(0));
-                comp->set_size(size);
+                comp->set_size(extent(
+                    (size.width - border_left_width_) - border_right_width_
+                  , (size.height - border_top_height_) - border_bottom_height_)
+                );
             }
         }
     }
     
-    mutable s32 frame_width_;
-    mutable s32 frame_height_;
+    mutable s32 border_top_height_;
+    mutable s32 border_bottom_height_;
+    mutable s32 border_left_width_;
+    mutable s32 border_right_width_;
 };
 
 }
@@ -174,7 +177,7 @@ struct framed_component::impl
                 : unfocussed_pen_);
     }
     
-    shared_ptr<component> border_;
+    shared_ptr<frame>     border_;
     shared_ptr<component> interior_;
     
     attribute focussed_pen_;
@@ -185,7 +188,7 @@ struct framed_component::impl
 // CONSTRUCTOR
 // ==========================================================================
 framed_component::framed_component(
-    shared_ptr<component> border
+    shared_ptr<frame>     border
   , shared_ptr<component> interior)
     : pimpl_(make_shared<impl>())
 {

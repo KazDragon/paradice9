@@ -78,11 +78,13 @@ protected :
     {
         // The preferred width is the width of the first component.  There
         // should only be one component in this anyway.
-        return components.empty()
-            ? extent(0, 0)
-            : extent(
-                  components[0]->get_preferred_size().width
-                , preferred_height_);
+        extent preferred_size = 
+            components.empty()
+          ? extent(0, 0)
+          : extent(components[0]->get_preferred_size().width
+                 , preferred_height_);
+
+        return preferred_size;
     }
     
     //* =====================================================================
@@ -151,7 +153,7 @@ struct dropdown_list::impl
         {
             dropdown_open_ = true;
             self_.get_container()->add_component(dropdown_);
-            self_.on_preferred_size_changed();
+            self_.on_layout_change();
 
             bottom_left_corner_->set_attribute(
                 ATTRIBUTE_GLYPH
@@ -175,7 +177,7 @@ struct dropdown_list::impl
             dropdown_open_ = false;
             dropdown_button_->set_focus();
             self_.get_container()->remove_component(dropdown_);
-            self_.on_preferred_size_changed();
+            self_.on_layout_change();
 
             bottom_left_corner_->set_attribute(
                 ATTRIBUTE_GLYPH

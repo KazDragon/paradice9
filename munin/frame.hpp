@@ -45,63 +45,53 @@ class frame : public munin::composite_component
 {
 public :
     //* =====================================================================
-    /// \brief Constructor
-    /// \par
-    /// Takes 8 components.  The are arranged in the following manner:
-    /// 1 2 3
-    /// 4   5
-    /// 6 7 8
-    ///
-    /// These form the frame outlines.
-    ///
-    /// Components 1, 2 and 3 are optional.  Leaving these NULL will create
-    /// a frame without a top border.
+    /// \brief Returns the height of the top border
     //* =====================================================================
-    frame(
-        boost::shared_ptr<component> top_left
-      , boost::shared_ptr<component> top
-      , boost::shared_ptr<component> top_right
-      , boost::shared_ptr<component> left
-      , boost::shared_ptr<component> right
-      , boost::shared_ptr<component> bottom_left
-      , boost::shared_ptr<component> bottom
-      , boost::shared_ptr<component> bottom_right);
-
-    //* =====================================================================
-    /// \brief Returns the total border height of the top and bottom borders.
-    /// For example, if each border has a height of 1, then this will return
-    /// 2.
-    //* =====================================================================
-    odin::s32 get_border_height() const;
+    odin::s32 get_top_border_height() const;
     
     //* =====================================================================
-    /// \brief Returns the total border width of the left and right borders.
-    /// For example, if each border has a width of 1, then this will return
-    /// 2.
+    /// \brief Returns the height of the bottom border
     //* =====================================================================
-    odin::s32 get_border_width() const;
+    odin::s32 get_bottom_border_height() const;
+
+    //* =====================================================================
+    /// \brief Returns the width of the left border
+    //* =====================================================================
+    odin::s32 get_left_border_width() const;
+
+    //* =====================================================================
+    /// \brief Returns the width of the right border
+    //* =====================================================================
+    odin::s32 get_right_border_width() const;
 
 protected :
     //* =====================================================================
-    /// \brief Called by get_border_height.  Derived classes must override 
-    /// this function in order to retrieve the total border height in a
-    /// custom manner.
+    /// \brief Called by get_top_border_height.  Derived classes must 
+    /// override this function in order to retrieve the top border height in
+    /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_border_height() const;
+    virtual odin::s32 do_get_top_border_height() const = 0;
 
     //* =====================================================================
-    /// \brief Called by get_border_width.  Derived classes must override 
-    /// this function in order to retrieve the total border width in a
-    /// custom manner.
+    /// \brief Called by get_bottom_border_height.  Derived classes must 
+    /// override this function in order to retrieve the bottomborder height
+    /// int a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_border_width() const;
+    virtual odin::s32 do_get_bottom_border_height() const = 0;
 
     //* =====================================================================
-    /// \brief Called by set_attribute().  Derived classes must override this
-    /// function in order to set an attribute in a custom manner.
+    /// \brief Called by get_left_border_width.  Derived classes must 
+    /// override this function in order to retrieve the left border width in
+    /// a custom manner.
     //* =====================================================================
-    virtual void do_set_attribute(
-        std::string const &name, boost::any const &attr);
+    virtual odin::s32 do_get_left_border_width() const = 0;
+
+    //* =====================================================================
+    /// \brief Called by get_right_border_width.  Derived classes must 
+    /// override this function in order to retrieve the right border width in
+    /// a custom manner.
+    //* =====================================================================
+    virtual odin::s32 do_get_right_border_width() const = 0;
 
 private :
     struct impl;

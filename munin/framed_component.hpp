@@ -28,6 +28,7 @@
 #define MUNIN_FRAMED_COMPONENT_HPP_
 
 #include "munin/composite_component.hpp"
+#include "munin/frame.hpp"
 
 namespace munin {
 
@@ -48,7 +49,7 @@ public :
     /// \brief Constructor
     //* =====================================================================
     framed_component(
-        boost::shared_ptr<component> border
+        boost::shared_ptr<frame>     border
       , boost::shared_ptr<component> interior); 
 
     //* =====================================================================

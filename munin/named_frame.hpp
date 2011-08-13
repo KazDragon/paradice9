@@ -27,7 +27,7 @@
 #ifndef MUNIN_NAMED_FRAME_HPP_
 #define MUNIN_NAMED_FRAME_HPP_
 
-#include "munin/composite_component.hpp"
+#include "munin/basic_frame.hpp"
 #include "odin/runtime_array.hpp"
 #include <string>
 
@@ -37,7 +37,7 @@ namespace munin {
 /// \brief An object that represents a frame that has a title on its
 /// northern edge.
 //* =========================================================================
-class named_frame : public composite_component
+class named_frame : public basic_frame
 {
 public :
     //* =====================================================================

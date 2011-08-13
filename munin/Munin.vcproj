@@ -168,6 +168,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\basic_frame.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\button.cpp"
 				>
 			</File>
@@ -307,6 +311,10 @@
 			</File>
 			<File
 				RelativePath=".\basic_container.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\basic_frame.hpp"
 				>
 			</File>
 			<File

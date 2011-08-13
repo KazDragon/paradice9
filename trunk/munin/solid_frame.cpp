@@ -48,8 +48,9 @@ namespace munin {
 struct solid_frame::impl
 {
 public :
-    impl(solid_frame &self)
+    impl(solid_frame &self, shared_ptr<component> top_right)
         : self_(self)
+        , top_right_(top_right)
         , closeable_(false)
     {
     }
@@ -116,34 +117,17 @@ public :
 // CONSTRUCTOR
 // ==========================================================================
 solid_frame::solid_frame()
+    : basic_frame(
+          make_shared<filled_box>(element_type(double_lined_top_left_corner))
+        , make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+        , make_shared<filled_box>(element_type(double_lined_top_right_corner))
+        , make_shared<filled_box>(element_type(double_lined_vertical_beam))
+        , make_shared<filled_box>(element_type(double_lined_vertical_beam))
+        , make_shared<filled_box>(element_type(double_lined_bottom_left_corner))
+        , make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+        , make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
 {
-    pimpl_ = make_shared<impl>(ref(*this));
-
-    element_type top_left_element(double_lined_top_left_corner, attribute());
-    element_type top_element(double_lined_horizontal_beam, attribute());
-    element_type top_right_element(double_lined_top_right_corner, attribute());
-    element_type left_element(double_lined_vertical_beam, attribute());
-    element_type right_element(double_lined_vertical_beam, attribute());
-    element_type bottom_left_element(double_lined_bottom_left_corner, attribute());
-    element_type bottom_element(double_lined_horizontal_beam, attribute());
-    element_type bottom_right_element(double_lined_bottom_right_corner, attribute());
-
-    BOOST_AUTO(top_left,     make_shared<filled_box>(top_left_element));
-    BOOST_AUTO(top,          make_shared<filled_box>(top_element));
-    pimpl_->top_right_ =     make_shared<filled_box>(top_right_element);
-    BOOST_AUTO(left,         make_shared<filled_box>(left_element));
-    BOOST_AUTO(right,        make_shared<filled_box>(right_element));
-    BOOST_AUTO(bottom_left,  make_shared<filled_box>(bottom_left_element));
-    BOOST_AUTO(bottom,       make_shared<filled_box>(bottom_element));
-    BOOST_AUTO(bottom_right, make_shared<filled_box>(bottom_right_element));
-
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
-
-    content->add_component(make_shared<frame>(
-        top_left, top, pimpl_->top_right_
-      , left, right
-      , bottom_left, bottom, bottom_right));
+    pimpl_ = make_shared<impl>(ref(*this), get_top_right_component());
 }
 
 // ==========================================================================

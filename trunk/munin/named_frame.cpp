@@ -251,34 +251,20 @@ public :
 // CONSTRUCTOR
 // ==========================================================================
 named_frame::named_frame()
+    : basic_frame(
+          make_shared<filled_box>(element_type(double_lined_top_left_corner))
+        , make_shared<title_bar>(
+              elements_from_string(""), element_type(double_lined_horizontal_beam))
+        , make_shared<filled_box>(element_type(double_lined_top_right_corner))
+        , make_shared<filled_box>(element_type(double_lined_vertical_beam))
+        , make_shared<filled_box>(element_type(double_lined_vertical_beam))
+        , make_shared<filled_box>(element_type(double_lined_bottom_left_corner))
+        , make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+        , make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
 {
     pimpl_ = make_shared<impl>(ref(*this));
-
-    element_type top_left_element(double_lined_top_left_corner);
-    element_type top_element(double_lined_horizontal_beam);
-    element_type top_right_element(double_lined_top_right_corner);
-    element_type left_element(double_lined_vertical_beam);
-    element_type right_element(double_lined_vertical_beam);
-    element_type bottom_left_element(double_lined_bottom_left_corner);
-    element_type bottom_element(double_lined_horizontal_beam);
-    element_type bottom_right_element(double_lined_bottom_right_corner);
-
-    BOOST_AUTO(top_left,     make_shared<filled_box>(top_left_element));
-    pimpl_->title_bar_ =     make_shared<title_bar>(elements_from_string(""), top_element);
-    pimpl_->top_right_ =     make_shared<filled_box>(top_right_element);
-    BOOST_AUTO(left,         make_shared<filled_box>(left_element));
-    BOOST_AUTO(right,        make_shared<filled_box>(right_element));
-    BOOST_AUTO(bottom_left,  make_shared<filled_box>(bottom_left_element));
-    BOOST_AUTO(bottom,       make_shared<filled_box>(bottom_element));
-    BOOST_AUTO(bottom_right, make_shared<filled_box>(bottom_right_element));
-
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
-
-    content->add_component(make_shared<frame>(
-        top_left, pimpl_->title_bar_, pimpl_->top_right_
-      , left, right
-      , bottom_left, bottom, bottom_right));
+    pimpl_->title_bar_ = dynamic_pointer_cast<title_bar>(get_top_component());
+    pimpl_->top_right_ = get_top_right_component();
 }
 
 // ==========================================================================

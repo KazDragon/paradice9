@@ -27,11 +27,11 @@
 #ifndef MUNIN_SOLID_FRAME_HPP_
 #define MUNIN_SOLID_FRAME_HPP_
 
-#include "munin/composite_component.hpp"
+#include "munin/basic_frame.hpp"
 
 namespace munin {
 
-class solid_frame : public composite_component
+class solid_frame : public basic_frame
 {
 public :
     //* =====================================================================

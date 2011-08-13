@@ -25,10 +25,10 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/scroll_pane.hpp"
+#include "munin/basic_frame.hpp"
 #include "munin/container.hpp"
 #include "munin/horizontal_scroll_bar.hpp"
 #include "munin/filled_box.hpp"
-#include "munin/frame.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/vertical_scroll_bar.hpp"
@@ -46,7 +46,7 @@ namespace munin {
 
 namespace {
 
-class scroll_frame : public frame
+class scroll_frame : public basic_frame
 {
 public :
     // ======================================================================
@@ -56,7 +56,7 @@ public :
         shared_ptr<horizontal_scroll_bar> hscroll_bar
       , shared_ptr<vertical_scroll_bar>   vscroll_bar
       , bool                              top_border)
-        : frame(
+        : basic_frame(
               top_border 
             ? make_shared<filled_box>(element_type(double_lined_top_left_corner))
             : shared_ptr<filled_box>()

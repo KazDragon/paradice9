@@ -1,0 +1,9 @@
+#summary A list of sources that have been beneficial to this project
+
+= Invisible Island's xterm Control Sequences =
+
+http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+
+= Donky's Character Set Investigation =
+
+http://www.mudbytes.net/index.php?a=topic&t=2618&min=0&num=15

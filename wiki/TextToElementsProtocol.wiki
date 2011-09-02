@@ -95,26 +95,24 @@ For the overlap with the original 16 colours, use the 16-colour codes above.
 ==== Central 216 Colours ====
 
   * \<_?R?G?B_
-    * _?R_ = a..f: intensity of red value as foreground
-    * _?G_ = a..f: intensity of green value as foreground
-    * _?B_ = a..f: intensity of blue value as foreground
+    * _?R_ = 0..5: intensity of red value as foreground
+    * _?G_ = 0..5: intensity of green value as foreground
+    * _?B_ = 0..5: intensity of blue value as foreground
 
 To match up to the colour chart, the following conversion is applied:
-
-a..f == 0..5
 
 colour = (_?R_ x 36) + (_?G_ x 6) + (_?B_) + 16
 
 E.g. {{{\<fba}}}: (5 x 36) + (1 x 6) + (0) + 16 = foreground colour 202, a deep orange.
 
   * \>_?R?G?B_
-    * _?R_ = a..f: intensity of red value as background
-    * _?G_ = a..f: intensity of green value as background
-    * _?B_ = a..f: intensity of blue value as background
+    * _?R_ = 0..5: intensity of red value as background
+    * _?G_ = 0..5: intensity of green value as background
+    * _?B_ = 0..5: intensity of blue value as background
 
 See above for colour chart meanings.
 
-E.g. {{{\>bdf}}}: (1 x 36) + (3 x 6) + (5) + 16 = background colour  75,  a greeny-blue.
+E.g. {{{\>135}}}: (1 x 36) + (3 x 6) + (5) + 16 = background colour  75,  a greeny-blue.
 
 ==== Greyscale Colours ====
 

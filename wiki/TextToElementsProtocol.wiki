@@ -121,14 +121,14 @@ E.g. {{{\>135}}}: (1 x 36) + (3 x 6) + (5) + 16 = background colour  75,  a gree
 
 colour = _?_ + 232
 
-E.g. {{{\{m}}}: = 12 + 232 = colour 244, a medium grey on the foreground.
+E.g. {{{\{12}}}: = 12 + 232 = colour 244, a medium grey on the foreground.
 
   * \}_?_
     * _?_ = 0..23: grey intensity as background
 
 See above for colour chart meanings.
 
-E.g. {{{\}x}}}: = 23 + 232 = colour 255, off-white on the background.
+E.g. {{{\}23}}}: = 23 + 232 = colour 255, off-white on the background.
 
 == Examples ==
 

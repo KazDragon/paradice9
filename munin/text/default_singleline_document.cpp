@@ -25,13 +25,13 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/text/default_singleline_document.hpp"
-#include <algorithm>
-#include <functional>
-#include <vector>
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <algorithm>
+#include <functional>
+#include <vector>
 
 using namespace odin;
 using namespace std;
@@ -126,8 +126,8 @@ u32 default_singleline_document::do_get_text_size() const
 // DO_INSERT_TEXT
 // ==========================================================================
 void default_singleline_document::do_insert_text(
-    runtime_array<munin::element_type> const& text
-  , optional<u32>                             index)
+    vector<munin::element_type> const &text
+  , optional<u32>                      index)
 {
     BOOST_AUTO(old_index, pimpl_->caret_index_);
     
@@ -207,19 +207,10 @@ u32 default_singleline_document::do_get_number_of_lines() const
 // ==========================================================================
 // DO_GET_LINE
 // ==========================================================================
-runtime_array<munin::element_type> 
+vector<munin::element_type> 
     default_singleline_document::do_get_line(u32 index) const
 {
-    if (pimpl_->text_.empty())
-    {
-        return runtime_array<munin::element_type>();
-    }
-    else
-    {
-        return runtime_array<munin::element_type>(
-            &*pimpl_->text_.begin()
-          , pimpl_->text_.size());
-    }
+    return pimpl_->text_;
 }
 
 }}

@@ -31,6 +31,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace std;
 
 namespace munin {
     
@@ -38,8 +39,8 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE 
 // ==========================================================================
 extent horizontal_squeeze_layout::do_get_preferred_size(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints) const
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints) const
 {
     // The preferred size of the whole component is the maximum preferred
     // height, and the maximum preferred height multiplied by the number
@@ -68,9 +69,9 @@ extent horizontal_squeeze_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void horizontal_squeeze_layout::do_layout(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints
-  , extent                                        size)
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints
+  , extent                                 size)
 {
     BOOST_AUTO(amount, components.size());
 

@@ -25,9 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "server.hpp"
-#include "client.hpp"
-#include "connection.hpp"
-#include "odin/net/socket.hpp"
+#include "socket.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/bind.hpp>
@@ -36,8 +34,7 @@
 
 using namespace boost;
 
-namespace paradice
-{
+namespace odin { namespace net {
     
 // ==========================================================================
 // SERVER::IMPLEMENTATION STRUCTURE
@@ -68,8 +65,11 @@ struct server::impl
     {
         if (!error)
         {
+// Really need to get a logging library.
+#if DEBUG_SERVER
             printf("Connection from: %s\n",
                 new_socket->remote_endpoint().address().to_string().c_str());
+#endif
             
             boost::shared_ptr<odin::net::socket> socket(
                 new odin::net::socket(new_socket));
@@ -141,5 +141,5 @@ void server::shutdown()
     pimpl_->cancel();
 }
 
-}
+}}
 

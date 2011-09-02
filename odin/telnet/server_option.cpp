@@ -28,10 +28,12 @@
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/negotiation_router.hpp"
 #include "odin/telnet/subnegotiation_router.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
 using namespace boost;
+using namespace boost::assign;
 
 namespace odin { namespace telnet {
     
@@ -178,8 +180,7 @@ public :
         subnegotiation.option_id_ = option_id_;
         subnegotiation.content_   = content;
         
-        stream::input_value_type input[] = { subnegotiation };
-        stream_->async_write(input, NULL);
+        stream_->async_write(list_of(subnegotiation), NULL);
     }
     
 private :
@@ -194,8 +195,8 @@ private :
     function<void ()>                    on_request_complete_;
     function<void (subnegotiation_type)> subnegotiation_callback_;
     
-    odin::runtime_array<stream::output_value_type> will_negotiation_;
-    odin::runtime_array<stream::output_value_type> wont_negotiation_;
+    stream::output_storage_type          will_negotiation_;
+    stream::output_storage_type          wont_negotiation_;
     
     void on_do()
     {

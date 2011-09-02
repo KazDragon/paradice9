@@ -163,7 +163,7 @@ void main_screen::clear()
     document = pimpl_->help_field_->get_document();
     document->delete_text(make_pair(u32(0), document->get_text_size()));
     
-    update_wholist(runtime_array<string>());
+    update_wholist(vector<string>());
     hide_help_window();
     pimpl_->input_field_->clear_history();
 }
@@ -179,8 +179,7 @@ void main_screen::on_input_entered(function<void (string)> callback)
 // ==========================================================================
 // ADD_OUTPUT_TEXT
 // ==========================================================================
-void main_screen::add_output_text(
-    runtime_array<element_type> const &text)
+void main_screen::add_output_text(vector<element_type> const &text)
 {
     pimpl_->output_field_->get_document()->insert_text(
         text
@@ -190,7 +189,7 @@ void main_screen::add_output_text(
 // ==========================================================================
 // UPDATE_WHOLIST
 // ==========================================================================
-void main_screen::update_wholist(runtime_array<string> const &names)
+void main_screen::update_wholist(vector<string> const &names)
 {
     pimpl_->wholist_->set_names(names);
 }
@@ -235,8 +234,7 @@ void main_screen::hide_help_window()
 // ==========================================================================
 // SET_HELP_WINDOW_TEXT
 // ==========================================================================
-void main_screen::set_help_window_text(
-    odin::runtime_array<element_type> const &text)
+void main_screen::set_help_window_text(vector<element_type> const &text)
 {
     BOOST_AUTO(document, pimpl_->help_field_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));

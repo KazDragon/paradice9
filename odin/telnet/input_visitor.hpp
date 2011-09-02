@@ -67,8 +67,8 @@ private :
 
 // A helper function that applies the visitor to a range of values.
 void apply_input_range(
-    input_visitor                                       &visitor
-  , odin::runtime_array<stream::input_value_type> const &values);
+    input_visitor                    &visitor
+  , stream::input_storage_type const &values);
 
 }}
 

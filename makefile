@@ -6,30 +6,18 @@ MAKE         = make -C
 
 # COMPILER FLAGS
 DEBUG        = #-ggdb
-OPTIM        = -O2 -DNDEBUG
+OPTIM        = -O2
 PROF         = #-pg
 CRYPT        = -DPARADICE_USE_CRYPTOPP
-D_FLAGS      = -D_WIN32_WINNT=0x0501 -D__USE_W32_SOCKETS
+D_FLAGS      = -DNDEBUG
 C_FLAGS      = -ansi -pedantic -Wall $(D_FLAGS) $(DEBUG) $(OPTIM) $(PROF) \
                $(CRYPT)
-NAME_IS      = -o
 I_DIRS       = -I.
-NOLINK       = -c
 L_DIRS       = -L.
-
-# REQUIRED LIBRARIES
-G_LIBS       = -lmunin -lodin -lboost_program_options -lboost_system \
-               -lboost_signals -lws2_32 -lwsock32
-LIBS         = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
-               -lboost_filesystem -lboost_system -lboost_signals \
-               -lboost_serialization -lcryptopp \
-               -lws2_32 -lwsock32
-               
-# EXECUTABLES               
-E_NAME       = paradice.exe
-G_NAME       = guibuilder.exe
+L_FLAGS      = $(OPTIM) $(PROF)
 
 ODIN_NAMES        = ansi/protocol \
+                    net/server \
                     net/socket \
                     telnet/client_option \
                     telnet/command_router \
@@ -52,6 +40,7 @@ MUNIN_NAMES       = algorithm \
                     attribute \
                     basic_component \
                     basic_container \
+                    basic_frame \
                     button \
                     canvas \
                     card \
@@ -103,10 +92,12 @@ HUGIN_LIB         = libhugin.a
 
 GUIBUILDER_NAMES  = client \
                     main \
-                    server \
-                    socket \
                     ui
 GUIBUILDER_O_FILES= $(GUIBUILDER_NAMES:%=guibuilder/%.o)
+GUIBUILDER_D_FILES= $(GUIBUILDER_O_FILES:.o=.d)
+GUIBUILDER_LIBS   = -lmunin -lodin -lboost_program_options -lboost_system \
+                    -lboost_signals
+G_NAME            = guibuilder.exe
 
 PARADICE_NAMES    = account \
                     admin \
@@ -120,25 +111,28 @@ PARADICE_NAMES    = account \
                     help \
                     random \
                     rules \
-                    server \
                     utility \
                     who
 PARADICE_O_FILES  = $(PARADICE_NAMES:%=paradice/%.o)
 PARADICE_D_FILES  = $(PARADICE_O_FILES:.o=.d)
 PARADICE_LIB      = libparadice.a
+LIBS              = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
+                    -lboost_filesystem -lboost_system -lboost_signals \
+                    -lboost_serialization -lcryptopp
 
 PARADICE9_NAMES   = context_impl paradice9 main
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)
 PARADICE9_D_FILES = $(PARADICE9_O_FILES:.o=.d)
+E_NAME            = paradice.exe
+
 TEST_L_DIRS       = -L.
 TEST_LIBS         = -lparadice -lmunin -lodin -lcppunit -lboost_signals \
-                    -lboost_system -lboost_system -lws2_32 -lwsock32
+                    -lboost_system -lboost_system
 TEST_L_FLAGS      = --enable-auto-import
 TEST_FIXTURES     = ansi_parser \
                     dice_parser \
+                    munin_string_to_elements \
                     router \
-                    runtime_array \
-                    small_buffer \
                     telnet_client_option \
                     telnet_command_router \
                     telnet_generator \
@@ -161,15 +155,27 @@ TEST_D_FILES      = $(TEST_O_FILES:.o=.d)
 TEST_EXE          = paradice_test.exe
 
 ALL_D_FILES = $(ODIN_D_FILES) $(MUNIN_D_FILES) $(HUGIN_D_FILES) \
-              $(PARADICE_D_FILES) $(PARADICE9_D_FILES)
+              $(PARADICE_D_FILES) $(PARADICE9_D_FILES) $(TEST_D_FILES) \
+              $(GUIBUILDER_D_FILES)
               
+# Add rules for specific platform
+# To anyone trying to build Paradice that is failing here, simply create
+# an empty file with the name given in the error message.  Then add lines of
+# makefile to that file in order to fix any other problems (extra libraries,
+# etc.) that crop up.
+UNAME = $(shell uname)
+include Makefile.$(UNAME)
+
+# Build Rules              
 $(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(HUGIN_LIB) $(PARADICE_LIB) \
            $(TEST_EXE) $(PARADICE9_O_FILES)
-	$(CC) $(NAME_IS) $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS)
+	./$(TEST_EXE)
+	$(CC) -o $@ $(PARADICE9_O_FILES) $(L_DIRS) $(LIBS) $(L_FLAGS)
     
 $(G_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(GUIBUILDER_O_FILES)
-	$(CC) $(NAME_IS) $@ $(GUIBUILDER_O_FILES) $(L_DIRS) $(G_LIBS)
+	$(CC) -o $@ $(GUIBUILDER_O_FILES) $(L_DIRS) $(GUIBUILDER_LIBS) $(L_FLAGS)
 	
+.PHONY: clean
 clean: 
 	$(RM) $(E_NAME) $(PARADICE9_O_FILES) \
 	      $(G_NAME) $(GUIBUILDER_O_FILES) \
@@ -189,11 +195,10 @@ libparadice.a: $(PARADICE_O_FILES)
 	
 $(TEST_EXE): $(TEST_O_FILES) $(ODIN_LIB) $(PARADICE_LIB) \
              $(MUNIN_LIB) $(HUGIN_LIB)
-	$(CC) $(NAME_IS) $@ $(TEST_O_FILES) $(TEST_L_DIRS) $(TEST_LIBS)
-	./$@    
-    
+	$(CC) -o $@ $(TEST_O_FILES) $(TEST_L_DIRS) $(TEST_LIBS) $(L_FLAGS)
+
 -include $(ALL_D_FILES)              
 
 %.o: %.cpp
-	$(CC) -MMD -MF $*.d -MT '$@' $(NAME_IS) $@ $(NOLINK) $(C_FLAGS) $(I_DIRS) $<
+	$(CC) -MMD -MF $*.d -MT '$@' -o $@ -c $(C_FLAGS) $(I_DIRS) $<
 

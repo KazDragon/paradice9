@@ -45,10 +45,9 @@ namespace munin {
 // ==========================================================================
 // IMAGE_FROM_TEXT
 // ==========================================================================
-runtime_array< runtime_array<element_type> >
-    image_from_text(runtime_array<string> const &text)
+vector< vector<element_type> > image_from_text(vector<string> const &text)
 {
-    runtime_array< runtime_array<element_type> > elements(text.size());
+    vector< vector<element_type> > elements(text.size());
 
     for (u32 index = 0; index < elements.size(); ++index)
     {
@@ -63,13 +62,13 @@ runtime_array< runtime_array<element_type> >
 // ==========================================================================
 struct image::impl : boost::noncopyable
 {
-    runtime_array< runtime_array<element_type> > elements_;
+    vector< vector<element_type> > elements_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-image::image(runtime_array< runtime_array<element_type> > elements)
+image::image(vector< vector<element_type> > elements)
     : pimpl_(make_shared<impl>())
 {
     pimpl_->elements_  = elements;
@@ -79,11 +78,10 @@ image::image(runtime_array< runtime_array<element_type> > elements)
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-image::image(runtime_array<element_type> elements)
+image::image(vector<element_type> elements)
     : pimpl_(make_shared<impl>())
 {
-    pimpl_->elements_ = runtime_array< runtime_array<element_type> >(
-        &elements, 1);
+    pimpl_->elements_ = list_of(elements);
     set_can_focus(false);
 }
 
@@ -97,7 +95,7 @@ image::~image()
 // ==========================================================================
 // SET_IMAGE
 // ==========================================================================
-void image::set_image(runtime_array< runtime_array<element_type> > elements)
+void image::set_image(vector< vector<element_type> > elements)
 {
     pimpl_->elements_ = elements;
     on_preferred_size_changed();
@@ -112,7 +110,7 @@ extent image::do_get_preferred_size() const
     extent preferred_size;
     preferred_size.height = pimpl_->elements_.size();
     
-    BOOST_FOREACH(runtime_array<element_type> row, pimpl_->elements_)
+    BOOST_FOREACH(vector<element_type> const &row, pimpl_->elements_)
     {
         preferred_size.width = (max)(
             u32(preferred_size.width)

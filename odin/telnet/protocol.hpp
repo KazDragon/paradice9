@@ -27,7 +27,6 @@
 #ifndef ODIN_TELNET_PROTOCOL_HPP_
 #define ODIN_TELNET_PROTOCOL_HPP_
 
-#include "odin/runtime_array.hpp"
 #include "odin/types.hpp"
 #include <vector>
 

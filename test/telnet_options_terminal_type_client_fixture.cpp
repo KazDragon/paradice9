@@ -6,6 +6,7 @@
 #include "odin/telnet/subnegotiation_router.hpp"
 #include "odin/telnet/input_visitor.hpp"
 #include "fake_datastream.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -14,6 +15,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(telnet_options_terminal_type_client_fixture);
 
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 namespace bll = boost::lambda;
 using namespace std;
 
@@ -60,7 +62,7 @@ void telnet_options_terminal_type_client_fixture::test_send_request()
       , telnet_subnegotiation_router
       , NULL);
 
-    runtime_array<odin::telnet::stream::input_value_type> receive_array;
+    odin::telnet::stream::input_storage_type  receive_array;
     odin::telnet::stream::input_callback_type on_read;
     
     on_read = (
@@ -86,25 +88,20 @@ void telnet_options_terminal_type_client_fixture::test_send_request()
     
     io_service.reset();
     io_service.run();
-    
-    u8 expected_data[] = { 
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::TERMINAL_TYPE
-    };
-    runtime_array<u8> expected_array(expected_data);
-    
-    runtime_array<u8> actual_array = fake_stream->read_data_written();
-        
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
 
+    fake_byte_stream::input_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)
+               (odin::telnet::TERMINAL_TYPE);    
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());    
     CPPUNIT_ASSERT_EQUAL(false, option.is_active());
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     // Respond to the activate with IAC WILL TERMINAL_TYPE.
-    u8 activate_response[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::TERMINAL_TYPE
-    };
-    fake_stream->write_data_to_read(activate_response);
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)
+               (odin::telnet::TERMINAL_TYPE));
 
     io_service.reset();
     io_service.run();
@@ -115,7 +112,7 @@ void telnet_options_terminal_type_client_fixture::test_send_request()
     {
         apply_visitor(input_visitor, *rxcurrent);
     }
-    receive_array = runtime_array<odin::telnet::stream::input_value_type>();
+    receive_array.clear();
 
     // The option should now be active.    
     CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
@@ -128,16 +125,13 @@ void telnet_options_terminal_type_client_fixture::test_send_request()
     io_service.reset();
     io_service.run();
     
-    u8 expected_request_data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::TERMINAL_TYPE
-      , odin::telnet::TERMINAL_TYPE_SEND
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    runtime_array<u8> expected_request_array(expected_request_data);
-    
-    CPPUNIT_ASSERT_EQUAL(
-        expected_request_array
-      , fake_stream->read_data_written());
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)
+               (odin::telnet::TERMINAL_TYPE)
+               (odin::telnet::TERMINAL_TYPE_SEND)
+               (odin::telnet::IAC)(odin::telnet::SE);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 }
 
 void telnet_options_terminal_type_client_fixture::test_response()
@@ -160,7 +154,7 @@ void telnet_options_terminal_type_client_fixture::test_response()
       , telnet_subnegotiation_router
       , NULL);
 
-    runtime_array<odin::telnet::stream::input_value_type> receive_array;
+    odin::telnet::stream::input_storage_type  receive_array;
     odin::telnet::stream::input_callback_type on_read;
     
     on_read = (
@@ -195,24 +189,19 @@ void telnet_options_terminal_type_client_fixture::test_response()
     io_service.reset();
     io_service.run();
     
-    u8 expected_data[] = { 
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::TERMINAL_TYPE
-    };
-    runtime_array<u8> expected_array(expected_data);
-    
-    runtime_array<u8> actual_array = fake_stream->read_data_written();
+    fake_byte_stream::input_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)
+               (odin::telnet::TERMINAL_TYPE);
         
-    CPPUNIT_ASSERT_EQUAL(expected_array, actual_array);
-
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     CPPUNIT_ASSERT_EQUAL(false, option.is_active());
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     // Respond to the activate with IAC WILL TERMINAL_TYPE.
-    u8 activate_response[] = {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::TERMINAL_TYPE
-    };
-    fake_stream->write_data_to_read(activate_response);
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)
+               (odin::telnet::TERMINAL_TYPE));
 
     io_service.reset();
     io_service.run();
@@ -223,7 +212,7 @@ void telnet_options_terminal_type_client_fixture::test_response()
     {
         apply_visitor(input_visitor, *rxcurrent);
     }
-    receive_array = runtime_array<odin::telnet::stream::input_value_type>();
+    receive_array.clear();
 
     // The option should now be active.    
     CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
@@ -236,25 +225,20 @@ void telnet_options_terminal_type_client_fixture::test_response()
     io_service.reset();
     io_service.run();
     
-    u8 expected_request_data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::TERMINAL_TYPE
-      , odin::telnet::TERMINAL_TYPE_SEND
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    runtime_array<u8> expected_request_array(expected_request_data);
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)
+               (odin::telnet::TERMINAL_TYPE)
+               (odin::telnet::TERMINAL_TYPE_SEND)
+               (odin::telnet::IAC)(odin::telnet::SE);
     
-    CPPUNIT_ASSERT_EQUAL(
-        expected_request_array
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 
     // Now simulate a response.
-    u8 send_response[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::TERMINAL_TYPE
-      , odin::telnet::TERMINAL_TYPE_IS
-      , 't', 'e', 's', 't'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    fake_stream->write_data_to_read(send_response);
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::SB)
+               (odin::telnet::TERMINAL_TYPE)
+               (odin::telnet::TERMINAL_TYPE_IS)('t')('e')('s')('t')
+               (odin::telnet::IAC)(odin::telnet::SE));
     
     string expected_response = "test";
     
@@ -268,7 +252,7 @@ void telnet_options_terminal_type_client_fixture::test_response()
     {
         apply_visitor(input_visitor, *rxcurrent);
     }
-    receive_array = runtime_array<odin::telnet::stream::input_value_type>();
+    receive_array.clear();
     
     CPPUNIT_ASSERT_EQUAL(expected_response, result);
 }

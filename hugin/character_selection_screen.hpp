@@ -28,7 +28,6 @@
 #define HUGIN_CHARACTER_SELECTION_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <odin/runtime_array.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
@@ -65,15 +64,14 @@ public :
     /// of address (e.g. ["Dave", "Dave the Black Ork"] 
     //* =====================================================================
     void set_character_names(
-        odin::runtime_array< 
+        std::vector<
             std::pair<std::string, std::string> 
         > const &names);
     
     //* =====================================================================
     /// \brief Sets the content of the status bar on the intro screen.
     //* =====================================================================
-    void set_statusbar_text(
-        odin::runtime_array<munin::element_type> const &text);
+    void set_statusbar_text(std::vector<munin::element_type> const &text);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to create

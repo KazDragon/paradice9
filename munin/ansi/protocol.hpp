@@ -28,32 +28,31 @@
 #define MUNIN_ANSI_PROTOCOL_HPP_
 
 #include "munin/types.hpp"
-#include "odin/runtime_array.hpp"
 #include <string>
-
+#include <vector>
 namespace munin { namespace ansi {
 
 //* =========================================================================
 /// \brief Creates an array of array of elements from an array of strings.
 //* =========================================================================
-odin::runtime_array< odin::runtime_array<element_type> > 
-    elements_from_strings(odin::runtime_array<std::string> const &strings
+std::vector< std::vector<munin::element_type> >
+    elements_from_strings(std::vector<std::string> const &strings
   , attribute const &attr = attribute());
 
 //* =========================================================================
-/// \brief Converts a string into a line of runtime_array<> of ANSI elements.
+/// \brief Converts a string into a line of vector<>s of ANSI elements.
 /// \param source_line a string of text to be converted
 /// \param attr the default attribute given to each element.
 //* =========================================================================
-odin::runtime_array<munin::element_type> elements_from_string(
+std::vector<munin::element_type> elements_from_string(
     std::string const &source_line
   , attribute const &attr = attribute());
 
 //* =========================================================================
-/// \brief Converts a runtime_array<> of ANSI elements into a string.
+/// \brief Converts a vector<> of ANSI elements into a string.
 //* =========================================================================
 std::string string_from_elements(
-    odin::runtime_array<munin::element_type> const &elements);
+    std::vector<munin::element_type> const &elements);
 
 //* =========================================================================
 /// \brief Enables mouse tracking.

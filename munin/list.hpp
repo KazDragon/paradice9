@@ -28,7 +28,6 @@
 #define MUNIN_LIST_HPP_
 
 #include "munin/basic_component.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/shared_ptr.hpp>
 
 namespace munin {
@@ -52,10 +51,7 @@ public :
     //* =====================================================================
     /// \brief Sets the items in the list.
     //* =====================================================================
-    void set_items(
-        odin::runtime_array< 
-            odin::runtime_array<element_type> 
-        > const &items);
+    void set_items(std::vector< std::vector<element_type> > items);
 
     //* =====================================================================
     /// \brief Selects an item with the given index.
@@ -72,7 +68,7 @@ public :
     //* =====================================================================
     /// \brief Gets the value of the currently selected item.
     //* =====================================================================
-    odin::runtime_array<element_type> get_item() const;
+    std::vector<element_type> get_item() const;
 
     //* =====================================================================
     /// \fn on_item_changed

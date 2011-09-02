@@ -41,11 +41,11 @@ namespace munin { namespace ansi {
 // ==========================================================================
 // ELEMENTS_FROM_STRINGS
 // ==========================================================================
-runtime_array< runtime_array<element_type> > 
-    elements_from_strings(runtime_array<string> const &strings
+vector< vector<munin::element_type> > 
+    elements_from_strings(vector<string> const &strings
   , attribute const &attr)
 {
-    runtime_array< runtime_array<element_type> > elements(strings.size());
+    vector< vector<munin::element_type> > elements(strings.size());
 
     transform(
         strings.begin(), strings.end()
@@ -58,11 +58,11 @@ runtime_array< runtime_array<element_type> >
 // ==========================================================================
 // ELEMENTS_FROM_STRING
 // ==========================================================================
-runtime_array<element_type> elements_from_string(
+vector<element_type> elements_from_string(
     string const    &source_line
   , attribute const &attr)
 {
-    runtime_array<munin::element_type> dest_line(source_line.size());
+    vector<munin::element_type> dest_line(source_line.size());
     
     for (u32 index = 0; index < source_line.size(); ++index)
     {
@@ -76,7 +76,7 @@ runtime_array<element_type> elements_from_string(
 // STRING_FROM_ELEMENTS
 // ==========================================================================
 string string_from_elements(
-    runtime_array<munin::element_type> const &elements)
+    vector<munin::element_type> const &elements)
 {
     string text(elements.size(), ' ');
     

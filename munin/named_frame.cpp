@@ -54,8 +54,8 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     title_bar(
-        runtime_array<element_type> const &title
-      , element_type const                &filler_element)
+        vector<element_type>  title
+      , element_type const   &filler_element)
         : title_(title)
         , filler_element_(filler_element)
     {
@@ -65,7 +65,7 @@ public :
     // ======================================================================
     // SET_TITLE
     // ======================================================================
-    void set_title(runtime_array<element_type> const &title)
+    void set_title(vector<element_type> title)
     {
         title_ = title;
         on_redraw(list_of(rectangle(point(), get_size())));
@@ -164,8 +164,8 @@ private :
         }
     }
 
-    runtime_array<element_type> title_;
-    element_type                filler_element_;
+    vector<element_type> title_;
+    element_type         filler_element_;
 };
 
 // ==========================================================================
@@ -183,7 +183,7 @@ public :
     // ======================================================================
     // SET_NAME
     // ======================================================================
-    void set_name(runtime_array<element_type> const &name)
+    void set_name(vector<element_type> name)
     {
         title_bar_->set_title(name);
     }
@@ -285,7 +285,7 @@ void named_frame::set_name(string const &name)
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void named_frame::set_name(runtime_array<element_type> const &name)
+void named_frame::set_name(vector<element_type> name)
 {
     pimpl_->set_name(name);
     on_redraw(list_of(rectangle(point(), extent(get_size().width, 1))));

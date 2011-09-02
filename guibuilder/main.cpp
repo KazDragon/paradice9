@@ -24,14 +24,15 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "server.hpp"
 #include "client.hpp"
 #include "ui.hpp"
-#include "odin/net/socket.hpp"
-#include "odin/telnet/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/window.hpp"
 #include "munin/grid_layout.hpp"
+#include "odin/net/server.hpp"
+#include "odin/net/socket.hpp"
+#include "odin/telnet/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/placeholders.hpp>
@@ -46,6 +47,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace boost::assign;
 namespace po = boost::program_options;
 
 boost::asio::io_service io_service;
@@ -66,8 +68,7 @@ void on_repaint(
 
     if (socket)
     {
-        odin::runtime_array<odin::u8> data(paint_data.size());
-        copy(paint_data.begin(), paint_data.end(), data.begin());
+        vector<odin::u8> data(paint_data.begin(), paint_data.end());
 
         socket->async_write(data, NULL);
     }
@@ -82,11 +83,9 @@ void on_keepalive(
 
     if (socket)
     {
-        odin::net::socket::output_value_type values[] = {
-            odin::telnet::IAC, odin::telnet::NOP
-        };
-
-        socket->async_write(values, NULL);
+        socket->async_write(
+            list_of(odin::telnet::IAC)(odin::telnet::NOP)
+          , NULL);
 
         schedule_keepalive(socket, keepalive_timer);
     }
@@ -217,8 +216,7 @@ static void on_accept(shared_ptr<odin::net::socket> socket)
     std::string string_data = munin::ansi::set_window_title(
         "Paradice9 Sample");
 
-    odin::runtime_array<odin::u8> data(string_data.size());
-    copy(string_data.begin(), string_data.end(), data.begin());
+    vector<odin::u8> data(string_data.begin(), string_data.end());
     socket->async_write(data, NULL);
 }
 
@@ -292,7 +290,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    guibuilder::server server(io_service, port, bind(&on_accept, _1));
+    odin::net::server server(io_service, port, bind(&on_accept, _1));
 
     io_service.run();
 

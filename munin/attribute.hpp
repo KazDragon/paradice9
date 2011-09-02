@@ -28,6 +28,7 @@
 #define MUNIN_ANSI_ATTRIBUTE_HPP_
 
 #include "odin/types.hpp"
+#include "odin/ansi/protocol.hpp"
 #include <boost/variant.hpp>
 #include <iosfwd>
 
@@ -42,6 +43,11 @@ struct attribute
     // Structure representing a normal ANSI 16-colour value
     struct low_colour
     {
+        low_colour()
+            : value_(odin::ansi::graphics::COLOUR_WHITE)
+        {
+        }
+            
         low_colour(char value)
             : value_(value)
         {
@@ -53,6 +59,13 @@ struct attribute
     // Structure representing the central 216 colours of a 256-colour palette
     struct high_colour
     {
+        high_colour()
+            : red_(255)
+            , green_(255)
+            , blue_(255)
+        {
+        }
+
         high_colour(odin::u8 red, odin::u8 green, odin::u8 blue)
             : red_(red)
             , green_(green)
@@ -68,6 +81,11 @@ struct attribute
     // Structure representing the 24 greyscale tones of a 256-colour palette
     struct greyscale_colour
     {
+        greyscale_colour()
+            : shade_(23)
+        {
+        }
+        
         explicit greyscale_colour(odin::u8 shade)
             : shade_(shade)
         {
@@ -84,6 +102,11 @@ struct attribute
             low_colour, high_colour, greyscale_colour
         > colour_variant;
         
+        colour()
+            : value_(low_colour(odin::ansi::graphics::COLOUR_WHITE))
+        {
+        }
+
         colour(char value)
             : value_(low_colour(value))
         {
@@ -124,6 +147,7 @@ struct attribute
     char   intensity_;
     char   underlining_;
     char   polarity_;
+    char   blinking_;
 };
 
 bool operator==(attribute const &lhs, attribute const &rhs);

@@ -29,7 +29,6 @@
 #include "munin/canvas.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/make_shared.hpp>
@@ -76,7 +75,7 @@ struct wholist::impl
     // ======================================================================
     // SET_NAMES
     // ======================================================================
-    void set_names(runtime_array<string> const &names)
+    void set_names(vector<string> const &names)
     {
         names_ = names; 
         check_selected_index();
@@ -85,7 +84,7 @@ struct wholist::impl
     // ======================================================================
     // GET_NAMES
     // ======================================================================
-    runtime_array<string> get_names() const
+    vector<string> get_names() const
     {
         return names_;
     }
@@ -132,8 +131,6 @@ private :
     // ======================================================================
     void render_names()
     {
-        BOOST_AUTO(size, self_.get_size());
-
         // Find the begin and end indices of this page.
         u32 current_page_begin_index = u32(name_index_);
         u32 current_page_end_index   = u32(name_index_ + names_per_page_);
@@ -320,7 +317,7 @@ private :
     }
 
     wholist                                      &self_;
-    runtime_array<string>                         names_;
+    vector<string>                                names_;
     canvas                                        view_;
     munin::extent                                 current_size_;
     u32                                           name_index_;
@@ -348,7 +345,7 @@ wholist::wholist()
 // ==========================================================================
 // SET_NAMES
 // ==========================================================================
-void wholist::set_names(runtime_array<string> const &names)
+void wholist::set_names(vector<string> const &names)
 {
     pimpl_->set_names(names);
     pimpl_->render();

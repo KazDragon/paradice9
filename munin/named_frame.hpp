@@ -28,8 +28,8 @@
 #define MUNIN_NAMED_FRAME_HPP_
 
 #include "munin/basic_frame.hpp"
-#include "odin/runtime_array.hpp"
 #include <string>
+#include <vector>
 
 namespace munin {
 
@@ -58,7 +58,7 @@ public :
     //* =====================================================================
     /// \brief Sets the name displayed on the top border of the frame.
     //* =====================================================================
-    void set_name(odin::runtime_array<element_type> const &name);
+    void set_name(std::vector<element_type> name);
     
     //* =====================================================================
     /// \brief Sets whether the frame is 'closeable' or not.  That is,

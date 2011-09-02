@@ -403,8 +403,7 @@ private :
             }
             else if (isprint(ch))
             {
-                element_type data[] = { element_type(ch, attribute()) };
-                document_->insert_text(data, optional<u32>());
+                document_->insert_text(list_of(element_type(ch)));
             }
         }
     }

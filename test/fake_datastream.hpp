@@ -40,10 +40,12 @@ class fake_datastream
 public :    
     // Some helpful typedefs to allow base classes to reduce ambiguity.
     typedef typename odin::io::datastream<ReadValue, WriteValue>::input_value_type    input_value_type;
+    typedef typename odin::io::datastream<ReadValue, WriteValue>::input_storage_type  input_storage_type;
     typedef typename odin::io::datastream<ReadValue, WriteValue>::input_size_type     input_size_type;
     typedef typename odin::io::datastream<ReadValue, WriteValue>::input_callback_type input_callback_type;
 
     typedef typename odin::io::datastream<ReadValue, WriteValue>::output_value_type    output_value_type;
+    typedef typename odin::io::datastream<ReadValue, WriteValue>::output_storage_type  output_storage_type;
     typedef typename odin::io::datastream<ReadValue, WriteValue>::output_size_type     output_size_type;
     typedef typename odin::io::datastream<ReadValue, WriteValue>::output_callback_type output_callback_type;
     
@@ -75,18 +77,18 @@ public :
     /// \brief Performs a synchronous read on the stream.
     /// \return an array of values read frmo the stream.
     /// Reads up to size items from the stream and returns them in a
-    /// runtime_array.  This may block, unless a previous call to available()
+    /// vector.  This may block, unless a previous call to available()
     /// since the last read() yielded a positive value, which was less than or 
     /// equal to size, in which case it MUST NOT block.
     //* =====================================================================
-    virtual odin::runtime_array<input_value_type> read(input_size_type size)
+    virtual input_storage_type read(input_size_type size)
     {
         if (input_buffer_.size() < size)
         {
             throw blocking_error(); 
         }
         
-        odin::runtime_array<input_value_type> result(size);
+        input_storage_type result(size);
         
         std::copy(
             input_buffer_.begin()
@@ -124,8 +126,7 @@ public :
     /// \return the number of objects written to the stream.
     /// Write an array of WriteValues to the stream.  
     //* =====================================================================
-    virtual output_size_type write(
-        odin::runtime_array<output_value_type> const& values)
+    virtual output_size_type write(output_storage_type const &values)
     {
         std::copy(
             values.begin()
@@ -145,8 +146,8 @@ public :
     /// synchronously, since this invalidates a set of operations.
     //* =====================================================================
     virtual void async_write(
-        odin::runtime_array<output_value_type> const &values
-      , output_callback_type const                   &callback)
+        output_storage_type const  &values
+      , output_callback_type const &callback)
     {
         write_request request = { values, callback };
         write_requests_.push_back(request);
@@ -175,8 +176,7 @@ public :
     /// \brief Inserts the data into the read buffer so that read() and
     /// async_read() can return it.
     //* =====================================================================
-    void write_data_to_read(
-        odin::runtime_array<input_value_type> const &values)
+    void write_data_to_read(input_storage_type const &values)
     {
         std::copy(
             values.begin()
@@ -190,14 +190,10 @@ public :
     /// \brief Retrieves the data that has been written through this
     /// datastream.  Note: Destructive read.
     //* =====================================================================
-    odin::runtime_array<output_value_type> read_data_written()
+    output_storage_type read_data_written()
     {
-        odin::runtime_array<output_value_type> result(output_buffer_.size());
-        
-        std::copy(
-            output_buffer_.begin()
-          , output_buffer_.end()
-          , result.begin());
+        output_storage_type result(
+            output_buffer_.begin(), output_buffer_.end());
         
         output_buffer_.clear();
         
@@ -219,8 +215,8 @@ private :
     //* =====================================================================
     struct write_request
     {
-        odin::runtime_array<output_value_type> values_;
-        output_callback_type                   callback_;
+        output_storage_type  values_;
+        output_callback_type callback_;
     };
     
     //* =====================================================================
@@ -251,7 +247,7 @@ private :
         
         if (input_buffer_.size() >= request.size_)
         {
-            odin::runtime_array<input_value_type> result(request.size_);
+            input_storage_type result(request.size_);
             
             std::copy(
                 input_buffer_.begin()

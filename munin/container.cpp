@@ -295,7 +295,7 @@ shared_ptr<layout> container::get_layout(u32 layer) const
 // ==========================================================================
 // GET_LAYOUT_LAYERS
 // ==========================================================================
-runtime_array<u32> container::get_layout_layers() const
+vector<u32> container::get_layout_layers() const
 {
     return do_get_layout_layers();
 }

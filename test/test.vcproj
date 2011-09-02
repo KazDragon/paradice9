@@ -187,19 +187,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_string_to_elements_fixture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\paradice_test.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\router_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\runtime_array_fixture.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\small_buffer_fixture.cpp"
 				>
 			</File>
 			<File
@@ -305,15 +301,11 @@
 				>
 			</File>
 			<File
+				RelativePath=".\munin_string_to_elements_fixture.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\router_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\runtime_array_fixture.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\small_buffer_fixture.hpp"
 				>
 			</File>
 			<File

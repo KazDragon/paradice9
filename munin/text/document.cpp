@@ -26,6 +26,8 @@
 // ==========================================================================
 #include "munin/text/document.hpp"
 
+using namespace std;
+
 namespace munin { namespace text {
 
 // ==========================================================================
@@ -98,8 +100,8 @@ odin::u32 document::get_text_size() const
 // INSERT_TEXT
 // ==========================================================================
 void document::insert_text(
-    odin::runtime_array<element_type> const& text
-  , boost::optional<odin::u32>               index)
+    vector<element_type> const  &text
+  , boost::optional<odin::u32>   index)
 {
     do_insert_text(text, index);
 }
@@ -123,7 +125,7 @@ odin::u32 document::get_number_of_lines() const
 // ==========================================================================
 // GET_LINE
 // ==========================================================================
-odin::runtime_array<element_type> document::get_line(odin::u32 index) const
+vector<element_type> document::get_line(odin::u32 index) const
 {
     return do_get_line(index);
 }

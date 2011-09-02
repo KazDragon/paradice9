@@ -28,7 +28,7 @@
 #define MUNIN_CONTAINER_HPP_
 
 #include "munin/component.hpp"
-#include "odin/runtime_array.hpp"
+#include <vector>
 
 namespace munin {
     
@@ -114,7 +114,7 @@ public :
     //* =====================================================================
     /// \brief Returns an array of layers that currently have layouts
     //* =====================================================================
-    odin::runtime_array<odin::u32> get_layout_layers() const;
+    std::vector<odin::u32> get_layout_layers() const;
     
 protected :    
     //* =====================================================================
@@ -183,7 +183,7 @@ protected :
     /// this function in order to get the container's layout in a custom 
     /// manner.
     //* =====================================================================
-    virtual odin::runtime_array<odin::u32> do_get_layout_layers() const = 0;
+    virtual std::vector<odin::u32> do_get_layout_layers() const = 0;
     
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

@@ -29,6 +29,7 @@
 
 #include "munin/types.hpp"
 #include <boost/optional.hpp>
+#include <string>
 #include <vector>
 
 namespace munin {
@@ -77,6 +78,11 @@ void copy_region(
     rectangle const &region
   , canvas const    &source
   , canvas          &destination);
+
+//* =========================================================================
+/// \brief Converts a string into an array of elements.
+//* =========================================================================
+std::vector<element_type> string_to_elements(std::string const &str);
 
 }
     

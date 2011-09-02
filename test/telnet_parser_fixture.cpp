@@ -1,10 +1,11 @@
 #include "telnet_parser_fixture.hpp"
 #include "odin/telnet/detail/parser.hpp"
-#include "odin/runtime_array.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
 
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_parser_fixture);
@@ -33,11 +34,10 @@ void telnet_parser_fixture::test_parse_normal_one()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { 'x' };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = list_of('x');
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
@@ -60,11 +60,10 @@ void telnet_parser_fixture::test_parse_normal_two()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { 'x', 'y' };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = list_of('x')('y');
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
@@ -88,28 +87,26 @@ void telnet_parser_fixture::test_parse_iac()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { odin::telnet::IAC };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = list_of(odin::telnet::IAC);
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
     // There is not a complete token here; no data may have been consumed.
     CPPUNIT_ASSERT_EQUAL(true, result.empty());
-    CPPUNIT_ASSERT(begin == array.begin());
+    CPPUNIT_ASSERT(begin == data.begin());
 }
 
 void telnet_parser_fixture::test_parse_iac_iac()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { odin::telnet::IAC, odin::telnet::IAC };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = list_of(odin::telnet::IAC)(odin::telnet::IAC);
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
@@ -120,11 +117,10 @@ void telnet_parser_fixture::test_parse_iac_iac()
     
     BOOST_AUTO(element, get<string>(result[0]));
 
-    char expected_data[] = { char(odin::telnet::IAC) };
-    odin::runtime_array<char> expected_array(expected_data);
+    vector<char> expected_data = list_of(odin::telnet::IAC);
         
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), element.size());
-    CPPUNIT_ASSERT_EQUAL(expected_array[0], element[0]);
+    CPPUNIT_ASSERT_EQUAL(expected_data.size(), element.size());
+    CPPUNIT_ASSERT_EQUAL(expected_data[0], element[0]);
     
     // All data must have been consumed.
     CPPUNIT_ASSERT(begin == end);
@@ -134,11 +130,10 @@ void telnet_parser_fixture::test_parse_command()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { odin::telnet::IAC, odin::telnet::NOP };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = list_of(odin::telnet::IAC)(odin::telnet::NOP);
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
@@ -159,13 +154,11 @@ void telnet_parser_fixture::test_parse_negotiation()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
-    };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = 
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::ECHO); 
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
@@ -189,20 +182,17 @@ void telnet_parser_fixture::test_parse_subnegotiation()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::SB
-      , odin::telnet::ECHO
-      , 'x', 'y'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = 
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::ECHO)
+        ('x')('y')
+        (odin::telnet::IAC)(odin::telnet::SE);
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
-    odin::u8 expected_data[] = { 'x', 'y' };
+
+    vector<odin::u8> expected_data = list_of('x')('y');
 
     // The result must contain only one element, which is the subnegotiation
     CPPUNIT_ASSERT_EQUAL(
@@ -224,22 +214,19 @@ void telnet_parser_fixture::test_parse_incomplete_subnegotiation()
 {
     odin::telnet::detail::parser parse;
     
-    odin::u8 data[] = { 
-        odin::telnet::IAC, odin::telnet::SB
-      , odin::telnet::ECHO
-      , 'x', 'y'
-      , odin::telnet::IAC
-    };
-    odin::runtime_array<odin::u8> array(data);
+    vector<odin::u8> data = 
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::ECHO)
+        ('x')('y')
+        (odin::telnet::IAC);
     
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     
     // There is not a complete token here; no data may have been consumed.
     CPPUNIT_ASSERT_EQUAL(true, result.empty());
-    CPPUNIT_ASSERT(begin == array.begin());
+    CPPUNIT_ASSERT(begin == data.begin());
 }
 
 void telnet_parser_fixture::test_parse_many()
@@ -259,29 +246,26 @@ void telnet_parser_fixture::test_parse_many()
         // telnet WONT EXOPL
         // '\xFF' '\xFF' 'i'
         
-    odin::u8 data[] = {
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC
-      , odin::telnet::IAC, odin::telnet::NOP
-      , odin::telnet::IAC, odin::telnet::AYT
-      , 'd'
-      , odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
-      , odin::telnet::IAC, odin::telnet::DONT, odin::telnet::ECHO
-      , odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 'e', 'f'
-      , odin::telnet::IAC, odin::telnet::SE
-      , odin::telnet::IAC, odin::telnet::SB, odin::telnet::EXOPL
-      , odin::telnet::IAC, odin::telnet::SE
-      , 'g', 'h'
-      , odin::telnet::IAC, odin::telnet::WONT, odin::telnet::EXOPL
-      , odin::telnet::IAC, odin::telnet::IAC
-      , odin::telnet::IAC, odin::telnet::IAC
-      , 'i'
-    };
+    vector<odin::u8> data = 
+        list_of('a')('b')('c')(odin::telnet::IAC)(odin::telnet::IAC)
+               (odin::telnet::IAC)(odin::telnet::NOP)
+               (odin::telnet::IAC)(odin::telnet::AYT)
+               ('d')
+               (odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::ECHO)
+               (odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::ECHO)
+               (odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+                   ('e')('f')
+               (odin::telnet::IAC)(odin::telnet::SE)
+               (odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::EXOPL)
+               (odin::telnet::IAC)(odin::telnet::SE)
+               ('g')('h')
+               (odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::EXOPL)
+               (odin::telnet::IAC)(odin::telnet::IAC)
+               (odin::telnet::IAC)(odin::telnet::IAC)
+               ('i');
 
-    odin::runtime_array<odin::u8> array(data);
-    
-    BOOST_AUTO(begin, array.begin());
-    BOOST_AUTO(end,   array.end());
+    BOOST_AUTO(begin, data.begin());
+    BOOST_AUTO(end,   data.end());
     
     odin::telnet::detail::parser::result_type result = parse(begin, end);
     

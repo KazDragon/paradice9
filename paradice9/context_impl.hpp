@@ -28,7 +28,7 @@
 #define PARADICE9_CONTEXT_IMPL_HPP_
 
 #include "paradice/context.hpp"
-#include "paradice/server.hpp"
+#include "odin/net/server.hpp"
 
 //* =========================================================================
 /// \brief Describes the context in which a Paradice server runs.
@@ -39,7 +39,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    context_impl(boost::shared_ptr<paradice::server> server);
+    context_impl(boost::shared_ptr<odin::net::server> server);
     
     //* =====================================================================
     /// \brief Denstructor
@@ -49,7 +49,7 @@ public :
     //* =====================================================================
     /// \brief Retrieves a list of clients currently connected to Paradice.
     //* =====================================================================
-    virtual odin::runtime_array< 
+    virtual std::vector< 
         boost::shared_ptr<paradice::client> 
     > get_clients();
 

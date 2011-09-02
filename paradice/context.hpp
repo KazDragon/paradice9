@@ -27,8 +27,8 @@
 #ifndef PARADICE_CONTEXT_HPP_
 #define PARADICE_CONTEXT_HPP_
 
-#include "odin/runtime_array.hpp"
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 namespace paradice {
 
@@ -51,7 +51,7 @@ public :
     //* =====================================================================
     /// \brief Retrieves a list of clients currently connected to Paradice.
     //* =====================================================================
-    virtual odin::runtime_array< boost::shared_ptr<client> > get_clients() = 0;
+    virtual std::vector< boost::shared_ptr<client> > get_clients() = 0;
     
     //* =====================================================================
     /// \brief Adds a client to the list of clients currently connected

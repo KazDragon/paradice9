@@ -56,8 +56,8 @@ protected :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        odin::runtime_array< boost::shared_ptr<component> > const &components
-      , odin::runtime_array< boost::any >                   const &hints) const;
+        std::vector< boost::shared_ptr<component> > const &components
+      , std::vector< boost::any >                   const &hints) const;
     
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this
@@ -65,9 +65,9 @@ protected :
     /// manner.
     //* =====================================================================
     virtual void do_layout(
-        odin::runtime_array< boost::shared_ptr<component> > const &components
-      , odin::runtime_array< boost::any >                   const &hints
-      , extent                                                     size);
+        std::vector< boost::shared_ptr<component> > const &components
+      , std::vector< boost::any >                   const &hints
+      , extent                                             size);
 };
     
 }

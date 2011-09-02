@@ -108,8 +108,8 @@ private :
     /// manner.
     //* =====================================================================
     virtual void do_insert_text(
-        odin::runtime_array<munin::element_type> const& text
-      , boost::optional<odin::u32>                      index);
+        std::vector<munin::element_type> const& text
+      , boost::optional<odin::u32>              index);
 
     //* =====================================================================
     /// \brief Called by delete_text().  Derived classes must override this
@@ -128,8 +128,7 @@ private :
     /// \brief Called by get_line().  Derived classes must override this
     /// function in order to return the text line in a custom manner.
     //* =====================================================================
-    virtual odin::runtime_array<munin::element_type> do_get_line(
-        odin::u32 index) const;
+    virtual std::vector<munin::element_type> do_get_line(odin::u32 index) const;
 };
 
 }}

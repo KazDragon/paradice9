@@ -518,19 +518,9 @@ extent basic_container::do_get_preferred_size() const
             continue;
         }
         
-        // Convert to runtime_array<>s to match the interface required.
-        runtime_array< shared_ptr<component> > components_array(
-            &*components.begin()
-          , runtime_array< shared_ptr<component> >::size_type(
-                components.size()));
-        
-        runtime_array<any> hints_array(
-            &*hints.begin()
-          , runtime_array<any>::size_type(hints.size()));
-        
         BOOST_AUTO(
             lp_preferred_size
-          , lyt->get_preferred_size(components_array, hints_array));
+          , lyt->get_preferred_size(components, hints));
         
         preferred_size.width = 
             (max)(preferred_size.width, lp_preferred_size.width);
@@ -710,9 +700,9 @@ shared_ptr<layout> basic_container::do_get_layout(u32 layer) const
 // ==========================================================================
 // DO_GET_LAYOUT_LAYERS
 // ==========================================================================
-runtime_array<u32> basic_container::do_get_layout_layers() const
+vector<u32> basic_container::do_get_layout_layers() const
 {
-    runtime_array<u32> layers(pimpl_->layouts_.size());
+    vector<u32> layers(pimpl_->layouts_.size());
     
     u32 index = 0;
     BOOST_FOREACH(layered_layout_map::value_type lp, pimpl_->layouts_)
@@ -1044,17 +1034,7 @@ void basic_container::do_layout()
             continue;
         }
         
-        // Convert to runtime_array<>s to match the interface required.
-        runtime_array< shared_ptr<component> > components_array(
-            &*components.begin()
-          , runtime_array< shared_ptr<component> >::size_type(
-                components.size()));
-        
-        runtime_array<any> hints_array(
-            &*hints.begin()
-          , runtime_array<any>::size_type(hints.size()));
-        
-        (*lyt)(components_array, hints_array, size);
+        (*lyt)(components, hints, size);
     }
     
     // Now that all the sizes are correct for this container, iterate through 

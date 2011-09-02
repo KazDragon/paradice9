@@ -173,14 +173,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\runtime_array.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\small_buffer.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\state_machine.hpp"
 				>
 			</File>
@@ -403,6 +395,10 @@
 			Name="Net Source Files"
 			>
 			<File
+				RelativePath=".\net\server.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\net\socket.cpp"
 				>
 			</File>
@@ -410,6 +406,10 @@
 		<Filter
 			Name="Net Header Files"
 			>
+			<File
+				RelativePath=".\net\server.hpp"
+				>
+			</File>
 			<File
 				RelativePath=".\net\socket.hpp"
 				>

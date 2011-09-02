@@ -2,6 +2,7 @@
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "fake_datastream.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/function.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -11,6 +12,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(telnet_stream_fixture);
 
 using namespace std;
 using namespace boost;
+using namespace boost::assign;
 
 namespace bll = boost::lambda;
 
@@ -55,7 +57,7 @@ void telnet_stream_fixture::test_inheritance()
 // make typedefs to them for ease of use.
 typedef odin::telnet::stream::input_size_type     input_size_type;
 typedef odin::telnet::stream::input_value_type    input_value_type;
-typedef odin::runtime_array<input_value_type>      input_array_type;
+typedef odin::telnet::stream::input_storage_type  input_storage_type;
 typedef odin::telnet::stream::input_callback_type input_callback_type;
 
 void telnet_stream_fixture::test_sync_read_normal()
@@ -66,18 +68,17 @@ void telnet_stream_fixture::test_sync_read_normal()
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
-    
-    odin::u8 data[] = { 'X' };
-    odin::runtime_array<odin::u8> array(data);
+
+    fake_bytestream::input_storage_type data = list_of('X');    
     
     fake_stream->write_data_to_read(data);
     
-    input_array_type actual_variant_array(stream.read(input_size_type(1)));
+    input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
     string expected_string("X");
     
     input_value_type expected_variant(expected_string);
-    input_array_type expected_variant_array(&expected_variant, 1);
+    input_storage_type expected_variant_array = list_of(expected_variant);
 
     CPPUNIT_ASSERT_EQUAL(
         expected_variant_array.size()
@@ -98,17 +99,17 @@ void telnet_stream_fixture::test_sync_read_normal_iac()
     shared_ptr<fake_bytestream> fake_stream(
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
+
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c')('d')('e')(odin::telnet::IAC);
     
-    odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e', odin::telnet::IAC };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    input_array_type actual_variant_array(stream.read(input_size_type(1)));
+    fake_stream->write_data_to_read(data);
+    input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
     string expected_string("abcde");
     
     input_value_type expected_variant(expected_string);
-    input_array_type expected_variant_array(&expected_variant, 1);
+    input_storage_type expected_variant_array = list_of(expected_variant);
 
     CPPUNIT_ASSERT_EQUAL(
         expected_variant_array.size()
@@ -128,18 +129,17 @@ void telnet_stream_fixture::test_sync_read_normal_iac_iac()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 
-        'a', 'b', 'c', 'd', 'e', odin::telnet::IAC, odin::telnet::IAC
-    };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
-    input_array_type actual_variant_array(stream.read(input_size_type(1)));
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c')('d')('e')
+               (odin::telnet::IAC)(odin::telnet::IAC);
+
+    fake_stream->write_data_to_read(data);
+    input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
     string expected_string("abcde\xFF");
     
     input_value_type expected_variant(expected_string);
-    input_array_type expected_variant_array(&expected_variant, 1);
+    input_storage_type expected_variant_array = list_of(expected_variant);
 
     CPPUNIT_ASSERT_EQUAL(
         expected_variant_array.size()
@@ -163,51 +163,42 @@ void telnet_stream_fixture::test_sync_read_normal_iac_then_iac()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    {
-        odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e', odin::telnet::IAC };
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-    }
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c')('d')('e')(odin::telnet::IAC);
+
+    fake_stream->write_data_to_read(data);
     
-    input_array_type actual_variant_array(stream.read(input_size_type(1)));
+    input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
-    {
-        string expected_string("abcde");
-        
-        input_value_type expected_variant(expected_string);
-        input_array_type expected_variant_array(&expected_variant, 1);
+    string expected_string("abcde");
     
-        CPPUNIT_ASSERT_EQUAL(input_array_type::size_type(1), actual_variant_array.size());
-        
-        BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
-        
-        CPPUNIT_ASSERT_EQUAL(expected_string, element0);
-    }
+    input_value_type expected_variant(expected_string);
+    input_storage_type expected_variant_array = list_of(expected_variant);
+
+    CPPUNIT_ASSERT_EQUAL(
+        input_storage_type::size_type(1), actual_variant_array.size());
     
-    {
-        odin::u8 data[] = { odin::telnet::IAC };
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-    }
+    BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
     
+    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
+
+    data = list_of(odin::telnet::IAC);
+    fake_stream->write_data_to_read(data);
+
     actual_variant_array = stream.read(input_size_type(1));
+
+    expected_string = "\xFF";
     
-    {
-        string expected_string("\xFF");
-        
-        input_value_type expected_variant(expected_string);
-        input_array_type expected_variant_array(&expected_variant, 1);
+    expected_variant = expected_string;
+    expected_variant_array = list_of(expected_variant);
+
+    CPPUNIT_ASSERT_EQUAL(
+        expected_variant_array.size()
+      , actual_variant_array.size());
     
-        CPPUNIT_ASSERT_EQUAL(
-            expected_variant_array.size()
-          , actual_variant_array.size());
-        
-        BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
-        
-        CPPUNIT_ASSERT_EQUAL(expected_string, element0);
-    }
+    element0 = get<string>(actual_variant_array[0]);
+    
+    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
 }
 
 void telnet_stream_fixture::test_sync_read_command()
@@ -218,16 +209,16 @@ void telnet_stream_fixture::test_sync_read_command()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { odin::telnet::IAC, odin::telnet::NOP };
-    odin::runtime_array<odin::u8> array(data);
-    
+    fake_bytestream::input_storage_type data =
+        list_of(odin::telnet::IAC)(odin::telnet::NOP);
+
     fake_stream->write_data_to_read(data);
-    input_array_type actual_variant_array(stream.read(input_size_type(1)));
+    input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
     odin::telnet::command_type expected_command = odin::telnet::NOP;
     
     input_value_type expected_variant(expected_command);
-    input_array_type expected_variant_array(&expected_variant, 1);
+    input_storage_type expected_variant_array = list_of(expected_variant);
 
     CPPUNIT_ASSERT_EQUAL(
         expected_variant_array.size()
@@ -249,11 +240,11 @@ void telnet_stream_fixture::test_sync_read_normal_command()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 'a', odin::telnet::IAC, odin::telnet::NOP };
-    odin::runtime_array<odin::u8> array(data);
-    
+    fake_bytestream::input_storage_type data =
+        list_of('a')(odin::telnet::IAC)(odin::telnet::NOP);
+
     fake_stream->write_data_to_read(data);
-    input_array_type actual_variant_array(stream.read(input_size_type(2)));
+    input_storage_type actual_variant_array(stream.read(input_size_type(2)));
     
     string expected_string("a");
     
@@ -262,7 +253,7 @@ void telnet_stream_fixture::test_sync_read_normal_command()
     input_value_type expected_variant0(expected_string);
     input_value_type expected_variant1(expected_command);
     
-    input_array_type expected_variant_array(2);
+    input_storage_type expected_variant_array(2);
     expected_variant_array[0] = expected_variant0;
     expected_variant_array[1] = expected_variant1;
 
@@ -292,14 +283,13 @@ void telnet_stream_fixture::test_sync_read_partial()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 
-        'a'
-      , odin::telnet::IAC, odin::telnet::NOP
-      , 'b', 'c'
-    };
+    fake_bytestream::input_storage_type data =
+        list_of('a')
+               (odin::telnet::IAC)(odin::telnet::NOP)
+               ('b')('c');
     
     fake_stream->write_data_to_read(data);
-    input_array_type actual_variant_array(stream.read(input_size_type(2)));
+    input_storage_type actual_variant_array(stream.read(input_size_type(2)));
     
     {
         string expected_string0("a");
@@ -309,7 +299,7 @@ void telnet_stream_fixture::test_sync_read_partial()
         input_value_type expected_variant0 = expected_string0;
         input_value_type expected_variant1 = expected_command1;
         
-        input_array_type expected_variant_array(2);
+        input_storage_type expected_variant_array(2);
         expected_variant_array[0] = expected_variant0;
         expected_variant_array[1] = expected_variant1;
         
@@ -335,7 +325,7 @@ void telnet_stream_fixture::test_sync_read_partial()
     {
         string           expected_string2("bc");
         input_value_type expected_variant2(expected_string2);
-        input_array_type expected_variant_array(&expected_variant2, 1);
+        input_storage_type expected_variant_array = list_of(expected_variant2);
         
         CPPUNIT_ASSERT_EQUAL(
             expected_variant_array.size()
@@ -357,19 +347,18 @@ void telnet_stream_fixture::test_sync_read_many()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = {
-        'a', 'b', 'c'
-      , odin::telnet::IAC, odin::telnet::NOP
-      , odin::telnet::IAC, odin::telnet::AYT
-      , odin::telnet::IAC, odin::telnet::SB
-        , odin::telnet::NAWS, 0, 1, 2, 3
-      , odin::telnet::IAC, odin::telnet::SE
-      , 'd', 'e', 'f'
-    };
-    odin::runtime_array<odin::u8> array(data);
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c')
+               (odin::telnet::IAC)(odin::telnet::NOP)
+               (odin::telnet::IAC)(odin::telnet::AYT)
+               (odin::telnet::IAC)(odin::telnet::SB)
+                   (odin::telnet::NAWS)
+                   (0)(1)(2)(3)
+               (odin::telnet::IAC)(odin::telnet::SE)
+               ('d')('e')('f');
     
     fake_stream->write_data_to_read(data);
-    input_array_type actual_variant_array(stream.read(input_size_type(5)));
+    input_storage_type actual_variant_array(stream.read(input_size_type(5)));
     
     string           expected_string0("abc");
     input_value_type expected_variant0(expected_string0);
@@ -392,7 +381,7 @@ void telnet_stream_fixture::test_sync_read_many()
     string           expected_string4("def");
     input_value_type expected_variant4(expected_string4);
     
-    input_array_type expected_variant_array(5);
+    input_storage_type expected_variant_array(5);
     expected_variant_array[0] = expected_variant0;
     expected_variant_array[1] = expected_variant1;
     expected_variant_array[2] = expected_variant2;
@@ -447,12 +436,12 @@ void telnet_stream_fixture::test_async_read_normal()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 'a', 'b', 'c' };
-    odin::runtime_array<odin::u8> array(data);
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c');
     
     fake_stream->write_data_to_read(data);
     
-    input_array_type actual_variant_array;
+    input_storage_type actual_variant_array;
     odin::u32        called = 0;
     
     input_callback_type input_callback = (
@@ -470,7 +459,7 @@ void telnet_stream_fixture::test_async_read_normal()
     // The callback must now have occurred.
     string           expected_string("abc");
     input_value_type expected_variant(expected_string);
-    input_array_type expected_variant_array(&expected_variant, 1);
+    input_storage_type expected_variant_array = list_of(expected_variant);
     
     CPPUNIT_ASSERT_EQUAL(
         expected_variant_array.size()
@@ -479,8 +468,6 @@ void telnet_stream_fixture::test_async_read_normal()
     CPPUNIT_ASSERT_EQUAL(
         expected_string
       , get<string>(actual_variant_array[0]));
-
-        
 }
 
 void telnet_stream_fixture::test_available_empty()
@@ -505,10 +492,10 @@ void telnet_stream_fixture::test_available_iac()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { odin::telnet::IAC };
-    odin::runtime_array<odin::u8> array(data);
-    
-    fake_stream->write_data_to_read(array);
+    fake_bytestream::input_storage_type data =
+        list_of(odin::telnet::IAC);
+
+    fake_stream->write_data_to_read(data);
     
     CPPUNIT_ASSERT(!stream.available().is_initialized());
 }
@@ -522,10 +509,10 @@ void telnet_stream_fixture::test_available_normal()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 'a', 'b', 'c', 'd', 'e' };
-    odin::runtime_array<odin::u8> array(data);
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c')('d')('e');
 
-    fake_stream->write_data_to_read(array);
+    fake_stream->write_data_to_read(data);
     
     CPPUNIT_ASSERT(stream.available().is_initialized());
     CPPUNIT_ASSERT_EQUAL(input_size_type(1), stream.available().get());
@@ -540,18 +527,15 @@ void telnet_stream_fixture::test_available_many()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
     
-    odin::u8 data[] = { 
-        'a', 'b', 'c', 'd', 'e'
-      , odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
-      , 'd', odin::telnet::IAC, odin::telnet::IAC
-      , odin::telnet::IAC, odin::telnet::NOP
-      , odin::telnet::IAC, odin::telnet::DONT, odin::telnet::ECHO
-      , 'e', 'f'
-    };
-    
-    odin::runtime_array<odin::u8> array(data);
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')('c')('e')
+               (odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::NAWS)
+               ('d')(odin::telnet::IAC)(odin::telnet::IAC)
+               (odin::telnet::IAC)(odin::telnet::NOP)
+               (odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::ECHO)
+               ('e')('f');
 
-    fake_stream->write_data_to_read(array);
+    fake_stream->write_data_to_read(data);
     
     CPPUNIT_ASSERT(stream.available().is_initialized());
     CPPUNIT_ASSERT_EQUAL(input_size_type(6), stream.available().get());
@@ -566,10 +550,11 @@ void telnet_stream_fixture::test_available_during_async_read()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
 
-    odin::u8 data[] = { 'a', 'b', odin::telnet::IAC, odin::telnet::NOP };
-    odin::runtime_array<odin::u8> array(data);
-
-    fake_stream->write_data_to_read(array);
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')
+               (odin::telnet::IAC)(odin::telnet::NOP);
+               
+    fake_stream->write_data_to_read(data);
     
     stream.async_read(1, NULL);    
     
@@ -585,14 +570,12 @@ void telnet_stream_fixture::test_available_during_async_callback()
         new fake_bytestream(io_service));
     odin::telnet::stream       stream(fake_stream, io_service);
 
-    odin::u8 data[] = { 
-        'a', 'b'
-      , odin::telnet::IAC, odin::telnet::NOP
-      , 'c', 'd'
-    };
-    odin::runtime_array<odin::u8> array(data);
-
-    fake_stream->write_data_to_read(array);
+    fake_bytestream::input_storage_type data =
+        list_of('a')('b')
+               (odin::telnet::IAC)(odin::telnet::NOP)
+               ('c')('d');
+            
+    fake_stream->write_data_to_read(data);
 
     optional<input_size_type> available;
     input_callback_type callback = (
@@ -610,7 +593,7 @@ void telnet_stream_fixture::test_available_during_async_callback()
 
 typedef odin::telnet::stream::output_size_type     output_size_type;
 typedef odin::telnet::stream::output_value_type    output_value_type;
-typedef odin::runtime_array<output_value_type>      output_array_type;
+typedef odin::telnet::stream::output_storage_type  output_storage_type;
 typedef odin::telnet::stream::output_callback_type output_callback_type;
 
 void telnet_stream_fixture::test_sync_write_nothing()
@@ -624,17 +607,12 @@ void telnet_stream_fixture::test_sync_write_nothing()
     
     string            element0;
     output_value_type variant0(element0);
-    output_array_type variant_array(&variant0, 1);
+    output_storage_type variant_array = list_of(variant0);
     
     stream.write(variant_array);
     
-    odin::runtime_array<odin::u8> actual_array = 
-        fake_stream->read_data_written();
-        
-    odin::runtime_array<odin::u8> expected_array;
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
-    CPPUNIT_ASSERT(expected_array == actual_array);
+    fake_bytestream::output_storage_type expected_data;
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 }
 
 void telnet_stream_fixture::test_sync_write_normal()
@@ -648,18 +626,14 @@ void telnet_stream_fixture::test_sync_write_normal()
     
     string            element0("abc");
     output_value_type variant0(element0);
-    output_array_type variant_array(&variant0, 1);
+    output_storage_type variant_array = list_of(variant0);
     
     stream.write(variant_array);
     
-    odin::runtime_array<odin::u8> actual_array = 
-        fake_stream->read_data_written();
-        
-    odin::u8 expected_data[] = { 'a', 'b', 'c' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
+    fake_bytestream::output_storage_type expected_data =
+        list_of('a')('b')('c');
     
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
-    CPPUNIT_ASSERT(expected_array == actual_array);
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 }
 
 void telnet_stream_fixture::test_sync_write_normal_iac()
@@ -673,20 +647,14 @@ void telnet_stream_fixture::test_sync_write_normal_iac()
     
     string            element0("abc\xFF");
     output_value_type variant0(element0);
-    output_array_type variant_array(&variant0, 1);
+    output_storage_type variant_array = list_of(variant0);
     
     stream.write(variant_array);
+
+    fake_bytestream::output_storage_type expected_data =
+        list_of('a')('b')('c')(odin::telnet::IAC)(odin::telnet::IAC);    
     
-    odin::runtime_array<odin::u8> actual_array = 
-        fake_stream->read_data_written();
-        
-    odin::u8 expected_data[] = { 
-        'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC
-    };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
-    
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
-    CPPUNIT_ASSERT(expected_array == actual_array);
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 }
 
 void telnet_stream_fixture::test_async_write_normal()
@@ -700,7 +668,7 @@ void telnet_stream_fixture::test_async_write_normal()
     
     string            element0("abc");
     output_value_type variant0(element0);
-    output_array_type variant_array(&variant0, 1);
+    output_storage_type variant_array = list_of(variant0);
     
     odin::u32        called = 0;
     output_size_type output_size = 0;
@@ -712,22 +680,17 @@ void telnet_stream_fixture::test_async_write_normal()
     stream.async_write(variant_array, callback);
     
     // This may not happen synchronously.
-    odin::runtime_array<odin::u8> actual_array = 
-        fake_stream->read_data_written();
-        
+
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), called);
     CPPUNIT_ASSERT_EQUAL(output_size_type(0), output_size);
-    CPPUNIT_ASSERT_EQUAL(true, actual_array.empty());
+    CPPUNIT_ASSERT_EQUAL(true, fake_stream->read_data_written().empty());
         
     io_service.run();
 
-    actual_array = fake_stream->read_data_written();
-    
-    odin::u8 expected_data[] = { 'a', 'b', 'c' };
-    odin::runtime_array<odin::u8> expected_array(expected_data);
+    fake_bytestream::output_storage_type expected_data = 
+        list_of('a')('b')('c');
 
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), called);
     CPPUNIT_ASSERT_EQUAL(variant_array.size(), output_size);    
-    CPPUNIT_ASSERT_EQUAL(expected_array.size(), actual_array.size());
-    CPPUNIT_ASSERT(expected_array == actual_array);
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 }

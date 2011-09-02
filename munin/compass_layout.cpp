@@ -41,8 +41,8 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent compass_layout::do_get_preferred_size(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints) const
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints) const
 {
     // This isn't quite right as it doesn't take into account the order
     // of insertion like do_draw does, but it will do for now.
@@ -121,9 +121,9 @@ extent compass_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void compass_layout::do_layout(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints
-  , extent                                        size)
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints
+  , extent                                 size)
 {
     vector< shared_ptr<component> > centre_components;
     u32 west_used = 0;

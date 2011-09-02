@@ -31,6 +31,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace std;
 
 namespace munin {
     
@@ -38,8 +39,8 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE 
 // ==========================================================================
 extent horizontal_strip_layout::do_get_preferred_size(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints) const
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints) const
 {
     // The preferred size of the whole component is the maximum width of
     // the components and the sum of the preferred heights of the components.
@@ -63,9 +64,9 @@ extent horizontal_strip_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void horizontal_strip_layout::do_layout(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints
-  , extent                                        size)
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints
+  , extent                                 size)
 {
     BOOST_AUTO(y_coord, u32(0));
 

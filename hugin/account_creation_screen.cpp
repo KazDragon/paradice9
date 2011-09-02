@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "account_creation_screen.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
@@ -124,19 +125,19 @@ account_creation_screen::account_creation_screen()
     BOOST_AUTO(name_container, make_shared<basic_container>());
     name_container->set_layout(make_shared<aligned_layout>());
     name_container->add_component(
-        make_shared<image>(elements_from_string("Name: "))
+        make_shared<image>(string_to_elements("Name: "))
       , alignment);
     
     BOOST_AUTO(password0_container, make_shared<basic_container>());
     password0_container->set_layout(make_shared<aligned_layout>());
     password0_container->add_component(
-        make_shared<image>(elements_from_string("Password: "))
+        make_shared<image>(string_to_elements("Password: "))
       , alignment);
     
     BOOST_AUTO(password1_container, make_shared<basic_container>());
     password1_container->set_layout(make_shared<aligned_layout>());
     password1_container->add_component(
-        make_shared<image>(elements_from_string("Password (verify): "))
+        make_shared<image>(string_to_elements("Password (verify): "))
       , alignment);
 
     BOOST_AUTO(labels_container, make_shared<basic_container>());
@@ -193,12 +194,12 @@ account_creation_screen::account_creation_screen()
 
     // Create the OK and Cancel buttons.
     pimpl_->ok_button_ = make_shared<button>(
-        elements_from_string("  OK  "));
+        string_to_elements("  OK  "));
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
         bind(&impl::on_account_creation_ok, pimpl_)));
     
     pimpl_->cancel_button_ = make_shared<button>(
-        elements_from_string("Cancel"));
+        string_to_elements("Cancel"));
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
         bind(&impl::on_account_creation_cancelled, pimpl_)));
     
@@ -294,7 +295,7 @@ void account_creation_screen::on_account_creation_cancelled(function<void ()> ca
 // SET_STATUSBAR_TEXT
 // ==========================================================================
 void account_creation_screen::set_statusbar_text(
-    runtime_array<element_type> const &text)
+    vector<element_type> const &text)
 {
     BOOST_AUTO(document, pimpl_->statusbar_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));

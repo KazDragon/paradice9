@@ -429,8 +429,7 @@ private :
             }
             else if (isprint(ch) || ch == '\n')
             {
-                element_type data[] = { element_type(ch, attribute()) };
-                document_->insert_text(data);
+                document_->insert_text(list_of(element_type(ch)));
             }
         }
     }

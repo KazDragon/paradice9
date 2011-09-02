@@ -49,8 +49,7 @@ struct socket::impl : enable_shared_from_this<impl>
     // CONSTRUCTOR
     // ======================================================================
     impl(shared_ptr<asio::ip::tcp::socket> const &socket)
-        : socket_(socket) 
-        , is_alive_(true)
+        : socket_(socket)
     {
     }
     
@@ -61,49 +60,39 @@ struct socket::impl : enable_shared_from_this<impl>
     {
         boost::system::error_code unused_error_code;
         socket_->close(unused_error_code);
+        
+        // Now we need to inform all readers and writers that the socket has 
+        // died by informing them that no bytes have been read or written.
+        
+        while (!read_requests_.empty())
+        {
+            read_request &top_read_request = read_requests_[0];
+            
+            if (top_read_request.callback_ != NULL)
+            {
+                top_read_request.callback_(socket::input_storage_type());
+            }
+            
+            read_requests_.pop_front();
+        }
+        
+        while (!write_requests_.empty())
+        {
+            write_request &top_write_request = write_requests_[0];
+            
+            if (top_write_request.callback_ != NULL)
+            {
+                top_write_request.callback_(socket::input_size_type(0));
+            }
+            
+            write_requests_.pop_front();
+        }
+        
+        if (on_death_ != NULL)
+        {
+            on_death_();
+        }
     }
-
-    // ======================================================================
-    // READ_REQUEST
-    // ======================================================================
-    struct read_request
-    {
-        // ==================================================================
-        // CONSTRUCTOR
-        // ==================================================================
-        read_request(
-            runtime_array<u8>::size_type               amount_requested
-          , input_datastream<u8>::callback_type const &callback)
-          : values_(amount_requested)
-          , callback_(callback)
-          , scheduled_(false)
-        {
-        }
-
-        runtime_array<u8>                   values_;
-        input_datastream<u8>::callback_type callback_;
-        bool                                scheduled_;
-    };
-
-    // ======================================================================
-    // WRITE_REQUEST
-    // ======================================================================
-    struct write_request
-    {
-        // ==================================================================
-        // CONSTRUCTOR
-        // ==================================================================
-        write_request(
-            runtime_array<u8> const                    &values
-          , output_datastream<u8>::callback_type const &callback)
-          : values_(values)
-          , callback_(callback)
-        {
-        }
-
-        runtime_array<u8>                    values_;
-        output_datastream<u8>::callback_type callback_;
-    };
 
     // ======================================================================
     // AVAILABLE
@@ -142,12 +131,12 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     // READ
     // ======================================================================
-    runtime_array<u8> read(input_size_type size)
+    socket::input_storage_type read(input_size_type size)
     {
-        runtime_array<u8> data(size);
+        socket::input_storage_type data(size);
     
         boost::system::error_code ec;
-        socket_->read_some(boost::asio::buffer(data.begin(), size), ec);
+        socket_->read_some(boost::asio::buffer(&*data.begin(), size), ec);
 
         /* INPUT DEBUGGING 
         for(size_t i = 0; i < data.size(); ++i)
@@ -167,8 +156,8 @@ struct socket::impl : enable_shared_from_this<impl>
     // ASYNC_READ
     // ======================================================================
     void async_read(
-        runtime_array<u8>::size_type               amount_requested
-      , input_datastream<u8>::callback_type const &callback)
+        socket::input_size_type            amount_requested
+      , socket::input_callback_type const &callback)
     {
         read_request request(amount_requested, callback);
         read_requests_.push_back(request);
@@ -178,7 +167,7 @@ struct socket::impl : enable_shared_from_this<impl>
             boost::asio::async_read(
                 *socket_.get()
               , buffer(
-                    read_requests_[0].values_.begin()
+                    &*read_requests_[0].values_.begin()
                   , read_requests_[0].values_.size())
               , bind(
                     &impl::read_complete
@@ -193,7 +182,7 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     // WRITE
     // ======================================================================
-    socket::output_size_type write(runtime_array<u8> const &values)
+    socket::output_size_type write(output_storage_type const &values)
     {
         /* OUTPUT DEBUGGING 
         for(size_t i = 0; i < values.size(); ++i)
@@ -203,20 +192,21 @@ struct socket::impl : enable_shared_from_this<impl>
             printf("OUT [0x%02X] %s\n", 
                 (int)(unsigned char)ch[0]
               , isprint(ch[0]) ? ch : "(*)");
+            fflush(stdout);
         }
         //*/
         
         boost::system::error_code ec;
         return socket_->write_some(
-            asio::buffer(values.begin(), values.size()), ec);
+            asio::buffer(&*values.begin(), values.size()), ec);
     }
     
     // ======================================================================
     // ASYNC_WRITE
     // ======================================================================
     void async_write(
-        runtime_array<u8> const                    &values
-      , output_datastream<u8>::callback_type const &callback)
+        output_storage_type const  &values
+      , output_callback_type const &callback)
     {
         bool write_now = write_requests_.empty();
 
@@ -234,7 +224,7 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     bool is_alive() const
     {
-        return is_alive_;
+        return socket_->is_open();
     }
 
     // ======================================================================
@@ -255,6 +245,48 @@ struct socket::impl : enable_shared_from_this<impl>
     
 private :
     // ======================================================================
+    // READ_REQUEST
+    // ======================================================================
+    struct read_request
+    {
+        // ==================================================================
+        // CONSTRUCTOR
+        // ==================================================================
+        read_request(
+            socket::input_size_type            amount_requested
+          , socket::input_callback_type const &callback)
+          : values_(amount_requested)
+          , callback_(callback)
+          , scheduled_(false)
+        {
+        }
+
+        socket::input_storage_type  values_;
+        socket::input_callback_type callback_;
+        bool                        scheduled_;
+    };
+
+    // ======================================================================
+    // WRITE_REQUEST
+    // ======================================================================
+    struct write_request
+    {
+        // ==================================================================
+        // CONSTRUCTOR
+        // ==================================================================
+        write_request(
+            socket::output_storage_type const  &values
+          , socket::output_callback_type const &callback)
+          : values_(values)
+          , callback_(callback)
+        {
+        }
+
+        socket::output_storage_type  values_;
+        socket::output_callback_type callback_;
+    };
+
+    // ======================================================================
     // WRITE_FIRST_REQUEST
     // ======================================================================
     void write_first_request()
@@ -267,13 +299,14 @@ private :
             printf("OUT [0x%02X] %s\n", 
                 (int)(unsigned char)ch[0]
               , isprint(ch[0]) ? ch : "(*)");
+            fflush(stdout);
         }
         //*/
         
         boost::asio::async_write(
             *socket_.get()
           , buffer(
-                write_requests_.front().values_.begin()
+                &*write_requests_.front().values_.begin()
               , write_requests_.front().values_.size())
           , bind(
                 &impl::write_complete
@@ -289,7 +322,7 @@ private :
         error_code const &error
       , size_t            bytes_transferred)
     {
-        if (!is_alive_)
+        if (!is_alive())
         {
             return;
         }
@@ -310,12 +343,7 @@ private :
         }
         else
         {
-            is_alive_ = false;
-            
-            if (on_death_)
-            {
-                on_death_();
-            }
+            close();
         }
     }
 
@@ -326,7 +354,7 @@ private :
         error_code const &error
       , size_t            bytes_transferred)
     {
-        if (!is_alive_)
+        if (!is_alive())
         {
             return;
         }
@@ -359,7 +387,7 @@ private :
                     boost::asio::async_read(
                         *socket_.get()
                       , buffer(
-                            read_requests_.front().values_.begin()
+                            &*read_requests_.front().values_.begin()
                           , read_requests_.front().values_.size())
                       , bind(
                             &impl::read_complete
@@ -373,17 +401,11 @@ private :
         }
         else
         {
-            is_alive_ = false;
-            
-            if (on_death_)
-            {
-                on_death_();
-            }
+            close();
         }
     }
 
     shared_ptr<asio::ip::tcp::socket> socket_;
-    bool                              is_alive_;
     function<void ()>                 on_death_;
 
     deque<read_request>  read_requests_;
@@ -425,7 +447,7 @@ optional<socket::input_size_type> socket::available() const
 // ==========================================================================
 // READ
 // ==========================================================================
-runtime_array<u8> socket::read(input_size_type size)
+socket::input_storage_type socket::read(input_size_type size)
 {
     return pimpl_->read(size);
 }
@@ -443,8 +465,7 @@ void socket::async_read(
 // ==========================================================================
 // WRITE
 // ==========================================================================
-socket::output_size_type socket::write(
-    runtime_array<u8> const& values)
+socket::output_size_type socket::write(output_storage_type const &values)
 {
     return pimpl_->write(values);
 }
@@ -453,7 +474,7 @@ socket::output_size_type socket::write(
 // ASYNC_WRITE
 // ==========================================================================
 void socket::async_write(
-    runtime_array<u8> const    &values
+    output_storage_type const  &values
   , output_callback_type const &callback)
 {
     pimpl_->async_write(values, callback);

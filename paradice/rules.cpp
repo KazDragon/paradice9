@@ -78,6 +78,27 @@ namespace {
 }
 
 // ==========================================================================
+// CONCAT_TEXT
+// ==========================================================================
+void concat_text(
+    vector<element_type>       &dest
+  , vector<element_type> const &source)
+{
+    dest.insert(dest.end(), source.begin(), source.end());
+}
+
+// ==========================================================================
+// CONCAT_TEXT
+// ==========================================================================
+void concat_text(
+    vector<element_type> &dest
+  , string const         &source
+  , attribute const      &attr = attribute())
+{
+    concat_text(dest, elements_from_string(source, attr));
+}
+
+// ==========================================================================
 // PARADICE COMMAND: ROLL
 // ==========================================================================
 PARADICE_COMMAND_IMPL(roll)
@@ -161,28 +182,30 @@ PARADICE_COMMAND_IMPL(roll)
     
     total_pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
     
-    runtime_array<element_type> total_description;    
-    s32                         total_score = 0;
+    vector<element_type> total_description;    
+    s32                  total_score = 0;
     
     for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
     {
-        runtime_array<element_type> roll_description;
-        s32                         total = dice_roll.bonus_;
+        vector<element_type> roll_description;
+        s32                  total = dice_roll.bonus_;
 
         for (u32 current_roll = 0; 
              current_roll < dice_roll.amount_; 
              ++current_roll)
         {
             s32 score = s32(random_number(1, dice_roll.sides_));
-    
-            roll_description += elements_from_string(
-                current_roll == 0 ? "" : ", "
-              , normal_pen);
-            
-            roll_description += elements_from_string(
-                str(format("%d") % score)
+
+            concat_text(
+                roll_description
+              , current_roll == 0 ? "" : ", "
+              , normal_pen);  
+
+            concat_text(
+                roll_description
+              , str(format("%d") % score)
               , dice_roll.bonus_ == 0 ? total_pen : normal_pen);
-    
+            
             total += score;
         }
 
@@ -192,33 +215,48 @@ PARADICE_COMMAND_IMPL(roll)
             
         if (dice_roll.bonus_ == 0)
         {
-            total_description += elements_from_string(
-                repetition == 0 ? "" : ", "
+            concat_text(
+                total_description
+              , repetition == 0 ? "" : ", "
               , normal_pen);
-            total_description += elements_from_string(
-                str(format("%d") % total)
+
+            concat_text(
+                total_description
+              , str(format("%d") % total)
               , total_pen);
-            total_description += elements_from_string(
-                max_roll ? "!" : ""
+
+            concat_text(
+                total_description
+              , max_roll ? "!" : ""
               , max_roll_pen);
         }
         else
         {
-            total_description += elements_from_string(
-                repetition == 0 ? "" : ", "
+            concat_text(
+                total_description
+              , repetition == 0 ? "" : ", "
               , normal_pen);
-            total_description += elements_from_string(
-                str(format("%d") % total)
+            
+            concat_text(
+                total_description
+              , str(format("%d") % total)
               , total_pen);
-            total_description += elements_from_string(
-                " ["
+            
+            concat_text(
+                total_description
+              , " ["
               , normal_pen);
-            total_description += roll_description;
-            total_description += elements_from_string(
-                max_roll ? "!" : ""
+            
+            concat_text(total_description, roll_description);
+            
+            concat_text(
+                total_description
+              , max_roll ? "!" : ""
               , max_roll_pen);
-            total_description += elements_from_string(
-                "]"
+            
+            concat_text(
+                total_description
+              , "]"
               , normal_pen);
         }
 
@@ -243,9 +281,10 @@ PARADICE_COMMAND_IMPL(roll)
         }
     }
 
-    runtime_array<element_type> player_output;
-    player_output += elements_from_string(
-        str(format("You roll %dd%d%s%d %s%sand score ")
+    vector<element_type> player_output;
+    concat_text(
+        player_output
+      , str(format("You roll %dd%d%s%d %s%sand score ")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -257,27 +296,27 @@ PARADICE_COMMAND_IMPL(roll)
                 ? ""
                 : str(format("%d times ") % dice_roll.repetitions_)))
       , normal_pen);
-    player_output += total_description;
-    player_output += elements_from_string(
-        dice_roll.repetitions_ == 1
-      ? ""
-      : " for a grand total of "
+    concat_text(player_output, total_description);
+    concat_text(
+        player_output
+      , dice_roll.repetitions_ == 1 ? "" : " for a grand total of "
       , normal_pen);
-    player_output += elements_from_string(
-        dice_roll.repetitions_ == 1
-      ? ""
-      : str(format("%d") % total_score)
+    concat_text(
+        player_output
+      , dice_roll.repetitions_ == 1 ? "" : str(format("%d") % total_score)
       , total_pen);
-    player_output += elements_from_string("\n", normal_pen);
+    concat_text(player_output, "\n", normal_pen); 
     
     send_to_player(ctx, player_output, player);
 
-    runtime_array<element_type> room_output;
-    room_output += elements_from_string(
-        player->get_character()->get_name()
+    vector<element_type> room_output;
+    concat_text(
+        room_output
+      , player->get_character()->get_name()
       , normal_pen);
-    room_output += elements_from_string(
-        str(format(" rolls %dd%d%s%d %s%sand scores ")
+    concat_text(
+        room_output
+      , str(format(" rolls %dd%d%s%d %s%sand scores ")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -289,18 +328,16 @@ PARADICE_COMMAND_IMPL(roll)
                 ? ""
                 : str(format("%d times ") % dice_roll.repetitions_)))
       , normal_pen);
-    room_output += total_description;
-    room_output += elements_from_string(
-        dice_roll.repetitions_ == 1
-      ? ""
-      : " for a grand total of "
+    concat_text(room_output, total_description);
+    concat_text(
+        room_output
+      , dice_roll.repetitions_ == 1 ? "" : " for a grand total of "
       , normal_pen);
-    room_output += elements_from_string(
-        dice_roll.repetitions_ == 1
-      ? ""
-      : str(format("%d") % total_score)
+    concat_text(
+        room_output
+      , dice_roll.repetitions_ == 1 ? "" : str(format("%d") % total_score)
       , total_pen);
-    room_output += elements_from_string("\n", normal_pen);
+    concat_text(room_output, "\n", normal_pen);
     
     send_to_room(ctx, room_output, player);
 }
@@ -370,26 +407,28 @@ PARADICE_COMMAND_IMPL(rollprivate)
     
     total_pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
     
-    runtime_array<element_type> total_description;    
-    s32                         total_score = 0;
+    vector<element_type> total_description;    
+    s32                  total_score = 0;
     
     for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
     {
-        runtime_array<element_type> roll_description;
-        s32                         total = dice_roll.bonus_;
+        vector<element_type> roll_description;
+        s32                  total = dice_roll.bonus_;
 
         for (u32 current_roll = 0; 
              current_roll < dice_roll.amount_; 
              ++current_roll)
         {
             s32 score = s32(random_number(1, dice_roll.sides_));
-    
-            roll_description += elements_from_string(
-                current_roll == 0 ? "" : ", "
+
+            concat_text(
+                roll_description
+              , current_roll == 0 ? "" : ", "
               , normal_pen);
             
-            roll_description += elements_from_string(
-                str(format("%d") % score)
+            concat_text(
+                roll_description
+              , str(format("%d") % score)
               , dice_roll.bonus_ == 0 ? total_pen : normal_pen);
     
             total += score;
@@ -401,42 +440,48 @@ PARADICE_COMMAND_IMPL(rollprivate)
             
         if (dice_roll.bonus_ == 0)
         {
-            total_description += elements_from_string(
-                repetition == 0 ? "" : ", "
+            concat_text(
+                total_description
+              , repetition == 0 ? "" : ", "
               , normal_pen);
-            total_description += elements_from_string(
-                str(format("%d") % total)
+            concat_text(
+                total_description
+              , str(format("%d") % total)
               , total_pen);
-            total_description += elements_from_string(
-                max_roll ? "!" : ""
+            concat_text(
+                total_description
+              , max_roll ? "!" : ""
               , max_roll_pen);
         }
         else
         {
-            total_description += elements_from_string(
-                repetition == 0 ? "" : ", "
+            concat_text(
+                total_description
+              , repetition == 0 ? "" : ", "
               , normal_pen);
-            total_description += elements_from_string(
-                str(format("%d") % total)
+            concat_text(
+                total_description
+              , str(format("%d") % total)
               , total_pen);
-            total_description += elements_from_string(
-                " ["
+            concat_text(
+                total_description
+              , " ["
               , normal_pen);
-            total_description += roll_description;
-            total_description += elements_from_string(
-                max_roll ? "!" : ""
+            concat_text(total_description, roll_description);
+            concat_text(
+                total_description
+              , max_roll ? "!" : ""
               , max_roll_pen);
-            total_description += elements_from_string(
-                "]"
-              , normal_pen);
+            concat_text(total_description, "]", normal_pen);
         }
 
         total_score += total;
     }
 
-    runtime_array<element_type> player_output;
-    player_output += elements_from_string(
-        str(format("You roll privately %dd%d%s%d %sand score ")
+    vector<element_type> player_output;
+    concat_text(
+        player_output
+      , str(format("You roll privately %dd%d%s%d %sand score ")
             % dice_roll.amount_
             % dice_roll.sides_
             % (dice_roll.bonus_ >= 0 ? "+" : "")
@@ -445,18 +490,16 @@ PARADICE_COMMAND_IMPL(rollprivate)
                 ? ""
                 : str(format("%d times ") % dice_roll.repetitions_)))
       , normal_pen);
-    player_output += total_description;
-    player_output += elements_from_string(
-        dice_roll.repetitions_ == 1
-      ? ""
-      : " for a grand total of "
+    concat_text(player_output, total_description);
+    concat_text(
+        player_output
+      , dice_roll.repetitions_ == 1 ? "" : " for a grand total of "
       , normal_pen);
-    player_output += elements_from_string(
-        dice_roll.repetitions_ == 1
-      ? ""
-      : str(format("%d") % total_score)
+    concat_text(
+        player_output
+      , dice_roll.repetitions_ == 1 ? "" : str(format("%d") % total_score)
       , total_pen);
-    player_output += elements_from_string("\n", normal_pen);
+    concat_text(player_output, "\n", normal_pen);
     
     send_to_player(ctx, player_output, player);
 }

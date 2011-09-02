@@ -7,6 +7,7 @@
 #include "odin/telnet/input_visitor.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "fake_datastream.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -15,6 +16,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(telnet_options_naws_client_fixture);
 
 using namespace std;
 using namespace boost;
+using namespace boost::assign;
 
 namespace bll = boost::lambda;
 
@@ -97,31 +99,24 @@ void telnet_options_naws_client_fixture::test_callback_no_callback()
     
     telnet_stream->async_read(1, NULL);
     
-    {
-        odin::u8 data[] = { 
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
-        };
+    fake_byte_stream::input_storage_type data =
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::NAWS);
+
+    fake_stream->write_data_to_read(data);
         
-        fake_stream->write_data_to_read(data);
-        
-        io_service.reset();
-        io_service.run();
-    }
-    
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 1, 0, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
+    io_service.reset();
+    io_service.run();
+
+
+    data = 
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(1)(0)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
+
+    fake_stream->write_data_to_read(data);
      
-        io_service.reset();
-        io_service.run();
-    }
+    io_service.reset();
+    io_service.run();
 }
 
 void telnet_options_naws_client_fixture::test_callback_width()
@@ -154,101 +149,77 @@ void telnet_options_naws_client_fixture::test_callback_width()
     
     naws_client.set_activatable(true);
     naws_client.on_size(naws_callback);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
     
     telnet_stream->async_read(1, callback);
     
-    {
-        odin::u8 data[] = { 
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
-        };
+    fake_byte_stream::input_storage_type data =
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::NAWS);
         
-        fake_stream->write_data_to_read(data);
-        
-        io_service.reset();
-        io_service.run();
-    }
+    fake_stream->write_data_to_read(data);
     
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 1, 0, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(1), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
-    }
+    io_service.reset();
+    io_service.run();
 
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 255, 255, 0, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(255), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
-    }
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(1)(0)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
+               
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(1), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
 
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 1, 0, 0, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(256), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
-    }
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(255)(255)(0)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
 
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 255, 255, 0, 0, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(65280), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
-    }
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(255), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
+
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (1)(0)(0)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
+
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(256), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
+
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (255)(255)(0)(0)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
+
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(65280), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), height);
 }
 
 void telnet_options_naws_client_fixture::test_callback_height()
@@ -282,100 +253,76 @@ void telnet_options_naws_client_fixture::test_callback_height()
     naws_client.set_activatable(true);
     naws_client.on_size(naws_callback);
     
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
     
     telnet_stream->async_read(1, callback);
     
-    {
-        odin::u8 data[] = { 
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
-        };
-        
-        fake_stream->write_data_to_read(data);
-        
-        io_service.reset();
-        io_service.run();
-    }
+    fake_byte_stream::input_storage_type data =
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::NAWS);
+
+    fake_stream->write_data_to_read(data);
     
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 0, 0, 1
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(1), height);
-    }
+    io_service.reset();
+    io_service.run();
 
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 0, 0, 255, 255
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(0)(0)(1)
+               (odin::telnet::IAC)(odin::telnet::SE);
+    
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(1), height);
 
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(255), height);
-    }
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(0)(0)(255)(255)
+               (odin::telnet::IAC)(odin::telnet::SE);
 
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 0, 1, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
 
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(256), height);
-    }
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(255), height);
 
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 0, 0, 255, 255, 0
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(0)(1)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
+    
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
 
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
-        CPPUNIT_ASSERT_EQUAL(odin::u16(65280), height);
-    }
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(256), height);
+
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (0)(0)(255)(255)(0)
+               (odin::telnet::IAC)(odin::telnet::SE);
+    
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u16(0), width);
+    CPPUNIT_ASSERT_EQUAL(odin::u16(65280), height);
 }
 
 void telnet_options_naws_client_fixture::test_subnegotiation_short()
@@ -407,41 +354,32 @@ void telnet_options_naws_client_fixture::test_subnegotiation_short()
     naws_client.set_activatable(true);
     naws_client.on_size(naws_callback);
     
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
     
-    {
-        odin::u8 data[] = { 
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
-        };
-        
-        fake_stream->write_data_to_read(data);
-        telnet_stream->async_read(1, callback);
-        
-        io_service.reset();
-        io_service.run();
-    }
+    fake_byte_stream::input_storage_type data =
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::NAWS);
+
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
     
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 1, 1, 1 // Note: only three bytes
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(0), called);
-    }
+    io_service.reset();
+    io_service.run();
+
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (1)(1)(1) // Note: only three bytes
+               (odin::telnet::IAC)(odin::telnet::SE);
+    
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), called);
 }
 
 void telnet_options_naws_client_fixture::test_subnegotiation_long()
@@ -473,40 +411,31 @@ void telnet_options_naws_client_fixture::test_subnegotiation_long()
     naws_client.set_activatable(true);
     naws_client.on_size(naws_callback);
     
-
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
+
+    fake_byte_stream::input_storage_type data =    
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::NAWS);
+
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
     
-    {
-        odin::u8 data[] = { 
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS
-        };
-        
-        fake_stream->write_data_to_read(data);
-        telnet_stream->async_read(1, callback);
-        
-        io_service.reset();
-        io_service.run();
-    }
+    io_service.reset();
+    io_service.run();
+
+    data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::NAWS)
+               (1)(1)(1)(1)(1) // Note: five bytes
+               (odin::telnet::IAC)(odin::telnet::SE);
     
-    {
-        odin::u8 data[] = {
-            odin::telnet::IAC, odin::telnet::SB, odin::telnet::NAWS
-          , 1, 1, 1, 1, 1 // Note: five bytes
-          , odin::telnet::IAC, odin::telnet::SE
-        };
-        
-        odin::runtime_array<odin::u8> array(data);
-        
-        fake_stream->write_data_to_read(array);
-        telnet_stream->async_read(1, callback);
-     
-        io_service.reset();
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(0), called);
-    }
+    fake_stream->write_data_to_read(data);
+    telnet_stream->async_read(1, callback);
+ 
+    io_service.reset();
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), called);
 }
+

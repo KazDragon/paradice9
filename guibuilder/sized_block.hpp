@@ -28,7 +28,6 @@
 #define GUIBUILDER_SIZED_BLOCK_HPP_
 
 #include "munin/basic_component.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/shared_ptr.hpp>
 
 namespace guibuilder {

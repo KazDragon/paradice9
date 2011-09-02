@@ -176,15 +176,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\server.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\sized_block.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\socket.cpp"
 				>
 			</File>
 			<File
@@ -202,15 +194,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\server.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\sized_block.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\socket.hpp"
 				>
 			</File>
 			<File

@@ -130,6 +130,10 @@ namespace graphics {
     static underlining const UNDERLINING_UNDERLINED     = 4;
     static underlining const UNDERLINING_NOT_UNDERLINED = 24;
     
+    typedef char blinking;
+    static blinking const BLINKING_BLINK                = 5;
+    static blinking const BLINKING_STEADY               = 25;
+    
     static char const FOREGROUND_COLOUR_BASE            = 30;
     static char const BACKGROUND_COLOUR_BASE            = 40;
     

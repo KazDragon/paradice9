@@ -27,6 +27,7 @@
 
 #include "odin/io/input_datastream.hpp"
 #include "odin/io/output_datastream.hpp"
+#include "odin/types.hpp"
 
 namespace odin { namespace io {
 
@@ -41,10 +42,12 @@ struct datastream
 {
     // Some helpful typedefs to allow derived classes to reduce ambiguity.
     typedef typename odin::io::input_datastream<ReadValue>::value_type      input_value_type;
+    typedef typename odin::io::input_datastream<ReadValue>::storage_type    input_storage_type;
     typedef typename odin::io::input_datastream<ReadValue>::size_type       input_size_type;
     typedef typename odin::io::input_datastream<ReadValue>::callback_type   input_callback_type;
 
     typedef typename odin::io::output_datastream<WriteValue>::value_type    output_value_type;
+    typedef typename odin::io::output_datastream<WriteValue>::storage_type  output_storage_type;
     typedef typename odin::io::output_datastream<WriteValue>::size_type     output_size_type;
     typedef typename odin::io::output_datastream<WriteValue>::callback_type output_callback_type;
 

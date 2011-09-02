@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "hugin/character_selection_screen.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/filled_box.hpp"
@@ -53,7 +54,7 @@ struct character_selection_screen::impl
     function<void ()>                     on_new_character_;
     function<void (string)>               on_character_selected_;
     
-    runtime_array< pair<string, string> > characters_;
+    vector< pair<string, string> >        characters_;
     
     shared_ptr<image>                     character_list_;
     shared_ptr<container>                 inner_content_;
@@ -67,16 +68,15 @@ struct character_selection_screen::impl
     {
         // Create an array of element 'strings' big enough to hold all the
         // character names, and also the "create new character" option.
-        runtime_array< runtime_array<element_type> > text(
-            characters_.size() + 1);
+        vector< vector<element_type> > text(characters_.size() + 1);
         
         // Fill the first element with the "create new character" text.
-        text[0] = elements_from_string("+. <Create new character>");
+        text[0] = string_to_elements("+. <Create new character>");
         
         // Fill the remainder with the names of the characters.
         for (size_t index = 0; index < characters_.size(); ++index)
         {
-            text[index + 1] = elements_from_string(str(format("%d. %s")
+            text[index + 1] = string_to_elements(str(format("%d. %s")
                 % index
                 % characters_[index].second));
         }
@@ -136,7 +136,7 @@ void character_selection_screen::clear()
 // SET_CHARACTER_NAMES
 // ==========================================================================
 void character_selection_screen::set_character_names(
-    runtime_array< pair<string, string> > const &names)
+    vector< pair<string, string> > const &names)
 {
     pimpl_->inner_content_->remove_component(pimpl_->character_list_);
     pimpl_->characters_ = names;
@@ -148,7 +148,7 @@ void character_selection_screen::set_character_names(
 // SET_STATUSBAR_TEXT
 // ==========================================================================
 void character_selection_screen::set_statusbar_text(
-    runtime_array<element_type> const &text)
+    vector<element_type> const &text)
 {
 }
 

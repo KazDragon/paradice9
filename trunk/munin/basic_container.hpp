@@ -163,7 +163,7 @@ protected :
     /// this function in order to get the container's layout in a custom 
     /// manner.
     //* =====================================================================
-    virtual odin::runtime_array<odin::u32> do_get_layout_layers() const;
+    virtual std::vector<odin::u32> do_get_layout_layers() const;
     
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this

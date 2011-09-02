@@ -75,8 +75,8 @@ private :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        runtime_array< shared_ptr<component> > const &components
-      , runtime_array< any >                   const &hints) const
+        vector< shared_ptr<component> > const &components
+      , vector< any >                   const &hints) const
     {
         extent preferred_interior_size;
         extent preferred_border_size;
@@ -117,9 +117,9 @@ private :
     /// manner.
     //* =====================================================================
     virtual void do_layout(
-        runtime_array< shared_ptr<component> > const &components
-      , runtime_array< any >                   const &hints
-      , extent                                        size)
+        vector< shared_ptr<component> > const &components
+      , vector< any >                   const &hints
+      , extent                                 size)
     {
         // This layout expects only two subcomponents: a frame, and a central
         // component.  It lays them out in the expected format.
@@ -257,9 +257,6 @@ void framed_component::do_event(any const &event)
     {
         if (report->button_ == 0)
         {
-            BOOST_AUTO(position, pimpl_->interior_->get_position());
-            BOOST_AUTO(size,     pimpl_->interior_->get_size());
-            
             // If this intersects the interior, then we send the event onto 
             // that.  Otherwise, it's clicking the frame, so we set focus 
             // instead.

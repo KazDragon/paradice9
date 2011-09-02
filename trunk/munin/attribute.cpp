@@ -42,6 +42,7 @@ attribute::attribute()
     , intensity_(odin::ansi::graphics::INTENSITY_NORMAL)
     , underlining_(odin::ansi::graphics::UNDERLINING_NOT_UNDERLINED)
     , polarity_(odin::ansi::graphics::POLARITY_POSITIVE)
+    , blinking_(odin::ansi::graphics::BLINKING_STEADY)
 {
 }
 
@@ -54,7 +55,8 @@ bool operator==(attribute const &lhs, attribute const &rhs)
         && lhs.background_colour_ == rhs.background_colour_
         && lhs.intensity_         == rhs.intensity_
         && lhs.underlining_       == rhs.underlining_
-        && lhs.polarity_          == rhs.polarity_;
+        && lhs.polarity_          == rhs.polarity_
+        && lhs.blinking_          == rhs.blinking_;
 }
 
 // ==========================================================================

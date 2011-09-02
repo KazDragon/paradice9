@@ -26,6 +26,8 @@
 // ==========================================================================
 #include "layout.hpp"
 
+using namespace std;
+
 namespace munin {
 
 // ==========================================================================
@@ -46,8 +48,8 @@ layout::~layout()
 // GET_PREFERRED_SIZE
 // ==========================================================================
 extent layout::get_preferred_size(
-    odin::runtime_array< boost::shared_ptr<component> > const &components
-  , odin::runtime_array< boost::any >                   const &hints) const
+    vector< boost::shared_ptr<component> > const &components
+  , vector< boost::any >                   const &hints) const
 {
     return do_get_preferred_size(components, hints);
 }
@@ -56,9 +58,9 @@ extent layout::get_preferred_size(
 // OPERATOR()
 // ==========================================================================
 void layout::operator()(
-    odin::runtime_array< boost::shared_ptr<component> > const &components
-  , odin::runtime_array< boost::any >                   const &hints
-  , extent                                                     size)
+    vector< boost::shared_ptr<component> > const &components
+  , vector< boost::any >                   const &hints
+  , extent                                        size)
 {
     do_layout(components, hints, size);
 }

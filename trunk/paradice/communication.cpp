@@ -32,6 +32,7 @@
 #include "utility.hpp"
 #include "hugin/user_interface.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "munin/algorithm.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
 #include <boost/algorithm/string/trim.hpp>
@@ -54,15 +55,15 @@ void send_to_all(
     shared_ptr<context> &ctx
   , string const        &text)
 {
-    send_to_all(ctx, elements_from_string(text));
+    send_to_all(ctx, string_to_elements(text));
 }
 
 // ==========================================================================
 // SEND_TO_ALL
 // ==========================================================================
 void send_to_all(
-    shared_ptr<context>               &ctx
-  , runtime_array<element_type> const &text)
+    shared_ptr<context>        &ctx
+  , vector<element_type> const &text)
 {
     BOOST_AUTO(clients, ctx->get_clients());
     
@@ -80,16 +81,16 @@ void send_to_player(
   , string const        &text
   , shared_ptr<client>  &conn)
 {
-    send_to_player(ctx, elements_from_string(text), conn);
+    send_to_player(ctx, string_to_elements(text), conn);
 }
 
 // ==========================================================================
 // SEND_TO_PLAYER
 // ==========================================================================
 void send_to_player(
-    shared_ptr<context>               &ctx
-  , runtime_array<element_type> const &text
-  , shared_ptr<client>                &conn)
+    shared_ptr<context>        &ctx
+  , vector<element_type> const &text
+  , shared_ptr<client>         &conn)
 {
     conn->get_user_interface()->add_output_text(text);
 }
@@ -102,16 +103,16 @@ void send_to_room(
   , string const        &text 
   , shared_ptr<client>  &conn)
 {
-    send_to_room(ctx, elements_from_string(text), conn);
+    send_to_room(ctx, string_to_elements(text), conn);
 }
 
 // ==========================================================================
 // SEND_TO_ROOM
 // ==========================================================================
 void send_to_room(
-    shared_ptr<context>               &ctx
-  , runtime_array<element_type> const &text
-  , shared_ptr<client>                &conn)
+    shared_ptr<context>        &ctx
+  , vector<element_type> const &text
+  , shared_ptr<client>         &conn)
 {
     BOOST_AUTO(clients, ctx->get_clients());
     
@@ -143,13 +144,13 @@ PARADICE_COMMAND_IMPL(say)
     }
     
     send_to_player(ctx, str(
-        format("You say, \"%s\"\n")
+        format("You say, \"%s\\x\"\n")
             % arguments)
       , player);
 
 
     send_to_room(ctx, str(
-        format("%s says, \"%s\"\n")
+        format("%s says, \"%s\\x\"\n")
             % player->get_character()->get_name()
             % arguments)
       , player);
@@ -175,20 +176,20 @@ PARADICE_COMMAND_IMPL(whisper)
         return;
     }
 
-    runtime_array< shared_ptr<client> > clients = ctx->get_clients();
+    BOOST_AUTO(clients, ctx->get_clients());
 
     BOOST_FOREACH(shared_ptr<client> cur_client, clients)
     {
         if(is_iequal(cur_client->get_character()->get_name(), arg.first))
         {
             send_to_player(ctx, str(
-                format("You say to %s, \"%s\"\n")
+                format("You say to %s, \"%s\\x\"\n")
                     % cur_client->get_character()->get_name()
                     % arg.second)
               , player);
 
             send_to_player(ctx, str(
-                format("%s says to you, \"%s\"\n")
+                format("%s says to you, \"%s\\x\"\n")
                     % player->get_character()->get_name()
                     % arg.second)
               , cur_client);

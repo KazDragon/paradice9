@@ -29,9 +29,8 @@
 #include "odin/telnet/detail/parser.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/typeof/typeof.hpp>
-#include <algorithm>
-#include <functional>
 #include <deque>
 
 using namespace std;
@@ -43,22 +42,18 @@ namespace odin { namespace telnet {
 // STREAM IMPLEMENTATION STRUCTURE
 // ==========================================================================
 class stream::impl
+    : public enable_shared_from_this<stream::impl>
 {
 public :
     typedef odin::io::byte_stream::input_value_type     underlying_input_value_type;
+    typedef odin::io::byte_stream::input_storage_type   underlying_input_storage_type;
     typedef odin::io::byte_stream::input_size_type      underlying_input_size_type;
     typedef odin::io::byte_stream::input_callback_type  underlying_input_callback_type;
     typedef odin::io::byte_stream::output_value_type    underlying_output_value_type;
+    typedef odin::io::byte_stream::output_storage_type  underlying_output_storage_type;
     typedef odin::io::byte_stream::output_size_type     underlying_output_size_type;
     typedef odin::io::byte_stream::output_callback_type underlying_output_callback_type;
 
-    typedef odin::telnet::stream::input_value_type      input_value_type;
-    typedef odin::telnet::stream::input_size_type       input_size_type;
-    typedef odin::telnet::stream::input_callback_type   input_callback_type;
-    typedef odin::telnet::stream::output_value_type     output_value_type;
-    typedef odin::telnet::stream::output_size_type      output_size_type;
-    typedef odin::telnet::stream::output_callback_type  output_callback_type;
-    
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
@@ -71,17 +66,17 @@ public :
         , write_request_active_(false)
     {
     }
-        
+    
     // ======================================================================
     // AVAILABLE
     // ======================================================================
-    optional<input_size_type> available() const
+    optional<stream::input_size_type> available() const
     {
         // If there is a read request ongoing, we must return a "would block"
         // message.
         if (!read_requests_.empty())
         {
-            return optional<input_size_type>();
+            return optional<stream::input_size_type>();
         }
         
         // Grab any data that is available on the underlying datastream.
@@ -93,23 +88,23 @@ public :
                 values 
               , underlying_stream_->read(underlying_available.get()));
             
-            copy(
-                values.begin()
-              , values.end()
-              , back_inserter(unparsed_input_buffer_));
+            unparsed_input_buffer_.insert(
+                unparsed_input_buffer_.end()
+              , values.begin()
+              , values.end());
             
             parse_input_buffer();
         }
         
         return parsed_input_buffer_.empty()
-             ? optional<input_size_type>()
-             : optional<input_size_type>(parsed_input_buffer_.size());
+             ? optional<stream::input_size_type>()
+             : optional<stream::input_size_type>(parsed_input_buffer_.size());
     }
     
     // ======================================================================
     // READ
     // ======================================================================
-    odin::runtime_array<input_value_type> read(input_size_type size)
+    stream::input_storage_type read(stream::input_size_type size)
     {
         // Block until enough data has been read to fulfill this request.
         while (parsed_input_buffer_.size() < size)
@@ -131,12 +126,9 @@ public :
             // However, available() suffers from the same memory issue.
         }
         
-        odin::runtime_array<input_value_type> result(size);
-        
-        copy(
+        stream::input_storage_type result(
             parsed_input_buffer_.begin()
-          , parsed_input_buffer_.begin() + size
-          , result.begin());
+          , parsed_input_buffer_.begin() + size);
         
         parsed_input_buffer_.erase(
             parsed_input_buffer_.begin()
@@ -149,8 +141,8 @@ public :
     // ASYNC_READ
     // ======================================================================
     void async_read(
-        input_size_type            size
-      , input_callback_type const &callback)
+        stream::input_size_type            size
+      , stream::input_callback_type const &callback)
     {
         read_requests_.push_back(read_request(size, callback));
         schedule_read_request();
@@ -159,21 +151,16 @@ public :
     // ======================================================================
     // WRITE
     // ======================================================================
-    output_size_type write(odin::runtime_array<output_value_type> const &values)
+    output_size_type write(output_storage_type const &values)
     {
         BOOST_AUTO(begin, values.begin());
         BOOST_AUTO(end,   values.end());
         
         BOOST_AUTO(generated_output, (generate_(begin, end)));
         
-        odin::runtime_array<
-            odin::io::byte_stream::output_value_type
-        > output_values(generated_output.size());
-        
-        copy(
+        underlying_output_storage_type output_values(
             generated_output.begin()
-          , generated_output.end()
-          , output_values.begin());
+          , generated_output.end());
         
         underlying_stream_->write(output_values);
         
@@ -184,8 +171,8 @@ public :
     // ASYNC_WRITE
     // ======================================================================
     void async_write(
-        odin::runtime_array<output_value_type> const &values
-      , output_callback_type const                   &callback)
+        stream::output_storage_type const  &values
+      , stream::output_callback_type const &callback)
     {
         write_requests_.push_back(write_request(values, callback));
         schedule_write_request();
@@ -227,10 +214,10 @@ private :
           
         BOOST_AUTO(data, underlying_stream_->read(amount_to_read));
             
-        copy(
-            data.begin()
-          , data.end()
-          , back_inserter(unparsed_input_buffer_));
+        unparsed_input_buffer_.insert(
+            unparsed_input_buffer_.end()
+          , data.begin()
+          , data.end());
     }
     
     // ======================================================================
@@ -245,10 +232,10 @@ private :
         
         BOOST_AUTO(parsed_elements, parse_(begin, end));
         
-        copy(
-            parsed_elements.begin()
-          , parsed_elements.end()
-          , back_inserter(parsed_input_buffer_));
+        parsed_input_buffer_.insert(
+            parsed_input_buffer_.end()
+          , parsed_elements.begin()
+          , parsed_elements.end());
         
         // Finally, erase the consumed input.
         unparsed_input_buffer_.erase(
@@ -262,7 +249,8 @@ private :
     void schedule_read_request()
     {
         // Schedules a call to look at the read requests asynchronously.
-        io_service_.post(boost::bind(&impl::check_async_read_requests, this));
+        io_service_.post(boost::bind(
+            &impl::check_async_read_requests, shared_from_this()));
     }
     
     // ======================================================================
@@ -270,9 +258,29 @@ private :
     // ======================================================================
     void check_async_read_requests()
     {
+        // If there are no read requests, then return immediately.
         if (read_requests_.empty())
         {
-            // There are no read requests.  Return immediately.
+            return;
+        }
+        
+        // If the socket has died, then inform all the readers that their
+        // operations have gone as far as they ever will, and then return 
+        // with no further ado.
+        if (!underlying_stream_->is_alive())
+        {
+            while (!read_requests_.empty())
+            {
+                read_request &top_request = read_requests_[0];
+                
+                if (top_request.callback_ != NULL)
+                {
+                    top_request.callback_(stream::input_storage_type());
+                }
+                
+                read_requests_.pop_front();
+            }
+            
             return;
         }
         
@@ -286,13 +294,10 @@ private :
             if (parsed_input_buffer_.size() >= request.size_)
             {
                 // We can fulfill the request from the data we have available.
-                odin::runtime_array<input_value_type> result(request.size_);
-                
-                copy(
+                stream::input_storage_type result(
                     parsed_input_buffer_.begin()
-                  , parsed_input_buffer_.begin() + request.size_
-                  , result.begin());
-                
+                  , parsed_input_buffer_.begin() + request.size_);
+
                 parsed_input_buffer_.erase(
                     parsed_input_buffer_.begin()
                   , parsed_input_buffer_.begin() + request.size_);
@@ -323,14 +328,14 @@ private :
                   , underlying_available.is_initialized()
                       ? underlying_available.get()
                       : 1);
-                
+
                 underlying_stream_->async_read(
                     amount
                   , bind(
                         &impl::async_read_complete
-                      , this
+                      , shared_from_this()
                       , _1));
-                
+                    
                 read_request_active_ = true;
             }
         }
@@ -339,15 +344,12 @@ private :
     // ======================================================================
     // ASYNC_READ_COMPLETE
     // ======================================================================
-    void async_read_complete(
-        odin::runtime_array<
-            odin::io::byte_stream::input_value_type
-        > const &values)
+    void async_read_complete(underlying_input_storage_type const &values)
     {
-        copy(
-            values.begin()
-          , values.end()
-          , back_inserter(unparsed_input_buffer_));
+        unparsed_input_buffer_.insert(
+            unparsed_input_buffer_.end()
+          , values.begin()
+          , values.end());
         
         parse_input_buffer();
 
@@ -366,8 +368,8 @@ private :
     void schedule_write_request()
     {
         // Schedules a call to look at the write requests asynchronously.
-        io_service_.post(
-            boost::bind(&impl::check_async_write_requests, this));
+        io_service_.post(boost::bind(
+            &impl::check_async_write_requests, shared_from_this()));
     }
     
     // ======================================================================
@@ -381,6 +383,26 @@ private :
             return;
         }
         
+        // If the socket has died, then inform all the writers that their
+        // operations have gone as far as they ever will, and then return 
+        // with no further ado.
+        if (!underlying_stream_->is_alive())
+        {
+            while (!write_requests_.empty())
+            {
+                write_request &top_request = write_requests_[0];
+                
+                if (top_request.callback_ != NULL)
+                {
+                    top_request.callback_(stream::output_size_type(0));
+                }
+                
+                write_requests_.pop_front();
+            }
+            
+            return;
+        }
+
         if (!write_request_active_)
         {
             // No request is active, so generate output for the next request
@@ -391,21 +413,16 @@ private :
             BOOST_AUTO(end,   request.values_.end());
         
             BOOST_AUTO(generated_output, (generate_(begin, end)));
-            
-            odin::runtime_array<
-                odin::io::byte_stream::output_value_type
-            > output_values(generated_output.size());
-            
-            copy(
+
+            underlying_output_storage_type output_values(
                 generated_output.begin()
-              , generated_output.end()
-              , output_values.begin());
+              , generated_output.end());
             
             underlying_stream_->async_write(
                 output_values
               , bind(
                     &impl::async_write_complete
-                  , this
+                  , shared_from_this()
                   , _1));
             
             write_request_active_ = true;
@@ -436,15 +453,15 @@ private :
     struct read_request
     {
         read_request(
-            input_size_type            size
-          , input_callback_type const &callback)
+            stream::input_size_type            size
+          , stream::input_callback_type const &callback)
             : size_(size)
             , callback_(callback)
         {
         }
             
-        input_size_type     size_;
-        input_callback_type callback_;
+        stream::input_size_type     size_;
+        stream::input_callback_type callback_;
     };
     
     // WRITE_REQUEST ========================================================
@@ -453,15 +470,15 @@ private :
     struct write_request
     {
         write_request(
-            odin::runtime_array<output_value_type> const &values
-          , output_callback_type const                   &callback)
+            stream::output_storage_type const  &values
+          , stream::output_callback_type const &callback)
             : values_(values)
             , callback_(callback)
         {
         }
           
-        odin::runtime_array<output_value_type> values_;
-        output_callback_type                   callback_;
+        stream::output_storage_type  values_;
+        stream::output_callback_type callback_;
     };
     
     // The underlying byte stream that we read from and write to.
@@ -523,7 +540,7 @@ boost::optional<stream::input_size_type> stream::available() const
 // ==========================================================================
 // READ
 // ==========================================================================
-odin::runtime_array<stream::input_value_type> stream::read(input_size_type size)
+stream::input_storage_type stream::read(input_size_type size)
 {
     return pimpl_->read(size);
 }
@@ -541,8 +558,7 @@ void stream::async_read(
 // ==========================================================================
 // WRITE 
 // ==========================================================================
-stream::output_size_type stream::write(
-    odin::runtime_array<output_value_type> const& values)
+stream::output_size_type stream::write(output_storage_type const &values)
 {
     return pimpl_->write(values);
 }
@@ -551,8 +567,8 @@ stream::output_size_type stream::write(
 // ASYNC_WRITE 
 // ==========================================================================
 void stream::async_write(
-    odin::runtime_array<output_value_type> const &values
-  , output_callback_type const                   &callback)
+    output_storage_type const  &values
+  , output_callback_type const &callback)
 {
     pimpl_->async_write(values, callback);
 }
@@ -566,3 +582,4 @@ bool stream::is_alive() const
 }
 
 }}
+

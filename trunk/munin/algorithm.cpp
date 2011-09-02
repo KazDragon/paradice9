@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
+#include "munin/detail/string_to_elements_parser.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -316,4 +317,127 @@ void copy_region(
     }
 }
 
+// ==========================================================================
+// DIRECTIVE_VISITOR
+// ==========================================================================
+class directive_visitor
+    : public static_visitor<>
+{
+public :
+    // ======================================================================
+    // GET_ELEMENTS
+    // ======================================================================
+    vector<element_type> get_elements()
+    {
+        return elements_;
+    }
+    
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(char ch)
+    {
+        current_glyph_.character_ = ch;
+        elements_.push_back(
+            element_type(current_glyph_, current_attribute_));
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::default_directive const &directive)
+    {
+        current_glyph_     = glyph();
+        current_attribute_ = attribute();
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::character_set_directive const &directive)
+    {
+        current_glyph_.character_set_ = directive.character_set_;
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::locale_directive const &directive)
+    {
+        current_glyph_.locale_ = directive.locale_;
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::intensity_directive const &directive)
+    {
+        current_attribute_.intensity_ = directive.intensity_;
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::polarity_directive const &directive)
+    {
+        current_attribute_.polarity_ = directive.polarity_;
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::underlining_directive const &directive)
+    {
+        current_attribute_.underlining_ = directive.underlining_;
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::foreground_colour_directive const &directive)
+    {
+        current_attribute_.foreground_colour_ = directive.foreground_colour_;
+    }
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    void operator()(munin::detail::background_colour_directive const &directive)
+    {
+        current_attribute_.background_colour_ = directive.background_colour_;
+    }
+
+private :
+    vector<element_type> elements_;
+    glyph                current_glyph_;
+    attribute            current_attribute_;
+};
+
+// ==========================================================================
+// STRING_TO_ELEMENTS
+// ==========================================================================
+vector<element_type> string_to_elements(string const &str)
+{
+    static munin::detail::string_to_elements_parser
+    <
+        string::const_iterator
+    > parser;
+
+    vector<munin::detail::string_to_elements_directive> parsed_result;
+    BOOST_AUTO(parse_begin, str.begin());
+    BOOST_AUTO(parse_end, str.end());
+    boost::spirit::qi::parse(parse_begin, parse_end, parser, parsed_result);
+
+    directive_visitor visitor;
+    BOOST_FOREACH(
+        munin::detail::string_to_elements_directive const &directive
+      , parsed_result)
+    {
+        apply_visitor(visitor, directive);
+    }
+    
+    return visitor.get_elements();
 }
+
+}
+

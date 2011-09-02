@@ -28,8 +28,8 @@
 #define MUNIN_IMAGE_HPP_
 
 #include "munin/basic_component.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 namespace munin {
 
@@ -45,19 +45,18 @@ public :
     /// \param elements - a multidimentional array with each element
     /// representing one horizontal line of the image.
     //* =====================================================================
-    image(odin::runtime_array< odin::runtime_array<element_type> > elements);
+    image(std::vector< std::vector<element_type> > elements);
 
     //* =====================================================================
     /// \brief Constructor
     /// \param elements - an array representing a single-lined image.
     //* =====================================================================
-    image(odin::runtime_array<munin::element_type> elements);
+    image(std::vector<munin::element_type> elements);
     
     //* =====================================================================
     /// \brief Sets the image displayed
     //* =====================================================================
-    void set_image(
-        odin::runtime_array< odin::runtime_array< element_type> > elements);
+    void set_image(std::vector< std::vector< element_type> > elements);
 
     //* =====================================================================
     /// \brief Destructor

@@ -25,9 +25,9 @@
 #ifndef ODIN_INPUT_DATASTREAM_H_
 #define ODIN_INPUT_DATASTREAM_H_
 
-#include "odin/runtime_array.hpp"
 #include <boost/function.hpp>
 #include <boost/optional.hpp>
+#include <vector>
 
 namespace odin { namespace io {
 
@@ -38,13 +38,10 @@ namespace odin { namespace io {
 template <class ReadValue>
 struct input_datastream
 {
-    typedef ReadValue                                          value_type;
-    typedef typename odin::runtime_array<ReadValue>::size_type size_type;
-    
-    typedef boost::function
-    <
-        void (odin::runtime_array<ReadValue>)
-    > callback_type;
+    typedef ReadValue                            value_type;
+    typedef std::vector<ReadValue>               storage_type;
+    typedef typename storage_type::size_type     size_type;
+    typedef boost::function<void (storage_type)> callback_type;
     
     //* =====================================================================
     /// \brief Destructor
@@ -68,11 +65,11 @@ struct input_datastream
     /// \brief Performs a synchronous read on the stream.
     /// \return an array of values read frmo the stream.
     /// Reads up to size items from the stream and returns them in a
-    /// runtime_array.  This may block, unless a previous call to available()
+    /// vector.  This may block, unless a previous call to available()
     /// since the last read() yielded a positive value, which was less than or 
     /// equal to size, in which case it MUST NOT block.
     //* =====================================================================
-    virtual odin::runtime_array<value_type> read(size_type size) = 0;
+    virtual storage_type read(size_type size) = 0;
 
     //* =====================================================================
     /// \brief Schedules an asynchronous read on the stream.

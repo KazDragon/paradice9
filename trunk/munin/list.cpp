@@ -148,11 +148,22 @@ struct list::impl
     void do_ansi_mouse_report_event(
         odin::ansi::mouse_report const &mouse_report)
     {
+        if (mouse_report.button_ == odin::ansi::mouse_report::LEFT_BUTTON_DOWN)
+        {
+            BOOST_AUTO(item_selected, mouse_report.y_position_);
+            
+            if (u32(item_selected) <= items_.size())
+            {
+                self_.set_item_index(item_selected);
+            }
+            
+            self_.set_focus();
+        }
     }
 
-    list                                         &self_;
-    runtime_array< runtime_array<element_type> >  items_;
-    s32                                           item_index_;
+    list                           &self_;
+    vector< vector<element_type> >  items_;
+    s32                             item_index_;
 };
 
 // ==========================================================================
@@ -174,7 +185,7 @@ list::~list()
 // ==========================================================================
 // SET_ITEMS
 // ==========================================================================
-void list::set_items(runtime_array< runtime_array<element_type> > const &items)
+void list::set_items(vector< vector<element_type> > items)
 {
     BOOST_AUTO(old_items_size, pimpl_->items_.size());
     BOOST_AUTO(size, get_size());
@@ -238,10 +249,10 @@ s32 list::get_item_index() const
 // ==========================================================================
 // GET_ITEM
 // ==========================================================================
-runtime_array<element_type> list::get_item() const
+vector<element_type> list::get_item() const
 {
     return pimpl_->item_index_ < 0
-         ? runtime_array<element_type>()
+         ? vector<element_type>()
          : pimpl_->items_[pimpl_->item_index_];
 }
 
@@ -254,7 +265,7 @@ extent list::do_get_preferred_size() const
     // the number of components high.
     u32 max_width = 0;
 
-    BOOST_FOREACH(runtime_array<element_type> const &item, pimpl_->items_)
+    BOOST_FOREACH(vector<element_type> const &item, pimpl_->items_)
     {
         max_width = (max)(max_width, u32(item.size()));
     }
@@ -300,7 +311,7 @@ void list::do_draw(
                 y_coord >= 0
              && y_coord == pimpl_->item_index_;
 
-            runtime_array<element_type> const &item = pimpl_->items_[y_coord];
+            BOOST_AUTO(item, pimpl_->items_[y_coord]);
 
             for (s32 x_coord = region.origin.x;
                  x_coord < region.origin.x + region.size.width;

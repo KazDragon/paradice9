@@ -32,6 +32,7 @@
 
 using namespace odin;
 using namespace boost;
+using namespace std;
 
 namespace munin {
 
@@ -74,8 +75,8 @@ grid_layout::~grid_layout()
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent grid_layout::do_get_preferred_size(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints) const
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints) const
 {
     // The preferred size of the whole component is the maximum preferred
     // width and the maximum preferred height of all components, 
@@ -105,9 +106,9 @@ extent grid_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void grid_layout::do_layout(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints
-  , extent                                        size)
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints
+  , extent                                 size)
 {
     for (u32 index = 0; index < components.size(); ++index)
     {

@@ -199,10 +199,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\server.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\utility.cpp"
 				>
 			</File>
@@ -270,10 +266,6 @@
 			</File>
 			<File
 				RelativePath=".\rules.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\server.hpp"
 				>
 			</File>
 			<File

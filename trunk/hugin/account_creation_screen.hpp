@@ -28,7 +28,6 @@
 #define HUGIN_ACCOUNT_CREATION_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <odin/runtime_array.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
@@ -77,8 +76,7 @@ public :
     //* =====================================================================
     /// \brief Sets the content of the status bar on the intro screen.
     //* =====================================================================
-    void set_statusbar_text(
-        odin::runtime_array<munin::element_type> const &text);
+    void set_statusbar_text(std::vector<munin::element_type> const &text);
     
 protected :
     //* =====================================================================

@@ -6,16 +6,19 @@
 #include "odin/telnet/negotiation_router.hpp"
 #include "odin/telnet/subnegotiation_router.hpp"
 #include "fake_datastream.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/algorithm.hpp>
 #include <boost/lambda/bind.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <vector>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_client_option_fixture);
 
 using namespace std;
 using namespace boost;
+using namespace boost::assign;
 
 namespace bll = boost::lambda;
 
@@ -103,15 +106,11 @@ void telnet_client_option_fixture::test_inactive_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_active());
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+
+    fake_byte_stream::output_storage_type expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-    };
-    
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
 }
@@ -153,24 +152,15 @@ void telnet_client_option_fixture::test_inactive_activate_deny()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-    };
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
     
-    odin::u8 response_data[] = 
-    {
-        odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
-    };
-    
-    fake_stream->write_data_to_read(response_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -222,25 +212,16 @@ void telnet_client_option_fixture::test_inactive_activate_allow()
     CPPUNIT_ASSERT_EQUAL(false, option.is_active());
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+
+    fake_byte_stream::output_storage_type expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-    };
-    
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
-    
-    odin::u8 response_data[] = 
-    {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-    };
-    
-    fake_stream->write_data_to_read(response_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -287,8 +268,7 @@ void telnet_client_option_fixture::test_inactive_deactivate()
     option.on_request_complete(request_complete_handler);
     option.deactivate();
     
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -298,9 +278,9 @@ void telnet_client_option_fixture::test_inactive_deactivate()
     io_service.reset();
     io_service.run();
     
-    odin::runtime_array<odin::u8> expected_array;
+    fake_byte_stream::input_storage_type expected_data;
     
-    CPPUNIT_ASSERT_EQUAL(expected_array, fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     CPPUNIT_ASSERT_EQUAL(false, option.is_active());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
@@ -344,28 +324,15 @@ void telnet_client_option_fixture::test_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-    }
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    {
-        odin::u8 response_data[] = 
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-    }
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -384,16 +351,10 @@ void telnet_client_option_fixture::test_active_deactivate()
 
     option.deactivate();
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-    }
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_active());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
@@ -438,28 +399,15 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
+    fake_byte_stream::output_storage_type expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
         
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-    }
-    
-    {
-        odin::u8 response_data[] = 
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-    }
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -478,30 +426,18 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
 
     option.deactivate();
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-    }
+    expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_active());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(true, option.is_negotiating_deactivation());
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
-    {
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-    }
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
     telnet_stream->async_read(1, callback);
 
@@ -551,28 +487,15 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-    }
-    
-    {
-        odin::u8 response_data[] = 
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-    }
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_byte_stream::output_storage_type expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
+
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -591,30 +514,18 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
 
     option.deactivate();
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-    }
-    
+    expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
+
     CPPUNIT_ASSERT_EQUAL(true, option.is_active());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(true, option.is_negotiating_deactivation());
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
-    {
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-    }
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
     
     telnet_stream->async_read(1, callback);
 
@@ -660,15 +571,10 @@ void telnet_client_option_fixture::test_non_activatable_inactive_activate()
     
     option.on_request_complete(request_complete_handler);
 
-    odin::u8 request_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-    };
-    
-    fake_stream->write_data_to_read(request_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -678,14 +584,10 @@ void telnet_client_option_fixture::test_non_activatable_inactive_activate()
     io_service.reset();
     io_service.run();
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-    };
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
     
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
 
@@ -728,9 +630,8 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     
     option.on_request_complete(request_complete_handler);
     option.activate();
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -740,71 +641,49 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     io_service.reset();
     io_service.run();
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(false, option.is_active());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
-        CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
-    }
+    fake_byte_stream::output_storage_type expected_data = 
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    {
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-        
-        telnet_stream->async_read(1, callback);
+    CPPUNIT_ASSERT_EQUAL(false, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
+
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
-        io_service.reset();    
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
-        CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
-    }
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
     
-    {
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-        
-        telnet_stream->async_read(1, callback);
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
-        io_service.reset();    
-        io_service.run();
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+    
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
         
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
-        CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
-    }        
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
+    
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
 }
 
 void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
@@ -840,15 +719,10 @@ void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
     
     option.on_request_complete(request_complete_handler);
     
-    odin::u8 request_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
-    };
-    
-    fake_stream->write_data_to_read(request_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -858,14 +732,10 @@ void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
     io_service.reset();
     io_service.run();
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-    };
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
     
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
 
@@ -908,9 +778,8 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     
     option.on_request_complete(request_complete_handler);
     option.activate();
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -920,71 +789,49 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     io_service.reset();
     io_service.run();
     
-    {
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(false, option.is_active());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
-        CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
-    }
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
     
-    {
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-        
-        telnet_stream->async_read(1, callback);
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-        io_service.reset();    
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
-        CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
-    }
+    CPPUNIT_ASSERT_EQUAL(false, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
     
-    {
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-        
-        telnet_stream->async_read(1, callback);
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
-        io_service.reset();    
-        io_service.run();
-        
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(false, option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
-        CPPUNIT_ASSERT_EQUAL(odin::u32(2), request_completed);
-    }        
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+    
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
+    
+    CPPUNIT_ASSERT_EQUAL(false, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
+    CPPUNIT_ASSERT_EQUAL(odin::u32(2), request_completed);
 }
 
 void telnet_client_option_fixture::test_activatable_inactive_activate()
@@ -1023,15 +870,10 @@ void telnet_client_option_fixture::test_activatable_inactive_activate()
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
-    odin::u8 request_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-    };
-    
-    fake_stream->write_data_to_read(request_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -1040,15 +882,11 @@ void telnet_client_option_fixture::test_activatable_inactive_activate()
     
     io_service.reset();
     io_service.run();
+
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);    
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-    };
-    
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
 
@@ -1094,85 +932,64 @@ void telnet_client_option_fixture::test_activatable_active_activate()
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
     
     telnet_stream->async_read(1, callback);
     
-    {
-        option.activate();
-        
-        io_service.reset();
-        io_service.run();
-        
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
+    option.activate();
     
-        CPPUNIT_ASSERT_EQUAL(false,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
-        
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-        
-        telnet_stream->async_read(1, callback);
+    io_service.reset();
+    io_service.run();
     
-        io_service.reset();    
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
     
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
-    }
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    {
-        odin::u8 request_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(request_data);
-        
-        telnet_stream->async_read(1, callback);
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
+
+    CPPUNIT_ASSERT_EQUAL(false,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
     
-        io_service.reset();    
-        io_service.run();
-        
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
-    }
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
+    
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+    
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
 }
 
 void telnet_client_option_fixture::test_activatable_inactive_deactivate()
@@ -1211,15 +1028,10 @@ void telnet_client_option_fixture::test_activatable_inactive_deactivate()
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
-    odin::u8 request_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
-    };
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
     
-    fake_stream->write_data_to_read(request_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -1229,14 +1041,10 @@ void telnet_client_option_fixture::test_activatable_inactive_deactivate()
     io_service.reset();
     io_service.run();
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-    };
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
     
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
 
@@ -1282,85 +1090,64 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
     
     telnet_stream->async_read(1, callback);
     
-    {
-        option.activate();
-        
-        io_service.reset();
-        io_service.run();
-        
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
+    option.activate();
     
-        CPPUNIT_ASSERT_EQUAL(false,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
-        
-        odin::u8 response_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(response_data);
-        
-        telnet_stream->async_read(1, callback);
+    io_service.reset();
+    io_service.run();
     
-        io_service.reset();    
-        io_service.run();
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
     
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
-    }
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    {
-        odin::u8 request_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
-        };
-        
-        fake_stream->write_data_to_read(request_data);
-        
-        telnet_stream->async_read(1, callback);
+    CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
+
+    CPPUNIT_ASSERT_EQUAL(false,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
     
-        io_service.reset();    
-        io_service.run();
-        
-        odin::u8 expected_data[] =
-        {
-            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
-        };
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::make_runtime_array(expected_data)
-          , fake_stream->read_data_written());
-        
-        CPPUNIT_ASSERT_EQUAL(odin::u32(2), request_completed);
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
-        CPPUNIT_ASSERT_EQUAL(false, option.is_active());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
-        CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
-        CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
-    }
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
+
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
+    
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+    
+    telnet_stream->async_read(1, callback);
+
+    io_service.reset();    
+    io_service.run();
+    
+    expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+    
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
+    
+    CPPUNIT_ASSERT_EQUAL(odin::u32(2), request_completed);
+
+    CPPUNIT_ASSERT_EQUAL(false, option.is_active());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_activation());
+    CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
+    CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
 }
 
 void telnet_client_option_fixture::test_inactive_subnegotiation()
@@ -1384,17 +1171,14 @@ void telnet_client_option_fixture::test_inactive_subnegotiation()
     fake_client_option option(
         telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
-    odin::u8 subnegotiation[] =
-    {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT
-      , 'a', 'b'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
+    fake_byte_stream::input_storage_type subnegotiation =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::KERMIT)
+               ('a')('b')
+               (odin::telnet::IAC)(odin::telnet::SE);
     
     fake_stream->write_data_to_read(subnegotiation);
     
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -1444,24 +1228,15 @@ void telnet_client_option_fixture::test_active_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-    };
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
     
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    odin::u8 response_data[] = 
-    {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-    };
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
-    fake_stream->write_data_to_read(response_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -1476,12 +1251,10 @@ void telnet_client_option_fixture::test_active_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
-    odin::u8 subnegotiation[] =
-    {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT
-      , 'a', 'b'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
+    fake_byte_stream::input_storage_type subnegotiation =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::KERMIT)
+               ('a')('b')
+               (odin::telnet::IAC)(odin::telnet::SE);
     
     fake_stream->write_data_to_read(subnegotiation);
     
@@ -1489,25 +1262,18 @@ void telnet_client_option_fixture::test_active_subnegotiation()
 
     io_service.reset();    
     io_service.run();
-    
-    odin::u8 expected_subnegotiation_content[] =
-    {
-        'a', 'b'
-    };
-    
+
     odin::telnet::subnegotiation_type expected_subnegotiation;
     expected_subnegotiation.option_id_ = odin::telnet::KERMIT;
-    expected_subnegotiation.content_   = 
-        odin::telnet::subnegotiation_content_type(
-            expected_subnegotiation_content
-          , expected_subnegotiation_content + 2);
+    expected_subnegotiation.content_   = list_of('a')('b');
     
     CPPUNIT_ASSERT_EQUAL(std::size_t(1), option.subnegotiations_.size());
     CPPUNIT_ASSERT_EQUAL(
         expected_subnegotiation.option_id_
       , option.subnegotiations_[0].option_id_);
     CPPUNIT_ASSERT(
-        expected_subnegotiation.content_ == option.subnegotiations_[0].content_);
+        expected_subnegotiation.content_ 
+     == option.subnegotiations_[0].content_);
 }
 
 void telnet_client_option_fixture::test_send_subnegotiation()
@@ -1547,24 +1313,15 @@ void telnet_client_option_fixture::test_send_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_negotiating_activation());
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
-    odin::u8 expected_data[] =
-    {
-        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
-    };
+    fake_byte_stream::output_storage_type expected_data =
+        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
     
-    CPPUNIT_ASSERT_EQUAL(
-        odin::make_runtime_array(expected_data)
-      , fake_stream->read_data_written());
+    CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
-    odin::u8 response_data[] = 
-    {
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
-    };
+    fake_stream->write_data_to_read(
+        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
     
-    fake_stream->write_data_to_read(response_data);
-    
-    function<void (
-        odin::runtime_array<odin::telnet::stream::input_value_type>)> callback =
+    odin::telnet::stream::input_callback_type callback =
     (
         bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
     );
@@ -1580,27 +1337,19 @@ void telnet_client_option_fixture::test_send_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
     // Now test that sending the subnegotiation actually works.
-    odin::telnet::subnegotiation_content_type content;
-    content.push_back('a');
-    content.push_back('b');
-    content.push_back('c');
+    odin::telnet::subnegotiation_content_type content = list_of('a')('b')('c');
     
     option.send_subnegotiation(content);
     
     io_service.reset();
     io_service.run();
 
-    odin::u8 expected_subnegotiation_data[] = {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT
-      , 'a', 'b', 'c'
-      , odin::telnet::IAC, odin::telnet::SE
-    };
-    odin::runtime_array<odin::u8> expected_subnegotiation_array(
-        expected_subnegotiation_data);
-    
-    odin::runtime_array<odin::u8> actual_array = 
-        fake_stream->read_data_written();
-        
-    CPPUNIT_ASSERT_EQUAL(expected_subnegotiation_array, actual_array);
+    fake_byte_stream::output_storage_type expected_subnegotiation_data =
+        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::KERMIT)
+               ('a')('b')('c')
+               (odin::telnet::IAC)(odin::telnet::SE);
+
+    CPPUNIT_ASSERT(
+        expected_subnegotiation_data == fake_stream->read_data_written());
 }
 

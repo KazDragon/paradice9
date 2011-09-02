@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "intro_screen.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
@@ -36,30 +37,32 @@
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <vector>
 
 using namespace munin::ansi;
 using namespace munin;
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace hugin {
 
-static string main_image[] = {
-    
-    "             _"
-  , "    |/ _._  | \\.__. _  _ ._/ _"
-  , "    |\\(_|/_ |_/|(_|(_|(_)| |_>"
-  , "                    _|"
-  , " "
-  , "                   ___                   ___           ___"
-  , "                  / _ \\___ ________ ____/ (_)______   / _ \\"
-  , "                 / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\_, /"
-  , "                /_/   \\_,_/_/  \\_,_/\\_,_/_/\\__/\\__/  /___/"
-  , "                                                   v1.0.3"
-};
+static vector<string> const main_image = list_of
+  ( "             _"                                                  )
+  ( "    |/ _._  | \\.__. _  _ ._/ _"                                 )
+  ( "    |\\(_|/_ |_/|(_|(_|(_)| |_>"                                 )
+  ( "                    _|"                                          )
+  ( " "                                                               )
+  ( "                   ___                   ___           ___"      )
+  ( "                  / _ \\___ ________ ____/ (_)______   / _ \\"   )
+  ( "                 / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\_, /"    )
+  ( "                /_/   \\_,_/_/  \\_,_/\\_,_/_/\\__/\\__/  /___/" )
+  ( "                                                   v1.0.3"       )
+  ;
 
 // ==========================================================================
 // INTRO_SCREEN::IMPLEMENTATION STRUCTURE
@@ -118,13 +121,13 @@ intro_screen::intro_screen()
     BOOST_AUTO(name_container, make_shared<basic_container>());
     name_container->set_layout(make_shared<aligned_layout>());
     name_container->add_component(
-        make_shared<image>(elements_from_string("Name: "))
+        make_shared<image>(string_to_elements("Name: "))
       , alignment);
 
     BOOST_AUTO(password_container, make_shared<basic_container>());
     password_container->set_layout(make_shared<aligned_layout>());
     password_container->add_component(
-        make_shared<image>(elements_from_string("Password: "))
+        make_shared<image>(string_to_elements("Password: "))
       , alignment);
     
     BOOST_AUTO(labels_container, make_shared<basic_container>());
@@ -154,15 +157,14 @@ intro_screen::intro_screen()
         make_shared<solid_frame>()
       , pimpl_->intro_password_field_));
 
-    string instructions_label_elements[] = {
+    string instructions_label_elements =
         "Enter details, or leave empty to create a new account. "
-        "Then hit enter."
-    };
+        "Then hit enter.";
     
     BOOST_AUTO(instructions_container, make_shared<basic_container>());
     instructions_container->set_layout(make_shared<aligned_layout>());
     instructions_container->add_component(
-        make_shared<image>(elements_from_strings(instructions_label_elements))
+        make_shared<image>(string_to_elements(instructions_label_elements))
       , alignment);
     
     BOOST_AUTO(bottom_container, make_shared<basic_container>());
@@ -223,7 +225,7 @@ void intro_screen::on_account_details_entered(
 // SET_STATUSBAR_TEXT
 // ==========================================================================
 void intro_screen::set_statusbar_text(
-    runtime_array<element_type> const &text)
+    vector<element_type> const &text)
 {
     BOOST_AUTO(document, pimpl_->statusbar_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));

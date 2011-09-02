@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "command_prompt.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
@@ -56,7 +57,7 @@ struct command_prompt::impl
     deque<string>               history_;
 
     // Text to remember while running through the history.
-    runtime_array<element_type> current_text_;
+    vector<element_type>        current_text_;
 };
 
 // ==========================================================================

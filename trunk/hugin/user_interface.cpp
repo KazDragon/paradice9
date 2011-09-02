@@ -231,7 +231,7 @@ void user_interface::on_character_creation_cancelled(
 // SET_CHARACTER_NAMES
 // ==========================================================================
 void user_interface::set_character_names(        
-    runtime_array< pair<string, string> > const &names)
+    vector< pair<string, string> > const &names)
 {
     pimpl_->character_selection_screen_->set_character_names(names);
 }
@@ -249,8 +249,7 @@ void user_interface::select_face(string const &face_name)
 // ==========================================================================
 // ADD_OUTPUT_TEXT
 // ==========================================================================
-void user_interface::add_output_text(
-    runtime_array<element_type> const &text)
+void user_interface::add_output_text(vector<element_type> const &text)
 {
     pimpl_->main_screen_->add_output_text(text);
 }
@@ -258,8 +257,7 @@ void user_interface::add_output_text(
 // ==========================================================================
 // SET_STATUSBAR_TEXT
 // ==========================================================================
-void user_interface::set_statusbar_text(
-    runtime_array<element_type> const &text)
+void user_interface::set_statusbar_text(vector<element_type> const &text)
 {
     if (pimpl_->active_face_ == hugin::FACE_INTRO)
     {
@@ -282,7 +280,7 @@ void user_interface::set_statusbar_text(
 // ==========================================================================
 // UPDATE_WHOLIST
 // ==========================================================================
-void user_interface::update_wholist(runtime_array<string> const &names)
+void user_interface::update_wholist(vector<string> const &names)
 {
     pimpl_->main_screen_->update_wholist(names);
 }
@@ -322,8 +320,7 @@ void user_interface::on_help_closed(function<void ()> callback)
 // ==========================================================================
 // SET_HELP_WINDOW_TEXT
 // ==========================================================================
-void user_interface::set_help_window_text(
-    odin::runtime_array<element_type> const &text)
+void user_interface::set_help_window_text(vector<element_type> const &text)
 {
     pimpl_->main_screen_->set_help_window_text(text);
 }

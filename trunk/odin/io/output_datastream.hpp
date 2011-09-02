@@ -25,8 +25,8 @@
 #ifndef ODIN_OUTPUT_DATASTREAM_H_
 #define ODIN_OUTPUT_DATASTREAM_H_
 
-#include "odin/runtime_array.hpp"
 #include <boost/function.hpp>
+#include <vector>
 
 namespace odin { namespace io {
 
@@ -37,9 +37,10 @@ namespace odin { namespace io {
 template <class WriteValue>
 struct output_datastream
 {
-    typedef WriteValue                                          value_type;
-    typedef typename odin::runtime_array<WriteValue>::size_type size_type;
-    typedef boost::function<void (size_type)>                   callback_type;
+    typedef WriteValue                        value_type;
+    typedef std::vector<value_type>           storage_type;
+    typedef typename storage_type::size_type  size_type;
+    typedef boost::function<void (size_type)> callback_type;
     
     //* =====================================================================
     /// \brief Destructor
@@ -51,8 +52,7 @@ struct output_datastream
     /// \return the number of objects written to the stream.
     /// Write an array of WriteValues to the stream.  
     //* =====================================================================
-    virtual size_type write(
-        odin::runtime_array<value_type> const& values) = 0;
+    virtual size_type write(std::vector<value_type> const& values) = 0;
 
     //* =====================================================================
     /// \brief Schedules an asynchronous write to the stream.
@@ -64,8 +64,8 @@ struct output_datastream
     /// synchronously, since this invalidates a set of operations.
     //* =====================================================================
     virtual void async_write(
-        odin::runtime_array<value_type> const &values
-      , callback_type const                   &callback) = 0;
+        std::vector<value_type> const &values
+      , callback_type const           &callback) = 0;
 
     //* =====================================================================
     /// \brief Check to see if the underlying stream is still alive.

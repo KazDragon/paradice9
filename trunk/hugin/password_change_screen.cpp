@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "password_change_screen.hpp"
 #include "munin/ansi/protocol.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
@@ -125,19 +126,19 @@ password_change_screen::password_change_screen()
     BOOST_AUTO(old_password_container, make_shared<basic_container>());
     old_password_container->set_layout(make_shared<aligned_layout>());
     old_password_container->add_component(
-        make_shared<image>(elements_from_string("Old Password: "))
+        make_shared<image>(string_to_elements("Old Password: "))
       , alignment);
     
     BOOST_AUTO(password0_container, make_shared<basic_container>());
     password0_container->set_layout(make_shared<aligned_layout>());
     password0_container->add_component(
-        make_shared<image>(elements_from_string("New Password: "))
+        make_shared<image>(string_to_elements("New Password: "))
       , alignment);
     
     BOOST_AUTO(password1_container, make_shared<basic_container>());
     password1_container->set_layout(make_shared<aligned_layout>());
     password1_container->add_component(
-        make_shared<image>(elements_from_string("New Password (verify): "))
+        make_shared<image>(string_to_elements("New Password (verify): "))
       , alignment);
 
     BOOST_AUTO(labels_container, make_shared<basic_container>());
@@ -197,12 +198,12 @@ password_change_screen::password_change_screen()
 
     // Create the OK and Cancel buttons.
     pimpl_->ok_button_ = make_shared<button>(
-        elements_from_string("  OK  "));
+        string_to_elements("  OK  "));
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
         bind(&impl::on_password_change_ok, pimpl_)));
     
     pimpl_->cancel_button_ = make_shared<button>(
-        elements_from_string("Cancel"));
+        string_to_elements("Cancel"));
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
         bind(&impl::on_password_change_cancelled, pimpl_)));
     
@@ -298,7 +299,7 @@ void password_change_screen::on_password_change_cancelled(function<void ()> call
 // SET_STATUSBAR_TEXT
 // ==========================================================================
 void password_change_screen::set_statusbar_text(
-    runtime_array<element_type> const &text)
+    vector<element_type> const &text)
 {
     BOOST_AUTO(document, pimpl_->statusbar_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));

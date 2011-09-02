@@ -62,7 +62,7 @@ ui::ui()
     BOOST_AUTO(container, get_container());
     container->set_layout(make_shared<compass_layout>());
 
-    runtime_array<string> names(20);
+    vector<string> names(20);
     for (size_t index = 0; index < names.size(); ++index)
     {
         names[index] = str(format("Item #%d") % index);

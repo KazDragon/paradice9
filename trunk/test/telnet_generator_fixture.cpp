@@ -1,13 +1,13 @@
 #include "telnet_generator_fixture.hpp"
 #include "odin/telnet/detail/generator.hpp"
 #include "odin/telnet/protocol.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/variant.hpp>
 #include <deque>
 
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_generator_fixture);
@@ -47,7 +47,7 @@ void telnet_generator_fixture::test_generate_normal_empty()
     string       element0;
     element_type variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -68,7 +68,7 @@ void telnet_generator_fixture::test_generate_normal_one()
     string       element0("x");
     element_type variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -92,7 +92,7 @@ void telnet_generator_fixture::test_generate_normal_two()
     string       element0("xy");
     element_type variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -114,7 +114,7 @@ void telnet_generator_fixture::test_generate_normal_iac()
     string       element0("\xFF");
     element_type variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -136,7 +136,7 @@ void telnet_generator_fixture::test_generate_command()
     odin::telnet::command_type element0(odin::telnet::NOP);
     element_type               variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -161,7 +161,7 @@ void telnet_generator_fixture::test_generate_negotiation()
 
     element_type variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -185,12 +185,12 @@ void telnet_generator_fixture::test_generate_subnegotiation()
     
     odin::telnet::subnegotiation_type element0;
     element0.option_id_ = odin::telnet::ECHO;
-    element0.content_   = boost::assign::list_of
+    element0.content_   = list_of
         ('a')('b')('c')('\xFF')('d');
 
     element_type variant0(element0);
     
-    odin::runtime_array<element_type> variant_array(&variant0, 1);
+    vector<element_type> variant_array = list_of(variant0);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());
@@ -227,14 +227,11 @@ void telnet_generator_fixture::test_generate_many()
     
     odin::telnet::subnegotiation_type element3;
     element3.option_id_ = odin::telnet::EXOPL;
-    element3.content_   = boost::assign::list_of('\xFF');
+    element3.content_   = list_of('\xFF');
     element_type variant3(element3);
     
-    odin::runtime_array<element_type> variant_array(4);
-    variant_array[0] = variant0;
-    variant_array[1] = variant1;
-    variant_array[2] = variant2;
-    variant_array[3] = variant3;
+    vector<element_type> variant_array = 
+        list_of(variant0)(variant1)(variant2)(variant3);
     
     BOOST_AUTO(begin, variant_array.begin());
     BOOST_AUTO(end,   variant_array.end());

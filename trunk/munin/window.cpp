@@ -197,10 +197,18 @@ static string change_attribute(munin::attribute &from, munin::attribute to)
 
     if (from.foreground_colour_ != to.foreground_colour_)
     {
-        graphics_sequence += string()
-                           + odin::ansi::ESCAPE
-                           + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-                           + foreground_colour_string(to.foreground_colour_);
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+
+        graphics_sequence += foreground_colour_string(to.foreground_colour_);
                            
         from.foreground_colour_ = to.foreground_colour_;
     }
@@ -259,6 +267,24 @@ static string change_attribute(munin::attribute &from, munin::attribute to)
         from.polarity_ = to.polarity_;
     }
 
+    if (from.blinking_ != to.blinking_)
+    {
+        if (graphics_sequence.empty())
+        {
+            graphics_sequence += string()
+                              + odin::ansi::ESCAPE
+                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
+        }
+        else
+        {
+            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
+        }
+        
+        graphics_sequence += str(format("%s") % int(to.blinking_));
+        
+        from.blinking_ = to.blinking_;
+    }
+    
     if (from.underlining_ != to.underlining_)
     {
         if (graphics_sequence.empty())

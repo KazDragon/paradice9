@@ -28,8 +28,8 @@
 #define MUNIN_BUTTON_HPP_
 
 #include "munin/composite_component.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/signal.hpp>
+#include <vector>
 
 namespace munin {
 
@@ -43,7 +43,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    button(odin::runtime_array<element_type> const &caption);
+    button(std::vector<element_type> const &caption);
 
     //* =====================================================================
     /// \brief Destructor

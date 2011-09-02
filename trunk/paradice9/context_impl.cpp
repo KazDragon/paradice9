@@ -108,14 +108,14 @@ static string get_character_address(shared_ptr<paradice::character> &ch)
 // ==========================================================================
 struct context_impl::impl
 {
-    shared_ptr<paradice::server>           server_;
+    shared_ptr<odin::net::server>          server_;
     vector< shared_ptr<paradice::client> > clients_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-context_impl::context_impl(shared_ptr<paradice::server> server)
+context_impl::context_impl(shared_ptr<odin::net::server> server)
     : pimpl_(new impl)
 {
     pimpl_->server_ = server;
@@ -131,14 +131,9 @@ context_impl::~context_impl()
 // ==========================================================================
 // GET_CLIENTS
 // ==========================================================================
-runtime_array< shared_ptr<paradice::client> > context_impl::get_clients()
+vector< shared_ptr<paradice::client> > context_impl::get_clients()
 {
-    runtime_array< shared_ptr<paradice::client> > result(
-        pimpl_->clients_.size());
-    
-    copy(pimpl_->clients_.begin(), pimpl_->clients_.end(), result.begin());
-    
-    return result;
+    return pimpl_->clients_;
 }
 
 // ==========================================================================
@@ -184,16 +179,13 @@ void context_impl::update_names()
         }
     }
     
-    runtime_array<string> names_array(names.size());
-    copy(names.begin(), names.end(), names_array.begin());
-    
     BOOST_FOREACH(shared_ptr<paradice::client> cur_client, pimpl_->clients_)
     {
         BOOST_AUTO(user_interface, cur_client->get_user_interface());
         
         if (user_interface != NULL)
         {
-            user_interface->update_wholist(names_array);
+            user_interface->update_wholist(names);
         }
     }
 }

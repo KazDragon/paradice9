@@ -73,8 +73,8 @@ protected :
     /// in a custom manner.
     //* =====================================================================
     virtual extent do_get_preferred_size(
-        runtime_array< shared_ptr<component> > const &components
-      , runtime_array< any >                   const &hints) const
+        vector< shared_ptr<component> > const &components
+      , vector< any >                   const &hints) const
     {
         // The preferred width is the width of the first component.  There
         // should only be one component in this anyway.
@@ -93,9 +93,9 @@ protected :
     /// manner.
     //* =====================================================================
     virtual void do_layout(
-        runtime_array< shared_ptr<component> > const &components
-      , runtime_array< any >                   const &hints
-      , extent                                        size)
+        vector< shared_ptr<component> > const &components
+      , vector< any >                   const &hints
+      , extent                                 size)
     {
         BOOST_FOREACH(shared_ptr<component> current_component, components)
         {
@@ -120,6 +120,7 @@ struct dropdown_list::impl
     impl(dropdown_list &self)
         : self_(self)
         , dropdown_open_(false)
+        , closing_dropdown_(false)
     {
         focussed_pen_.foreground_colour_ = attribute::high_colour(1, 4, 5);
     }
@@ -129,10 +130,7 @@ struct dropdown_list::impl
     // ======================================================================
     void on_item_changed(s32)
     {
-        runtime_array<element_type> const &arr = self_.get_item();
-
-        selected_text_->set_image(
-            runtime_array< runtime_array<element_type> >(&arr, 1));
+        selected_text_->set_image(list_of(self_.get_item()));
     }
 
     // ======================================================================
@@ -140,8 +138,25 @@ struct dropdown_list::impl
     // ======================================================================
     void on_dropdown_lost_focus()
     {
-        close_dropdown();
-        dropdown_button_->set_focus();
+        if (!closing_dropdown_)
+        {
+            dropdown_open_ = false;
+
+            self_.get_container()->remove_component(dropdown_);
+
+            bottom_left_corner_->set_attribute(
+                ATTRIBUTE_GLYPH
+              , double_lined_bottom_left_corner);
+
+            bottom_tee_->set_attribute(
+                ATTRIBUTE_GLYPH
+              , double_lined_bottom_tee);
+
+            self_.lose_focus();
+            update_pen();
+
+            self_.on_layout_change();
+        }
     }
 
     // ======================================================================
@@ -153,7 +168,6 @@ struct dropdown_list::impl
         {
             dropdown_open_ = true;
             self_.get_container()->add_component(dropdown_);
-            self_.on_layout_change();
 
             bottom_left_corner_->set_attribute(
                 ATTRIBUTE_GLYPH
@@ -164,6 +178,7 @@ struct dropdown_list::impl
               , double_lined_cross);
 
             list_->set_focus();
+            self_.on_layout_change();
         }
     }
 
@@ -174,10 +189,10 @@ struct dropdown_list::impl
     {
         if (dropdown_open_)
         {
+            closing_dropdown_ = true;
             dropdown_open_ = false;
             dropdown_button_->set_focus();
             self_.get_container()->remove_component(dropdown_);
-            self_.on_layout_change();
 
             bottom_left_corner_->set_attribute(
                 ATTRIBUTE_GLYPH
@@ -186,6 +201,9 @@ struct dropdown_list::impl
             bottom_tee_->set_attribute(
                 ATTRIBUTE_GLYPH
               , double_lined_bottom_tee);
+            closing_dropdown_ = false;
+
+            self_.on_layout_change();
         }
     }
 
@@ -202,22 +220,29 @@ struct dropdown_list::impl
     }
 
     // ======================================================================
+    // TOGGLE_DROPDOWN
+    // ======================================================================
+    void toggle_dropdown()
+    {
+        if (dropdown_open_)
+        {
+            close_dropdown();
+        }
+        else
+        {
+            open_dropdown();
+        }
+    }
+
+    // ======================================================================
     // DO_CHARACTER_EVENT
     // ======================================================================
     bool do_character_event(char ch)
     {
         if (ch == '\n')
         {
-            if (dropdown_open_)
-            {
-                close_dropdown();
-                return true;
-            }
-            else
-            {
-                open_dropdown();
-                return true;
-            }
+            toggle_dropdown();
+            return true;
         }
 
         return false;
@@ -267,6 +292,16 @@ struct dropdown_list::impl
     bool do_ansi_mouse_report_event(
         odin::ansi::mouse_report const &mouse_report)
     {
+        if (mouse_report.x_position_ >= self_.get_size().width - 3)
+        {
+            if (mouse_report.button_ == odin::ansi::mouse_report::BUTTON_UP)
+            {
+                toggle_dropdown();
+            }
+            
+            return true;
+        }
+        
         return false;
     }
 
@@ -281,6 +316,7 @@ struct dropdown_list::impl
     shared_ptr<list>                              list_;
     shared_ptr<component>                         dropdown_;
     bool                                          dropdown_open_;
+    bool                                          closing_dropdown_;
 };
 
 // ==========================================================================
@@ -291,8 +327,8 @@ dropdown_list::dropdown_list()
     pimpl_ = make_shared<impl>(ref(*this));
 
     BOOST_AUTO(content, get_container());
-    content->on_focus_set.connect(bind(&impl::update_pen, pimpl_.get()));
-    content->on_focus_lost.connect(bind(&impl::update_pen, pimpl_.get()));
+    on_focus_set.connect(bind(&impl::update_pen, pimpl_.get()));
+    on_focus_lost.connect(bind(&impl::update_pen, pimpl_.get()));
 
     // Construct the top right part of the dropdown +-+
     BOOST_AUTO(dropdown_top_left, make_shared<filled_box>(
@@ -427,7 +463,7 @@ dropdown_list::~dropdown_list()
 // ==========================================================================
 // SET_ITEMS
 // ==========================================================================
-void dropdown_list::set_items(runtime_array< runtime_array<element_type> > const &items)
+void dropdown_list::set_items(vector< vector<element_type> > const &items)
 {
     pimpl_->list_->set_items(items);
 }
@@ -451,7 +487,7 @@ s32 dropdown_list::get_item_index() const
 // ==========================================================================
 // GET_ITEM
 // ==========================================================================
-runtime_array<element_type> dropdown_list::get_item() const
+vector<element_type> dropdown_list::get_item() const
 {
     return pimpl_->list_->get_item();
 }

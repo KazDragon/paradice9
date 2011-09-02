@@ -41,8 +41,8 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent aligned_layout::do_get_preferred_size(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints) const
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints) const
 {
     // The preferred size of this component is the largest preferred
     // extents of all components.
@@ -68,9 +68,9 @@ extent aligned_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void aligned_layout::do_layout(
-    runtime_array< shared_ptr<component> > const &components
-  , runtime_array< any >                   const &hints
-  , extent                                        size)
+    vector< shared_ptr<component> > const &components
+  , vector< any >                   const &hints
+  , extent                                 size)
 {
     for (u32 index = 0; index < components.size(); ++index)
     {

@@ -39,7 +39,9 @@
 #include "odin/telnet/options/terminal_type_client.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
+#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
@@ -49,6 +51,7 @@ using namespace munin;
 using namespace odin::telnet::options;
 using namespace odin;
 using namespace boost;
+using namespace boost::assign;
 using namespace std;
 
 namespace paradice {
@@ -111,6 +114,13 @@ struct ansi_input_visitor
     
     void operator()(odin::ansi::mouse_report report)
     {
+        // Mouse reports' x- and y-positions are read as bytes.  Unfortunately,
+        // the parser stores them as signed chars.  This means that positions
+        // of 128 or over are negative.  Therefore, we do some casting magic
+        // to make them unsigned again.
+        report.x_position_ = u8(s8(report.x_position_));
+        report.y_position_ = u8(s8(report.y_position_));
+        
         // Mouse reports are all offset by 32 in the protocol, ostensibly to
         // avoid any other protocol errors.  It then has (1,1) as the origin
         // where we have (0,0), so we must compensate for that too.
@@ -148,7 +158,11 @@ struct ansi_input_visitor
 // CONNECTION::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct connection::impl
+    : public enable_shared_from_this<impl>
 {
+    // ======================================================================
+    // RECONNECT
+    // ======================================================================
     void reconnect(shared_ptr<odin::net::socket> socket)
     {
         socket_ = socket;
@@ -194,11 +208,10 @@ struct connection::impl
         telnet_echo_server_->set_activatable(true);
         telnet_echo_server_->activate();
 
-        telnet_suppress_ga_server_ = 
-            make_shared<suppress_goahead_server>(
-                telnet_stream_
-              , telnet_negotiation_router_
-              , telnet_subnegotiation_router_);
+        telnet_suppress_ga_server_ = make_shared<suppress_goahead_server>(
+            telnet_stream_
+          , telnet_negotiation_router_
+          , telnet_subnegotiation_router_);
         telnet_suppress_ga_server_->set_activatable(true);
         telnet_suppress_ga_server_->activate();
 
@@ -233,27 +246,31 @@ struct connection::impl
     // ======================================================================
     void schedule_next_read()
     {
+        if (!telnet_stream_->is_alive())
+        {
+            return;
+        }
+
         BOOST_AUTO(available, telnet_stream_->available());
         
         if (available.is_initialized())
         {
             telnet_stream_->async_read(
                 odin::telnet::stream::input_size_type(available.get())
-              , bind(&impl::data_read, this, _1));
+              , bind(&impl::data_read, shared_from_this(), _1));
         }
         else
         {
             telnet_stream_->async_read(
                 odin::telnet::stream::input_size_type(1)
-              , bind(&impl::data_read, this, _1));
+              , bind(&impl::data_read, shared_from_this(), _1));
         }
     }
     
     // ======================================================================
     // DATA_READ
     // ======================================================================
-    void data_read(
-        runtime_array<odin::telnet::stream::input_value_type> const &data)
+    void data_read(odin::telnet::stream::input_storage_type const &data)
     {
         apply_input_range(*telnet_input_visitor_, data);
         schedule_next_read();
@@ -266,11 +283,9 @@ struct connection::impl
     {
         if (!error && socket_->is_alive())
         {
-            odin::net::socket::output_value_type values[] = {
-                odin::telnet::IAC, odin::telnet::NOP
-            };
-    
-            socket_->async_write(values, NULL);
+            socket_->async_write(
+                list_of(odin::telnet::IAC)(odin::telnet::NOP)
+              , NULL);
     
             schedule_keepalive();
         }

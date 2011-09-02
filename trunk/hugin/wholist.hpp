@@ -28,8 +28,8 @@
 #define HUGIN_WHOLIST_HPP_
 
 #include "munin/basic_component.hpp"
-#include "odin/runtime_array.hpp"
 #include <string>
+#include <vector>
 
 namespace hugin {
 
@@ -48,7 +48,7 @@ public :
     //* =====================================================================
     /// \brief Set the list of names
     //* =====================================================================
-    void set_names(odin::runtime_array<std::string> const &names);
+    void set_names(std::vector<std::string> const &names);
     
 protected :
     //* =====================================================================

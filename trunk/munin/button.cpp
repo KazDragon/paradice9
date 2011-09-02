@@ -56,7 +56,7 @@ struct button::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-button::button(runtime_array<element_type> const &caption)
+button::button(vector<element_type> const &caption)
     : pimpl_(make_shared<impl>())
 {
     BOOST_AUTO(img, make_shared<image>(caption));

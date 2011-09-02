@@ -29,7 +29,6 @@
 
 #include "munin/types.hpp"
 #include "odin/types.hpp"
-#include "odin/runtime_array.hpp"
 #include <boost/signal.hpp>
 
 namespace munin { namespace text {
@@ -85,7 +84,7 @@ public :
     /// a specified index.
     //* =====================================================================
     void insert_text(
-        odin::runtime_array<element_type> const& text
+        std::vector<element_type> const &text
       , boost::optional<odin::u32> index = boost::optional<odin::u32>());
 
     //* =====================================================================
@@ -105,7 +104,7 @@ public :
     //* =====================================================================
     /// \brief Returns the specified line of text in the document.
     //* =====================================================================
-    odin::runtime_array<element_type> get_line(odin::u32 index) const;
+    std::vector<element_type> get_line(odin::u32 index) const;
 
     //* =====================================================================
     /// \fn on_redraw
@@ -184,8 +183,8 @@ protected :
     /// manner.
     //* =====================================================================
     virtual void do_insert_text(
-        odin::runtime_array<element_type> const& text
-      , boost::optional<odin::u32>               index) = 0;
+        std::vector<element_type> const& text
+      , boost::optional<odin::u32>       index) = 0;
 
     //* =====================================================================
     /// \brief Called by delete_text().  Derived classes must override this
@@ -204,8 +203,7 @@ protected :
     /// \brief Called by get_line().  Derived classes must override this
     /// function in order to return the text line in a custom manner.
     //* =====================================================================
-    virtual odin::runtime_array<element_type> do_get_line(
-        odin::u32 index) const = 0;
+    virtual std::vector<element_type> do_get_line(odin::u32 index) const = 0;
 };
 
 }}

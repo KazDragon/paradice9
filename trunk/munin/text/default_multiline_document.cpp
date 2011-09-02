@@ -25,13 +25,13 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/text/default_multiline_document.hpp"
-#include <algorithm>
-#include <functional>
-#include <vector>
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <algorithm>
+#include <functional>
+#include <vector>
 
 using namespace odin;
 using namespace std;
@@ -318,8 +318,8 @@ u32 default_multiline_document::do_get_text_size() const
 // DO_INSERT_TEXT
 // ==========================================================================
 void default_multiline_document::do_insert_text(
-    runtime_array<munin::element_type> const& text
-  , optional<u32>                             index)
+    vector<munin::element_type> const& text
+  , optional<u32>                      index)
 {
     // Get the current caret position and index.
     BOOST_AUTO(caret_position, get_caret_position());
@@ -439,13 +439,13 @@ u32 default_multiline_document::do_get_number_of_lines() const
 // ==========================================================================
 // DO_GET_LINE
 // ==========================================================================
-runtime_array<munin::element_type> 
+vector<munin::element_type> 
     default_multiline_document::do_get_line(u32 index) const
 {
     // Special case: if the text area is empty, return an empty array.
     if (pimpl_->text_.empty())
     {
-        return runtime_array<munin::element_type>();
+        return vector<munin::element_type>();
     }
 
     if (index < pimpl_->line_indices_.size())
@@ -464,14 +464,14 @@ runtime_array<munin::element_type>
         }
         
         // Return the array of characters from the discovered line.
-        return runtime_array<munin::element_type>(
-            &*pimpl_->text_.begin() + line_begin
-          , line_length);
+        return vector<munin::element_type>(
+            pimpl_->text_.begin() + line_begin
+          , pimpl_->text_.begin() + line_begin + line_length);
     }
     else
     {
         // There was no such line.  Return an empty one.
-        return runtime_array<munin::element_type>();
+        return vector<munin::element_type>();
     }
 }
 

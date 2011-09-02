@@ -105,8 +105,8 @@ void input_visitor::operator()(string const &text)
 // APPLY_INPUT_RANGE
 // ==============================================================================
 void apply_input_range(
-    input_visitor                                       &visitor
-  , odin::runtime_array<stream::input_value_type> const &values)
+    input_visitor                    &visitor
+  , stream::input_storage_type const &values)
 {
     BOOST_FOREACH(odin::telnet::stream::input_value_type value, values)
     {

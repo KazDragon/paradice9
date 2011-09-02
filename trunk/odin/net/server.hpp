@@ -38,12 +38,7 @@ namespace boost { namespace asio {
 
 namespace odin { namespace net {
     class socket;
-}}
-
-namespace paradice {
     
-class context;    
-
 //* =========================================================================
 /// \brief Implements a tcp/ip server.
 /// \par Usage
@@ -82,6 +77,6 @@ private :
     boost::shared_ptr<impl> pimpl_;
 };
 
-}
+}}
 
 #endif

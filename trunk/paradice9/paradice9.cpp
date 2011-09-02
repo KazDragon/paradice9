@@ -35,12 +35,12 @@
 #include "paradice/connection.hpp"
 #include "paradice/help.hpp"
 #include "paradice/rules.hpp"
-#include "paradice/server.hpp"
 #include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
 #include "munin/container.hpp"
 #include "munin/window.hpp"
 #include "munin/grid_layout.hpp"
+#include "odin/net/server.hpp"
 #include "odin/net/socket.hpp"
 #include "odin/telnet/protocol.hpp"
 #include "odin/tokenise.hpp"
@@ -147,7 +147,7 @@ public :
         asio::io_service &io_service
       , unsigned int      port)
         : io_service_(io_service) 
-        , server_(new paradice::server(
+        , server_(new odin::net::server(
               io_service_
             , port
             , bind(&impl::on_accept, this, _1)))
@@ -471,7 +471,7 @@ private :
     
         if (socket != NULL)
         {
-            runtime_array<u8> data(paint_data.size());
+            vector<u8> data(paint_data.size());
             copy(paint_data.begin(), paint_data.end(), data.begin());
     
             socket->async_write(data, NULL);
@@ -536,8 +536,7 @@ private :
                     number_of_characters
                   , account->get_number_of_characters());
                 
-                runtime_array< pair<string, string> > characters(
-                    number_of_characters);
+                vector< pair<string, string> > characters(number_of_characters);
                 
                 for(size_t index = 0; index < number_of_characters; ++index)
                 {
@@ -563,7 +562,7 @@ private :
     // ======================================================================
     void on_account_created(
         weak_ptr<paradice::client>  weak_client
-      , string const               &account_name
+      , string                      account_name
       , string const               &password
       , string const               &password_verify)
     {
@@ -612,6 +611,7 @@ private :
             }
             
             shared_ptr<paradice::account> account(new paradice::account);
+            capitalise(account_name);
             account->set_name(account_name);
             account->set_password(password);
             
@@ -969,7 +969,7 @@ private :
     }
     
     asio::io_service              &io_service_;
-    shared_ptr<paradice::server>   server_;
+    shared_ptr<odin::net::server>  server_;
     shared_ptr<paradice::context>  context_;
     
     // A vector of clients whose connections are being negotiated.

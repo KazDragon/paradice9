@@ -50,7 +50,7 @@ void ansi_parser_fixture::test_plain_string()
 
     BOOST_AUTO(result, parse(begin, end));
     
-    CPPUNIT_ASSERT_EQUAL(1, result.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
     BOOST_AUTO(string_result, get<std::string>(result[0]));
     
     CPPUNIT_ASSERT_EQUAL(plain_string, string_result);
@@ -79,7 +79,7 @@ void ansi_parser_fixture::test_csi_no_argument()
     BOOST_AUTO(end,   ansi_command.end());
 
     BOOST_AUTO(result, parse(begin, end));    
-    CPPUNIT_ASSERT_EQUAL(1, result.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
     BOOST_AUTO(result_sequence, get<odin::ansi::control_sequence>(result[0]));
     
     CPPUNIT_ASSERT(result_sequence == expected_sequence);
@@ -110,7 +110,7 @@ void ansi_parser_fixture::test_csi_one_argument()
     BOOST_AUTO(end,   ansi_command.end());
 
     BOOST_AUTO(result, parse(begin, end));    
-    CPPUNIT_ASSERT_EQUAL(1, result.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
     BOOST_AUTO(result_sequence, get<odin::ansi::control_sequence>(result[0]));
     
     CPPUNIT_ASSERT(result_sequence == expected_sequence);
@@ -147,7 +147,7 @@ void ansi_parser_fixture::test_csi_two_arguments()
     BOOST_AUTO(end,   ansi_command.end());
 
     BOOST_AUTO(result, parse(begin, end));    
-    CPPUNIT_ASSERT_EQUAL(1, result.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
     BOOST_AUTO(result_sequence, get<odin::ansi::control_sequence>(result[0]));
     
     CPPUNIT_ASSERT(result_sequence == expected_sequence);
@@ -183,7 +183,7 @@ void ansi_parser_fixture::test_multiple_tokens()
     BOOST_AUTO(end,   input.end());
 
     BOOST_AUTO(result, parse(begin, end));    
-    CPPUNIT_ASSERT_EQUAL(3, result.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(3), result.size());
     BOOST_AUTO(result_element0, get<string>(result[0]));
     BOOST_AUTO(result_element1, get<odin::ansi::control_sequence>(result[1]));
     BOOST_AUTO(result_element2, get<string>(result[2]));
@@ -218,7 +218,7 @@ void ansi_parser_fixture::test_csi_meta_no_argument()
     BOOST_AUTO(end,   ansi_command.end());
 
     BOOST_AUTO(result, parse(begin, end));    
-    CPPUNIT_ASSERT_EQUAL(1, result.size());
+    CPPUNIT_ASSERT_EQUAL(size_t(1), result.size());
     BOOST_AUTO(result_sequence, get<odin::ansi::control_sequence>(result[0]));
     
     CPPUNIT_ASSERT(result_sequence == expected_sequence);

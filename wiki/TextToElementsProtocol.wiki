@@ -77,15 +77,13 @@ E.g. \u+
 
 See http://www.mudpedia.org/wiki/ANSI_colors for exact colours
 
-  * \[_?0?1_
-    * _?0_ = +: optionally, the bold version.
-    * _?1_ = 0..9: change the foreground colour.
+  * \[_?_
+    * _?_ = 0..9: change the foreground colour.
 
-  * \]_?0?1_
-    * _?0_ = +: optionally, the bold version.
-    * _?1_ = 0..9: change the background colour.
+  * \]_?_
+    * _?_ = 0..9: change the background colour.
 
-E.g. {{{\[+6\]0}}} (bold cyan on a black background)
+E.g. {{{\[6\]0}}} (cyan on a black background)
 
 === 256-colours ===
 

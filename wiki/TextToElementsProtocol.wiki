@@ -117,16 +117,14 @@ E.g. {{{\>135}}}: (1 x 36) + (3 x 6) + (5) + 16 = background colour  75,  a gree
 ==== Greyscale Colours ====
 
   * \{_?_
-    * _?_ = a..x: grey intensity as foreground
-
-a..x = 0..23
+    * _?_ = 0..23: grey intensity as foreground
 
 colour = _?_ + 232
 
 E.g. {{{\{m}}}: = 12 + 232 = colour 244, a medium grey on the foreground.
 
   * \}_?_
-    * _?_ = a..x: grey intensity as background
+    * _?_ = 0..23: grey intensity as background
 
 See above for colour chart meanings.
 

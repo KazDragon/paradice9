@@ -134,32 +134,6 @@ struct dropdown_list::impl
     }
 
     // ======================================================================
-    // ON_DROPDOWN_LOST_FOCUS
-    // ======================================================================
-    void on_dropdown_lost_focus()
-    {
-        if (!closing_dropdown_)
-        {
-            dropdown_open_ = false;
-
-            self_.get_container()->remove_component(dropdown_);
-
-            bottom_left_corner_->set_attribute(
-                ATTRIBUTE_GLYPH
-              , double_lined_bottom_left_corner);
-
-            bottom_tee_->set_attribute(
-                ATTRIBUTE_GLYPH
-              , double_lined_bottom_tee);
-
-            self_.lose_focus();
-            update_pen();
-
-            self_.on_layout_change();
-        }
-    }
-
-    // ======================================================================
     // OPEN_DROPDOWN
     // ======================================================================
     void open_dropdown()
@@ -292,7 +266,10 @@ struct dropdown_list::impl
     bool do_ansi_mouse_report_event(
         odin::ansi::mouse_report const &mouse_report)
     {
-        if (mouse_report.x_position_ >= self_.get_size().width - 3)
+        // Detect if the click occurred within the dropdown-button area.
+        // Otherwise, we don't care.
+        if (mouse_report.x_position_ >= self_.get_size().width - 3
+         && mouse_report.y_position_ < 3)
         {
             if (mouse_report.button_ == odin::ansi::mouse_report::BUTTON_UP)
             {
@@ -415,8 +392,6 @@ dropdown_list::dropdown_list()
     pimpl_->list_ = make_shared<list>();
     pimpl_->list_->on_item_changed.connect(
         bind(&impl::on_item_changed, pimpl_.get(), _1));
-    pimpl_->list_->on_focus_lost.connect(
-        bind(&impl::on_dropdown_lost_focus, pimpl_.get()));
     BOOST_AUTO(scroller, make_shared<scroll_pane>(pimpl_->list_, false));
 
     // Put the scrollpane in a fixed-height layout so that it doesn't prefer to

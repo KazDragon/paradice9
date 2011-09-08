@@ -1,4 +1,4 @@
-#summary Describes a text protocol whereby colour codes, locales, etc.
+#summary Describes a text protocol for colour codes, locales, etc.
 
 = Introduction =
 

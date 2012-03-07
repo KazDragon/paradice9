@@ -29,6 +29,7 @@
 
 #include "paradice/context.hpp"
 #include "odin/net/server.hpp"
+#include <boost/asio/io_service.hpp>
 
 //* =========================================================================
 /// \brief Describes the context in which a Paradice server runs.
@@ -39,7 +40,10 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    context_impl(boost::shared_ptr<odin::net::server> server);
+    context_impl(
+        boost::asio::io_service                         &io_service
+      , boost::shared_ptr<odin::net::server>             server
+      , boost::shared_ptr<boost::asio::io_service::work> work);
     
     //* =====================================================================
     /// \brief Denstructor

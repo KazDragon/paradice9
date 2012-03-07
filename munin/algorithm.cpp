@@ -439,5 +439,20 @@ vector<element_type> string_to_elements(string const &str)
     return visitor.get_elements();
 }
 
+// ==========================================================================
+// STRINGS_TO_ELEMENTS
+// ==========================================================================
+vector< vector<element_type> > strings_to_elements(
+    vector<string> const &strings)
+{
+    vector< vector<element_type> > result;
+    BOOST_FOREACH(string const &str, strings)
+    {
+        result.push_back(string_to_elements(str));
+    }
+    
+    return result;
+}
+
 }
 

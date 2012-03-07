@@ -63,8 +63,7 @@ public :
         BidirectionalInputIterator &start
       , BidirectionalInputIterator  end) const
     {
-        static parser_grammar<BidirectionalInputIterator> g;
-        
+        parser_grammar<BidirectionalInputIterator> g;
         result_type result;
         boost::spirit::qi::parse(start, end, g, result);
         

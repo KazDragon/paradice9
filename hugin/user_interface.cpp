@@ -34,8 +34,11 @@
 #include "munin/basic_container.hpp"
 #include "munin/card.hpp"
 #include "munin/grid_layout.hpp"
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <deque>
 
 using namespace munin;
 using namespace odin;
@@ -48,7 +51,14 @@ namespace hugin {
 // USER_INTERFACE::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct user_interface::impl
+    : public enable_shared_from_this<impl>
 {
+    impl(boost::asio::strand &strand)
+        : strand_(strand)
+    {
+    }
+    
+    boost::asio::strand                   &strand_;
     shared_ptr<card>                       active_screen_;
     string                                 active_face_;                  
     
@@ -58,13 +68,84 @@ struct user_interface::impl
     shared_ptr<character_creation_screen>  character_creation_screen_;
     shared_ptr<main_screen>                main_screen_;
     shared_ptr<password_change_screen>     password_change_screen_;
+
+    mutex                                  dispatch_queue_mutex_;
+    deque< function<void ()> >             dispatch_queue_;
+    
+    // ======================================================================
+    // SELECT_FACE
+    // ======================================================================
+    void select_face(string const &face_name)
+    {
+        active_screen_->select_face(face_name);
+        active_screen_->set_focus();
+        active_face_ = face_name;
+    }
+    
+    // ======================================================================
+    // SET_STATUSBAR_TEXT
+    // ======================================================================
+    void set_statusbar_text(vector<element_type> const &text)
+    {
+        if (active_face_ == hugin::FACE_INTRO)
+        {
+            intro_screen_->set_statusbar_text(text);
+        }
+        else if (active_face_ == hugin::FACE_ACCOUNT_CREATION)
+        {
+            account_creation_screen_->set_statusbar_text(text);
+        }
+        else if (active_face_ == hugin::FACE_CHAR_CREATION)
+        {
+            character_creation_screen_->set_statusbar_text(text);
+        }
+        else if (active_face_ == hugin::FACE_PASSWORD_CHANGE)
+        {
+            password_change_screen_->set_statusbar_text(text);
+        }
+    }
+    
+    // ======================================================================
+    // ASYNC
+    // ======================================================================
+    void async(function<void ()> fn)
+    {
+        {
+            unique_lock<mutex> lock(dispatch_queue_mutex_);
+            dispatch_queue_.push_back(fn);
+        }
+        
+        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+    }
+
+private:
+    // ======================================================================
+    // DISPATCH_QUEUE
+    // ======================================================================
+    void dispatch_queue()
+    {
+        function<void ()> fn;
+
+        unique_lock<mutex> lock(dispatch_queue_mutex_);
+        
+        while (!dispatch_queue_.empty())
+        {
+            fn = dispatch_queue_.front();
+            dispatch_queue_.pop_front();
+            lock.unlock();
+
+            fn();
+            
+            lock.lock();
+        }
+    }
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-user_interface::user_interface()
-    : pimpl_(make_shared<impl>())
+user_interface::user_interface(boost::asio::strand &strand)
+    : pimpl_(make_shared<impl>(ref(strand)))
 {
     pimpl_->active_screen_              = make_shared<card>();
     pimpl_->intro_screen_               = make_shared<intro_screen>();
@@ -100,7 +181,7 @@ user_interface::user_interface()
 // ==========================================================================
 void user_interface::clear_intro_screen()
 {
-    pimpl_->intro_screen_->clear();
+    pimpl_->async(bind(&intro_screen::clear, pimpl_->intro_screen_));
 }
 
 // ==========================================================================
@@ -108,7 +189,8 @@ void user_interface::clear_intro_screen()
 // ==========================================================================
 void user_interface::clear_account_creation_screen()
 {
-    pimpl_->account_creation_screen_->clear();
+    pimpl_->async(bind(
+        &account_creation_screen::clear, pimpl_->account_creation_screen_));
 }
 
 // ==========================================================================
@@ -123,7 +205,8 @@ void user_interface::clear_character_selection_screen()
 // ==========================================================================
 void user_interface::clear_character_creation_screen()
 {
-    pimpl_->character_creation_screen_->clear();
+    pimpl_->async(bind(
+        &character_creation_screen::clear, pimpl_->character_creation_screen_));
 }
 
 // ==========================================================================
@@ -131,7 +214,7 @@ void user_interface::clear_character_creation_screen()
 // ==========================================================================
 void user_interface::clear_main_screen()
 {
-    pimpl_->main_screen_->clear();
+    pimpl_->async(bind(&main_screen::clear, pimpl_->main_screen_));
 }
 
 // ==========================================================================
@@ -139,7 +222,8 @@ void user_interface::clear_main_screen()
 // ==========================================================================
 void user_interface::clear_password_change_screen()
 {
-    pimpl_->password_change_screen_->clear();
+    pimpl_->async(bind(
+        &password_change_screen::clear, pimpl_->password_change_screen_));
 }
 
 // ==========================================================================
@@ -233,7 +317,10 @@ void user_interface::on_character_creation_cancelled(
 void user_interface::set_character_names(        
     vector< pair<string, string> > const &names)
 {
-    pimpl_->character_selection_screen_->set_character_names(names);
+    pimpl_->async(bind(
+        &character_selection_screen::set_character_names
+      , pimpl_->character_selection_screen_
+      , names));
 }
     
 // ==========================================================================
@@ -241,9 +328,7 @@ void user_interface::set_character_names(
 // ==========================================================================
 void user_interface::select_face(string const &face_name)
 {
-    pimpl_->active_screen_->select_face(face_name);
-    pimpl_->active_screen_->set_focus();
-    pimpl_->active_face_ = face_name;
+    pimpl_->async(bind(&impl::select_face, pimpl_, face_name)); 
 }
 
 // ==========================================================================
@@ -251,7 +336,10 @@ void user_interface::select_face(string const &face_name)
 // ==========================================================================
 void user_interface::add_output_text(vector<element_type> const &text)
 {
-    pimpl_->main_screen_->add_output_text(text);
+    pimpl_->async(bind(
+        &main_screen::add_output_text
+      , pimpl_->main_screen_
+      , text));
 }
 
 // ==========================================================================
@@ -259,22 +347,7 @@ void user_interface::add_output_text(vector<element_type> const &text)
 // ==========================================================================
 void user_interface::set_statusbar_text(vector<element_type> const &text)
 {
-    if (pimpl_->active_face_ == hugin::FACE_INTRO)
-    {
-        pimpl_->intro_screen_->set_statusbar_text(text);
-    }
-    else if (pimpl_->active_face_ == hugin::FACE_ACCOUNT_CREATION)
-    {
-        pimpl_->account_creation_screen_->set_statusbar_text(text);
-    }
-    else if (pimpl_->active_face_ == hugin::FACE_CHAR_CREATION)
-    {
-        pimpl_->character_creation_screen_->set_statusbar_text(text);
-    }
-    else if (pimpl_->active_face_ == hugin::FACE_PASSWORD_CHANGE)
-    {
-        pimpl_->password_change_screen_->set_statusbar_text(text);
-    }
+    pimpl_->async(bind(&impl::set_statusbar_text, pimpl_, text));
 }
 
 // ==========================================================================
@@ -282,7 +355,10 @@ void user_interface::set_statusbar_text(vector<element_type> const &text)
 // ==========================================================================
 void user_interface::update_wholist(vector<string> const &names)
 {
-    pimpl_->main_screen_->update_wholist(names);
+    pimpl_->async(bind(
+        &main_screen::update_wholist
+      , pimpl_->main_screen_
+      , names));
 }
 
 // ==========================================================================
@@ -290,7 +366,10 @@ void user_interface::update_wholist(vector<string> const &names)
 // ==========================================================================
 void user_interface::add_command_history(string const &history)
 {
-    pimpl_->main_screen_->add_command_history(history);
+    pimpl_->async(bind(
+        &main_screen::add_command_history
+      , pimpl_->main_screen_
+      , history));
 }
 
 // ==========================================================================
@@ -298,7 +377,7 @@ void user_interface::add_command_history(string const &history)
 // ==========================================================================
 void user_interface::show_help_window()
 {
-    pimpl_->main_screen_->show_help_window();
+    pimpl_->async(bind(&main_screen::show_help_window, pimpl_->main_screen_));
 }
 
 // ==========================================================================
@@ -306,7 +385,7 @@ void user_interface::show_help_window()
 // ==========================================================================
 void user_interface::hide_help_window()
 {
-    pimpl_->main_screen_->hide_help_window();
+    pimpl_->async(bind(&main_screen::hide_help_window, pimpl_->main_screen_));
 }
 
 // ==========================================================================

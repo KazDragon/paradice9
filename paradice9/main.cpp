@@ -27,25 +27,49 @@
 #include "paradice9.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
+#include <boost/thread.hpp>
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 using namespace boost;
 
 namespace po = boost::program_options;
 
+static void run_io_service(asio::io_service &io_service)
+{
+    /* Thread Debug
+    cout << "Running io_service in thread " 
+         << boost::this_thread::get_id() 
+         << endl;
+    //*/
+    
+    io_service.run();
+    
+    /* Thread Debug
+    cout << "io_service in thread " 
+         << boost::this_thread::get_id() 
+         << " finished" 
+         << endl;
+    //*/
+}
+
 int main(int argc, char *argv[])
 {
     srand(static_cast<unsigned int>(time(NULL)));
 
-    unsigned int port = 4000;
+    unsigned int port        = 4000;
+    string       threads     = "";
+    unsigned int concurrency = 0;
     
     po::options_description description("Available options");
     description.add_options()
-        ( "help,h", "show this help message" )
-        ( "port,p", po::value<unsigned int>(&port), "port number" )
+        ( "help,h",                                       "show this help message"                            )
+        ( "port,p",    po::value<unsigned int>(&port),    "port number"                                       )
+        ( "threads,t", po::value<string>(&threads),       "number of threads of execution (0 for autodetect)" )
         ;
 
     po::positional_options_description pos_description;
@@ -70,6 +94,37 @@ int main(int argc, char *argv[])
         else if (vm.count("port") == 0)
         {
             throw po::error("Port number must be specified");
+        }
+
+        if (vm.count("threads") == 0)
+        {
+            concurrency = 1;
+        }
+        else
+        {
+            try
+            {
+                concurrency = lexical_cast<unsigned int>(threads);
+            }
+            catch(...)
+            {
+                // Failure is to be expected here, since it might be an empty
+                // string.  In this case, concurrency will be a detectable 0.
+            }
+            
+            if (concurrency == 0)
+            {
+                concurrency = thread::hardware_concurrency();
+            }
+
+            // According to the Boost docs, "thread::hardware_concurrency()" 
+            // may return 0 on platforms that don't have information available
+            // about cores/hyperthreading units, etc.  In this case, we will
+            // default to one thread.
+            if (concurrency == 0)
+            {
+                concurrency = 1;
+            }
         }
     }
     catch(po::error &err)
@@ -97,8 +152,26 @@ int main(int argc, char *argv[])
 
     asio::io_service io_service;
     
-    paradice9 application(io_service, port);
-    io_service.run();
+    paradice9 application(
+        io_service
+      , make_shared<asio::io_service::work>(ref(io_service))
+      , port);
+ 
+    vector< shared_ptr<thread> > threadpool;
 
+    for (unsigned int thr = 0; thr < concurrency; ++thr)
+    {
+        threadpool.push_back(
+            make_shared<thread>(&run_io_service, ref(io_service)));
+    }
+    
+    for (vector< shared_ptr<thread> >::iterator pthread = threadpool.begin();
+         pthread != threadpool.end();
+         ++pthread)
+    {
+        (*pthread)->join();
+    }
+    
     return EXIT_SUCCESS;
 }
+

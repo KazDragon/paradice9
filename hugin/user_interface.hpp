@@ -28,6 +28,7 @@
 #define HUGIN_USER_INTERFACE_HPP_
 
 #include "munin/composite_component.hpp"
+#include <boost/asio/strand.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
@@ -52,7 +53,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    user_interface();
+    user_interface(boost::asio::strand &strand);
     
     //* =====================================================================
     /// \brief Clears the intro screen.

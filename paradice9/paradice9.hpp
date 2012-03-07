@@ -27,16 +27,25 @@
 #ifndef PARADICE9_HPP_
 #define PARADICE9_HPP_
 
+#include <boost/asio/io_service.hpp>
 #include <boost/shared_ptr.hpp>
 
-namespace boost { namespace asio {
-    class io_service;
-}}
-
+//* =========================================================================
+/// \brief A class that implements the main engine for the Paradice9 server.
+/// \param io_service - The engine will be run within using the dispatch
+///        mechanisms of this object.
+/// \brief work - A "work" object.  While this is not reset, the threads'
+///        run() methods will not terminate.  Resetting this work object
+///        is part of the shutdown protocol.
+/// \brief port - The server will be set up on this port number.
+//* =========================================================================
 class paradice9
 {
 public :
-    paradice9(boost::asio::io_service &io_service, unsigned int port);
+    paradice9(
+        boost::asio::io_service                          &io_service
+      , boost::shared_ptr<boost::asio::io_service::work>  work
+      , unsigned int                                      port);
     
 private :
     struct impl;

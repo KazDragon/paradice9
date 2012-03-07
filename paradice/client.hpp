@@ -28,6 +28,8 @@
 #define PARADICE_CLIENT_HPP_
 
 #include "odin/types.hpp"
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
@@ -38,19 +40,30 @@ namespace hugin {
 namespace paradice {
     class account;
     class character;
-    class socket;
     class connection;
+    class context;
 }
+
+namespace munin {
+    class window;
+}
+
+namespace boost { namespace asio {
+    class io_service;
+}}
 
 namespace paradice {
 
 class client
+    : public boost::enable_shared_from_this<client>
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    client();
+    client(
+        boost::asio::io_service    &io_service
+      , boost::shared_ptr<context>  ctx);
 
     //* =====================================================================
     /// \brief Destructor
@@ -63,25 +76,24 @@ public :
     void set_connection(boost::shared_ptr<connection> const &new_connection);
     
     //* =====================================================================
-    /// \brief Retrieves the connection on which this client operates.
-    //* =====================================================================
-    boost::shared_ptr<connection> get_connection();
-    
-    //* =====================================================================
-    /// \brief Sets the user interface for the client.
-    //* =====================================================================
-    void set_user_interface(
-        boost::shared_ptr<hugin::user_interface> user_interface);
-    
-    //* =====================================================================
     /// \brief Gets the user interface for the client.
     //* =====================================================================
     boost::shared_ptr<hugin::user_interface> get_user_interface();
     
     //* =====================================================================
+    /// \brief Gets the window for the client.
+    //* =====================================================================
+    boost::shared_ptr<munin::window> get_window();
+
+    //* =====================================================================
     /// \brief Sets the title of the client's window
     //* =====================================================================
     void set_window_title(std::string const &title);
+
+    //* =====================================================================
+    /// \brief Sets the size of the client's window
+    //* =====================================================================
+    void set_window_size(odin::u16 width, odin::u16 height);
 
     //* =====================================================================
     /// \brief Sets the account that the client is currently using.
@@ -104,17 +116,17 @@ public :
     boost::shared_ptr<character> get_character() const;
 
     //* =====================================================================
-    /// \brief Sets the command that the client last used.
+    /// \brief Disconnects the client from the server.
     //* =====================================================================
-    void set_last_command(std::string const &cmd);
-
+    void disconnect();
+    
     //* =====================================================================
-    /// \brief Gets the command that the client last used.
+    /// \brief Sets up a callback for if the client's connection dies.
     //* =====================================================================
-    std::string get_last_command() const;
-
+    void on_connection_death(boost::function<void ()> callback);
+    
 private :
-    struct impl;
+    class impl;
     boost::shared_ptr<impl> pimpl_;
 };
 

@@ -33,6 +33,7 @@
 #include <boost/function.hpp>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace boost { namespace asio {
     class io_service;
@@ -68,9 +69,15 @@ public :
     ~connection();
     
     //* =====================================================================
-    /// \brief Returns the window that this connection maintains.
+    /// \brief Starts reading from the other end of the connection.  Until
+    /// this is called, no reads will take place.
     //* =====================================================================
-    boost::shared_ptr<munin::window> get_window();
+    void start();
+
+    //* =====================================================================
+    /// \brief Writes raw data to the connection.
+    //* =====================================================================
+    void write(std::vector<odin::u8> const &data);
 
     //* =====================================================================
     /// \brief Set a function to be called when the window size changes.
@@ -98,6 +105,12 @@ public :
     //* =====================================================================
     void on_control_sequence(
         boost::function<void (odin::ansi::control_sequence)> callback);
+
+    //* =====================================================================
+    /// \brief Set up a callback to be called when the underlying socket
+    /// dies.
+    //* =====================================================================
+    void on_socket_death(boost::function<void ()> callback);
 
     //* =====================================================================
     /// \brief Disconnects the socket.

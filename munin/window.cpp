@@ -391,10 +391,14 @@ public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(window &self, boost::asio::io_service &io_service)
+    impl(
+        window                  &self
+      , boost::asio::io_service &io_service
+      , boost::asio::strand     &strand)
         : self_(self)
         , self_valid_(true)
         , io_service_(io_service)
+        , strand_(strand)
         , content_(make_shared<basic_container>())
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
@@ -523,7 +527,7 @@ private :
         // any further repaint requests.
         if (!repaint_scheduled_)
         {
-            io_service_.post(bind(&impl::do_repaint, shared_from_this()));
+            strand_.post(bind(&impl::do_repaint, shared_from_this()));
             repaint_scheduled_ = true;
         }
     }
@@ -537,7 +541,7 @@ private :
         // if there's one already scheduled.
         if (!layout_scheduled_)
         {
-            io_service_.post(bind(&impl::do_layout, shared_from_this()));
+            strand_.post(bind(&impl::do_layout, shared_from_this()));
             layout_scheduled_ = true;
         }
     }
@@ -728,6 +732,7 @@ private :
     bool                          self_valid_;
     
     boost::asio::io_service      &io_service_;
+    boost::asio::strand          &strand_;
     boost::shared_ptr<container>  content_;
     canvas                        canvas_;
     glyph                         glyph_;
@@ -749,9 +754,9 @@ private :
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-window::window(boost::asio::io_service &io_service)
+window::window(boost::asio::io_service &io_service, boost::asio::strand &strand)
 {
-    pimpl_ = make_shared<impl>(ref(*this), ref(io_service));
+    pimpl_ = make_shared<impl>(ref(*this), ref(io_service), ref(strand));
 }
 
 // ==========================================================================

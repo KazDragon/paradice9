@@ -31,8 +31,10 @@
 #include "hugin/user_interface.hpp"
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <fstream>
@@ -108,17 +110,199 @@ static string get_character_address(shared_ptr<paradice::character> &ch)
 // ==========================================================================
 struct context_impl::impl
 {
+    impl(
+        asio::io_service                   &io_service
+      , shared_ptr<odin::net::server>       server
+      , shared_ptr<asio::io_service::work>  work)
+      : strand_(io_service)
+      , server_(server)
+      , work_(work)
+    {
+    }
+    
+    // ======================================================================
+    // ADD_CLIENT
+    // ======================================================================
+    void add_client(shared_ptr<paradice::client> const &cli)
+    {
+        clients_.push_back(cli);
+    }
+
+    // ======================================================================
+    // REMOVE_CLIENT
+    // ======================================================================
+    void remove_client(shared_ptr<paradice::client> const &cli)
+    {
+        clients_.erase(
+            std::remove(
+                clients_.begin()
+              , clients_.end()
+              , cli)
+          , clients_.end());
+    }
+
+    // ======================================================================
+    // UPDATE_NAMES
+    // ======================================================================
+    void update_names()
+    {
+        vector<string> names;
+        
+        BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients_)
+        {
+            BOOST_AUTO(character, cur_client->get_character());
+            
+            if (character != NULL)
+            {
+                BOOST_AUTO(name, get_character_address(character));
+                
+                if (!name.empty())
+                {
+                    names.push_back(name);
+                }
+            }
+        }
+        
+        BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients_)
+        {
+            BOOST_AUTO(user_interface, cur_client->get_user_interface());
+            
+            if (user_interface != NULL)
+            {
+                user_interface->update_wholist(names);
+            }
+        }
+    }
+
+    // ======================================================================
+    // LOAD_ACCOUNT
+    // ======================================================================
+    void load_account(string const &name, shared_ptr<paradice::account> &acct)
+    {
+        BOOST_AUTO(account_path, get_accounts_path() / name);
+        
+        if (exists(account_path))
+        {
+            try
+            {
+                ifstream in(account_path.string().c_str());
+                xml_iarchive ia(in);
+                
+                acct = make_shared<paradice::account>();
+                ia >> boost::serialization::make_nvp("account", *acct);
+            }
+            catch (std::exception &ex)
+            {
+                cerr << "Exception caught trying to load account: "
+                     << account_path.string()
+                     << "\n"
+                     << "    Error: "
+                     << ex.what()
+                     << endl;
+            }
+        }
+    }
+
+    // ======================================================================
+    // SAVE_ACCOUNT
+    // ======================================================================
+    void save_account(shared_ptr<paradice::account> acct)
+    {
+        BOOST_AUTO(
+            account_path
+          , get_accounts_path() / acct->get_name());
+        
+        try
+        {
+            ofstream out(account_path.string().c_str());
+            xml_oarchive oa(out);
+            oa << boost::serialization::make_nvp("account", *acct);
+        }
+        catch (std::exception &ex)
+        {
+            cerr << "Exception caught trying to save account: "
+                 << account_path.string()
+                 << "\n"
+                 << "    Error: "
+                 << ex.what()
+                 << endl;
+        }
+    }
+
+    // ======================================================================
+    // LOAD_CHARACTER
+    // ======================================================================
+    void load_character(
+        string const                    &name
+      , shared_ptr<paradice::character> &ch)
+    {
+        BOOST_AUTO(
+            character_path
+          , get_characters_path() / name);
+        
+        if (exists(character_path))
+        {
+            try
+            {
+                ifstream in(character_path.string().c_str());
+                xml_iarchive ia(in);
+                
+                ch = make_shared<paradice::character>();
+                ia >> boost::serialization::make_nvp("character", *ch);
+            }
+            catch (std::exception &ex)
+            {
+                cerr << "Exception caught trying to load character: "
+                     << character_path.string()
+                     << "\n"
+                     << "    Error: "
+                     << ex.what()
+                     << endl;
+            }
+        }
+    }
+
+    // ======================================================================
+    // SAVE_CHARACTER
+    // ======================================================================
+    void save_character(shared_ptr<paradice::character> &ch)
+    {
+        BOOST_AUTO(
+            character_path
+          , get_characters_path() / ch->get_name());
+        
+        try
+        {
+            ofstream out(character_path.string().c_str());
+            xml_oarchive oa(out);
+            oa << boost::serialization::make_nvp("character", *ch);
+        }
+        catch (std::exception &ex)
+        {
+            cerr << "Exception caught trying to save character: "
+                 << character_path.string()
+                 << "\n"
+                 << "    Error: "
+                 << ex.what()
+                 << endl;
+        }
+    }
+
+    asio::strand                           strand_;
     shared_ptr<odin::net::server>          server_;
+    shared_ptr<asio::io_service::work>     work_;
     vector< shared_ptr<paradice::client> > clients_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-context_impl::context_impl(shared_ptr<odin::net::server> server)
-    : pimpl_(new impl)
+context_impl::context_impl(
+    asio::io_service                   &io_service
+  , shared_ptr<odin::net::server>       server
+  , shared_ptr<asio::io_service::work>  work)
+    : pimpl_(new impl(io_service, server, work))
 {
-    pimpl_->server_ = server;
 }
     
 // ==========================================================================
@@ -141,7 +325,7 @@ vector< shared_ptr<paradice::client> > context_impl::get_clients()
 // ==========================================================================
 void context_impl::add_client(shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->clients_.push_back(cli);
+    pimpl_->strand_.dispatch(bind(&impl::add_client, pimpl_, ref(cli)));
 }
 
 // ==========================================================================
@@ -149,12 +333,7 @@ void context_impl::add_client(shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::remove_client(shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->clients_.erase(
-        std::remove(
-            pimpl_->clients_.begin()
-          , pimpl_->clients_.end()
-          , cli)
-      , pimpl_->clients_.end());
+    pimpl_->strand_.dispatch(bind(&impl::remove_client, pimpl_, ref(cli)));
 }
 
 // ==========================================================================
@@ -162,32 +341,7 @@ void context_impl::remove_client(shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::update_names()
 {
-    vector<string> names;
-    
-    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, pimpl_->clients_)
-    {
-        BOOST_AUTO(character, cur_client->get_character());
-        
-        if (character != NULL)
-        {
-            BOOST_AUTO(name, get_character_address(character));
-            
-            if (!name.empty())
-            {
-                names.push_back(name);
-            }
-        }
-    }
-    
-    BOOST_FOREACH(shared_ptr<paradice::client> cur_client, pimpl_->clients_)
-    {
-        BOOST_AUTO(user_interface, cur_client->get_user_interface());
-        
-        if (user_interface != NULL)
-        {
-            user_interface->update_wholist(names);
-        }
-    }
+    pimpl_->strand_.post(bind(&impl::update_names, pimpl_));
 }
 
 // ==========================================================================
@@ -221,36 +375,11 @@ string context_impl::get_moniker(shared_ptr<paradice::character> &ch)
 // ==========================================================================
 shared_ptr<paradice::account> context_impl::load_account(string const &name)
 {
-    BOOST_AUTO(
-        account_path
-      , get_accounts_path() / name);
-    
-    if (exists(account_path))
-    {
-        try
-        {
-            ifstream in(account_path.string().c_str());
-            xml_iarchive ia(in);
-            
-            shared_ptr<paradice::account> account(new paradice::account);
-            ia >> boost::serialization::make_nvp("account", *account);
-            
-            return account;
-        }
-        catch (std::exception &ex)
-        {
-            cerr << "Exception caught trying to load account: "
-                 << account_path.string()
-                 << "\n"
-                 << "    Error: "
-                 << ex.what()
-                 << endl;
+    shared_ptr<paradice::account> acct;
+    pimpl_->strand_.dispatch(bind(
+        &impl::load_account, pimpl_, name, ref(acct)));
 
-            return shared_ptr<paradice::account>();
-        }
-    }
-    
-    return shared_ptr<paradice::account>();
+    return acct;
 }
 
 // ==========================================================================
@@ -258,25 +387,7 @@ shared_ptr<paradice::account> context_impl::load_account(string const &name)
 // ==========================================================================
 void context_impl::save_account(shared_ptr<paradice::account> acct)
 {
-    BOOST_AUTO(
-        account_path
-      , get_accounts_path() / acct->get_name());
-    
-    try
-    {
-        ofstream out(account_path.string().c_str());
-        xml_oarchive oa(out);
-        oa << boost::serialization::make_nvp("account", *acct);
-    }
-    catch (std::exception &ex)
-    {
-        cerr << "Exception caught trying to save account: "
-             << account_path.string()
-             << "\n"
-             << "    Error: "
-             << ex.what()
-             << endl;
-    }
+    pimpl_->strand_.dispatch(bind(&impl::save_account, pimpl_, acct));
 }
 
 // ==========================================================================
@@ -285,36 +396,10 @@ void context_impl::save_account(shared_ptr<paradice::account> acct)
 shared_ptr<paradice::character> context_impl::load_character(
     string const &name)
 {
-    BOOST_AUTO(
-        character_path
-      , get_characters_path() / name);
-    
-    if (exists(character_path))
-    {
-        try
-        {
-            ifstream in(character_path.string().c_str());
-            xml_iarchive ia(in);
-            
-            shared_ptr<paradice::character> character(new paradice::character);
-            ia >> boost::serialization::make_nvp("character", *character);
-            
-            return character;
-        }
-        catch (std::exception &ex)
-        {
-            cerr << "Exception caught trying to load character: "
-                 << character_path.string()
-                 << "\n"
-                 << "    Error: "
-                 << ex.what()
-                 << endl;
-
-            return shared_ptr<paradice::character>();
-        }
-    }
-    
-    return shared_ptr<paradice::character>();
+    shared_ptr<paradice::character> ch;
+    pimpl_->strand_.dispatch(bind(
+        &impl::load_character, pimpl_, name, ref(ch)));
+    return ch;
 }
 
 // ==========================================================================
@@ -322,25 +407,7 @@ shared_ptr<paradice::character> context_impl::load_character(
 // ==========================================================================
 void context_impl::save_character(shared_ptr<paradice::character> ch)
 {
-    BOOST_AUTO(
-        character_path
-      , get_characters_path() / ch->get_name());
-    
-    try
-    {
-        ofstream out(character_path.string().c_str());
-        xml_oarchive oa(out);
-        oa << boost::serialization::make_nvp("character", *ch);
-    }
-    catch (std::exception &ex)
-    {
-        cerr << "Exception caught trying to save character: "
-             << character_path.string()
-             << "\n"
-             << "    Error: "
-             << ex.what()
-             << endl;
-    }
+    pimpl_->strand_.dispatch(bind(&impl::save_character, pimpl_, ch));
 }
 
 // ==========================================================================
@@ -348,6 +415,7 @@ void context_impl::save_character(shared_ptr<paradice::character> ch)
 // ==========================================================================
 void context_impl::shutdown()
 {
+    pimpl_->work_.reset();
     pimpl_->server_->shutdown();
 }
 

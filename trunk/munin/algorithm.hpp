@@ -84,6 +84,12 @@ void copy_region(
 //* =========================================================================
 std::vector<element_type> string_to_elements(std::string const &str);
 
+//* =========================================================================
+/// \brief Converts an array of strings into an array of arrays of elements.
+//* =========================================================================
+std::vector< std::vector<element_type> > strings_to_elements(
+    std::vector<std::string> const &strings);
+
 }
     
 #endif

@@ -33,6 +33,7 @@
 #include "odin/ansi/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/weak_ptr.hpp>
 #include <map>
@@ -61,6 +62,7 @@ namespace {
         string            // category.
       , vector<roll_data> // list of rolls in that category.
     > roll_category;
+    mutex roll_category_mutex;
     
     static bool sort_roll_data_by_score_ascending(
         roll_data const &lhs
@@ -277,7 +279,10 @@ PARADICE_COMMAND_IMPL(roll)
             data.score     = total;
             data.max_roll  = max_roll;
             
-            roll_category[category].push_back(data);
+            {
+                unique_lock<mutex> lock(roll_category_mutex);
+                roll_category[category].push_back(data);
+            }
         }
     }
 
@@ -527,7 +532,12 @@ PARADICE_COMMAND_IMPL(showrolls)
         return;
     }
     
-    vector<roll_data> rolls = roll_category[category];
+    vector<roll_data> rolls;
+    
+    {
+        unique_lock<mutex> lock(roll_category_mutex);
+        rolls = roll_category[category];
+    }
     
     if (rolls.empty())
     {
@@ -601,7 +611,10 @@ PARADICE_COMMAND_IMPL(clearrolls)
         return;
     }
     
-    roll_category[category].clear();
+    {
+        unique_lock<mutex> lock(roll_category_mutex);
+        roll_category[category].clear();
+    }
 
     send_to_player(
         ctx

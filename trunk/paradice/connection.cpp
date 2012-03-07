@@ -25,7 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "connection.hpp"
-#include "munin/window.hpp"
 #include "odin/ansi/parser.hpp"
 #include "odin/net/socket.hpp"
 #include "odin/telnet/stream.hpp"
@@ -43,6 +42,7 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
 #include <string>
@@ -161,6 +161,14 @@ struct connection::impl
     : public enable_shared_from_this<impl>
 {
     // ======================================================================
+    // START
+    // ======================================================================
+    void start()
+    {
+        schedule_next_read();
+    }
+
+    // ======================================================================
     // RECONNECT
     // ======================================================================
     void reconnect(shared_ptr<odin::net::socket> socket)
@@ -174,12 +182,6 @@ struct connection::impl
             make_shared<boost::asio::deadline_timer>(
                 ref(socket_->get_io_service()));
         schedule_keepalive();
-        
-        // Set up the output window if not already done.
-        if (window_ == NULL)
-        {
-            window_ = make_shared<window>(ref(socket_->get_io_service()));
-        }
         
         telnet_stream_ =
             make_shared<odin::telnet::stream>(
@@ -237,8 +239,6 @@ struct connection::impl
             &impl::on_terminal_type_detected
           , this
           , _1));
-        
-        schedule_next_read();
     }
 
     // ======================================================================
@@ -314,11 +314,9 @@ struct connection::impl
           , text.begin()
           , text.end());
         
-        static odin::ansi::parser parse;
-        
         BOOST_AUTO(begin, input_buffer_.begin());
         BOOST_AUTO(end,   input_buffer_.end());
-        BOOST_AUTO(result, parse(begin, end));
+        BOOST_AUTO(result, parse_(begin, end));
         
         ansi_input_visitor visitor(
             on_mouse_report_, on_control_sequence_, on_text_);
@@ -431,8 +429,6 @@ struct connection::impl
     shared_ptr<naws_client>                         telnet_naws_client_;
     shared_ptr<terminal_type_client>                telnet_terminal_type_client_;
 
-    shared_ptr<window> window_;
-
     function<void (u16, u16)>                       on_window_size_changed_;
     function<void (string)>                         on_text_;
     function<void (odin::ansi::control_sequence)>   on_control_sequence_;
@@ -443,6 +439,8 @@ struct connection::impl
     
     string                                          terminal_type_;
     vector< function<void (string)> >               terminal_type_requests_;
+
+    odin::ansi::parser                              parse_;
 };
 
 // ==========================================================================
@@ -463,11 +461,19 @@ connection::~connection()
 }
 
 // ==========================================================================
-// GET_WINDOW
+// START
 // ==========================================================================
-shared_ptr<window> connection::get_window()
+void connection::start()
 {
-    return pimpl_->window_;
+    pimpl_->start();
+}
+
+// ==========================================================================
+// WRITE
+// ==========================================================================
+void connection::write(vector<u8> const &data)
+{
+    pimpl_->socket_->async_write(data, NULL);
 }
 
 // ==========================================================================
@@ -503,6 +509,14 @@ void connection::on_control_sequence(
     function<void (odin::ansi::control_sequence)> callback)
 {
     pimpl_->on_control_sequence_ = callback;
+}
+
+// ==========================================================================
+// ON_SOCKET_DEATH
+// ==========================================================================
+void connection::on_socket_death(function<void ()> callback)
+{
+    pimpl_->socket_->on_death(callback);
 }
 
 // ==========================================================================

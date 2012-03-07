@@ -133,13 +133,8 @@ PARADICE_COMMAND_IMPL(admin_shutdown)
         {
             ctx->save_character(ch);
         }
-        
-        BOOST_AUTO(conn, current_client->get_connection());
-        
-        if (conn != NULL)
-        {
-            conn->disconnect();
-        }
+
+        current_client->disconnect();        
     }
 
     // shutdown

@@ -29,6 +29,7 @@
 
 #include "munin/types.hpp"
 #include <boost/any.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 #include <string>
@@ -52,8 +53,10 @@ public :
     /// \param io_service A boost::asio::io_service object that is used for
     /// coalescing multiple paint requests.  It is assumed that its run()
     /// method is invoked elsewhere.
+    /// \param strand A boost::asio::strand in which all asynchronous calls
+    /// will be run.
     //* =====================================================================
-    window(boost::asio::io_service &io_service);
+    window(boost::asio::io_service &io_service, boost::asio::strand &strand);
     
     //* =====================================================================
     /// \brief Destructor

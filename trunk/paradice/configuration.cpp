@@ -84,7 +84,7 @@ PARADICE_COMMAND_IMPL(set)
         if (token1.first == "mud")
         {
             player->get_account()->set_command_mode(
-                paradice::account::command_mode_mud);
+                account::command_mode_mud);
             
             send_to_player(
                 ctx
@@ -95,7 +95,7 @@ PARADICE_COMMAND_IMPL(set)
         else if (token1.first == "mmo")
         {
             player->get_account()->set_command_mode(
-                paradice::account::command_mode_mmo);
+                account::command_mode_mmo);
             
             send_to_player(
                 ctx
@@ -127,7 +127,7 @@ PARADICE_COMMAND_IMPL(password)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(quit)
 {
-    player->get_connection()->disconnect();
+    player->disconnect();
 }
 
 // ==========================================================================
@@ -136,7 +136,7 @@ PARADICE_COMMAND_IMPL(quit)
 PARADICE_COMMAND_IMPL(logout)
 {
     // First, announce the removal of the player from the game, and make it so.
-    paradice::send_to_room(
+    send_to_room(
         ctx
       , "#SERVER: " 
       + player->get_character()->get_name()
@@ -144,6 +144,8 @@ PARADICE_COMMAND_IMPL(logout)
       , player);
     
     player->set_character(shared_ptr<character>());
+    player->set_account(shared_ptr<account>());
+    
     ctx->update_names();
 
     player->set_window_title("Paradice9");

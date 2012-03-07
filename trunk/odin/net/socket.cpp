@@ -370,7 +370,7 @@ private :
                     (int)(unsigned char)ch[0]
                   , isprint(ch[0]) ? ch : "(*)");
             }
-            */
+            //*/
 
             if (bytes_transferred >= read_requests_.front().values_.size())
             {

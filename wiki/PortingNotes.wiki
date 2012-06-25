@@ -1,4 +1,6 @@
 #labels Phase-Requirements,Featured
+# Notes on how to reuse Paradice with new projects.
+
 = About =
 
 Paradice is more than just the server it currently implements.  It is designed as a framework upon which the implementation of any similar style of server could be built.  Immediate examples include MUDs and Chatters.  Paradice9 could be considered a technology demo of the Paradice framework on a basic chatter.

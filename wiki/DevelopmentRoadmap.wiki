@@ -6,16 +6,16 @@ This page describes the release targets and the purpose of each.  Additionally, 
 
 Releases follow a Features/Fixes cycle.  Implicit between the evenly-numbered releases is an odd numbered release that contains bugfixes for the preceding release.
 
-== Release 1.0 [Application/Complete] ==
+== Release 1.0 {Application/Complete} ==
 Initial release of Paradice9 with the Munin user interface.
 
-== Release 1.2 [Application] ==
+== Release 1.2 {Application/In Progress} ==
 Feature requests for Paradice9.
 
-== Release 1.4 [Paradice] ==
+== Release 1.4 {Paradice} ==
 The target for the 1.4 release is to incorporate multi-threading capabilities across the application and library.
 
-== Release 2.0 [Paradice] ==
+== Release 2.0 {Paradice} ==
 The aim of the 2.0 release is to provide features that enable Paradice applications to service a larger range of clients.  The two primary features that provide this are terminal type detection (#99) and a user interface that is far less ANSI-heavy, but provides hooks for other markups and protocols that are used by the applications targeted by Paradice (e.g. MSDP, MSSP).
 
 The intent of this release is to be able to announce and open the framework to public scrutiny, and possibly add additional development partners. 

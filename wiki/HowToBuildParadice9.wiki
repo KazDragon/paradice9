@@ -21,6 +21,7 @@
 === Prerequisite Tools ===
 
   * g++ compiler
+  * GNU make
   
 === Prerequisite Libraries ===
 

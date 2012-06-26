@@ -1,0 +1,29 @@
+#summary A description of how to build Paradice9 from top to bottom
+#labels Phase-Implementation
+
+(Caution: Work In Progress)
+
+== Windows (Visual Studio) ==
+
+=== Prerequisite Tools ===
+
+  * Visual Studio 2008 Express
+    * Download and install from http://www.microsoft.com/visualstudio/en-us/products/2008-editions/express
+
+=== Prerequisite Libraries ===
+
+  * Boost
+  * Crypto++
+  * CppUnit
+
+== Unix (including Cygwin) ==
+
+=== Prerequisite Tools ===
+
+  * g++ compiler
+  
+=== Prerequisite Libraries ===
+
+  * Boost
+  * Crypto++
+  * CppUnit

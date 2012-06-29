@@ -104,6 +104,17 @@ void account::add_character(string const &character_name)
 }
 
 // ==========================================================================
+// REMOVE_CHARACTER
+// ==========================================================================
+void account::remove_character(string const &character_name)
+{
+    characters_.erase(remove(
+        characters_.begin(), characters_.end()
+      , character_name)
+      , characters_.end());
+}
+
+// ==========================================================================
 // SET_COMMAND_MODE
 // ==========================================================================
 void account::set_command_mode(command_mode mode)

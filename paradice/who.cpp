@@ -31,6 +31,7 @@
 #include "connection.hpp"
 #include "context.hpp"
 #include "utility.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
@@ -43,6 +44,7 @@
 using namespace std;
 using namespace boost;
 using namespace odin;
+using namespace munin;
 
 namespace paradice {
 
@@ -86,8 +88,22 @@ PARADICE_COMMAND_IMPL(title)
             % player->get_character()->get_name()
             % ctx->get_moniker(character))
       , player);
-    
-    ctx->save_character(character);
+
+    try
+    {
+        ctx->save_character(character);
+    }
+    catch(std::exception &ex)
+    {
+        printf("Error saving character %s: %s\n",
+            character->get_name().c_str(), ex.what());
+
+        send_to_player(
+            ctx
+          , string_to_elements("\\[1There was an error saving your character.")
+          , player);
+    }
+
     ctx->update_names();
 }
 
@@ -110,7 +126,22 @@ PARADICE_COMMAND_IMPL(prefix)
             % ctx->get_moniker(character))
       , player);
 
-    ctx->save_character(character);
+
+    try
+    {
+        ctx->save_character(character);
+    }
+    catch(std::exception &ex)
+    {
+        printf("Error saving character %s: %s\n",
+            character->get_name().c_str(), ex.what());
+
+        send_to_player(
+            ctx
+          , string_to_elements("\\[1There was an error saving your character.")
+          , player);
+    }
+
     ctx->update_names();
 }
 

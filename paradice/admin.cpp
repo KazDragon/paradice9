@@ -32,6 +32,7 @@
 #include "connection.hpp"
 #include "context.hpp"
 #include "who.hpp"
+#include "munin/algorithm.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
@@ -40,6 +41,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace munin;
 
 namespace paradice {
 
@@ -82,7 +84,23 @@ PARADICE_COMMAND_IMPL(admin_set_password)
     BOOST_AUTO(account_name, token0.first);
     capitalise(account_name);
     
-    BOOST_AUTO(account, ctx->load_account(account_name));
+    shared_ptr<account> account;
+
+    try
+    {
+        account = ctx->load_account(account_name);
+    }
+    catch(std::exception &ex)
+    {
+        // TODO: Use an actual logging library for this message.
+        printf("Error loading account: %s\n", ex.what());
+
+        send_to_player(
+            ctx
+          , str(format("Error loading that account: %s\n") % ex.what())
+          , player);
+        return;
+    }
     
     if (account == NULL)
     {
@@ -100,7 +118,23 @@ PARADICE_COMMAND_IMPL(admin_set_password)
     }
     
     account->set_password(password);
-    ctx->save_account(account);
+
+    try
+    {
+        ctx->save_account(account);
+    }
+    catch(std::exception &ex)
+    {
+        // TODO: Use an actual logging library for this message.
+        printf("Error saving account: %s\n", ex.what());
+
+        send_to_player(
+            ctx
+          , "Unexpected error setting saving your account.  Please try again."
+          , player);
+        return;
+    }
+
     send_to_player(ctx, "Passwords changed.\n", player);
 }
 
@@ -131,7 +165,24 @@ PARADICE_COMMAND_IMPL(admin_shutdown)
         
         if (ch != NULL)
         {
-            ctx->save_character(ch);
+            try
+            {
+                ctx->save_character(ch);
+            }
+            catch(std::exception &ex)
+            {
+                printf("Error saving character %s: %s\n",
+                    ch->get_name().c_str(), ex.what());
+
+                send_to_player(
+                    ctx
+                  , string_to_elements(str(format(
+                        "\\[1Error saving character: %s.")
+                            % ch->get_name()))
+                  , player);
+
+                return;
+            }
         }
 
         current_client->disconnect();        

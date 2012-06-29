@@ -110,7 +110,23 @@ PARADICE_COMMAND_IMPL(set)
         }
     }
     
-    ctx->save_account(player->get_account());
+    try
+    {
+        ctx->save_account(player->get_account());
+    }
+    catch(std::exception &ex)
+    {
+        // TODO: Use an actual logging library for this message.
+        printf("Error saving account: %s\n", ex.what());
+
+        send_to_player(
+            ctx
+          , "\\[1Unexpected error saving your account.  "
+            "Please try again."
+          , player);
+
+        return;
+    }
 }
 
 // ==========================================================================

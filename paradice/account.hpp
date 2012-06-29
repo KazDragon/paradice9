@@ -99,6 +99,11 @@ public :
     void add_character(std::string const &character_name);
     
     //* =====================================================================
+    /// \brief Remove a character from the account.
+    //* =====================================================================
+    void remove_character(std::string const &character_name);
+
+    //* =====================================================================
     /// \brief Sets the style of command that the client wishes to use.
     //* =====================================================================
     void set_command_mode(command_mode mode);

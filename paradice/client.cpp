@@ -461,7 +461,20 @@ private :
             string account_name(username);
             capitalise(account_name);
     
-            BOOST_AUTO(account, context_->load_account(account_name));                
+            shared_ptr<account> account;
+
+            try
+            {
+                account = context_->load_account(account_name);
+            }
+            catch(std::exception &ex)
+            {
+                // TODO: Use an actual logging library for this message.
+                printf("Error loading account: %s\n", ex.what());
+                user_interface_->set_statusbar_text(string_to_elements(
+                    "\\[1Invalid username/password combination"));
+                return;
+            }
     
             if (account == NULL)
             {
@@ -492,12 +505,21 @@ private :
             for(size_t index = 0; index < number_of_characters; ++index)
             {
                 BOOST_AUTO(name, account->get_character_name(index));
-                BOOST_AUTO(character, context_->load_character(name));                    
-                
-                if (character != NULL)
+
+                try
                 {
-                    characters[index] = 
-                        make_pair(name, context_->get_moniker(character)); 
+                    BOOST_AUTO(character, context_->load_character(name));                    
+                    
+                    if (character != NULL)
+                    {
+                        characters[index] = 
+                            make_pair(name, context_->get_moniker(character)); 
+                    }
+                }
+                catch(std::exception &ex)
+                {
+                    printf("Error loading character %s on account %s: %s\n",
+                        name.c_str(), account->get_name().c_str(), ex.what());
                 }
             }
             
@@ -529,8 +551,26 @@ private :
         
         // Check to see if the account name exists already.  If so,
         // report an error message and return.
-        BOOST_AUTO(test_account, context_->load_account(account_name));
-        
+        shared_ptr<account> test_account;
+
+        try
+        {
+            test_account = context_->load_account(account_name);
+        }
+        catch(std::exception &ex)
+        {
+            // Something strange happened.  Perhaps the account file was 
+            // corrupted, or it was swept out from under the process.  Either
+            // way, best not do anything with it.
+            // TODO: Use an actual logging library for this message.
+            printf("Error loading account: %s\n", ex.what());
+
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\1[That account name is unavailable.  Please try with "
+                "a different name"));
+            return;
+        }
+
         if (test_account != NULL)
         {
             user_interface_->set_statusbar_text(string_to_elements(
@@ -552,8 +592,21 @@ private :
         acc->set_name(account_name);
         acc->set_password(password);
         
-        context_->save_account(acc);
-        
+        try
+        {
+            context_->save_account(acc);
+        }
+        catch(std::exception &ex)
+        {
+            // TODO: Use an actual logging library for this message.
+            printf("Error saving account: %s\n", ex.what());
+
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Unexpected error setting saving your account.  "
+                "Please try again."));
+            return;
+        }
+
         account_ = acc;
         
         user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
@@ -584,7 +637,21 @@ private :
     // ======================================================================
     void on_character_selected(string const &character_name)
     {
-        character_ = context_->load_character(character_name);
+        try
+        {
+            character_ = context_->load_character(character_name);
+        }
+        catch(std::exception &ex)
+        {
+            printf("Error loading character %s: %s\n",
+                character_name.c_str(), ex.what());
+            
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Error loading character file."));
+
+            return;
+        }
+
         context_->update_names();
         
         user_interface_->select_face(hugin::FACE_MAIN);
@@ -614,7 +681,25 @@ private :
         }
         
         // Test that the character doesn't already exist.
-        BOOST_AUTO(test_character, context_->load_character(character_name));
+        shared_ptr<character> test_character;
+
+        try
+        {
+            test_character = context_->load_character(character_name);
+        }
+        catch(std::exception &ex)
+        {
+            // This is an unexpected case.  load_character() tests for
+            // existence with fs::exists().  If after that it fails to read
+            // from the file, then there is a problem and the character 
+            // probably existed.  Therefore, try again.
+            printf("Error reading character %s: %s\n",
+                character_name.c_str(), ex.what());
+
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Error testing for that character."));
+            return;
+        }
         
         if (test_character != NULL)
         {
@@ -625,10 +710,40 @@ private :
 
         character_ = make_shared<character>();
         character_->set_name(character_name);
-        context_->save_character(character_);
+        
+        try
+        {
+            context_->save_character(character_);
+        }
+        catch(std::exception &ex)
+        {
+            printf("Error saving character %s: %s\n",
+                character_name.c_str(), ex.what());
+
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1There was an error saving the character."));
+            return;
+        }
         
         account_->add_character(character_name);
-        context_->save_account(account_);
+
+        try
+        {
+            context_->save_account(account_);
+        }
+        catch(std::exception &ex)
+        {
+            // TODO: Use an actual logging library for this message.
+            printf("Error saving account: %s\n", ex.what());
+
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Unexpected error saving your account.  "
+                "Please try again."));
+
+            account_->remove_character(character_name);
+            return;
+        }
+
         context_->update_names();
 
         set_window_title(character_name + " - Paradice9");
@@ -681,7 +796,23 @@ private :
         }
         
         account_->set_password(new_password);
-        context_->save_account(account_);
+
+        try
+        {
+            context_->save_account(account_);
+        }
+        catch(std::exception &ex)
+        {
+            // TODO: Use an actual logging library for this message.
+            printf("Error saving account: %s\n", ex.what());
+
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Unexpected error saving your account.  "
+                "Please try again."));
+
+            return;
+        }
+
         user_interface_->select_face(hugin::FACE_MAIN);
     }
     

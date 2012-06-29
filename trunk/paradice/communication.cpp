@@ -134,7 +134,7 @@ PARADICE_COMMAND_IMPL(say)
     {
         send_to_player(
             ctx
-          , "\n Usage: say [messsage]"
+          , "\n Usage: say [message]"
             "\n     or"
             "\n Usage: . [message]"
             "\n"

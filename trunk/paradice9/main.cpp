@@ -41,20 +41,7 @@ namespace po = boost::program_options;
 
 static void run_io_service(asio::io_service &io_service)
 {
-    /* Thread Debug
-    cout << "Running io_service in thread " 
-         << boost::this_thread::get_id() 
-         << endl;
-    //*/
-    
     io_service.run();
-    
-    /* Thread Debug
-    cout << "io_service in thread " 
-         << boost::this_thread::get_id() 
-         << " finished" 
-         << endl;
-    //*/
 }
 
 int main(int argc, char *argv[])

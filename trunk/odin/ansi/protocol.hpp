@@ -46,6 +46,8 @@ namespace odin { namespace ansi {
     static char const OPERATING_SYSTEM_COMMAND         = odin::ascii::CLOSE_SQUARE_BRACKET;
     static char const PRIVATE_MODE_SET                 = odin::ascii::QUESTION_MARK;
     static char const PARAMETER_SEPARATOR              = odin::ascii::SEMI_COLON;
+    static char const SINGLE_SHIFT_SELECT_G2           = odin::ascii::UPPERCASE_N;
+    static char const SINGLE_SHIFT_SELECT_G3           = odin::ascii::UPPERCASE_O;
     
     // Move the cursor up N rows.
     static char const CURSOR_UP                        = odin::ascii::UPPERCASE_A;
@@ -163,6 +165,12 @@ namespace character_set {
     
     static char const CHARACTER_SET_G0             = odin::ascii::OPEN_BRACKET;
     static char const CHARACTER_SET_G1             = odin::ascii::CLOSE_BRACKET;
+}
+
+namespace ss3 {
+    // specific control codes for Single Shift Select of character set G3
+    static char const HOME                         = odin::ascii::UPPERCASE_H;
+    static char const END                          = odin::ascii::UPPERCASE_F;
 }
 
 // For ANSI sequences of the format: ESC[x;y;zC (e.g. "ESC[10;2H"

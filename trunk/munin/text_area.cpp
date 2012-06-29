@@ -408,6 +408,19 @@ private :
                 }
             }
         }
+        else if (sequence.initiator_ == odin::ansi::SINGLE_SHIFT_SELECT_G3)
+        {
+            // Check for the alternative HOME key
+            if (sequence.command_ == odin::ansi::ss3::HOME)
+            {
+                do_home_key_event();
+            }
+            // Check for the alternative END key
+            if (sequence.command_ == odin::ansi::ss3::END)
+            {
+                do_end_key_event();
+            }
+        }
     }
     
     //* =====================================================================

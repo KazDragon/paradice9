@@ -1,2 +1,5 @@
 # This sub-file documents changes in the Makefile for the Linux platform
-# Currently, there are no required additions.
+# Some Linux distributions require the pthreads library to be
+# stated explicitly
+LIBS      += -lpthread
+TEST_LIBS += -lpthread

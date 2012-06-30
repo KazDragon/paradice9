@@ -48,6 +48,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <cstdio>
 #include <deque>
 #include <string>
 #include <vector>

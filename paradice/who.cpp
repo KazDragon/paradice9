@@ -40,6 +40,7 @@
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/utility.hpp>
+#include <cstdio>
 
 using namespace std;
 using namespace boost;

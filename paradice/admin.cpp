@@ -38,6 +38,7 @@
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <cstdio>
 
 using namespace std;
 using namespace boost;

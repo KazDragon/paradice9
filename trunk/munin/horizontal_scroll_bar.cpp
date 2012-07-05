@@ -52,8 +52,8 @@ struct horizontal_scroll_bar::impl
     // ======================================================================
     impl(horizontal_scroll_bar &self)
         : self_(self)
+        , slider_position_(0)
     {
-        calculate_slider_position();
     }
 
     // ======================================================================

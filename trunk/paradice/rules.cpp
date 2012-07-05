@@ -215,7 +215,7 @@ PARADICE_COMMAND_IMPL(roll)
             total == s32(dice_roll.amount_ * dice_roll.sides_)
                    + dice_roll.bonus_;
             
-        if (dice_roll.bonus_ == 0)
+        if (dice_roll.bonus_ == 0 && dice_roll.amount_ == 1)
         {
             concat_text(
                 total_description
@@ -443,7 +443,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
             total == s32(dice_roll.amount_ * dice_roll.sides_)
                    + dice_roll.bonus_;
             
-        if (dice_roll.bonus_ == 0)
+        if (dice_roll.bonus_ == 0 && dice_roll.amount_ == 1)
         {
             concat_text(
                 total_description

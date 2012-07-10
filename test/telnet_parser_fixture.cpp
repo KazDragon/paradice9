@@ -1,7 +1,10 @@
 #include "telnet_parser_fixture.hpp"
 #include "odin/telnet/detail/parser.hpp"
 #include <boost/assign/list_of.hpp>
+#include <boost/foreach.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <algorithm>
+#include <functional>
 #include <deque>
 
 using namespace boost;
@@ -10,24 +13,14 @@ using namespace std;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_parser_fixture);
 
+typedef odin::telnet::detail::parser::token_type token_type;
+typedef vector<token_type> sequence;
+
 void telnet_parser_fixture::test_constructor()
 {
     odin::telnet::detail::parser parse;
-    (void)parse;
-}
 
-void telnet_parser_fixture::test_parse_empty()
-{
-    odin::telnet::detail::parser parse;
-    
-    deque<odin::u8> empty_buffer;
-    
-    BOOST_AUTO(begin, empty_buffer.begin());
-    BOOST_AUTO(end,   empty_buffer.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
-    CPPUNIT_ASSERT_EQUAL(true, result.empty());
+    CPPUNIT_ASSERT_EQUAL(false, parse.token().is_initialized());
 }
 
 void telnet_parser_fixture::test_parse_normal_one()
@@ -35,25 +28,22 @@ void telnet_parser_fixture::test_parse_normal_one()
     odin::telnet::detail::parser parse;
     
     vector<odin::u8> data = list_of('x');
-    
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
-    // All data must have been consumed.
-    CPPUNIT_ASSERT(begin == end);
+    sequence results;
 
-    // The result must contain one element, which is a vector of one element,
-    // which is the only element in data.
-    CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
     
-    BOOST_AUTO(element, get<string>(result[0]));
-    
-    CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
-    CPPUNIT_ASSERT_EQUAL(char(data[0]), element[0]);
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
+    CPPUNIT_ASSERT_EQUAL(string("x"), get<string>(results[0]));
 }
 
 void telnet_parser_fixture::test_parse_normal_two()
@@ -61,26 +51,23 @@ void telnet_parser_fixture::test_parse_normal_two()
     odin::telnet::detail::parser parse;
     
     vector<odin::u8> data = list_of('x')('y');
-    
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
-    // All data must have been consumed.
-    CPPUNIT_ASSERT(begin == end);
+    sequence results;
 
-    // The result must contain one element, which is a vector of two elements,
-    // which are the elements in data.
-    CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
     
-    BOOST_AUTO(element, get<string>(result[0]));
-    
-    CPPUNIT_ASSERT_EQUAL(
-        string::size_type(2), element.size());
-    CPPUNIT_ASSERT_EQUAL(char(data[0]), element[0]);
-    CPPUNIT_ASSERT_EQUAL(char(data[1]), element[1]);
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(2), results.size());
+    CPPUNIT_ASSERT_EQUAL(string("x"), get<string>(results[0]));
+    CPPUNIT_ASSERT_EQUAL(string("y"), get<string>(results[1]));
 }
 
 void telnet_parser_fixture::test_parse_iac()
@@ -88,15 +75,21 @@ void telnet_parser_fixture::test_parse_iac()
     odin::telnet::detail::parser parse;
     
     vector<odin::u8> data = list_of(odin::telnet::IAC);
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
     
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
-    // There is not a complete token here; no data may have been consumed.
-    CPPUNIT_ASSERT_EQUAL(true, result.empty());
-    CPPUNIT_ASSERT(begin == data.begin());
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(0), results.size());
 }
 
 void telnet_parser_fixture::test_parse_iac_iac()
@@ -104,26 +97,26 @@ void telnet_parser_fixture::test_parse_iac_iac()
     odin::telnet::detail::parser parse;
     
     vector<odin::u8> data = list_of(odin::telnet::IAC)(odin::telnet::IAC);
-    
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
+
     // The result must contain only one element, which is a vector of one
     // element, containing an IAC.
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
     CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
-    
-    BOOST_AUTO(element, get<string>(result[0]));
-
-    vector<char> expected_data = list_of(odin::telnet::IAC);
-        
-    CPPUNIT_ASSERT_EQUAL(expected_data.size(), element.size());
-    CPPUNIT_ASSERT_EQUAL(expected_data[0], element[0]);
-    
-    // All data must have been consumed.
-    CPPUNIT_ASSERT(begin == end);
+        string("") + char(odin::telnet::IAC)
+      , get<string>(results[0]));
 }
 
 void telnet_parser_fixture::test_parse_command()
@@ -131,23 +124,25 @@ void telnet_parser_fixture::test_parse_command()
     odin::telnet::detail::parser parse;
     
     vector<odin::u8> data = list_of(odin::telnet::IAC)(odin::telnet::NOP);
-    
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
+
     // The result must contain only one element, which is the NOP command.
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
     CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
-    
-    BOOST_AUTO(element, get<odin::telnet::command_type>(result[0]));
-    
-    CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::command_type(odin::telnet::NOP), element);
-    
-    // All data must have been consumed.
-    CPPUNIT_ASSERT(begin == end);
+        odin::telnet::command_type(odin::telnet::NOP)
+      , get<odin::telnet::command_type>(results[0]));
 }
 
 void telnet_parser_fixture::test_parse_negotiation()
@@ -156,26 +151,30 @@ void telnet_parser_fixture::test_parse_negotiation()
     
     vector<odin::u8> data = 
         list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::ECHO); 
-    
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
-    
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
+
     // The result must contain only one element, which is the WILL ECHO
     // negotiation.
-    CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
     
-    BOOST_AUTO(element, get<odin::telnet::negotiation_type>(result[0]));
+    BOOST_AUTO(element, get<odin::telnet::negotiation_type>(results[0]));
     
     CPPUNIT_ASSERT_EQUAL(
         odin::u8(odin::telnet::WILL), element.request_);
     CPPUNIT_ASSERT_EQUAL(
         odin::u8(odin::telnet::ECHO), element.option_id_);
-    
-    // All data must have been consumed.
-    CPPUNIT_ASSERT(begin == end);
 }
 
 void telnet_parser_fixture::test_parse_subnegotiation()
@@ -186,28 +185,33 @@ void telnet_parser_fixture::test_parse_subnegotiation()
         list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::ECHO)
         ('x')('y')
         (odin::telnet::IAC)(odin::telnet::SE);
-    
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
+
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
 
     vector<odin::u8> expected_data = list_of('x')('y');
 
     // The result must contain only one element, which is the subnegotiation
-    CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(1), result.size());
+    CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
     
-    BOOST_AUTO(element, get<odin::telnet::subnegotiation_type>(result[0]));
+    BOOST_AUTO(element, get<odin::telnet::subnegotiation_type>(results[0]));
     
     CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, element.option_id_);
     CPPUNIT_ASSERT_EQUAL(
         std::vector<odin::u8>::size_type(2), element.content_.size());
     CPPUNIT_ASSERT_EQUAL(expected_data[0], element.content_[0]);
     CPPUNIT_ASSERT_EQUAL(expected_data[1], element.content_[1]);
-    
-    // All data must have been consumed.
-    CPPUNIT_ASSERT(begin == end);
 }
 
 void telnet_parser_fixture::test_parse_incomplete_subnegotiation()
@@ -219,14 +223,22 @@ void telnet_parser_fixture::test_parse_incomplete_subnegotiation()
         ('x')('y')
         (odin::telnet::IAC);
     
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
     
     // There is not a complete token here; no data may have been consumed.
-    CPPUNIT_ASSERT_EQUAL(true, result.empty());
-    CPPUNIT_ASSERT(begin == data.begin());
+    CPPUNIT_ASSERT_EQUAL(true, results.empty());
 }
 
 void telnet_parser_fixture::test_parse_many()
@@ -264,118 +276,126 @@ void telnet_parser_fixture::test_parse_many()
                (odin::telnet::IAC)(odin::telnet::IAC)
                ('i');
 
-    BOOST_AUTO(begin, data.begin());
-    BOOST_AUTO(end,   data.end());
-    
-    odin::telnet::detail::parser::result_type result = parse(begin, end);
+    sequence results;
+
+    BOOST_FOREACH(odin::u8 element, data)
+    {
+        parse(element);
+
+        BOOST_AUTO(opt_result, parse.token());
+
+        if (opt_result.is_initialized())
+        {
+            results.push_back(opt_result.get());
+        }
+    }
     
     // There should be 11 items in the result (listed above).
     CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::detail::parser::result_type::size_type(11), result.size());
+        sequence::size_type(17), results.size());
     
-    // Element 0: 'a', 'b', 'c', '\xFF'
+    // Element 0..3: 'a', 'b', 'c', '\xFF'
     {
-        BOOST_AUTO(element0, get<string>(result[0]));
+        BOOST_AUTO(element0, get<string>(results[0]));
+        BOOST_AUTO(element1, get<string>(results[1]));
+        BOOST_AUTO(element2, get<string>(results[2]));
+        BOOST_AUTO(element3, get<string>(results[3]));
         
-        CPPUNIT_ASSERT_EQUAL(string::size_type(4), element0.size());
-        CPPUNIT_ASSERT_EQUAL('a',    element0[0]);
-        CPPUNIT_ASSERT_EQUAL('b',    element0[1]);
-        CPPUNIT_ASSERT_EQUAL('c',    element0[2]);
-        CPPUNIT_ASSERT_EQUAL('\xFF', element0[3]);
+        CPPUNIT_ASSERT_EQUAL(string("a"),    element0);
+        CPPUNIT_ASSERT_EQUAL(string("b"),    element1);
+        CPPUNIT_ASSERT_EQUAL(string("c"),    element2);
+        CPPUNIT_ASSERT_EQUAL(string("\xFF"), element3);
     }
 
-    // Element 1: telnet NOP
+    // Element 4: telnet NOP
     {
-        BOOST_AUTO(element1, get<odin::telnet::command_type>(result[1]));
+        BOOST_AUTO(element4, get<odin::telnet::command_type>(results[4]));
         
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::NOP), element1);
+            odin::telnet::command_type(odin::telnet::NOP), element4);
     }
     
-    // Element 2: telnet AYT
+    // Element 5: telnet AYT
     {
-        BOOST_AUTO(element2, get<odin::telnet::command_type>(result[2]));
+        BOOST_AUTO(element5, get<odin::telnet::command_type>(results[5]));
         
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::AYT), element2);
+            odin::telnet::command_type(odin::telnet::AYT), element5);
     }
     
-    // Element 3: 'd'
+    // Element 6: 'd'
     {
-        BOOST_AUTO(element3, get<string>(result[3]));
+        BOOST_AUTO(element6, get<string>(results[6]));
         
-        CPPUNIT_ASSERT_EQUAL(string::size_type(1), element3.size());
-        CPPUNIT_ASSERT_EQUAL('d', element3[0]);
+        CPPUNIT_ASSERT_EQUAL(string("d"), element6);
     }
     
-    // Element 4: telnet WILL ECHO
+    // Element 7: telnet WILL ECHO
     {
-        BOOST_AUTO(element4, get<odin::telnet::negotiation_type>(result[4]));
-        
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::WILL), element4.request_);
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::ECHO), element4.option_id_);
-    }
-    
-    // Element 5: telnet DONT ECHO
-    {
-        BOOST_AUTO(element5, get<odin::telnet::negotiation_type>(result[5]));
+        BOOST_AUTO(element7, get<odin::telnet::negotiation_type>(results[7]));
         
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::DONT), element5.request_);
+            odin::telnet::command_type(odin::telnet::WILL), element7.request_);
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::ECHO), element5.option_id_);
+            odin::telnet::command_type(odin::telnet::ECHO), element7.option_id_);
     }
     
-    // Element 6: telnet SB NAWS 'e' 'f'
+    // Element 8: telnet DONT ECHO
     {
-        BOOST_AUTO(element6, get<odin::telnet::subnegotiation_type>(result[6]));
+        BOOST_AUTO(element8, get<odin::telnet::negotiation_type>(results[8]));
         
-        CPPUNIT_ASSERT_EQUAL(odin::telnet::NAWS, element6.option_id_);
         CPPUNIT_ASSERT_EQUAL(
-            std::vector<odin::u8>::size_type(2), element6.content_.size());
-        CPPUNIT_ASSERT_EQUAL(odin::u8('e'), element6.content_[0]);
-        CPPUNIT_ASSERT_EQUAL(odin::u8('f'), element6.content_[1]);
+            odin::telnet::command_type(odin::telnet::DONT), element8.request_);
+        CPPUNIT_ASSERT_EQUAL(
+            odin::telnet::command_type(odin::telnet::ECHO), element8.option_id_);
     }
     
-    // Element 7: telnet SB EXOPL
+    // Element 9: telnet SB NAWS 'e' 'f'
     {
-        BOOST_AUTO(element7, get<odin::telnet::subnegotiation_type>(result[7]));
+        BOOST_AUTO(element9, get<odin::telnet::subnegotiation_type>(results[9]));
         
-        CPPUNIT_ASSERT_EQUAL(odin::telnet::EXOPL, element7.option_id_);
-        CPPUNIT_ASSERT_EQUAL(true, element7.content_.empty());
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::NAWS, element9.option_id_);
+        CPPUNIT_ASSERT_EQUAL(
+            std::vector<odin::u8>::size_type(2), element9.content_.size());
+        CPPUNIT_ASSERT_EQUAL(odin::u8('e'), element9.content_[0]);
+        CPPUNIT_ASSERT_EQUAL(odin::u8('f'), element9.content_[1]);
     }
     
-    // Element 8: 'g', 'h'
+    // Element 10: telnet SB EXOPL
     {
-        BOOST_AUTO(element8, get<string>(result[8]));
+        BOOST_AUTO(element10, get<odin::telnet::subnegotiation_type>(results[10]));
+        
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::EXOPL, element10.option_id_);
+        CPPUNIT_ASSERT_EQUAL(true, element10.content_.empty());
+    }
+    
+    // Element 11, 12: 'g', 'h'
+    {
+        BOOST_AUTO(element11, get<string>(results[11]));
+        BOOST_AUTO(element12, get<string>(results[12]));
 
-        CPPUNIT_ASSERT_EQUAL(string::size_type(2), element8.size());
-        CPPUNIT_ASSERT_EQUAL('g', element8[0]);
-        CPPUNIT_ASSERT_EQUAL('h', element8[1]);
+        CPPUNIT_ASSERT_EQUAL(string("g"), element11);
+        CPPUNIT_ASSERT_EQUAL(string("h"), element12);
     }
             
-    // Element 9: telnet WONT EXOPL
+    // Element 13: telnet WONT EXOPL
     {
-        BOOST_AUTO(element9, get<odin::telnet::negotiation_type>(result[9]));
+        BOOST_AUTO(element13, get<odin::telnet::negotiation_type>(results[13]));
         
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::WONT), element9.request_);
+            odin::telnet::command_type(odin::telnet::WONT), element13.request_);
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::EXOPL), element9.option_id_);
+            odin::telnet::command_type(odin::telnet::EXOPL), element13.option_id_);
     }
     
-    // Element 10: '\xFF' '\xFF' 'i'
+    // Element 14..16: '\xFF' '\xFF' 'i'
     {
-        BOOST_AUTO(element10, get<string>(result[10]));
+        BOOST_AUTO(element14, get<string>(results[14]));
+        BOOST_AUTO(element15, get<string>(results[15]));
+        BOOST_AUTO(element16, get<string>(results[16]));
         
-        CPPUNIT_ASSERT_EQUAL(string::size_type(3), element10.size());
-        CPPUNIT_ASSERT_EQUAL('\xFF', element10[0]);
-        CPPUNIT_ASSERT_EQUAL('\xFF', element10[1]);
-        CPPUNIT_ASSERT_EQUAL('i',    element10[2]);
+        CPPUNIT_ASSERT_EQUAL(string("\xFF"), element14);
+        CPPUNIT_ASSERT_EQUAL(string("\xFF"), element15);
+        CPPUNIT_ASSERT_EQUAL(string("i"),    element16);
     }
-    
-    // The data should have been consumed completely.
-    CPPUNIT_ASSERT(begin == end);
 }

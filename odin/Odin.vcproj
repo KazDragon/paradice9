@@ -415,6 +415,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Telnet Detail Source Files"
+			>
+			<File
+				RelativePath=".\telnet\detail\parser.cpp"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

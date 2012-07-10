@@ -159,6 +159,8 @@ int main(int argc, char *argv[])
         (*pthread)->join();
     }
     
+    io_service.stop();
+
     return EXIT_SUCCESS;
 }
 

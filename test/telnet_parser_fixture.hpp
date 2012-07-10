@@ -6,7 +6,6 @@ class telnet_parser_fixture : public CppUnit::TestFixture
 public :
     CPPUNIT_TEST_SUITE(telnet_parser_fixture);
         CPPUNIT_TEST(test_constructor);
-        CPPUNIT_TEST(test_parse_empty);
         CPPUNIT_TEST(test_parse_normal_one);
         CPPUNIT_TEST(test_parse_normal_two);
         CPPUNIT_TEST(test_parse_iac);
@@ -20,7 +19,6 @@ public :
 
 private :
     void test_constructor();
-    void test_parse_empty();
     void test_parse_normal_one();
     void test_parse_normal_two();
     void test_parse_iac();

@@ -25,17 +25,16 @@
 #ifndef ODIN_LEXER_HPP_
 #define ODIN_LEXER_HPP_
 
-#include "odin/interface.hpp"
 #include <boost/call_traits.hpp>
 #include <boost/concept_check.hpp>
+#include <boost/optional.hpp>
 
 namespace odin {
 
 //* =========================================================================
 /// \interface lexer
 /// \param Element a singular item to be lexed.
-/// \param ElementSequence a sequence of elements that represents a complete
-/// token.
+/// \param Token a token that is constructed from a sequence of elements.
 /// \brief An interface that models an algorithm that converts lexical elements
 /// into tokens.
 ///
@@ -51,24 +50,24 @@ namespace odin {
 /// Derive from the class.  Override each pure virtual function so that it
 /// reflects the task laid out in the comments below. 
 //* =========================================================================
-template <typename Element, typename ElementSequence>
+template <typename Element, typename Token>
 class lexer
 {
-    BOOST_CLASS_REQUIRE(ElementSequence, boost, DefaultConstructibleConcept);
-    BOOST_CLASS_REQUIRE(ElementSequence, boost, CopyConstructibleConcept);
+    BOOST_CLASS_REQUIRE(Token, boost, DefaultConstructibleConcept);
+    BOOST_CLASS_REQUIRE(Token, boost, CopyConstructibleConcept);
     
 public :
     //* =====================================================================
     /// \typedef element_type
     /// \brief the type of an element to be lexed.
     //* =====================================================================
-    typedef Element         element_type;
+    typedef Element element_type;
 
     //* =====================================================================
     /// \typedef element_sequence_type
     /// \brief the type of a sequence of elements.
     //* =====================================================================
-    typedef ElementSequence element_sequence_type;
+    typedef Token token_type;
 
     typedef typename boost::call_traits<element_type>::param_type 
         lex_param_type;
@@ -86,11 +85,11 @@ public :
     ///
     /// Adds the element to the current stored sequence.
     //* =====================================================================
-    void lex(lex_param_type element)
+    void operator()(lex_param_type element)
     {
         if(ready())
         {
-            clear_sequence();
+            clear_token();
         }
         
         store_element(element);
@@ -98,19 +97,18 @@ public :
 
     //* =====================================================================
     /// \brief Return a token
-    /// \return If the last element formed a complete sequence, then that
-    /// complete sequence is returned.  In all other cases, an empty sequence
-    /// is returned.
+    /// \return If the last element formed a token, then that token is
+    /// returned.  Otherwise, a default constructed optional is returned.
     //* =====================================================================
-    element_sequence_type token() const
+    boost::optional<token_type> token() const
     {
         if(ready())
         {
-            return stored_sequence();
+            return stored_token();
         }
         else
         {
-            return element_sequence_type();
+            return boost::optional<token_type>();
         }
     }
 
@@ -123,11 +121,9 @@ private :
     virtual bool ready() const = 0;
 
     //* =====================================================================
-    /// \brief Clears the stored sequence.
-    /// 
-    /// Reduces the currently stored sequence to be equivalent to an empty
-    /// sequence.
-    virtual void clear_sequence() = 0;
+    /// \brief Clears the stored token.
+    //* =====================================================================
+    virtual void clear_token() = 0;
     
     //* =====================================================================
     /// \brief Store an element
@@ -137,10 +133,10 @@ private :
     virtual void store_element(element_type const &element) = 0;
     
     //* =====================================================================
-    /// \brief Obtain the current stored sequence
-    /// \return the current stored sequence.
+    /// \brief Obtain the current stored token
+    /// \return the current stored token.
     //* =====================================================================
-    virtual element_sequence_type const &stored_sequence() const = 0;
+    virtual token_type const &stored_token() const = 0;
 };
 
 }

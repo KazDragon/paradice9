@@ -29,6 +29,7 @@
 #include "odin/telnet/detail/parser.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
@@ -227,20 +228,33 @@ private :
     {
         // Take input from the unparsed input buffer and parse as much as
         // it as possible.  Then erase any consumed input.
-        BOOST_AUTO(begin, unparsed_input_buffer_.begin());
-        BOOST_AUTO(end,   unparsed_input_buffer_.end());
-        
-        BOOST_AUTO(parsed_elements, parse_(begin, end));
-        
-        parsed_input_buffer_.insert(
-            parsed_input_buffer_.end()
-          , parsed_elements.begin()
-          , parsed_elements.end());
-        
-        // Finally, erase the consumed input.
-        unparsed_input_buffer_.erase(
-            unparsed_input_buffer_.begin()
-          , begin);
+        BOOST_FOREACH(odin::u8 element, unparsed_input_buffer_)
+        {
+            parse_(element);
+
+            BOOST_AUTO(result, parse_.token());
+
+            if (result.is_initialized())
+            {
+                // If the last element parsed is a string, and this element
+                // is also a string, then coalesce the two together.
+                string *current  = get<string>(&result.get());
+                string *previous = parsed_input_buffer_.empty()
+                                 ? NULL
+                                 : get<string>(&parsed_input_buffer_.back());
+
+                if (current != NULL && previous != NULL)
+                {
+                    *previous += *current;
+                }
+                else
+                {
+                    parsed_input_buffer_.push_back(result.get());
+                }
+            }
+        }
+
+        unparsed_input_buffer_.clear();
     }
     
     // ======================================================================
@@ -488,7 +502,7 @@ private :
     boost::asio::io_service &io_service_;
     
     // A parser for dealing with the input stream.
-    odin::telnet::detail::parser parse_;
+    mutable odin::telnet::detail::parser parse_;
     
     // A generator for dealing with the output stream.
     odin::telnet::detail::generator generate_;

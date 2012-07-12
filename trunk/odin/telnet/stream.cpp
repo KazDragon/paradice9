@@ -238,14 +238,21 @@ private :
             {
                 // If the last element parsed is a string, and this element
                 // is also a string, then coalesce the two together.
-                string *current  = get<string>(&result.get());
+                char   *current  = get<char>(&result.get());
                 string *previous = parsed_input_buffer_.empty()
                                  ? NULL
                                  : get<string>(&parsed_input_buffer_.back());
 
-                if (current != NULL && previous != NULL)
+                if (current != NULL)
                 {
-                    *previous += *current;
+                    if (previous != NULL)
+                    {
+                        *previous += *current;
+                    }
+                    else
+                    {
+                        parsed_input_buffer_.push_back(string(current, 1));
+                    }
                 }
                 else
                 {

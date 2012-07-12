@@ -24,11 +24,10 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
+/*
 #include "odin/ansi/protocol.hpp"
 
-namespace odin { namespace ansi {
-
-bool operator==(control_sequence const& lhs, control_sequence const& rhs)
+bool operator==(odin::ansi::control_sequence const& lhs, odin::ansi::control_sequence const& rhs)
 {
     return lhs.meta_      == rhs.meta_
         && lhs.command_   == rhs.command_
@@ -36,5 +35,4 @@ bool operator==(control_sequence const& lhs, control_sequence const& rhs)
         && lhs.arguments_ == rhs.arguments_;
 }
 
-}}
-
+*/

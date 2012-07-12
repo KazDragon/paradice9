@@ -19,7 +19,7 @@ void telnet_generator_fixture::test_constructor()
 }
 
 typedef boost::variant<
-    odin::telnet::command_type
+    odin::telnet::command
   , odin::telnet::negotiation_type
   , odin::telnet::subnegotiation_type
   , std::string
@@ -133,8 +133,8 @@ void telnet_generator_fixture::test_generate_command()
 {
     odin::telnet::detail::generator generate;
     
-    odin::telnet::command_type element0(odin::telnet::NOP);
-    element_type               variant0(element0);
+    odin::telnet::command element0(odin::telnet::NOP);
+    element_type          variant0(element0);
     
     vector<element_type> variant_array = list_of(variant0);
     

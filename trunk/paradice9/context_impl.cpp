@@ -293,7 +293,7 @@ void context_impl::remove_client(shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::update_names()
 {
-    pimpl_->strand_.post(bind(&impl::update_names, pimpl_));
+    pimpl_->strand_.dispatch(bind(&impl::update_names, pimpl_));
 }
 
 // ==========================================================================

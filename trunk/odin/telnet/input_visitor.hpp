@@ -52,7 +52,7 @@ public :
     
     ~input_visitor();
     
-    void operator()(command_type const &command);
+    void operator()(command const &command);
     
     void operator()(negotiation_type const &negotiation);
     

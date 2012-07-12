@@ -28,13 +28,40 @@
 #define ODIN_TELNET_PROTOCOL_HPP_
 
 #include "odin/types.hpp"
+#include <iosfwd>
 #include <vector>
 
 namespace odin { namespace telnet {
 
 typedef odin::u8 option_id_type;
 typedef odin::u8 negotiation_request_type;
-typedef odin::u8 command_type;
+
+struct command
+{
+    command()
+        : command_(0)
+    {
+    }
+
+    command(odin::u8 value)
+        : command_(value)
+    {
+    }
+
+    odin::u8 command_;
+
+    bool operator<(command const &other) const
+    {
+        return command_ < other.command_;
+    }
+
+    bool operator==(command const &other) const
+    {
+        return command_ == other.command_;
+    }
+};
+
+std::ostream &operator<<(std::ostream &out, command const &cmd);
 
 // Special characters recognised by Telnet.
 enum characters
@@ -48,18 +75,18 @@ enum characters
 };
 
 // Telnet commands.
-static command_type const EOR  = 239; // End Of Record
-static command_type const SE   = 240; // Subnegotiation End
-static command_type const NOP  = 241; // No Operation
-static command_type const DM   = 242; // Data Mark
-static command_type const BRK  = 243; // Break
-static command_type const IP   = 244; // Interrupt Process
-static command_type const AO   = 245; // Abort Output
-static command_type const AYT  = 246; // Are You There?
-static command_type const EC   = 247; // Erase Character
-static command_type const EL   = 248; // Erase Line
-static command_type const GA   = 249; // Go Ahead
-static command_type const SB   = 250; // Subnegotiation Begin
+static odin::u8 const EOR(239); // End Of Record
+static odin::u8 const SE(240);  // Subnegotiation End
+static odin::u8 const NOP(241); // No Operation
+static odin::u8 const DM(242);  // Data Mark
+static odin::u8 const BRK(243); // Break
+static odin::u8 const IP(244);  // Interrupt Process
+static odin::u8 const AO(245);  // Abort Output
+static odin::u8 const AYT(246); // Are You There?
+static odin::u8 const EC(247);  // Erase Character
+static odin::u8 const EL(248);  // Erase Line
+static odin::u8 const GA(249);  // Go Ahead
+static odin::u8 const SB(250);  // Subnegotiation Begin
 
   // WILL and WONT require a response of DO or DONT
   // DO and DONT require a response of WILL or WONT
@@ -68,7 +95,7 @@ static negotiation_request_type const WONT = 252;
 static negotiation_request_type const DO   = 253;
 static negotiation_request_type const DONT = 254;
   
-static command_type const IAC  = 255; // Interpret As Command
+static odin::u8 const IAC(255); // Interpret As Command
 
 struct negotiation_type
 {

@@ -36,8 +36,8 @@ namespace detail {
     
     struct command_router_key_from_message_policy
     {
-        static odin::telnet::command_type key_from_message(
-            odin::telnet::command_type message);
+        static odin::telnet::command key_from_message(
+            odin::telnet::command message);
     };
 }
 
@@ -48,8 +48,8 @@ namespace detail {
 class command_router 
     : public odin::router
       <
-          odin::telnet::command_type
-        , odin::telnet::command_type
+          odin::telnet::command
+        , odin::telnet::command
         , odin::telnet::detail::command_router_key_from_message_policy
       >
 {

@@ -33,7 +33,7 @@ void telnet_stream_fixture::test_inheritance()
 {
     // Tests that a telnet stream is a bidirectional stream of telnet symbols.
     typedef variant<
-        odin::telnet::command_type
+        odin::telnet::command
       , odin::telnet::negotiation_type
       , odin::telnet::subnegotiation_type
       , string
@@ -75,9 +75,9 @@ void telnet_stream_fixture::test_sync_read_normal()
     
     input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
-    string expected_string("X");
+    string expected_result = "X";
     
-    input_value_type expected_variant(expected_string);
+    input_value_type expected_variant(expected_result);
     input_storage_type expected_variant_array = list_of(expected_variant);
 
     CPPUNIT_ASSERT_EQUAL(
@@ -86,7 +86,7 @@ void telnet_stream_fixture::test_sync_read_normal()
     
     BOOST_AUTO(element0, get<string>(actual_variant_array[0]));
     
-    CPPUNIT_ASSERT_EQUAL(expected_string, element0);
+    CPPUNIT_ASSERT_EQUAL(expected_result, element0);
 }
 
 void telnet_stream_fixture::test_sync_read_normal_iac()
@@ -215,7 +215,7 @@ void telnet_stream_fixture::test_sync_read_command()
     fake_stream->write_data_to_read(data);
     input_storage_type actual_variant_array(stream.read(input_size_type(1)));
     
-    odin::telnet::command_type expected_command = odin::telnet::NOP;
+    odin::telnet::command expected_command = odin::telnet::NOP;
     
     input_value_type expected_variant(expected_command);
     input_storage_type expected_variant_array = list_of(expected_variant);
@@ -226,7 +226,7 @@ void telnet_stream_fixture::test_sync_read_command()
     
     BOOST_AUTO(
         element0
-      , get<odin::telnet::command_type>(actual_variant_array[0]));
+      , get<odin::telnet::command>(actual_variant_array[0]));
     
     CPPUNIT_ASSERT(expected_command == element0);
 }
@@ -248,7 +248,7 @@ void telnet_stream_fixture::test_sync_read_normal_command()
     
     string expected_string("a");
     
-    odin::telnet::command_type expected_command = odin::telnet::NOP;
+    odin::telnet::command expected_command = odin::telnet::NOP;
     
     input_value_type expected_variant0(expected_string);
     input_value_type expected_variant1(expected_command);
@@ -269,7 +269,7 @@ void telnet_stream_fixture::test_sync_read_normal_command()
     
     BOOST_AUTO(
         element1
-      , get<odin::telnet::command_type>(actual_variant_array[1]));
+      , get<odin::telnet::command>(actual_variant_array[1]));
     
     CPPUNIT_ASSERT_EQUAL(expected_command, element1);
 }
@@ -294,7 +294,7 @@ void telnet_stream_fixture::test_sync_read_partial()
     {
         string expected_string0("a");
         
-        odin::telnet::command_type expected_command1 = odin::telnet::NOP;
+        odin::telnet::command expected_command1 = odin::telnet::NOP;
         
         input_value_type expected_variant0 = expected_string0;
         input_value_type expected_variant1 = expected_command1;
@@ -315,7 +315,7 @@ void telnet_stream_fixture::test_sync_read_partial()
         
         BOOST_AUTO(
             actual_element1
-          , get<odin::telnet::command_type>(actual_variant_array[1]));
+          , get<odin::telnet::command>(actual_variant_array[1]));
         
         CPPUNIT_ASSERT_EQUAL(expected_command1, actual_element1);
     }
@@ -363,10 +363,10 @@ void telnet_stream_fixture::test_sync_read_many()
     string           expected_string0("abc");
     input_value_type expected_variant0(expected_string0);
 
-    odin::telnet::command_type expected_command1 = odin::telnet::NOP;
+    odin::telnet::command expected_command1 = odin::telnet::NOP;
     input_value_type expected_variant1(expected_command1);
     
-    odin::telnet::command_type expected_command2 = odin::telnet::AYT;
+    odin::telnet::command expected_command2 = odin::telnet::AYT;
     input_value_type expected_variant2(expected_command2);
     
     odin::u8 subnegotiation3_data[] = { 0, 1, 2, 3 };
@@ -400,13 +400,13 @@ void telnet_stream_fixture::test_sync_read_many()
     
     BOOST_AUTO(
         element1
-      , get<odin::telnet::command_type>(actual_variant_array[1]));
+      , get<odin::telnet::command>(actual_variant_array[1]));
     
     CPPUNIT_ASSERT_EQUAL(element1, expected_command1);
     
     BOOST_AUTO(
         element2
-      , get<odin::telnet::command_type>(actual_variant_array[2]));
+      , get<odin::telnet::command>(actual_variant_array[2]));
     
     CPPUNIT_ASSERT_EQUAL(element2, expected_command2);
     

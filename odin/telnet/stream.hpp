@@ -41,7 +41,7 @@ namespace odin { namespace telnet {
 
 namespace detail {
     typedef boost::variant<
-        odin::telnet::command_type
+        odin::telnet::command
       , odin::telnet::negotiation_type
       , odin::telnet::subnegotiation_type
       , std::string

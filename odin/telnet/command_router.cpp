@@ -31,8 +31,8 @@ namespace odin { namespace telnet { namespace detail {
 // ==========================================================================
 // KEY_FROM_MESSAGE
 // ==========================================================================
-command_type command_router_key_from_message_policy::key_from_message(
-    odin::telnet::command_type message)
+command command_router_key_from_message_policy::key_from_message(
+    odin::telnet::command message)
 {
     // In a command router, the key and message are the same.
     return message;

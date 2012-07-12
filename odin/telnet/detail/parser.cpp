@@ -79,7 +79,7 @@ struct parser::impl
 
     void normal_undefined(odin::u8 element)
     {
-        result_ = string() + char(element);
+        result_ = char(element);
         ready_  = true;
     }
 
@@ -90,14 +90,14 @@ struct parser::impl
 
     void iac_undefined(odin::u8 element)
     {
-        result_ = element;
+        result_ = command(element);
         ready_  = true;
         set_state(state_normal);
     }
 
     void iac_iac()
     {
-        result_ = string() + char(odin::telnet::IAC);
+        result_ = char(odin::telnet::IAC);
         ready_  = true;
         set_state(state_normal);
     }

@@ -51,7 +51,7 @@ public :
     typedef std::vector<output_element_type> result_type;
 
     typedef boost::variant<
-        odin::telnet::command_type
+        odin::telnet::command
       , odin::telnet::negotiation_type
       , odin::telnet::subnegotiation_type
       , std::string
@@ -133,7 +133,7 @@ public :
     }
 
 private :
-    boost::spirit::karma::rule<OutputIterator, odin::telnet::command_type()>   telnet_command_;
+    boost::spirit::karma::rule<OutputIterator, odin::telnet::command()>   telnet_command_;
     boost::spirit::karma::rule<OutputIterator, odin::telnet::negotiation_type()> telnet_negotiation_;
     boost::spirit::karma::rule<OutputIterator, odin::telnet::subnegotiation_type()> telnet_subnegotiation_;
     boost::spirit::karma::rule<OutputIterator, char()> telnet_byte_;

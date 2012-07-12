@@ -70,11 +70,11 @@ input_visitor::~input_visitor()
 }
 
 // ==============================================================================
-// OPERATOR()(COMMAND_TYPE)
+// OPERATOR()(COMMAND)
 // ==============================================================================
-void input_visitor::operator()(command_type const &command)
+void input_visitor::operator()(command const &cmd)
 {
-    (*pimpl_->command_router_)(command);
+    (*pimpl_->command_router_)(cmd);
 }
 
 // ==============================================================================

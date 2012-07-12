@@ -31,6 +31,11 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(
+    odin::telnet::command,
+    (odin::u8, command_)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     odin::telnet::negotiation_type,
     (odin::u8, request_)
     (odin::u8, option_id_)

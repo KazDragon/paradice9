@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "odin/telnet/protocol.hpp"
+#include <iostream>
 
 namespace odin { namespace telnet {
 
@@ -35,6 +36,15 @@ bool operator<(negotiation_type const &lhs, negotiation_type const &rhs)
 {
     return std::make_pair(lhs.request_, lhs.option_id_)
          < std::make_pair(rhs.request_, rhs.option_id_);
+}
+
+// ==============================================================================
+// OPERATOR<<(COMMAND)
+// ==============================================================================
+std::ostream &operator<<(std::ostream &out, command const &cmd)
+{
+    out << cmd.command_;
+    return out;
 }
 
 }}

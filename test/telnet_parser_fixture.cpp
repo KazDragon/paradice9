@@ -43,7 +43,7 @@ void telnet_parser_fixture::test_parse_normal_one()
     }
     
     CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
-    CPPUNIT_ASSERT_EQUAL(string("x"), get<string>(results[0]));
+    CPPUNIT_ASSERT_EQUAL('x', get<char>(results[0]));
 }
 
 void telnet_parser_fixture::test_parse_normal_two()
@@ -66,8 +66,8 @@ void telnet_parser_fixture::test_parse_normal_two()
     }
     
     CPPUNIT_ASSERT_EQUAL(sequence::size_type(2), results.size());
-    CPPUNIT_ASSERT_EQUAL(string("x"), get<string>(results[0]));
-    CPPUNIT_ASSERT_EQUAL(string("y"), get<string>(results[1]));
+    CPPUNIT_ASSERT_EQUAL('x', get<char>(results[0]));
+    CPPUNIT_ASSERT_EQUAL('y', get<char>(results[1]));
 }
 
 void telnet_parser_fixture::test_parse_iac()
@@ -114,9 +114,7 @@ void telnet_parser_fixture::test_parse_iac_iac()
     // The result must contain only one element, which is a vector of one
     // element, containing an IAC.
     CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
-    CPPUNIT_ASSERT_EQUAL(
-        string("") + char(odin::telnet::IAC)
-      , get<string>(results[0]));
+    CPPUNIT_ASSERT_EQUAL(char(odin::telnet::IAC), get<char>(results[0]));
 }
 
 void telnet_parser_fixture::test_parse_command()
@@ -141,8 +139,8 @@ void telnet_parser_fixture::test_parse_command()
     // The result must contain only one element, which is the NOP command.
     CPPUNIT_ASSERT_EQUAL(sequence::size_type(1), results.size());
     CPPUNIT_ASSERT_EQUAL(
-        odin::telnet::command_type(odin::telnet::NOP)
-      , get<odin::telnet::command_type>(results[0]));
+        odin::telnet::command(odin::telnet::NOP)
+      , get<odin::telnet::command>(results[0]));
 }
 
 void telnet_parser_fixture::test_parse_negotiation()
@@ -296,58 +294,54 @@ void telnet_parser_fixture::test_parse_many()
     
     // Element 0..3: 'a', 'b', 'c', '\xFF'
     {
-        BOOST_AUTO(element0, get<string>(results[0]));
-        BOOST_AUTO(element1, get<string>(results[1]));
-        BOOST_AUTO(element2, get<string>(results[2]));
-        BOOST_AUTO(element3, get<string>(results[3]));
+        BOOST_AUTO(element0, get<char>(results[0]));
+        BOOST_AUTO(element1, get<char>(results[1]));
+        BOOST_AUTO(element2, get<char>(results[2]));
+        BOOST_AUTO(element3, get<char>(results[3]));
         
-        CPPUNIT_ASSERT_EQUAL(string("a"),    element0);
-        CPPUNIT_ASSERT_EQUAL(string("b"),    element1);
-        CPPUNIT_ASSERT_EQUAL(string("c"),    element2);
-        CPPUNIT_ASSERT_EQUAL(string("\xFF"), element3);
+        CPPUNIT_ASSERT_EQUAL('a',    element0);
+        CPPUNIT_ASSERT_EQUAL('b',    element1);
+        CPPUNIT_ASSERT_EQUAL('c',    element2);
+        CPPUNIT_ASSERT_EQUAL('\xFF', element3);
     }
 
     // Element 4: telnet NOP
     {
-        BOOST_AUTO(element4, get<odin::telnet::command_type>(results[4]));
+        BOOST_AUTO(element4, get<odin::telnet::command>(results[4]));
         
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::NOP), element4);
+            odin::telnet::command(odin::telnet::NOP), element4);
     }
     
     // Element 5: telnet AYT
     {
-        BOOST_AUTO(element5, get<odin::telnet::command_type>(results[5]));
+        BOOST_AUTO(element5, get<odin::telnet::command>(results[5]));
         
         CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::AYT), element5);
+            odin::telnet::command(odin::telnet::AYT), element5);
     }
     
     // Element 6: 'd'
     {
-        BOOST_AUTO(element6, get<string>(results[6]));
+        BOOST_AUTO(element6, get<char>(results[6]));
         
-        CPPUNIT_ASSERT_EQUAL(string("d"), element6);
+        CPPUNIT_ASSERT_EQUAL('d', element6);
     }
     
     // Element 7: telnet WILL ECHO
     {
         BOOST_AUTO(element7, get<odin::telnet::negotiation_type>(results[7]));
         
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::WILL), element7.request_);
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::ECHO), element7.option_id_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, element7.request_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, element7.option_id_);
     }
     
     // Element 8: telnet DONT ECHO
     {
         BOOST_AUTO(element8, get<odin::telnet::negotiation_type>(results[8]));
         
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::DONT), element8.request_);
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::ECHO), element8.option_id_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::DONT, element8.request_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, element8.option_id_);
     }
     
     // Element 9: telnet SB NAWS 'e' 'f'
@@ -371,31 +365,29 @@ void telnet_parser_fixture::test_parse_many()
     
     // Element 11, 12: 'g', 'h'
     {
-        BOOST_AUTO(element11, get<string>(results[11]));
-        BOOST_AUTO(element12, get<string>(results[12]));
+        BOOST_AUTO(element11, get<char>(results[11]));
+        BOOST_AUTO(element12, get<char>(results[12]));
 
-        CPPUNIT_ASSERT_EQUAL(string("g"), element11);
-        CPPUNIT_ASSERT_EQUAL(string("h"), element12);
+        CPPUNIT_ASSERT_EQUAL('g', element11);
+        CPPUNIT_ASSERT_EQUAL('h', element12);
     }
             
     // Element 13: telnet WONT EXOPL
     {
         BOOST_AUTO(element13, get<odin::telnet::negotiation_type>(results[13]));
         
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::WONT), element13.request_);
-        CPPUNIT_ASSERT_EQUAL(
-            odin::telnet::command_type(odin::telnet::EXOPL), element13.option_id_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::WONT, element13.request_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::EXOPL, element13.option_id_);
     }
     
     // Element 14..16: '\xFF' '\xFF' 'i'
     {
-        BOOST_AUTO(element14, get<string>(results[14]));
-        BOOST_AUTO(element15, get<string>(results[15]));
-        BOOST_AUTO(element16, get<string>(results[16]));
+        BOOST_AUTO(element14, get<char>(results[14]));
+        BOOST_AUTO(element15, get<char>(results[15]));
+        BOOST_AUTO(element16, get<char>(results[16]));
         
-        CPPUNIT_ASSERT_EQUAL(string("\xFF"), element14);
-        CPPUNIT_ASSERT_EQUAL(string("\xFF"), element15);
-        CPPUNIT_ASSERT_EQUAL(string("i"),    element16);
+        CPPUNIT_ASSERT_EQUAL('\xFF', element14);
+        CPPUNIT_ASSERT_EQUAL('\xFF', element15);
+        CPPUNIT_ASSERT_EQUAL('i',    element16);
     }
 }

@@ -367,7 +367,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ansi\parser.hpp"
+				RelativePath=".\ansi\ansi_parser.hpp"
 				>
 			</File>
 			<File
@@ -378,6 +378,10 @@
 		<Filter
 			Name="Ansi Source Files"
 			>
+			<File
+				RelativePath=".\ansi\ansi_parser.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\ansi\protocol.cpp"
 				>

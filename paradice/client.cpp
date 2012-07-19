@@ -359,15 +359,12 @@ private :
     // ======================================================================
     // ON_TEXT
     // ======================================================================
-    void on_text(string const &text)
+    void on_text(char text)
     {
         unique_lock<mutex> lock(dispatch_queue_mutex_);
         
-        BOOST_FOREACH(char ch, text)
-        {
-            dispatch_queue_.push_back(
-                bind(&window::event, window_, ch));
-        }
+        dispatch_queue_.push_back(
+            bind(&window::event, window_, text));
         
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }

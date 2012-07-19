@@ -49,7 +49,7 @@ enum state
 // PARSER::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct parser::impl
-    : public state_machine<state, odin::u8>
+    : public state_machine<state, u8>
 {
     impl()
         : state_machine(state_normal)

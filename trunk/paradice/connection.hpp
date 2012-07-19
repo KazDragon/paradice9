@@ -90,7 +90,7 @@ public :
     /// connection.
     //* =====================================================================
     void on_text(
-        boost::function<void (std::string)> callback);
+        boost::function<void (char)> callback);
 
     //* =====================================================================
     /// \brief Set a function to be called when a mouse report is received

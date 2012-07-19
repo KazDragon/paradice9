@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "connection.hpp"
-#include "odin/ansi/parser.hpp"
+#include "odin/ansi/ansi_parser.hpp"
 #include "odin/net/socket.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
@@ -41,6 +41,7 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -67,7 +68,7 @@ struct ansi_input_visitor
     ansi_input_visitor(
         function<void (odin::ansi::mouse_report)>     on_mouse_report
       , function<void (odin::ansi::control_sequence)> on_control_sequence
-      , function<void (string)>                       on_text)
+      , function<void (char)>                         on_text)
         : on_mouse_report_(on_mouse_report)
         , on_control_sequence_(on_control_sequence)
         , on_text_(on_text)
@@ -139,7 +140,7 @@ struct ansi_input_visitor
         }
     }
     
-    void operator()(string const &text)
+    void operator()(char text)
     {
         if (on_text_)
         {
@@ -149,7 +150,7 @@ struct ansi_input_visitor
     
     function<void (odin::ansi::mouse_report)>     on_mouse_report_;
     function<void (odin::ansi::control_sequence)> on_control_sequence_;
-    function<void (string)>                       on_text_;
+    function<void (char)>                         on_text_;
 };
 
 }
@@ -309,25 +310,20 @@ struct connection::impl
     // ======================================================================
     void on_text(string const &text)
     {
-        input_buffer_.insert(
-            input_buffer_.end()
-          , text.begin()
-          , text.end());
-        
-        BOOST_AUTO(begin, input_buffer_.begin());
-        BOOST_AUTO(end,   input_buffer_.end());
-        BOOST_AUTO(result, parse_(begin, end));
-        
         ansi_input_visitor visitor(
             on_mouse_report_, on_control_sequence_, on_text_);
 
-        BOOST_FOREACH(odin::ansi::parser::element_type value, result)
+        BOOST_FOREACH(char ch, text)
         {
-            apply_visitor(visitor, value);
-        }
+            parse_(ch);
 
-        // Erase any input that has been successfully parsed.
-        input_buffer_.erase(input_buffer_.begin(), begin);
+            BOOST_AUTO(token, parse_.token());
+
+            if (token.is_initialized())
+            {
+                apply_visitor(visitor, token.get());
+            }
+        }
     }
 
     // ======================================================================
@@ -430,17 +426,15 @@ struct connection::impl
     shared_ptr<terminal_type_client>                telnet_terminal_type_client_;
 
     function<void (u16, u16)>                       on_window_size_changed_;
-    function<void (string)>                         on_text_;
+    function<void (char)>                           on_text_;
     function<void (odin::ansi::control_sequence)>   on_control_sequence_;
     function<void (odin::ansi::mouse_report)>       on_mouse_report_;
-   
-    deque<char>                                     input_buffer_;
+
+    odin::ansi::parser                              parse_;
     shared_ptr<asio::deadline_timer>                keepalive_timer_;
     
     string                                          terminal_type_;
     vector< function<void (string)> >               terminal_type_requests_;
-
-    odin::ansi::parser                              parse_;
 };
 
 // ==========================================================================
@@ -488,7 +482,7 @@ void connection::on_window_size_changed(
 // ==========================================================================
 // ON_TEXT
 // ==========================================================================
-void connection::on_text(function<void (string)> callback)
+void connection::on_text(function<void (char)> callback)
 {
     pimpl_->on_text_ = callback;
 }

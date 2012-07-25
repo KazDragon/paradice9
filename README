@@ -1,0 +1,22 @@
+What is Paradice9
+-----------------
+
+Paradice9 is a terminal server that was developed to aid internet-based tabletop roleplaying sessions.  It has been actively used for approximately two years to support five Warhammer 40K Roleplaying (Dark Heresy/Rogue Trader/etc.) games.
+
+On top of that, its software architecture can also stand as a platform for Telnet/ANSI based computing, for example as a MUD server.
+
+Dependencies
+------------
+Paradice9 has been built for three separate platforms:
+  o Windows, using Visual Studio Express 2008
+  o Windows, using Cygwin (g++)
+  o Ubuntu Linux (g++)
+
+It requires the following supporting libraries:
+  o The Boost Libraries (www.boost.org)
+  o Optionally, Crypto++ (www.cryptopp.com)
+
+Building
+--------
+Instructions for building Paradice9 can be found at: http://code.google.com/p/paradice9/wiki/HowToBuildParadice9
+

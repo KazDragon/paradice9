@@ -51,9 +51,16 @@ class state_machine
         
         state_machine &operator()(Transition transition)
         {
-            if(state[state_].transition[transition])
+            typename std::map<
+                Transition
+              , boost::function<void ()> 
+            >::iterator transition_function_iterator =
+                state[state_].transition.find(transition);
+
+            if (transition_function_iterator != state[state_].transition.end()
+             && transition_function_iterator->second)
             {
-                state[state_].transition[transition]();
+                transition_function_iterator->second();
             }
             else if (state[state_].undefined_transition)
             {

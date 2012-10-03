@@ -10,7 +10,7 @@ Releases follow a Features/Fixes cycle.  Implicit between the evenly-numbered re
 Initial release of Paradice9 with the Munin user interface.
 
 == Release 1.2 {Application/In Progress} ==
-Feature requests for Paradice9.
+Feature requests for Paradice9, with Issue 107 (Encounter Control) currently having the limelight.
 
 == Release 1.4 {Paradice} ==
 Incorporate multi-threading capabilities across the application and library.

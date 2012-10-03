@@ -440,9 +440,14 @@ private :
                         make_pair(caret_index - 1, caret_index));
                 }
             }
-            else if (isprint(ch) || ch == '\n')
+            else 
             {
-                document_->insert_text(list_of(element_type(ch)));
+                glyph gly(ch);
+
+                if (is_printable(gly))
+                {
+                    document_->insert_text(list_of(element_type(gly)));
+                }
             }
         }
     }

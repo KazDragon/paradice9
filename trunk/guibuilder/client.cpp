@@ -26,7 +26,7 @@
 // ==========================================================================
 #include "client.hpp"
 #include "munin/window.hpp"
-#include "odin/ansi/parser.hpp"
+#include "odin/ansi/ansi_parser.hpp"
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
 #include "odin/telnet/negotiation_router.hpp"
@@ -36,6 +36,7 @@
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <deque>
@@ -56,7 +57,7 @@ struct ansi_input_visitor
     ansi_input_visitor(
         function<void (odin::ansi::control_sequence)> on_control_sequence
       , function<void (odin::ansi::mouse_report)>     on_mouse_report
-      , function<void (string)>                       on_text)
+      , function<void (char)>                         on_text)
         : on_control_sequence_(on_control_sequence)
         , on_mouse_report_(on_mouse_report)
         , on_text_(on_text)
@@ -123,7 +124,7 @@ struct ansi_input_visitor
         }
     }
     
-    void operator()(string const &text)
+    void operator()(char text)
     {
         if (on_text_)
         {
@@ -133,7 +134,7 @@ struct ansi_input_visitor
     
     function<void (odin::ansi::control_sequence)> on_control_sequence_;
     function<void (odin::ansi::mouse_report)>     on_mouse_report_;
-    function<void (string)>                       on_text_;
+    function<void (char)>                         on_text_;
 };
 
 }
@@ -145,7 +146,8 @@ struct client::impl
     // ======================================================================
     impl(shared_ptr<stream>       connection
        , boost::asio::io_service &io_service)
-        : connection_(connection)
+        : strand_(io_service)
+        , connection_(connection)
     {
         telnet_stream_ =
             make_shared<odin::telnet::stream>(connection, ref(io_service));
@@ -192,7 +194,7 @@ struct client::impl
           , _1
           , _2));
 
-        window_  = make_shared<window>(ref(io_service));
+        window_  = make_shared<window>(ref(io_service), ref(strand_));
     
         schedule_next_read();
     }
@@ -232,27 +234,20 @@ struct client::impl
     // ======================================================================
     void on_text(string const &text)
     {
-        input_buffer_.insert(
-            input_buffer_.end()
-          , text.begin()
-          , text.end());
-        
-        static odin::ansi::parser parse;
-        
-        BOOST_AUTO(begin, input_buffer_.begin());
-        BOOST_AUTO(end,   input_buffer_.end());
-        BOOST_AUTO(result, parse(begin, end));
-        
         ansi_input_visitor visitor(
             on_control_sequence_, on_mouse_report_, on_text_);
 
-        BOOST_FOREACH(odin::ansi::parser::element_type value, result)
+        BOOST_FOREACH(char ch, text)
         {
-            apply_visitor(visitor, value);
-        }
+            parser_(ch);
 
-        // Erase any input that has been successfully parsed.
-        input_buffer_.erase(input_buffer_.begin(), begin);
+            BOOST_AUTO(token, parser_.token());
+
+            if (token.is_initialized())
+            {
+                apply_visitor(visitor, token.get());
+            }
+        }
     }
 
     // ======================================================================
@@ -265,6 +260,8 @@ struct client::impl
             on_window_size_changed_(width, height);
         }
     }
+
+    boost::asio::strand                             strand_;
 
     shared_ptr<stream>                              connection_;
     shared_ptr<odin::telnet::stream>                telnet_stream_;
@@ -279,11 +276,11 @@ struct client::impl
     shared_ptr<window> window_;
 
     function<void (odin::u16, odin::u16)>           on_window_size_changed_;
-    function<void (string)>                         on_text_;
+    function<void (char)>                           on_text_;
     function<void (odin::ansi::control_sequence)>   on_control_sequence_;
     function<void (odin::ansi::mouse_report)>       on_mouse_report_;
    
-    deque<char>                                     input_buffer_;
+    odin::ansi::parser                              parser_;
 };
 
 client::client(
@@ -308,7 +305,7 @@ void client::on_window_size_changed(
     pimpl_->on_window_size_changed_ = callback;
 }
 
-void client::on_text(function<void (string)> callback)
+void client::on_text(function<void (char)> callback)
 {
     pimpl_->on_text_ = callback;
 }

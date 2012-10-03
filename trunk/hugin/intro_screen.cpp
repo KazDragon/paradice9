@@ -62,7 +62,7 @@ static vector<string> const main_image = list_of
   ( "                  / _ \\\\___ ________ ____/ (_)______   / _ \\\\"         )
   ( "                 / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\\\_, /"            )
   ( "                /_/   \\\\_,_/_/  \\\\_,_/\\\\_,_/_/\\\\__/\\\\__/  /___/" )
-  ( "                                                   v1.0.3"                 )
+  ( "                                                   v1.1"                   )
   ;
 */  
 // Attempt at a palm tree with the new colour codes:

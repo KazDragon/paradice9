@@ -58,6 +58,11 @@ bool operator==(glyph const &lhs, glyph const &rhs);
 
 std::ostream &operator<<(std::ostream &out, glyph const &attr);
 
+//* =========================================================================
+/// \brief Returns whether a particular glyph is printable.
+//* =========================================================================
+bool is_printable(glyph const &gly);
+
 // Some uncommon glyphs that are very useful.
 
 #define DECLARE_G0SCO_GLYPH(name, val) \

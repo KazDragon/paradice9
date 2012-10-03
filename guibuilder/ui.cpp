@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "ui.hpp"
 #include "sized_block.hpp"
+#include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
@@ -60,6 +61,26 @@ namespace guibuilder {
 ui::ui()
 {
     BOOST_AUTO(container, get_container());
+    //*
+    BOOST_AUTO(text_area, make_shared<munin::text_area>());
+    BOOST_AUTO(scroller, make_shared<munin::scroll_pane>(text_area));
+
+    container->set_layout(make_shared<compass_layout>());
+    container->add_component(scroller, COMPASS_LAYOUT_CENTRE);
+
+    string txt;
+
+    txt += "G9,SCO\n";
+
+    for (int i = 0; i < 256; ++i)
+    {
+        txt += str(format("0x%02X: [\\c1\\lU\\C%03d]\n") % i % i);
+    }
+
+    BOOST_AUTO(doc, text_area->get_document());
+    doc->insert_text(string_to_elements(txt));
+
+    /*/
     container->set_layout(make_shared<compass_layout>());
 
     vector<string> names(20);
@@ -80,6 +101,7 @@ ui::ui()
 
     container->add_component(dropdown_list, COMPASS_LAYOUT_NORTH);
     container->add_component(scroller, COMPASS_LAYOUT_CENTRE);
+    //*/
 }
 
 void ui::do_event(any const &ev)

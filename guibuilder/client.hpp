@@ -31,7 +31,6 @@
 #include "odin/ansi/protocol.hpp"
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
-#include <string>
 
 namespace boost { namespace asio {
     class io_service;
@@ -59,7 +58,7 @@ public :
     void on_window_size_changed(
         boost::function<void (odin::u16 width, odin::u16 height)> callback);
 
-    void on_text(boost::function<void (std::string text)> callback);
+    void on_text(boost::function<void (char text)> callback);
 
     void on_control_sequence(
         boost::function<void (odin::ansi::control_sequence)> callback);

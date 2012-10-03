@@ -348,10 +348,7 @@ void default_multiline_document::do_insert_text(
     
     BOOST_FOREACH(munin::element_type ch, text)
     {
-        //if (isprint(ch.glyph_.character_) || ch.glyph_.character_ == '\n')
-        if (ch.glyph_.character_ < 0
-         || ch.glyph_.character_ >= 32 
-         || ch.glyph_.character_ == '\n')
+        if (is_printable(ch.glyph_))
         {
             stripped_text.push_back(ch);
         }

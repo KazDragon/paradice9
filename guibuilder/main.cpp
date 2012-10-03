@@ -119,18 +119,14 @@ void on_window_size_changed(
 
 void on_text(
     weak_ptr<guibuilder::client>  weak_client
-  , string const                 &text)
+  , char                          ch)
 {
     BOOST_AUTO(client, weak_client.lock());
 
     if (client)
     {
         BOOST_AUTO(window, client->get_window());
-
-        BOOST_FOREACH(char ch, text)
-        {
-            window->event(ch);
-        }
+        window->event(ch);
     }
 }
 

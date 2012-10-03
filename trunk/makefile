@@ -17,6 +17,7 @@ L_DIRS       = -L.
 L_FLAGS      = $(OPTIM) $(PROF)
 
 ODIN_NAMES        = ansi/protocol \
+                    ansi/ansi_parser \
                     net/server \
                     net/socket \
                     telnet/client_option \

@@ -1,0 +1,15 @@
+NEWS
+
+Since the 1.0 release on the 2nd of December 2010, development has continued in order to stabilise the codebase and to add minor features.  A complete list can be found at http://code.google.com/p/paradice9/issues/list?can=1&q=Milestone%3DRelease1.1 .
+
+To summarise:
+  * Features
+    * Paradice9 now has an account system in which you can create uniquely named characters.
+    * The basic pixel unit for Paradice (the 'attribute character') now supports multiple character sets, and ANSI 256-colour.
+    * Command History navigation was added (you can use the up and down arrows in the command entry field in order to browse previously written commands).
+
+  * Bugfixes/Improvements
+    * A number of bugfixes regarding crash errors, the occasional memory leak and regression have been implemented.
+    * A number of performance-related issues were introduced, most notably to do with reducing the amount of work necessary to layout and redraw parts of the screen.
+    * Compatibility changes for clients other than PuTTY were added: e.g. Ubuntu Telnet's Home/End keypresses were different, pressing the 'enter' and 'ctrl-enter' key combinations resulting in bizarre behaviour, and the different default screen size yielded other issues with the layout engine.
+    * The layout engine was simplified.  In particular, the complicated mixture of positions and offsets was replaced with a simple assumption that each component is being drawn as position (0,0) of the canvas.  The canvas therefore contains its own offset and container classes ensure that this offset is maintained correctly.

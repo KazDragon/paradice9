@@ -1,0 +1,11 @@
+# This sub-file documents changes in the Makefile for the Cygwin platform
+
+# Because it is running on a Unix-like base to a Windows platform, Boost.Asio
+# needs to be told to use the Windows asynchronous objects, and the version
+# to compile for.
+D_FLAGS += -D_WIN32_WINNT=0x0501 -D__USE_W32_SOCKETS
+
+# For similar reasons, we must link to the Winsock libraries.
+GUIBUILDER_LIBS += -lws2_32 -lwsock32
+LIBS            += -lws2_32 -lwsock32
+TEST_LIBS       += -lws2_32 -lwsock32

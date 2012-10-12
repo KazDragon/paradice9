@@ -20,6 +20,7 @@ ODIN_NAMES        = ansi/protocol \
                     ansi/ansi_parser \
                     net/server \
                     net/socket \
+                    telnet/detail/parser \
                     telnet/client_option \
                     telnet/command_router \
                     telnet/input_visitor \

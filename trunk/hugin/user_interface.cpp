@@ -296,7 +296,8 @@ void user_interface::on_character_selected(function<void (string)> callback)
 // ==========================================================================
 // ON_CHARACTER_CREATED
 // ==========================================================================
-void user_interface::on_character_created(function<void (string)> callback)
+void user_interface::on_character_created(
+    function<void (string, bool)> callback)
 {
     pimpl_->character_creation_screen_->on_character_created(callback);
 }

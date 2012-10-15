@@ -62,7 +62,9 @@ public :
     /// for the creation of an character.
     //* =====================================================================
     void on_character_created(
-        boost::function<void (std::string character_name)> callback);
+        boost::function<void (
+            std::string character_name
+          , bool        is_gm)> callback);
     
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation

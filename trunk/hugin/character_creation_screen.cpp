@@ -38,6 +38,7 @@
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
+#include "munin/toggle_button.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -68,7 +69,7 @@ struct character_creation_screen::impl
             BOOST_AUTO(elements, document->get_line(0));
             BOOST_AUTO(name, string_from_elements(elements));
             
-            on_character_created_(name);
+            on_character_created_(name, gm_toggle_->get_toggle());
         }
     }
     
@@ -85,10 +86,11 @@ struct character_creation_screen::impl
     
     // Character Creation components
     shared_ptr<edit>                   name_field_;
+    shared_ptr<toggle_button>          gm_toggle_;
     shared_ptr<edit>                   statusbar_;
     shared_ptr<button>                 ok_button_;
     shared_ptr<button>                 cancel_button_;
-    function<void (string)>            on_character_created_;
+    function<void (string, bool)>      on_character_created_;
     function<void ()>                  on_character_creation_cancelled_;
     vector<boost::signals::connection> connections_;
 };
@@ -115,20 +117,33 @@ character_creation_screen::character_creation_screen()
     name_container->add_component(
         make_shared<image>(string_to_elements("Name: "))
       , alignment);
+
+    BOOST_AUTO(gm_container, make_shared<basic_container>());
+    gm_container->set_layout(make_shared<aligned_layout>());
+    gm_container->add_component(
+        make_shared<image>(string_to_elements("GM: "))
+      , alignment);
     
     BOOST_AUTO(labels_container, make_shared<basic_container>());
-    labels_container->set_layout(make_shared<grid_layout>(1, 1));
+    labels_container->set_layout(make_shared<grid_layout>(2, 1));
     labels_container->add_component(name_container);
+    labels_container->add_component(gm_container);
     
-    // Create the Name, Password, Password (verify) edit fields.
-    pimpl_->name_field_            = make_shared<edit>();
+    // Create the Name field and GM toggle button.
+    pimpl_->name_field_ = make_shared<edit>();
+    pimpl_->gm_toggle_  = make_shared<toggle_button>(false);
     
+    BOOST_AUTO(gm_toggle_container, make_shared<basic_container>());
+    gm_toggle_container->set_layout(make_shared<compass_layout>());
+    gm_toggle_container->add_component(pimpl_->gm_toggle_, COMPASS_LAYOUT_WEST);
+
     BOOST_AUTO(fields_container, make_shared<basic_container>());
-    fields_container->set_layout(make_shared<grid_layout>(1, 1));
+    fields_container->set_layout(make_shared<grid_layout>(2, 1));
     fields_container->add_component(
         make_shared<framed_component>(
             make_shared<solid_frame>()
           , pimpl_->name_field_));
+    fields_container->add_component(gm_toggle_container);
     
     BOOST_AUTO(labels_fields_container, make_shared<basic_container>());
     labels_fields_container->set_layout(make_shared<compass_layout>());
@@ -219,13 +234,15 @@ void character_creation_screen::clear()
     
     document = pimpl_->statusbar_->get_document();
     document->delete_text(make_pair(u32(0), document->get_text_size()));
+
+    pimpl_->gm_toggle_->set_toggle(false);
 }
 
 // ==========================================================================
 // ON_CHARACTER_CREATED
 // ==========================================================================
 void character_creation_screen::on_character_created(
-    function<void (string)> callback)
+    function<void (string, bool)> callback)
 {
     pimpl_->on_character_created_ = callback;
 }

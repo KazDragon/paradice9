@@ -27,6 +27,7 @@
 #include "paradice/character.hpp"
 
 using namespace std;
+using namespace odin;
 
 namespace paradice {
     
@@ -91,6 +92,23 @@ string character::get_suffix() const
 {
     return suffix_;
 }
+
+// ==========================================================================
+// SET_GM_LEVEL
+// ==========================================================================
+void character::set_gm_level(u32 gm_level)
+{
+    gm_level_ = gm_level;
+}
+
+// ==========================================================================
+// GET_GM_LEVEL
+// ==========================================================================
+u32 character::get_gm_level() const
+{
+    return gm_level_;
+}
+
 
 }
 

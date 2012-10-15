@@ -83,25 +83,46 @@ public :
     std::string get_suffix() const;
     
     //* =====================================================================
+    /// \brief Sets the character's GM level
+    //* =====================================================================
+    void set_gm_level(odin::u32 level);
+
+    //* =====================================================================
+    /// \brief Retrieves the character's GM level
+    //* =====================================================================
+    odin::u32 get_gm_level() const;
+
+    //* =====================================================================
     /// \brief Serializes an character to or from an archive.
     //* =====================================================================
     template <class Archive>
-    void serialize(Archive &ar, const unsigned int /*version*/)
+    void serialize(Archive &ar, const unsigned int version)
     {
         ar & BOOST_SERIALIZATION_NVP(name_);
         ar & BOOST_SERIALIZATION_NVP(prefix_);
         ar & BOOST_SERIALIZATION_NVP(suffix_);
+
+        // In version 2, the concept of a GM level was introduced.
+        if (version >= 2)
+        {
+            ar & BOOST_SERIALIZATION_NVP(gm_level_);
+        }
+        else
+        {
+            gm_level_ = 0;
+        }
     }
     
 private :
     std::string name_;
     std::string prefix_;
     std::string suffix_;
+    odin::u32   gm_level_;
 };
 
 }
 
-BOOST_CLASS_VERSION(paradice::character, 1)
+BOOST_CLASS_VERSION(paradice::character, 2)
 
 #endif
 

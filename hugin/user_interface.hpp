@@ -150,7 +150,7 @@ public :
     /// character.
     //* =====================================================================
     void on_character_created(
-        boost::function<void (std::string)> callback);
+        boost::function<void (std::string, bool)> callback);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user decides to cancel

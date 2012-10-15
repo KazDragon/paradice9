@@ -226,7 +226,7 @@ public :
     //* =====================================================================
     boost::signal
     <
-        void (std::vector<rectangle> regions)
+        void (std::vector<rectangle> const &regions)
     > on_redraw;
     
     //* =====================================================================

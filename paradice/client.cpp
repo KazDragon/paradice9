@@ -62,16 +62,19 @@ namespace paradice {
 
 namespace {
     #define PARADICE_CMD_ENTRY_NOP(name) \
-        { name,        NULL                                  , 0 }
+        { name,        NULL                                  , 0, 0 }
         
     #define PARADICE_CMD_ENTRY(func) \
-        { #func,       bind(&paradice::do_##func, _1, _2, _3), 0 }
+        { #func,       bind(&paradice::do_##func, _1, _2, _3), 0, 0 }
         
     #define PARADICE_CMD_ALIAS(func, alias) \
-        { alias,       bind(&paradice::do_##func, _1, _2, _3), 0 }
+        { alias,       bind(&paradice::do_##func, _1, _2, _3), 0, 0 }
         
     #define PARADICE_ADMIN_ENTRY(func, level) \
-        { #func,       bind(&paradice::do_##func, _1, _2, _3), (level) }
+        { #func,       bind(&paradice::do_##func, _1, _2, _3), (level), 0 }
+
+    #define PARADICE_GM_ENTRY(func, level) \
+        { #func,       bind(&paradice::do_##func, _1, _2, _3), 0, (level) }
         
     typedef function<void (
         shared_ptr<paradice::context> ctx
@@ -83,6 +86,7 @@ namespace {
         string           command_;
         paradice_command function_;
         u32              admin_level_required_;
+        u32              gm_level_required_;
     } const command_list[] =
     {
         PARADICE_CMD_ENTRY_NOP("!")
@@ -230,7 +234,8 @@ public :
         user_interface_->on_character_created(bind(
             &impl::on_character_created
           , this
-          , _1));
+          , _1
+          , _2));
         
         user_interface_->on_character_creation_cancelled(bind(
             &impl::on_character_creation_cancelled
@@ -442,6 +447,41 @@ private :
     }
 
     // ======================================================================
+    // UPDATE_CHARACTER_NAMES
+    // ======================================================================
+    void update_character_names()
+    {
+        BOOST_AUTO(
+            number_of_characters
+          , account_->get_number_of_characters());
+        
+        vector< pair<string, string> > characters(number_of_characters);
+        
+        for(size_t index = 0; index < number_of_characters; ++index)
+        {
+            BOOST_AUTO(name, account_->get_character_name(index));
+
+            try
+            {
+                BOOST_AUTO(character, context_->load_character(name));                    
+                
+                if (character != NULL)
+                {
+                    characters[index] = 
+                        make_pair(name, context_->get_moniker(character)); 
+                }
+            }
+            catch(std::exception &ex)
+            {
+                printf("Error loading character %s on account %s: %s\n",
+                    name.c_str(), account_->get_name().c_str(), ex.what());
+            }
+        }
+
+        user_interface_->set_character_names(characters);
+    }
+
+    // ======================================================================
     // ON_ACCOUNT_DETAILS_ENTERED
     // ======================================================================
     void on_account_details_entered(
@@ -493,35 +533,8 @@ private :
             remove_duplicate_accounts(account);
             
             account_ = account;
-            
-            BOOST_AUTO(
-                number_of_characters
-              , account->get_number_of_characters());
-            
-            vector< pair<string, string> > characters(number_of_characters);
-            
-            for(size_t index = 0; index < number_of_characters; ++index)
-            {
-                BOOST_AUTO(name, account->get_character_name(index));
+            update_character_names();
 
-                try
-                {
-                    BOOST_AUTO(character, context_->load_character(name));                    
-                    
-                    if (character != NULL)
-                    {
-                        characters[index] = 
-                            make_pair(name, context_->get_moniker(character)); 
-                    }
-                }
-                catch(std::exception &ex)
-                {
-                    printf("Error loading character %s on account %s: %s\n",
-                        name.c_str(), account->get_name().c_str(), ex.what());
-                }
-            }
-            
-            user_interface_->set_character_names(characters);
             user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
             user_interface_->set_focus();
         }
@@ -635,9 +648,11 @@ private :
     // ======================================================================
     void on_character_selected(string const &character_name)
     {
+        shared_ptr<character> ch;
+
         try
         {
-            character_ = context_->load_character(character_name);
+            ch = context_->load_character(character_name);
         }
         catch(std::exception &ex)
         {
@@ -650,6 +665,24 @@ private :
             return;
         }
 
+        // If this is a GM character, then check for any other GM characters
+        // online, since there can only be one.
+        if (ch->get_gm_level() != 0)
+        {
+            BOOST_FOREACH(shared_ptr<client> cli, context_->get_clients())
+            {
+                BOOST_AUTO(other_ch, cli->get_character());
+
+                if (other_ch && other_ch->get_gm_level() != 0)
+                {
+                    user_interface_->set_statusbar_text(string_to_elements(
+                        "\\[1There is already a GM character online."));
+                    return;
+                }
+            }
+        }
+
+        character_ = ch;
         context_->update_names();
         
         user_interface_->select_face(hugin::FACE_MAIN);
@@ -665,7 +698,7 @@ private :
     // ======================================================================
     // ON_CHARACTER_CREATED
     // ======================================================================
-    void on_character_created(string character_name)
+    void on_character_created(string character_name, bool is_gm)
     {
         capitalise(character_name);
         
@@ -709,6 +742,11 @@ private :
         character_ = make_shared<character>();
         character_->set_name(character_name);
         
+        if (is_gm)
+        {
+            character_->set_gm_level(100);
+        }
+        
         try
         {
             context_->save_character(character_);
@@ -742,16 +780,8 @@ private :
             return;
         }
 
-        context_->update_names();
-
-        set_window_title(character_name + " - Paradice9");
-        user_interface_->select_face(hugin::FACE_MAIN);
-        
-        send_to_all(
-            context_
-          , "#SERVER: "
-          + context_->get_moniker(character_)
-          + " has entered Paradice.\n");
+        update_character_names();
+        user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
     }
     
     // ======================================================================

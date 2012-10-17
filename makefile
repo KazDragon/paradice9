@@ -70,6 +70,7 @@ MUNIN_NAMES       = algorithm \
                     text/default_multiline_document \
                     text/default_singleline_document \
                     text/document \
+                    toggle_button \
                     types \
                     vertical_scroll_bar \
                     vertical_squeeze_layout \
@@ -166,7 +167,13 @@ ALL_D_FILES = $(ODIN_D_FILES) $(MUNIN_D_FILES) $(HUGIN_D_FILES) \
 # makefile to that file in order to fix any other problems (extra libraries,
 # etc.) that crop up.
 UNAME = $(shell uname)
-include Makefile.$(UNAME)
+-include Makefile.$(UNAME)
+
+# Add user rules
+# To anyond trying to build Paradice that needs specific rules to be added,
+# for example non-standard include or library locations, then you can add
+# those rules to your own user.mk file, and it will be included automatically.
+-include user.mk
 
 # Build Rules              
 $(E_NAME): $(ODIN_LIB) $(MUNIN_LIB) $(HUGIN_LIB) $(PARADICE_LIB) \

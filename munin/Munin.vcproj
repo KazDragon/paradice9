@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\context.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dropdown_list.cpp"
 				>
 			</File>
@@ -347,6 +351,10 @@
 			</File>
 			<File
 				RelativePath=".\container.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\context.hpp"
 				>
 			</File>
 			<File

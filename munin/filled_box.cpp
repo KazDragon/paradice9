@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/filled_box.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -136,9 +137,11 @@ void filled_box::do_set_attribute(string const &name, any const &attr)
 // DO_DRAW
 // ==========================================================================
 void filled_box::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
+    canvas &cvs = ctx.get_canvas();
+
     for (u32 row = region.origin.y; 
          row < u32(region.origin.y + region.size.height);
          ++row)

@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/vertical_scroll_bar.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/algorithm.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/assign/list_of.hpp>
@@ -247,10 +248,10 @@ void vertical_scroll_bar::do_set_size(extent const &size)
 // DO_DRAW
 // ==========================================================================
 void vertical_scroll_bar::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
-    pimpl_->do_draw(cvs, region);
+    pimpl_->do_draw(ctx.get_canvas(), region);
 }
 
 // ==========================================================================

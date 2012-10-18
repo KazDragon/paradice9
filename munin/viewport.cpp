@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/viewport.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -569,9 +570,11 @@ point viewport::do_get_cursor_position() const
 // DO_DRAW
 // ==========================================================================
 void viewport::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region) 
 {
+    canvas &cvs = ctx.get_canvas();
+
     // If we are looking at the component from (3,5) and the region we want
     // to redraw is (0,0)->[2,2], then we need to offset the canvas by
     // (-3,-5) in order for it to render in our screen coordinates.
@@ -591,7 +594,7 @@ void viewport::do_draw(
               region.origin.y + offset.y),
               region.size);
 
-    pimpl_->component_->draw(cvs, offset_region);
+    pimpl_->component_->draw(ctx, offset_region);
 }
 
 // ==========================================================================

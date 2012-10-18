@@ -28,6 +28,7 @@
 #include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
@@ -86,11 +87,11 @@ public :
     // DO_DRAW
     // ======================================================================
     void do_draw(
-        canvas          &cvs
+        context         &ctx
       , rectangle const &region)
     {
-        draw_filler(cvs, region);
-        draw_title(cvs, region);
+        draw_filler(ctx.get_canvas(), region);
+        draw_title(ctx.get_canvas(), region);
     }
 
 protected :

@@ -27,6 +27,7 @@
 #include "munin/container.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/layout.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
@@ -304,9 +305,11 @@ vector<u32> container::get_layout_layers() const
 // DO_DRAW
 // ==========================================================================
 void container::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
+    canvas &cvs = ctx.get_canvas();
+
     // First, we obtain a list of components sorted by layer from lowest
     // to highest.
     BOOST_AUTO(components, pimpl_->get_components_sorted());
@@ -341,7 +344,7 @@ void container::do_draw(
                 cvs.apply_offset(-position.x, -position.y);
             } BOOST_SCOPE_EXIT_END
 
-            current_component->draw(cvs, draw_region.get());
+            current_component->draw(ctx, draw_region.get());
         }
     }
 }

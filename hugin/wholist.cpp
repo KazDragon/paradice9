@@ -27,6 +27,7 @@
 #include "wholist.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/bind.hpp>
@@ -372,10 +373,10 @@ void wholist::do_set_size(munin::extent const &size)
 // DO_DRAW
 // ==========================================================================
 void wholist::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
-    pimpl_->draw(cvs, region);
+    pimpl_->draw(ctx.get_canvas(), region);
 }
 
 // ==========================================================================

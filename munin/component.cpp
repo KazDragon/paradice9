@@ -230,10 +230,10 @@ void component::layout()
 // DRAW
 // ==========================================================================
 void component::draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
-    do_draw(cvs, region);
+    do_draw(ctx, region);
 }
 
 // ==========================================================================

@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/image.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
@@ -124,10 +125,11 @@ extent image::do_get_preferred_size() const
 // DO_DRAW
 // ==========================================================================
 void image::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
     static element_type const default_element(' ');
+    canvas &cvs = ctx.get_canvas();
 
     for (u32 row = region.origin.y; 
          row < u32(region.origin.y + region.size.height);

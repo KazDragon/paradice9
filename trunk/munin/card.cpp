@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/card.hpp"
+#include "munin/context.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -255,7 +256,7 @@ void card::do_layout()
 // DO_DRAW
 // ==========================================================================
 void card::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
     if (pimpl_->current_face_.is_initialized())
@@ -265,7 +266,7 @@ void card::do_draw(
 
         if (face_iter != pimpl_->faces_.end())
         {
-            face_iter->second->draw(cvs, region);
+            face_iter->second->draw(ctx, region);
         }
     }
 }

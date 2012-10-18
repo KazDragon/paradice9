@@ -76,15 +76,15 @@ protected :
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw 
+    /// in order to draw onto the passed context.  A component must only draw 
     /// the part of itself specified by the region.
     ///
-    /// \param cvs the canvas in which the component should draw itself.
+    /// \param ctx the context in which the component should draw itself.
     /// \param region the region relative to this component's origin that
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        canvas          &cvs
+        context         &ctx
       , rectangle const &region);
     
 private :

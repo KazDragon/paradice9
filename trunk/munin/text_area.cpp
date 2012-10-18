@@ -28,6 +28,7 @@
 #include "munin/text/default_multiline_document.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
 #include <boost/assign/list_of.hpp>
@@ -555,10 +556,10 @@ void text_area::do_set_cursor_position(point const &position)
 // DO_DRAW
 // ==========================================================================
 void text_area::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
-    pimpl_->draw(cvs, region);
+    pimpl_->draw(ctx.get_canvas(), region);
 }
 
 // ==========================================================================

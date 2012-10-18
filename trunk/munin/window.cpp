@@ -29,6 +29,7 @@
 #include "munin/container.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/assign/list_of.hpp>
@@ -400,6 +401,7 @@ public :
         , io_service_(io_service)
         , strand_(strand)
         , content_(make_shared<basic_container>())
+        , context_(canvas_, strand_)
         , last_cursor_position_(point(0,0))
         , last_cursor_state_(false)
         , repaint_scheduled_(false)
@@ -623,12 +625,12 @@ private :
         
         // Take a copy of the canvas.  We will want to check against this
         // after the draw operations to see if anything has changed.
-        canvas const canvas_clone = canvas_;
+        canvas_clone_ = canvas_;
 
         // Draw each slice on the canvas.
         BOOST_FOREACH(rectangle region, slices)
         {
-            content_->draw(canvas_, region);
+            content_->draw(context_, region);
         }
         
         // Prepare a string that is a collection of the ANSI data required
@@ -655,7 +657,7 @@ private :
             else
             {
                 subslices = find_different_subslices(
-                    slice, canvas_, canvas_clone);
+                    slice, canvas_, canvas_clone_);
             }
             
             BOOST_FOREACH(rectangle subslice, subslices)
@@ -735,6 +737,8 @@ private :
     boost::asio::strand          &strand_;
     boost::shared_ptr<container>  content_;
     canvas                        canvas_;
+    canvas                        canvas_clone_;
+    context                       context_;
     glyph                         glyph_;
     attribute                     attribute_;
     

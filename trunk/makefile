@@ -50,6 +50,7 @@ MUNIN_NAMES       = algorithm \
                     component \
                     composite_component \
                     container \
+                    context \
                     dropdown_list \
                     edit \
                     filled_box \

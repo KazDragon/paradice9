@@ -27,6 +27,7 @@
 #include "munin/list.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -296,10 +297,11 @@ void list::do_set_cursor_position(point const &position)
 // DO_DRAW
 // ==========================================================================
 void list::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
     static element_type const default_element(' ');
+    canvas &cvs = ctx.get_canvas();
 
     for (s32 y_coord = region.origin.y;
         y_coord < region.origin.y + region.size.height;

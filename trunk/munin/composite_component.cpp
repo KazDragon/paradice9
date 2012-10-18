@@ -275,10 +275,10 @@ void composite_component::do_layout()
 // DO_DRAW
 // ==========================================================================
 void composite_component::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region) 
 {
-    pimpl_->container_->draw(cvs, region);
+    pimpl_->container_->draw(ctx, region);
 }
 
 // ==========================================================================

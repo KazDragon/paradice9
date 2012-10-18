@@ -28,6 +28,7 @@
 #include "munin/text/default_singleline_document.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
 #include <boost/assign/list_of.hpp>
@@ -488,10 +489,10 @@ point edit::do_get_cursor_position() const
 // DO_DRAW
 // ==========================================================================
 void edit::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
-    pimpl_->draw(cvs, region);
+    pimpl_->draw(ctx.get_canvas(), region);
 }
 
 // ==========================================================================

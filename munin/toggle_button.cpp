@@ -87,11 +87,8 @@ void toggle_button::set_toggle(bool toggle)
     {
         pimpl_->state_ = toggle;
 
-        vector< vector<element_type > > image_string;
-        image_string.push_back(munin::ansi::elements_from_string(
-            toggle ? "X" : " "));
-
-        pimpl_->image_->set_image(image_string);
+        pimpl_->image_->set_image(
+            munin::ansi::elements_from_string(toggle ? "X" : " "));
     }
 }
 

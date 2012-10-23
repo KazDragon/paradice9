@@ -104,6 +104,16 @@ void image::set_image(vector< vector<element_type> > elements)
 }
 
 // ==========================================================================
+// SET_IMAGE
+// ==========================================================================
+void image::set_image(vector<element_type> elements)
+{
+    vector< vector<element_type> > elements_lines;
+    elements_lines.push_back(elements);
+    set_image(elements_lines);
+}
+
+// ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent image::do_get_preferred_size() const

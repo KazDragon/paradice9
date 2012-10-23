@@ -73,11 +73,6 @@ public :
     //* =====================================================================
     void on_account_creation_cancelled(boost::function<void ()> callback);
     
-    //* =====================================================================
-    /// \brief Sets the content of the status bar on the intro screen.
-    //* =====================================================================
-    void set_statusbar_text(std::vector<munin::element_type> const &text);
-    
 protected :
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

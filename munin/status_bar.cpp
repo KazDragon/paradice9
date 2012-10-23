@@ -1,5 +1,5 @@
 // ==========================================================================
-// Munin Clock Component.
+// Munin Status Bar Component.
 //
 // Copyright (C) 2012 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "munin/clock.hpp"
+#include "munin/status_bar.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/context.hpp"
@@ -45,49 +45,46 @@ using namespace boost;
 using namespace boost::asio;
 using namespace boost::assign;
 using namespace boost::posix_time;
+using namespace boost::system;
 using namespace munin::ansi;
+using namespace odin;
 
 namespace munin {
 
+namespace {
+    // TODO: Implement the marquee functionality.
+    BOOST_STATIC_CONSTANT(u32, DELAY_BEFORE_MARQUEE = 5);
+    /*
+    BOOST_STATIC_CONSTANT(u32, DELAY_BEFORE_MARQUEE = 3);
+    BOOST_STATIC_CONSTANT(u32, MARQUEE_SPEED        = 1);
+    BOOST_STATIC_CONSTANT(u32, DELAY_AFTER_MARQUEE  = 2);
+    */
+}
+
 // ==========================================================================
-// CLOCK::IMPLEMENTATION STRUCTURE
+// STATUS_BAR::IMPLEMENTATION STRUCTURE
 // ==========================================================================
-struct clock::impl : public enable_shared_from_this<impl>
+struct status_bar::impl : public enable_shared_from_this<impl>
 {
     shared_ptr<deadline_timer> timer_;
     shared_ptr<image>          image_;
+    vector<element_type>       message_;
+    odin::s32                  tick_;
 
-    void update_time()
+    void start_marquee()
     {
-        ptime now(second_clock::local_time());
-        time_duration time(now.time_of_day());
-        long hours   = time.hours();
-        long minutes = time.minutes();
-        long seconds = time.seconds();
-
-        image_->set_image(elements_from_string(str(
-            format("%02d:%02d") % hours % minutes)));
-
-        schedule_next_update();
-    }
-
-private :
-    void schedule_next_update()
-    {
-        ptime now(second_clock::local_time());
-        long seconds_until_next_minute = 
-            60 - (now.time_of_day().seconds() % 60);
-
-        timer_->expires_from_now(seconds(seconds_until_next_minute));
+        tick_ = 0;
+        timer_->expires_from_now(seconds(DELAY_BEFORE_MARQUEE));
         timer_->async_wait(bind(
-            &impl::schedule_next_update_thunk
+            &impl::marquee_start_thunk
           , weak_ptr<impl>(shared_from_this())
           , boost::asio::placeholders::error));
     }
 
-    static void schedule_next_update_thunk(
-        weak_ptr<impl> weak_this
-      , boost::system::error_code const &ec)
+private :
+    static void marquee_start_thunk(
+        weak_ptr<impl>    weak_this
+      , error_code const &ec)
     {
         if (!ec)
         {
@@ -95,19 +92,26 @@ private :
 
             if (strong_this)
             {
-                strong_this->update_time();
+                strong_this->marquee_start();
             }
         }
+    }
+
+    void marquee_start()
+    {
+        // TODO: Implement the marquee functionality.
+        image_->set_image(elements_from_string(""));
     }
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-clock::clock()
+status_bar::status_bar()
     : pimpl_(make_shared<impl>())
 {
-    pimpl_->image_ = make_shared<image>(elements_from_string("00:00"));
+    pimpl_->image_ = make_shared<image>(pimpl_->message_);
+    pimpl_->tick_  = 0;
 
     get_container()->set_layout(make_shared<compass_layout>());
     get_container()->add_component(pimpl_->image_, COMPASS_LAYOUT_SOUTH);
@@ -116,14 +120,24 @@ clock::clock()
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-clock::~clock()
+status_bar::~status_bar()
 {
+}
+
+// ==========================================================================
+// SET_MESSAGE
+// ==========================================================================
+void status_bar::set_message(vector<element_type> message)
+{
+    pimpl_->message_ = message;
+    pimpl_->tick_    = -1;
+    pimpl_->image_->set_image(message);
 }
 
 // ==========================================================================
 // DO_DRAW
 // ==========================================================================
-void clock::do_draw(
+void status_bar::do_draw(
     context         &ctx
   , rectangle const &region)
 {
@@ -133,7 +147,14 @@ void clock::do_draw(
     {
         pimpl_->timer_ = make_shared<deadline_timer>(
             ref(ctx.get_strand().get_io_service()));
-        pimpl_->update_time();
+    }
+
+    // If a message has been written since the last time this was redrawn,
+    // then we must begin a timer to ensure that it marquees (if necessary)
+    // and then vanishes.
+    if (pimpl_->tick_ == -1)
+    {
+        pimpl_->start_marquee();
     }
 
     composite_component::do_draw(ctx, region);

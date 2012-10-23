@@ -110,7 +110,6 @@ struct intro_screen::impl
 
     shared_ptr<edit>                 intro_name_field_;
     shared_ptr<edit>                 intro_password_field_;
-    shared_ptr<edit>                 statusbar_;
     function<void (string, string)>  on_account_details_entered_;
 };
 
@@ -197,11 +196,8 @@ intro_screen::intro_screen()
     BOOST_AUTO(outer_content, get_container());
     outer_content->set_layout(make_shared<compass_layout>());
     
-    pimpl_->statusbar_ = make_shared<edit>();
-    pimpl_->statusbar_->set_can_focus(false);
-    
     outer_content->add_component(inner_content, COMPASS_LAYOUT_CENTRE);
-    outer_content->add_component(pimpl_->statusbar_, COMPASS_LAYOUT_SOUTH);
+    // TODO: Coalesce
 
     // Add a filler to ensure that the background is opaque.
     outer_content->set_layout(
@@ -225,10 +221,6 @@ void intro_screen::clear()
     // Erase the text in the password field.
     document = pimpl_->intro_password_field_->get_document();
     document->delete_text(make_pair(u32(0), document->get_text_size()));
-
-    // Erase the text on the status bar.
-    document = pimpl_->statusbar_->get_document();
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
 }
 
 // ==========================================================================
@@ -238,17 +230,6 @@ void intro_screen::on_account_details_entered(
     function<void (string, string)> callback)
 {
     pimpl_->on_account_details_entered_ = callback;
-}
-
-// ==========================================================================
-// SET_STATUSBAR_TEXT
-// ==========================================================================
-void intro_screen::set_statusbar_text(
-    vector<element_type> const &text)
-{
-    BOOST_AUTO(document, pimpl_->statusbar_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
-    document->insert_text(text);
 }
 
 // ==========================================================================

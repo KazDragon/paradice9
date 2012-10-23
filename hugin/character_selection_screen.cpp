@@ -145,14 +145,6 @@ void character_selection_screen::set_character_names(
 }
 
 // ==========================================================================
-// SET_STATUSBAR_TEXT
-// ==========================================================================
-void character_selection_screen::set_statusbar_text(
-    vector<element_type> const &text)
-{
-}
-
-// ==========================================================================
 // ON_NEW_CHARACTER
 // ==========================================================================
 void character_selection_screen::on_new_character(function<void ()> callback)

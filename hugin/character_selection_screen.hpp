@@ -67,11 +67,6 @@ public :
         std::vector<
             std::pair<std::string, std::string> 
         > const &names);
-    
-    //* =====================================================================
-    /// \brief Sets the content of the status bar on the intro screen.
-    //* =====================================================================
-    void set_statusbar_text(std::vector<munin::element_type> const &text);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to create

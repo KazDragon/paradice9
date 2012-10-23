@@ -58,11 +58,6 @@ public :
     void on_account_details_entered(
         boost::function<void (std::string, std::string)> callback);
 
-    //* =====================================================================
-    /// \brief Sets the content of the status bar on the intro screen.
-    //* =====================================================================
-    void set_statusbar_text(std::vector<munin::element_type> const &text);
-    
 protected :
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

@@ -59,6 +59,11 @@ public :
     void set_image(std::vector< std::vector< element_type> > elements);
 
     //* =====================================================================
+    /// \brief Sets the image displayed
+    //* =====================================================================
+    void set_image(std::vector<element_type> elements);
+
+    //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
     virtual ~image();

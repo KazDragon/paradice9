@@ -68,6 +68,7 @@ MUNIN_NAMES       = algorithm \
                     named_frame \
                     scroll_pane \
                     solid_frame \
+                    status_bar \
                     text_area \
                     text/default_multiline_document \
                     text/default_singleline_document \

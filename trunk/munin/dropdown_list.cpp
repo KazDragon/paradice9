@@ -130,7 +130,7 @@ struct dropdown_list::impl
     // ======================================================================
     void on_item_changed(s32)
     {
-        selected_text_->set_image(list_of(self_.get_item()));
+        selected_text_->set_image(self_.get_item());
     }
 
     // ======================================================================

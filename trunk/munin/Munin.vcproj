@@ -272,6 +272,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\status_bar.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\text_area.cpp"
 				>
 			</File>
@@ -427,6 +431,10 @@
 			</File>
 			<File
 				RelativePath=".\solid_frame.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\status_bar.hpp"
 				>
 			</File>
 			<File

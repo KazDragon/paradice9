@@ -24,8 +24,8 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_clock_HPP_
-#define MUNIN_clock_HPP_
+#ifndef MUNIN_CLOCK_HPP_
+#define MUNIN_CLOCK_HPP_
 
 #include "munin/composite_component.hpp"
 

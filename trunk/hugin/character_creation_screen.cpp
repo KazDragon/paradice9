@@ -87,7 +87,6 @@ struct character_creation_screen::impl
     // Character Creation components
     shared_ptr<edit>                   name_field_;
     shared_ptr<toggle_button>          gm_toggle_;
-    shared_ptr<edit>                   statusbar_;
     shared_ptr<button>                 ok_button_;
     shared_ptr<button>                 cancel_button_;
     function<void (string, bool)>      on_character_created_;
@@ -191,14 +190,10 @@ character_creation_screen::character_creation_screen()
         buttons_outer_container
       , COMPASS_LAYOUT_CENTRE);
     
-    pimpl_->statusbar_ = make_shared<edit>();
-    pimpl_->statusbar_->set_can_focus(false);
-    
     BOOST_AUTO(inner_container3, make_shared<basic_container>());
     inner_container3->set_layout(make_shared<compass_layout>());
     inner_container3->add_component(inner_container2, COMPASS_LAYOUT_NORTH);
-    inner_container3->add_component(pimpl_->statusbar_, COMPASS_LAYOUT_CENTRE);
-    
+    // TODO: Coalesce?    
     content->add_component(make_shared<framed_component>(
         screen_frame
       , inner_container3));
@@ -232,9 +227,6 @@ void character_creation_screen::clear()
     BOOST_AUTO(document, pimpl_->name_field_->get_document());
     document->delete_text(make_pair(u32(0), document->get_text_size()));
     
-    document = pimpl_->statusbar_->get_document();
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
-
     pimpl_->gm_toggle_->set_toggle(false);
 }
 
@@ -254,17 +246,6 @@ void character_creation_screen::on_character_creation_cancelled(
     function<void ()> callback)
 {
     pimpl_->on_character_creation_cancelled_ = callback;
-}
-
-// ==========================================================================
-// SET_STATUSBAR_TEXT
-// ==========================================================================
-void character_creation_screen::set_statusbar_text(
-    vector<element_type> const &text)
-{
-    BOOST_AUTO(document, pimpl_->statusbar_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
-    document->insert_text(text);
 }
 
 // ==========================================================================

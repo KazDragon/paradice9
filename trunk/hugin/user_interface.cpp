@@ -31,9 +31,14 @@
 #include "hugin/intro_screen.hpp"
 #include "hugin/main_screen.hpp"
 #include "hugin/password_change_screen.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/card.hpp"
+#include "munin/clock.hpp"
+#include "munin/compass_layout.hpp"
 #include "munin/grid_layout.hpp"
+#include "munin/image.hpp"
+#include "munin/status_bar.hpp"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
@@ -41,6 +46,7 @@
 #include <deque>
 
 using namespace munin;
+using namespace munin::ansi;
 using namespace odin;
 using namespace boost;
 using namespace std;
@@ -69,6 +75,8 @@ struct user_interface::impl
     shared_ptr<main_screen>                main_screen_;
     shared_ptr<password_change_screen>     password_change_screen_;
 
+    shared_ptr<status_bar>                 status_bar_;
+
     mutex                                  dispatch_queue_mutex_;
     deque< function<void ()> >             dispatch_queue_;
     
@@ -87,6 +95,7 @@ struct user_interface::impl
     // ======================================================================
     void set_statusbar_text(vector<element_type> const &text)
     {
+        /*
         if (active_face_ == hugin::FACE_INTRO)
         {
             intro_screen_->set_statusbar_text(text);
@@ -103,6 +112,8 @@ struct user_interface::impl
         {
             password_change_screen_->set_statusbar_text(text);
         }
+        */
+        status_bar_->set_message(text);
     }
     
     // ======================================================================
@@ -154,7 +165,8 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->character_selection_screen_ = make_shared<character_selection_screen>();
     pimpl_->main_screen_                = make_shared<main_screen>();
     pimpl_->password_change_screen_     = make_shared<password_change_screen>();
-    
+    pimpl_->status_bar_                 = make_shared<status_bar>();
+
     pimpl_->active_screen_->add_face(
         pimpl_->intro_screen_, hugin::FACE_INTRO);
     pimpl_->active_screen_->add_face(
@@ -171,9 +183,33 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
     pimpl_->active_face_ = hugin::FACE_INTRO;
 
+    // Create a container that has a single spacer element and ... A CLOCK!
+    BOOST_AUTO(clock_container, make_shared<basic_container>());
+    clock_container->set_layout(make_shared<compass_layout>());
+    clock_container->add_component(
+        make_shared<image>(elements_from_string(" "))
+      , COMPASS_LAYOUT_WEST);
+    clock_container->add_component(
+        make_shared<munin::clock>()
+      , COMPASS_LAYOUT_EAST);
+
+    BOOST_AUTO(status_bar_container, make_shared<basic_container>());
+    status_bar_container->set_layout(make_shared<compass_layout>());
+    status_bar_container->add_component(
+        pimpl_->status_bar_
+      , COMPASS_LAYOUT_CENTRE);
+    status_bar_container->add_component(
+        clock_container
+      , COMPASS_LAYOUT_EAST);
+
     BOOST_AUTO(container, get_container());
-    container->set_layout(make_shared<grid_layout>(1, 1));
-    container->add_component(pimpl_->active_screen_);
+    container->set_layout(make_shared<compass_layout>());
+    container->add_component(
+        pimpl_->active_screen_
+      , COMPASS_LAYOUT_CENTRE);
+    container->add_component(
+        status_bar_container
+      , COMPASS_LAYOUT_SOUTH);
 }
 
 // ==========================================================================

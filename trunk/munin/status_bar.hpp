@@ -1,7 +1,7 @@
 // ==========================================================================
-// Hugin Character Creation Screen
+// Munin Status Bar.
 //
-// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2012 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,64 +24,51 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_CHARACTER_CREATION_SCREEN_HPP_
-#define HUGIN_CHARACTER_CREATION_SCREEN_HPP_
+#ifndef MUNIN_STATUS_BAR_HPP_
+#define MUNIN_STATUS_BAR_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <string>
 
-namespace hugin {
+namespace munin {
 
 //* =========================================================================
-/// \brief An abstraction of the primary user interface for the Paradice
-/// application.
+/// \brief A class that models a status_bar.
 //* =========================================================================
-class character_creation_screen
-    : public munin::composite_component
+class status_bar 
+  : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    character_creation_screen();
+    status_bar();
+
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    virtual ~status_bar();
     
     //* =====================================================================
-    /// \brief
+    /// \brief Sets the message shown on the status bar.
     //* =====================================================================
-    ~character_creation_screen();
-    
-    //* =====================================================================
-    /// \brief Clears the screen of all data.
-    //* =====================================================================
-    void clear();
-    
-    //* =====================================================================
-    /// \brief Set a function to be called when the user inputs the details
-    /// for the creation of an character.
-    //* =====================================================================
-    void on_character_created(
-        boost::function<void (
-            std::string character_name
-          , bool        is_gm)> callback);
-    
-    //* =====================================================================
-    /// \brief Set a function to be called when the user cancels the creation
-    /// of an character.
-    //* =====================================================================
-    void on_character_creation_cancelled(boost::function<void ()> callback);
-    
+    void set_message(std::vector<element_type> message);
+
 protected :
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
-    /// function in order to handle events in a custom manner.
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed context.  A component must only draw 
+    /// the part of itself specified by the region.
+    ///
+    /// \param ctx the context in which the component should draw itself.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
     //* =====================================================================
-    virtual void do_event(boost::any const &event);
+    virtual void do_draw(
+        context         &ctx
+      , rectangle const &region);
 
-private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    boost::shared_ptr<impl> pimpl_;    
 };
 
 }

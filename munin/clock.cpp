@@ -91,7 +91,7 @@ private :
         weak_ptr<impl> weak_this
       , boost::system::error_code const &ec)
     {
-        if (ec)
+        if (!ec)
         {
             shared_ptr<impl> strong_this(weak_this.lock());
 

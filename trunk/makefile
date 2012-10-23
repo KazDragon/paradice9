@@ -46,6 +46,7 @@ MUNIN_NAMES       = algorithm \
                     button \
                     canvas \
                     card \
+                    clock \
                     compass_layout \
                     component \
                     composite_component \

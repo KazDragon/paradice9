@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\clock.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\compass_layout.cpp"
 				>
 			</File>
@@ -335,6 +339,10 @@
 			</File>
 			<File
 				RelativePath=".\card.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\clock.hpp"
 				>
 			</File>
 			<File

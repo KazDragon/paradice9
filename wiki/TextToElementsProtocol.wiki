@@ -104,7 +104,7 @@ To match up to the colour chart, the following conversion is applied:
 
 colour = (_?R_ x 36) + (_?G_ x 6) + (_?B_) + 16
 
-E.g. {{{\<fba}}}: (5 x 36) + (1 x 6) + (0) + 16 = foreground colour 202, a deep orange.
+E.g. {{{\<510}}}: (5 x 36) + (1 x 6) + (0) + 16 = foreground colour 202, a deep orange.
 
   * \>_?R?G?B_
     * _?R_ = 0..5: intensity of red value as background

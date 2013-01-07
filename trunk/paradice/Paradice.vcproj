@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT);$(CRYPTOPP_ROOT)"
+				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT);$(CRYPTOPP_INCLUDE_ROOT)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS;PARADICE_USE_CRYPTOPP"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -105,7 +105,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT);$(CRYPTOPP_ROOT)"
+				AdditionalIncludeDirectories=".;..;$(BOOST_INCLUDE_ROOT);$(CRYPTOPP_INCLUDE_ROOT)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0501;_SCL_SECURE_NO_WARNINGS;PARADICE_USE_CRYPTOPP"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

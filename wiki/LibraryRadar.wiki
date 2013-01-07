@@ -1,0 +1,9 @@
+#summary A list of pages of libraries that may be of use.
+
+= Databases =
+
+== CppDB ==
+
+http://cppcms.com/sql/cppdb/
+
+Based on the experience of SOCI, libdbi and so on comes CppDB, the C++ version of JDBC/ODBC, etc.

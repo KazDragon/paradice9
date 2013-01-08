@@ -13,9 +13,11 @@
 === Prerequisite Libraries ===
 
   * Boost
-    * TODO
+    * Follow the instructions at boost.org in order to get and build Boost.
   * Crypto++
-    * TODO
+    * Extract the zip file.
+    * Open the cryptest.sln solution and allow Visual Studio to convert it to a VS2008 solution.
+    * Build the "cryptlib" projects for debug and release.
   * CppUnit
     * TODO
 

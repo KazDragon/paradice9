@@ -27,23 +27,13 @@
 #include "ui.hpp"
 #include "sized_block.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/aligned_layout.hpp"
 #include "munin/ansi/protocol.hpp"
-#include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
-#include "munin/composite_component.hpp"
-#include "munin/dropdown_list.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/horizontal_scroll_bar.hpp"
-#include "munin/image.hpp"
 #include "munin/edit.hpp"
+#include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
-#include "munin/list.hpp"
-#include "munin/scroll_pane.hpp"
 #include "munin/solid_frame.hpp"
-#include "munin/text_area.hpp"
-#include "munin/vertical_scroll_bar.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "munin/tabbed_frame.hpp"
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
@@ -61,47 +51,23 @@ namespace guibuilder {
 ui::ui()
 {
     BOOST_AUTO(container, get_container());
-    //*
-    BOOST_AUTO(text_area, make_shared<munin::text_area>());
-    BOOST_AUTO(scroller, make_shared<munin::scroll_pane>(text_area));
-
-    container->set_layout(make_shared<compass_layout>());
-    container->add_component(scroller, COMPASS_LAYOUT_CENTRE);
-
-    string txt;
-
-    txt += "G9,SCO\n";
-
-    for (int i = 0; i < 256; ++i)
-    {
-        txt += str(format("0x%02X: [\\c1\\lU\\C%03d]\n") % i % i);
-    }
-
-    BOOST_AUTO(doc, text_area->get_document());
-    doc->insert_text(string_to_elements(txt));
-
-    /*/
     container->set_layout(make_shared<compass_layout>());
 
-    vector<string> names(20);
-    for (size_t index = 0; index < names.size(); ++index)
-    {
-        names[index] = str(format("Item #%d") % index);
-    }
+    // Central - tabbed control.
     
-    BOOST_AUTO(list, make_shared<munin::list>());
-    BOOST_AUTO(scroller, make_shared<scroll_pane>(list));
+    container->add_component(
+        make_shared<framed_component>(
+            make_shared<tabbed_frame>()
+          , make_shared<filled_box>(element_type('x')))
+      , COMPASS_LAYOUT_CENTRE);
 
-    list->set_items(elements_from_strings(names));
-    list->set_item_index(0);
-    
-    BOOST_AUTO(dropdown_list, make_shared<munin::dropdown_list>());
-    dropdown_list->set_items(elements_from_strings(names));
-    dropdown_list->set_item_index(0);
-
-    container->add_component(dropdown_list, COMPASS_LAYOUT_NORTH);
-    container->add_component(scroller, COMPASS_LAYOUT_CENTRE);
-    //*/
+    // Bottommost - edit control.
+    BOOST_AUTO(input_field, make_shared<edit>());
+    container->add_component(
+        make_shared<framed_component>(
+            make_shared<solid_frame>()
+          , input_field)
+      , COMPASS_LAYOUT_SOUTH);
 }
 
 void ui::do_event(any const &ev)

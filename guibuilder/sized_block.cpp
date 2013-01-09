@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "guibuilder/sized_block.hpp"
 #include "munin/canvas.hpp"
+#include "munin/context.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
@@ -95,9 +96,11 @@ munin::extent sized_block::do_get_preferred_size() const
 // DO_DRAW
 // ==========================================================================
 void sized_block::do_draw(
-    canvas          &cvs
+    context         &ctx
   , rectangle const &region)
 {
+    canvas &cvs = ctx.get_canvas();
+
     for (u32 row = region.origin.y; 
          row < u32(region.origin.y + region.size.height);
          ++row)

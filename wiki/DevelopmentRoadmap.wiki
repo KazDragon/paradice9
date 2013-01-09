@@ -16,6 +16,6 @@ Feature requests for Paradice9, with Issue 107 (Encounter Control) currently hav
 Incorporate multi-threading capabilities across the application and library.
 
 == Release 2.0 {Paradice} ==
-Provide features that enable Paradice applications to service a larger range of clients.  The two primary features that provide this are terminal type detection (issue 99) and a user interface that is far less ANSI-heavy, but provides hooks for other markups and protocols that are used by the applications targeted by Paradice (e.g. MSDP, MSSP) (issue 100).
+Provide features that enable Paradice applications to service a larger range of clients.  The two primary features that provide this are terminal type detection (issue 99) and a user interface that is far less ANSI-heavy, but provides hooks for other markups and protocols that are used by the applications targeted by Paradice (e.g. [http://tintin.sourceforge.net/msdp/ MSDP], [http://tintin.sourceforge.net/mssp/ MSSP]) (issue 100).  Could also include [http://www.aardwolf.com/wiki/index.php/Clients/GMCP GMCP]/[http://www.ironrealms.com/rapture/manual/files/FeatATCP-txt.html ATCP] and Aardwolf's [http://www.aardwolf.com/blog/2008/07/10/telnet-negotiation-control-mud-client-interaction/ "Protocol 102"]
 
 The intent of this release is to be able to announce and open the framework to public scrutiny, and possibly add additional development partners. 

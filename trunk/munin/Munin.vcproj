@@ -276,6 +276,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tabbed_frame.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\text_area.cpp"
 				>
 			</File>
@@ -438,6 +442,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tabbed_frame.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\text_area.hpp"
 				>
 			</File>
@@ -465,12 +473,6 @@
 				RelativePath=".\window.hpp"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 		<Filter
 			Name="Ansi Header Files"

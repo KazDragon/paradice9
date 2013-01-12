@@ -300,6 +300,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\vertical_strip_layout.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\viewport.cpp"
 				>
 			</File>
@@ -463,6 +467,10 @@
 			</File>
 			<File
 				RelativePath=".\vertical_squeeze_layout.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\vertical_strip_layout.hpp"
 				>
 			</File>
 			<File

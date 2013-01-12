@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Horizontal Strip Layout.
+// Munin Vertical Strip Layout.
 //
-// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,8 +24,8 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef MUNIN_HORIZONTAL_STRIP_LAYOUT_HPP_
-#define MUNIN_HORIZONTAL_STRIP_LAYOUT_HPP_
+#ifndef MUNIN_VERTICAL_STRIP_LAYOUT_HPP_
+#define MUNIN_VERTICAL_STRIP_LAYOUT_HPP_
 
 #include "munin/layout.hpp"
 #include <boost/shared_ptr.hpp>
@@ -34,19 +34,19 @@ namespace munin {
 
 //* =========================================================================
 /// \brief A class that knows how to lay components out in a container in
-/// horizontal strips.  Each component is given all the available width,
-/// with the sum of the preferred height of all the components.
+/// vertical strips.  Each component is given all the available height,
+/// with the sum of the preferred widths of all the components.
 ///
 /// +----------+
-/// |+-------+ |
-/// ||       | |
-/// |+-------+ |
-/// ||       | |
-/// ||       | |
-/// |+-------+ |
+/// |+-+-----+ |
+/// || |     | |
+/// || |     | |
+/// || |     | |
+/// || |     | |
+/// |+-+-----+ |
 /// +----------+
 //* =========================================================================
-class horizontal_strip_layout 
+class vertical_strip_layout 
     : public layout
 {
 protected :

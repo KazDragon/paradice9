@@ -76,6 +76,15 @@ void filled_box::set_preferred_size(extent preferred_size)
 }
 
 // ==========================================================================
+// SET_FILL
+// ==========================================================================
+void filled_box::set_fill(element_type const &element)
+{
+    pimpl_->element_ = element;
+    on_redraw(list_of(rectangle(point(), get_size())));
+}
+
+// ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
 extent filled_box::do_get_preferred_size() const

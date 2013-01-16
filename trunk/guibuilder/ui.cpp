@@ -54,10 +54,15 @@ ui::ui()
     container->set_layout(make_shared<compass_layout>());
 
     // Central - tabbed control.
-    
+    BOOST_AUTO(frame, make_shared<tabbed_frame>());
+    frame->insert_tab("My first tab");
+    frame->insert_tab("My second tab");
+    frame->insert_tab("My third tab");
+    frame->insert_tab("My fourth tab");
+
     container->add_component(
         make_shared<framed_component>(
-            make_shared<tabbed_frame>()
+            frame
           , make_shared<filled_box>(element_type('x')))
       , COMPASS_LAYOUT_CENTRE);
 

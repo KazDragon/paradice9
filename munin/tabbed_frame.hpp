@@ -28,6 +28,8 @@
 #define MUNIN_TABBED_FRAME_HPP_
 
 #include "munin/frame.hpp"
+#include <boost/optional.hpp>
+#include <string>
 
 namespace munin {
 
@@ -41,6 +43,31 @@ public :
     /// \brief Constructor
     //* =====================================================================
     tabbed_frame();
+
+    //* =====================================================================
+    /// \brief Inserts a tab into the frame.
+    /// \par text The text of the tab.  This may be specified using the ANSI
+    /// markup notation.  It will be the identifier of the tab when called
+    /// back via the on_tab_selected() signal.
+    /// \par index Optionally, the index at which the tab should be inserted.
+    /// If this is not specified, then it is inserted as the right-most tab.
+    //* =====================================================================
+    void insert_tab(
+        std::string const          &text, 
+        boost::optional<odin::u32>  index = boost::optional<odin::u32>());
+
+    //* =====================================================================
+    /// \brief Removes a tab from the frame.
+    /// \par index The index at which the tab should be removed.
+    //* =====================================================================
+    void remove_tab(odin::u32 index);
+
+    //* =====================================================================
+    /// \fn on_tab_selected(std::string const &text)
+    /// \brief Callback signal for when a tab was selected.
+    /// \par text The text of the tab that was selected.
+    //* =====================================================================
+    boost::signal<void (std::string const &)> on_tab_selected;
 
 protected :
     //* =====================================================================

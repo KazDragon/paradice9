@@ -63,6 +63,11 @@ public :
     void remove_tab(odin::u32 index);
 
     //* =====================================================================
+    /// \brief Sets the highlight to be on or off.
+    //* =====================================================================
+    void set_highlight(bool highlight);
+
+    //* =====================================================================
     /// \fn on_tab_selected(std::string const &text)
     /// \brief Callback signal for when a tab was selected.
     /// \par text The text of the tab that was selected.
@@ -97,6 +102,12 @@ protected :
     /// a custom manner.
     //* =====================================================================
     virtual odin::s32 do_get_right_border_width() const;
+
+    //* =====================================================================
+    /// \brief Called by set_highlight.  Derived classes must override this
+    /// function in order to set the highlight in a custom manner.
+    //* =====================================================================
+    virtual void do_set_highlight(bool highlight);
 
 private :
     struct impl;

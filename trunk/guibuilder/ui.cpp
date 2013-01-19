@@ -33,7 +33,7 @@
 #include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/solid_frame.hpp"
-#include "munin/tabbed_frame.hpp"
+#include "munin/tabbed_panel.hpp"
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
@@ -54,17 +54,13 @@ ui::ui()
     container->set_layout(make_shared<compass_layout>());
 
     // Central - tabbed control.
-    BOOST_AUTO(frame, make_shared<tabbed_frame>());
-    frame->insert_tab("My first tab");
-    frame->insert_tab("My second tab");
-    frame->insert_tab("My third tab");
-    frame->insert_tab("My fourth tab");
+    BOOST_AUTO(panel, make_shared<tabbed_panel>());
+    container->add_component(panel, COMPASS_LAYOUT_CENTRE);
 
-    container->add_component(
-        make_shared<framed_component>(
-            frame
-          , make_shared<filled_box>(element_type('x')))
-      , COMPASS_LAYOUT_CENTRE);
+    panel->insert_tab("My first tab", make_shared<filled_box>(element_type('1')));
+    panel->insert_tab("My second tab", make_shared<filled_box>(element_type('2')));
+    panel->insert_tab("My third tab", make_shared<filled_box>(element_type('3')));
+    panel->insert_tab("My fourth tab", make_shared<filled_box>(element_type('4')));
 
     // Bottommost - edit control.
     BOOST_AUTO(input_field, make_shared<edit>());

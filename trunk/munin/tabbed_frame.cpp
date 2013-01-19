@@ -517,7 +517,7 @@ private :
             make_shared<filled_box>(element_type(' '))
           , COMPASS_LAYOUT_CENTRE);
         filler->add_component(
-            make_shared<filled_box>(element_type(single_lined_horizontal_beam))
+            make_shared<filled_box>(element_type(double_lined_horizontal_beam))
           , COMPASS_LAYOUT_SOUTH);
 
         BOOST_AUTO(rightmost, make_shared<tabbed_frame_header_rivet>());

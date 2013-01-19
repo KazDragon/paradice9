@@ -64,6 +64,11 @@ public :
     //* =====================================================================
     void set_fill(element_type const &element);
 
+    //* =====================================================================
+    /// \brief Gets the element with which the box is filled.
+    //* =====================================================================
+    element_type get_fill() const;
+
 protected :
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override

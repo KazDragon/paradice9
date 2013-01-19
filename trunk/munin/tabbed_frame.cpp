@@ -119,6 +119,8 @@ public :
         content->add_component(top_box_, COMPASS_LAYOUT_NORTH);
         content->add_component(label_, COMPASS_LAYOUT_CENTRE);
         content->add_component(bottom_box_, COMPASS_LAYOUT_SOUTH);
+        
+        label_->set_can_focus(true);
     }
 
     // ======================================================================
@@ -170,7 +172,7 @@ private :
 // ==========================================================================
 // TABBED_FRAME_HEADER
 // ==========================================================================
-class tabbed_frame_header 
+class tabbed_frame_header
   : public composite_component
   , public enable_shared_from_this<tabbed_frame_header>
 {
@@ -180,6 +182,7 @@ public :
     // ======================================================================
     tabbed_frame_header()
       : selected_(0)
+      , highlight_(false)
     {
         get_container()->set_layout(make_shared<grid_layout>(1, 1));
         assemble_default();
@@ -239,7 +242,56 @@ public :
         assemble();
     }
 
+    // ======================================================================
+    // SET_HIGHLIGHT
+    // ======================================================================
+    void set_highlight(bool highlight)
+    {
+        highlight_ = highlight;
+        update_highlights();
+    }
+
     signal<void (string)> on_tab_selected;
+
+protected :
+    // ======================================================================
+    // DO_EVENT
+    // ======================================================================
+    void do_event(boost::any const &event)
+    {
+        BOOST_AUTO(sequence, any_cast<odin::ansi::control_sequence>(&event));
+
+        bool handled = false;
+
+        if (sequence)
+        {
+            if (sequence->command_ == odin::ansi::CURSOR_FORWARD)
+            {
+                if (selected_ + 1 < tabs_.size())
+                {
+                    ++selected_;
+                    update_highlights();
+                    on_tab_selected(tabs_[selected_]);
+                    handled = true;
+                }
+            }
+            else if (sequence->command_ == odin::ansi::CURSOR_BACKWARD)
+            {
+                if (selected_ != 0)
+                {
+                    --selected_;
+                    update_highlights();
+                    on_tab_selected(tabs_[selected_]);
+                    handled = true;
+                }
+            }
+        }
+
+        if (!handled)
+        {
+            composite_component::do_event(event);
+        }
+    }
 
 private :
     // ======================================================================
@@ -306,9 +358,8 @@ private :
         filler->add_component(
             make_shared<filled_box>(element_type(' '))
           , COMPASS_LAYOUT_CENTRE);
-        filler->add_component(
-            make_shared<filled_box>(element_type(double_lined_horizontal_beam))
-          , COMPASS_LAYOUT_SOUTH);
+        filler_ = make_shared<filled_box>(element_type(double_lined_horizontal_beam));
+        filler->add_component(filler_, COMPASS_LAYOUT_SOUTH);
 
         // To create the middle section, use a vertical strip layout and
         // alternate label/rivet until complete.
@@ -357,31 +408,69 @@ private :
         // and also whether the framed component is focussed (todo).
         u32 index = 0;
         
+        attribute selected_item_pen;
+        
+        if (highlight_)
+        {
+            selected_item_pen.foreground_colour_ = 
+                attribute::high_colour(1, 4, 5);
+        }
+
         BOOST_FOREACH(shared_ptr<tabbed_frame_header_rivet> rivet, rivets_)
         {
+            // We want a highlight if this wraps the selected item.
+            attribute pen = index == selected_ || index == selected_ + 1
+                          ? selected_item_pen
+                          : attribute();
+
             if (index <= selected_)
             {
                 rivet->set_top_element(element_type(
-                    double_lined_top_left_corner));
+                    double_lined_top_left_corner, pen));
+
+                rivet->set_middle_element(element_type(
+                    double_lined_vertical_beam, pen));
+
             }
-            else if (index < rivets_.size())
+            else if (index == rivets_.size() - 1)
+            {
+                rivet->set_top_element(element_type(' '));
+                rivet->set_middle_element(element_type(' '));
+            }
+            else
             {
                 rivet->set_top_element(element_type(
-                    double_lined_top_right_corner));
-            }
+                    double_lined_top_right_corner, pen));
 
-            rivet->set_middle_element(element_type(
-                double_lined_vertical_beam));
+                rivet->set_middle_element(element_type(
+                    double_lined_vertical_beam, pen));
+            }
 
             if (index == 0)
             {
                 rivet->set_bottom_element(element_type(
-                    double_lined_left_tee));
+                    selected_ == 0 
+                      ? double_lined_left_tee
+                      : double_lined_top_left_corner
+                  , selected_item_pen));
+            }
+            else if (index == rivets_.size() - 1)
+            {
+                rivet->set_bottom_element(element_type(
+                    double_lined_top_right_corner, selected_item_pen));
             }
             else
             {
-                rivet->set_bottom_element(element_type(
-                    double_lined_bottom_tee));
+                if (index == selected_ || index == selected_ + 1)
+                {
+                    rivet->set_bottom_element(element_type(
+                        double_lined_bottom_tee, selected_item_pen));
+                }
+                else
+                {
+                    rivet->set_bottom_element(element_type(
+                        double_lined_horizontal_beam, selected_item_pen));
+                }
             }
 
             ++index;
@@ -392,9 +481,18 @@ private :
         BOOST_FOREACH(shared_ptr<tabbed_frame_header_label> label, labels_)
         {
             label->set_top_element(element_type(
-                double_lined_horizontal_beam));
+                double_lined_horizontal_beam
+              , index == selected_ ? selected_item_pen : attribute()));
             label->set_bottom_element(element_type(
-                double_lined_horizontal_beam));
+                double_lined_horizontal_beam, selected_item_pen));
+
+            ++index;
+        }
+
+        if (filler_)
+        {
+            filler_->set_fill(
+                element_type(filler_->get_fill().glyph_, selected_item_pen));
         }
     }
 
@@ -443,9 +541,11 @@ private :
 private :
     vector<string>                                  tabs_;
     shared_ptr<basic_container>                     content_;
+    shared_ptr<filled_box>                          filler_;
     vector< shared_ptr<tabbed_frame_header_rivet> > rivets_;
     vector< shared_ptr<tabbed_frame_header_label> > labels_;
     u32                                             selected_;
+    bool                                            highlight_;
 };
 
 }
@@ -486,8 +586,38 @@ struct tabbed_frame::impl
         self_.on_tab_selected(text);
     }
 
+    // ======================================================================
+    // SET_HIGHLIGHT
+    // ======================================================================
+    void set_highlight(bool highlight)
+    {
+        attribute pen;
+
+        if (highlight)
+        {
+            pen.foreground_colour_ = attribute::high_colour(1, 4, 5);
+        }
+
+        header_->set_highlight(highlight);
+        left_border_->set_fill(
+            element_type(left_border_->get_fill().glyph_, pen));
+        bottom_left_corner_->set_fill(
+            element_type(bottom_left_corner_->get_fill().glyph_, pen));
+        bottom_border_->set_fill(
+            element_type(bottom_border_->get_fill().glyph_, pen));
+        bottom_right_corner_->set_fill(
+            element_type(bottom_right_corner_->get_fill().glyph_, pen));
+        right_border_->set_fill(
+            element_type(right_border_->get_fill().glyph_, pen));
+    }
+
     tabbed_frame                    &self_;
     shared_ptr<tabbed_frame_header>  header_;
+    shared_ptr<filled_box>           left_border_;
+    shared_ptr<filled_box>           bottom_left_corner_;
+    shared_ptr<filled_box>           bottom_border_;
+    shared_ptr<filled_box>           bottom_right_corner_;
+    shared_ptr<filled_box>           right_border_;
 };
 
 // ==========================================================================
@@ -497,7 +627,7 @@ tabbed_frame::tabbed_frame()
 {
     pimpl_ = make_shared<impl>(ref(*this));
 
-    // North - tabs
+    // North - Header full of tabs.
     pimpl_->header_ = make_shared<tabbed_frame_header>();
     pimpl_->header_->on_tab_selected.connect(bind(
         &impl::on_tab_selected_thunk
@@ -511,27 +641,30 @@ tabbed_frame::tabbed_frame()
     // West Container
     BOOST_AUTO(west, make_shared<basic_container>());
     west->set_layout(make_shared<grid_layout>(1, 1));
-    west->add_component(
-        make_shared<filled_box>(element_type(double_lined_vertical_beam)));
+    pimpl_->left_border_ = make_shared<filled_box>(
+        element_type(double_lined_vertical_beam));
+    west->add_component(pimpl_->left_border_);
 
     // East Container
     BOOST_AUTO(east, make_shared<basic_container>());
     east->set_layout(make_shared<grid_layout>(1, 1));
-    east->add_component(
-        make_shared<filled_box>(element_type(double_lined_vertical_beam)));
+    pimpl_->right_border_ = make_shared<filled_box>(
+        element_type(double_lined_vertical_beam));
+    east->add_component(pimpl_->right_border_);
 
     // South Container
     BOOST_AUTO(south, make_shared<basic_container>());
     south->set_layout(make_shared<compass_layout>());
-    south->add_component(
-        make_shared<filled_box>(element_type(double_lined_bottom_left_corner))
-      , COMPASS_LAYOUT_WEST);
-    south->add_component(
-        make_shared<filled_box>(element_type(double_lined_horizontal_beam))
-      , COMPASS_LAYOUT_CENTRE);
-    south->add_component(
-        make_shared<filled_box>(element_type(double_lined_bottom_right_corner))
-      , COMPASS_LAYOUT_EAST);
+    pimpl_->bottom_left_corner_ = make_shared<filled_box>(
+        element_type(double_lined_bottom_left_corner));
+    pimpl_->bottom_border_ = make_shared<filled_box>(
+        element_type(double_lined_horizontal_beam));
+    pimpl_->bottom_right_corner_ = make_shared<filled_box>(
+        element_type(double_lined_bottom_right_corner));
+
+    south->add_component(pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST);
+    south->add_component(pimpl_->bottom_border_, COMPASS_LAYOUT_CENTRE);
+    south->add_component(pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST);
 
     // All together.
     BOOST_AUTO(content, get_container());
@@ -550,6 +683,14 @@ void tabbed_frame::insert_tab(
   , optional<u32> index /* = optional<u32>() */)
 {
     pimpl_->header_->insert_tab(text, index);
+}
+
+// ==========================================================================
+// SET_HIGHLIGHT
+// ==========================================================================
+void tabbed_frame::set_highlight(bool highlight)
+{
+    do_set_highlight(highlight);
 }
 
 // ==========================================================================
@@ -590,6 +731,14 @@ s32 tabbed_frame::do_get_left_border_width() const
 s32 tabbed_frame::do_get_right_border_width() const
 {
     return 1;
+}
+
+// ==========================================================================
+// DO_SET_HIGHLIGHT
+// ==========================================================================
+void tabbed_frame::do_set_highlight(bool highlight)
+{
+    pimpl_->set_highlight(highlight);
 }
 
 }

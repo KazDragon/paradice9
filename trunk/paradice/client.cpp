@@ -32,6 +32,7 @@
 #include "configuration.hpp"
 #include "connection.hpp"
 #include "context.hpp"
+#include "encounters.hpp"
 #include "help.hpp"
 #include "rules.hpp"
 #include "who.hpp"
@@ -115,7 +116,9 @@ namespace {
       , PARADICE_CMD_ENTRY(password)      
       , PARADICE_CMD_ENTRY(quit)
       , PARADICE_CMD_ENTRY(logout)
-      
+
+      , PARADICE_GM_ENTRY(encounter, 100)
+
       , PARADICE_ADMIN_ENTRY(admin_set_password, 100)
       , PARADICE_ADMIN_ENTRY(admin_shutdown,     100)
     };

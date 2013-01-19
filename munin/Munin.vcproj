@@ -280,6 +280,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\tabbed_panel.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\text_area.cpp"
 				>
 			</File>
@@ -447,6 +451,10 @@
 			</File>
 			<File
 				RelativePath=".\tabbed_frame.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tabbed_panel.hpp"
 				>
 			</File>
 			<File

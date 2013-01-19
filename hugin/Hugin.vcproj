@@ -152,6 +152,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bestiary_page.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\character_creation_screen.cpp"
 				>
 			</File>
@@ -161,6 +165,14 @@
 			</File>
 			<File
 				RelativePath=".\command_prompt.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounters_page.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounters_screen.cpp"
 				>
 			</File>
 			<File
@@ -194,6 +206,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\bestiary_page.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\character_creation_screen.hpp"
 				>
 			</File>
@@ -203,6 +219,14 @@
 			</File>
 			<File
 				RelativePath=".\command_prompt.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounters_page.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounters_screen.hpp"
 				>
 			</File>
 			<File

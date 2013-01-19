@@ -28,6 +28,7 @@
 #include "hugin/account_creation_screen.hpp"
 #include "hugin/character_creation_screen.hpp"
 #include "hugin/character_selection_screen.hpp"
+#include "hugin/encounters_screen.hpp"
 #include "hugin/intro_screen.hpp"
 #include "hugin/main_screen.hpp"
 #include "hugin/password_change_screen.hpp"
@@ -74,6 +75,7 @@ struct user_interface::impl
     shared_ptr<character_creation_screen>  character_creation_screen_;
     shared_ptr<main_screen>                main_screen_;
     shared_ptr<password_change_screen>     password_change_screen_;
+    shared_ptr<encounters_screen>          encounters_screen_;
 
     shared_ptr<status_bar>                 status_bar_;
 
@@ -95,24 +97,6 @@ struct user_interface::impl
     // ======================================================================
     void set_statusbar_text(vector<element_type> const &text)
     {
-        /*
-        if (active_face_ == hugin::FACE_INTRO)
-        {
-            intro_screen_->set_statusbar_text(text);
-        }
-        else if (active_face_ == hugin::FACE_ACCOUNT_CREATION)
-        {
-            account_creation_screen_->set_statusbar_text(text);
-        }
-        else if (active_face_ == hugin::FACE_CHAR_CREATION)
-        {
-            character_creation_screen_->set_statusbar_text(text);
-        }
-        else if (active_face_ == hugin::FACE_PASSWORD_CHANGE)
-        {
-            password_change_screen_->set_statusbar_text(text);
-        }
-        */
         status_bar_->set_message(text);
     }
     
@@ -165,6 +149,7 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->character_selection_screen_ = make_shared<character_selection_screen>();
     pimpl_->main_screen_                = make_shared<main_screen>();
     pimpl_->password_change_screen_     = make_shared<password_change_screen>();
+    pimpl_->encounters_screen_          = make_shared<encounters_screen>();
     pimpl_->status_bar_                 = make_shared<status_bar>();
 
     pimpl_->active_screen_->add_face(
@@ -179,6 +164,8 @@ user_interface::user_interface(boost::asio::strand &strand)
         pimpl_->main_screen_, hugin::FACE_MAIN);
     pimpl_->active_screen_->add_face(
         pimpl_->password_change_screen_, hugin::FACE_PASSWORD_CHANGE);
+    pimpl_->active_screen_->add_face(
+        pimpl_->encounters_screen_, hugin::FACE_ENCOUNTERS);
     
     pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
     pimpl_->active_face_ = hugin::FACE_INTRO;

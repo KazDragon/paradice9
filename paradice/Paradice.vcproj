@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\encounters.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\help.cpp"
 				>
 			</File>
@@ -254,6 +258,10 @@
 			</File>
 			<File
 				RelativePath=".\dice_roll_parser.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounters.hpp"
 				>
 			</File>
 			<File

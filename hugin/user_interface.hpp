@@ -41,6 +41,7 @@ BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_SELECTION   = "CharSelect");
 BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_CREATION    = "CharCreate");
 BOOST_STATIC_CONSTANT(std::string, FACE_PASSWORD_CHANGE  = "PwdChange");
 BOOST_STATIC_CONSTANT(std::string, FACE_MAIN             = "Main");
+BOOST_STATIC_CONSTANT(std::string, FACE_ENCOUNTERS       = "Encounters");
 
 //* =========================================================================
 /// \brief An abstraction of the primary user interface for the Paradice

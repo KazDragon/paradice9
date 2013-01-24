@@ -21,7 +21,7 @@ The following folders contain only generic code, and do not in general require a
 
   * **\munin** - generically reusable UI components for an strongly ANSI-capable client environment (e.g. PuTTY, TeraTerm).  There should be no need to port any components from this folder.  Proposed corrections and new generic components are also more than welcome.
 
-  * **\paradice9** - generic application stub.  While this can be used in general for a ported application, additions may be required for added start-up handling, additional command-line arguments, etc.  Alternatively, an entirely new entry point could be introduced.  Additions and corrections for more generic command line options, or suggestions for application-specific hook-points is appreciated.
+  * **\paradice** - generic application components, including server and connection management, protocol support, etc.  Contains components that supply algorithms generic to terminal servers (command parsing/handling, etc.)
 
 == Application-specific Folders ==
 
@@ -29,4 +29,4 @@ There are currently two application-specific folders.  However, although these c
 
   * **\hugin** - application-specific UI components.  In general, these are the 'screens' that provide client views into the server.  For example, in the Paradice9 application's version of the hugin directory, there are screens for the intro screen, the new account creation screen, the character creation and selection screens, and so on.
 
-  * **\paradice** - application-specific server and logic components.  This folder typically contains the instructions on what the server should do with incoming connections.  For the Paradice9 application, this involves constructing a user interface for them and then dispatching appropriate actions as data arrives.
+  * **\paradice9** - application-specific code, including command tables, rulesets, etc.  This can be used as a reference for a ported application.

@@ -197,6 +197,28 @@ void default_singleline_document::do_delete_text(pair<u32, u32> range)
 }
 
 // ==========================================================================
+// DO_SET_TEXT
+// ==========================================================================
+void default_singleline_document::do_set_text(
+    vector<element_type> const &text)
+{
+    // We are going to need to redraw a square that is the max of the two
+    // document sizes.
+    BOOST_AUTO(old_size, pimpl_->text_.size());
+
+    pimpl_->text_ = text;
+
+    // If the caret index has gone off the end, this will cause it to shrink
+    // back to where it's sensible.
+    set_caret_index(get_caret_index());
+
+    // Finally, notify that the document has changed.
+    on_redraw(list_of(rectangle(
+        munin::point(0, 0)
+      , munin::extent((std::max)(old_size, text.size()), 1))));
+}
+
+// ==========================================================================
 // DO_GET_NUMBER_OF_LINES
 // ==========================================================================
 u32 default_singleline_document::do_get_number_of_lines() const

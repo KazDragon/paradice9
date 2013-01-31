@@ -118,6 +118,12 @@ private :
     virtual void do_delete_text(std::pair<odin::u32, odin::u32> range);
 
     //* =====================================================================
+    /// \brief Called by set_text().  Derived classes must override this
+    /// function in order to set text in a custom manner.
+    //* =====================================================================
+    virtual void do_set_text(std::vector<munin::element_type> const &text);
+
+    //* =====================================================================
     /// \brief Called by get_number_of_lines().  Derived classes must 
     /// override this function in order to get the number of lines in the
     /// document in a custom manner.

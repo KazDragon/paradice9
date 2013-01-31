@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\beast.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\character.cpp"
 				>
 			</File>
@@ -222,6 +226,10 @@
 			</File>
 			<File
 				RelativePath=".\admin.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\beast.hpp"
 				>
 			</File>
 			<File

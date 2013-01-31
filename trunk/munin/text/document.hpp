@@ -97,6 +97,11 @@ public :
     void delete_text(std::pair<odin::u32, odin::u32> range);
     
     //* =====================================================================
+    /// \brief Replaces the entire text content with the specified text.
+    //* =====================================================================
+    void set_text(std::vector<element_type> const &text);
+
+    //* =====================================================================
     /// \brief Returns the number of lines in the text.
     //* =====================================================================
     odin::u32 get_number_of_lines() const;
@@ -191,6 +196,12 @@ protected :
     /// function in order to delete text in a custom manner.
     //* =====================================================================
     virtual void do_delete_text(std::pair<odin::u32, odin::u32> range) = 0;
+
+    //* =====================================================================
+    /// \brief Called by set_text().  Derived classes must override this
+    /// function in order to set text in a custom manner.
+    //* =====================================================================
+    virtual void do_set_text(std::vector<element_type> const &text) = 0;
 
     //* =====================================================================
     /// \brief Called by get_number_of_lines().  Derived classes must 

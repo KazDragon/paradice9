@@ -379,6 +379,15 @@ void default_multiline_document::do_insert_text(
 }
 
 // ==========================================================================
+// DO_SET_TEXT
+// ==========================================================================
+void default_multiline_document::do_set_text(
+    vector<element_type> const &text)
+{
+    // TODO:
+}
+
+// ==========================================================================
 // DO_DELETE_TEXT 
 // ==========================================================================
 void default_multiline_document::do_delete_text(pair<u32, u32> range)

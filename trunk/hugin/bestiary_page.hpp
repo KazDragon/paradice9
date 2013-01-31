@@ -28,6 +28,8 @@
 #define HUGIN_BESTIARY_PAGE_HPP_
 
 #include "munin/composite_component.hpp"
+#include "paradice/beast.hpp"
+#include <vector>
 
 namespace hugin {
 
@@ -47,6 +49,17 @@ public :
     //* =====================================================================
     ~bestiary_page();
     
+    //* =====================================================================
+    /// \brief Sets the beasts to be used in this component.
+    //* =====================================================================
+    void set_beasts(
+        std::vector< boost::shared_ptr<paradice::beast> > const &beasts);
+
+    //* =====================================================================
+    /// \brief Retrieves the beasts used in this component.
+    //* =====================================================================
+    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

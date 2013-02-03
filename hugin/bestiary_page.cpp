@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "hugin/bestiary_page.hpp"
 #include "munin/algorithm.hpp"
+#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
 #include "munin/compass_layout.hpp"
@@ -43,9 +44,12 @@
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <vector>
 
 using namespace paradice;
 using namespace munin;
+using namespace munin::ansi;
+using namespace odin;
 using namespace boost;
 
 namespace hugin {
@@ -94,6 +98,9 @@ struct bestiary_page::impl
         {
             split_container_->add_component(details_container_);
             name_field_->get_document()->set_text(names_[index]);
+
+            BOOST_AUTO(description, beasts_[index]->get_description());
+            description_area_->get_document()->set_text(string_to_elements(description));
         }
     }
 
@@ -115,6 +122,8 @@ struct bestiary_page::impl
     // ======================================================================
     void on_new()
     {
+        save_current_beast();
+
         // Create a new beast, add it to the vectors, add it to the ui list,
         // select the item.
         BOOST_AUTO(new_beast, make_shared<beast>());
@@ -126,6 +135,70 @@ struct bestiary_page::impl
 
         beast_list_->set_items(names_);
         beast_list_->set_item_index(names_.size() - 1);
+    }
+
+    // ======================================================================
+    // ON_DELETE_THUNK
+    // ======================================================================
+    static void on_delete_thunk(weak_ptr<impl> weak_this)
+    {
+        BOOST_AUTO(strong_this, weak_this.lock());
+
+        if (strong_this)
+        {
+            strong_this->on_delete();
+        }
+    }
+
+    // ======================================================================
+    // ON_DELETE
+    // ======================================================================
+    void on_delete()
+    {
+        // If there is a beast selected, remove it.
+        BOOST_AUTO(item_index, beast_list_->get_item_index());
+
+        if (item_index != -1)
+        {
+            beasts_.erase(beasts_.begin() + item_index);
+            names_.erase(names_.begin() + item_index);
+            beast_list_->set_items(names_);
+            beast_list_->set_item_index(item_index);
+        }
+    }
+
+    // ======================================================================
+    // SAVE_CURRENT_BEAST
+    // ======================================================================
+    void save_current_beast()
+    {
+        BOOST_AUTO(item_index, beast_list_->get_item_index());
+
+        if (item_index != -1)
+        {
+            names_[item_index] = name_field_->get_document()->get_line(0);
+            beasts_[item_index]->set_name(string_from_elements(
+                names_[item_index]));
+            beast_list_->set_items(names_);
+
+            // TODO: make this much easier.
+            std::string description;
+
+            for (u32 index = 0; 
+                 index < description_area_->get_document()->get_number_of_lines();
+                 ++index)
+            {
+                if (index != 0)
+                {
+                    description += '\n';
+                }
+
+                description += string_from_elements(
+                    description_area_->get_document()->get_line(index));
+            }
+
+            beasts_[item_index]->set_description(description);
+        }
     }
 };
 
@@ -150,6 +223,10 @@ bestiary_page::bestiary_page()
 
     pimpl_->new_button_->on_click.connect(bind(
         &impl::on_new_thunk
+      , weak_ptr<impl>(pimpl_)));
+
+    pimpl_->delete_button_->on_click.connect(bind(
+        &impl::on_delete_thunk
       , weak_ptr<impl>(pimpl_)));
 
     // The split container will house both the beast list and the

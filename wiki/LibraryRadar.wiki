@@ -7,3 +7,9 @@
 http://cppcms.com/sql/cppdb/
 
 Based on the experience of SOCI, libdbi and so on comes CppDB, the C++ version of JDBC/ODBC, etc.
+
+== ODB ==
+
+http://www.codesynthesis.com/products/odb/
+
+An object-relational mapping system (in-line persistence for DBs, etc.)

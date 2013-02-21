@@ -13,3 +13,9 @@ Based on the experience of SOCI, libdbi and so on comes CppDB, the C++ version o
 http://www.codesynthesis.com/products/odb/
 
 An object-relational mapping system (in-line persistence for DBs, etc.)
+
+== MongoDB ==
+
+http://www.mongodb.org/
+
+A NoSQL database.

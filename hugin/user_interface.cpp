@@ -336,6 +336,14 @@ void user_interface::on_character_creation_cancelled(
 }
 
 // ==========================================================================
+// ON_ENCOUNTERS_BACK
+// ==========================================================================
+void user_interface::on_encounters_back(function<void ()> callback)
+{
+    pimpl_->encounters_screen_->on_back.connect(callback);
+}
+
+// ==========================================================================
 // SET_CHARACTER_NAMES
 // ==========================================================================
 void user_interface::set_character_names(        

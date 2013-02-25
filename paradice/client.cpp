@@ -244,6 +244,10 @@ public :
             &impl::on_character_creation_cancelled
           , this));
 
+        user_interface_->on_encounters_back(bind(
+            &impl::on_encounters_back
+          , this));
+
         user_interface_->on_help_closed(bind(
             &impl::on_help_closed
           , this));
@@ -796,6 +800,15 @@ private :
         user_interface_->set_focus();
     }
     
+    // ======================================================================
+    // ON_ENCOUNTERS_BACK
+    // ======================================================================
+    void on_encounters_back()
+    {
+        user_interface_->select_face(hugin::FACE_MAIN);
+        user_interface_->set_focus();
+    }
+
     // ======================================================================
     // ON_HELP_CLOSED
     // ======================================================================

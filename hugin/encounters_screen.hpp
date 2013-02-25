@@ -47,6 +47,13 @@ public :
     //* =====================================================================
     ~encounters_screen();
     
+    //* =====================================================================
+    /// \fn on_encounters_back
+    /// \brief Called when the 'back' button is pressed on the encounters
+    /// screen.
+    //* =====================================================================
+    boost::signal<void ()> on_back;
+
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

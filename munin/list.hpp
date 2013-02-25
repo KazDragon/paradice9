@@ -74,9 +74,11 @@ public :
     /// \fn on_item_changed
     /// \brief Connect to this signal to receive updates about when the
     /// selected item changes.
+    /// \par index The index that the item was changed from (you can query
+    /// the component if you need to know the one it changed to.)
     //* =====================================================================
     boost::signal<
-        void (odin::s32)
+        void (odin::s32 index)
     > on_item_changed;
     
 protected :

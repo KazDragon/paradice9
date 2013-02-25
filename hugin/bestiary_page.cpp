@@ -39,6 +39,7 @@
 #include "munin/solid_frame.hpp"
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
+#include "munin/vertical_strip_layout.hpp"
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -63,6 +64,8 @@ struct bestiary_page::impl
     shared_ptr<edit>      name_field_;
     shared_ptr<text_area> description_area_;
     shared_ptr<button>    new_button_;
+    shared_ptr<button>    clone_button_;
+    shared_ptr<button>    edit_button_;
     shared_ptr<button>    delete_button_;
     shared_ptr<button>    back_button_;
 
@@ -72,23 +75,12 @@ struct bestiary_page::impl
     std::vector< shared_ptr<beast> >         beasts_;
     std::vector< std::vector<element_type> > names_;
 
-    // ======================================================================
-    // ON_ITEM_CHANGED_THUNK
-    // ======================================================================
-    static void on_item_changed_thunk(weak_ptr<impl> weak_this)
-    {
-        BOOST_AUTO(strong_this, weak_this.lock());
-
-        if (strong_this)
-        {
-            strong_this->on_item_changed();
-        }
-    }
+    std::vector<boost::signals::connection>  connections_;
 
     // ======================================================================
     // ON_ITEM_CHANGED
     // ======================================================================
-    void on_item_changed()
+    void on_item_changed(s32 from)
     {
         split_container_->remove_component(details_container_);
 
@@ -105,49 +97,24 @@ struct bestiary_page::impl
     }
 
     // ======================================================================
-    // ON_NEW_THUNK
-    // ======================================================================
-    static void on_new_thunk(weak_ptr<impl> weak_this)
-    {
-        BOOST_AUTO(strong_this, weak_this.lock());
-
-        if (strong_this)
-        {
-            strong_this->on_new();
-        }
-    }
-
-    // ======================================================================
     // ON_NEW
     // ======================================================================
     void on_new()
     {
-        save_current_beast();
-
-        // Create a new beast, add it to the vectors, add it to the ui list,
-        // select the item.
-        BOOST_AUTO(new_beast, make_shared<beast>());
-        new_beast->set_id(boost::uuids::random_generator()());
-        new_beast->set_name("New beast");
-
-        beasts_.push_back(new_beast);
-        names_.push_back(string_to_elements(new_beast->get_name()));
-
-        beast_list_->set_items(names_);
-        beast_list_->set_item_index(names_.size() - 1);
     }
 
     // ======================================================================
-    // ON_DELETE_THUNK
+    // ON_CLONE
     // ======================================================================
-    static void on_delete_thunk(weak_ptr<impl> weak_this)
+    void on_clone()
     {
-        BOOST_AUTO(strong_this, weak_this.lock());
+    }
 
-        if (strong_this)
-        {
-            strong_this->on_delete();
-        }
+    // ======================================================================
+    // ON_EDIT
+    // ======================================================================
+    void on_edit()
+    {
     }
 
     // ======================================================================
@@ -155,50 +122,6 @@ struct bestiary_page::impl
     // ======================================================================
     void on_delete()
     {
-        // If there is a beast selected, remove it.
-        BOOST_AUTO(item_index, beast_list_->get_item_index());
-
-        if (item_index != -1)
-        {
-            beasts_.erase(beasts_.begin() + item_index);
-            names_.erase(names_.begin() + item_index);
-            beast_list_->set_items(names_);
-            beast_list_->set_item_index(item_index);
-        }
-    }
-
-    // ======================================================================
-    // SAVE_CURRENT_BEAST
-    // ======================================================================
-    void save_current_beast()
-    {
-        BOOST_AUTO(item_index, beast_list_->get_item_index());
-
-        if (item_index != -1)
-        {
-            names_[item_index] = name_field_->get_document()->get_line(0);
-            beasts_[item_index]->set_name(string_from_elements(
-                names_[item_index]));
-            beast_list_->set_items(names_);
-
-            // TODO: make this much easier.
-            std::string description;
-
-            for (u32 index = 0; 
-                 index < description_area_->get_document()->get_number_of_lines();
-                 ++index)
-            {
-                if (index != 0)
-                {
-                    description += '\n';
-                }
-
-                description += string_from_elements(
-                    description_area_->get_document()->get_line(index));
-            }
-
-            beasts_[item_index]->set_description(description);
-        }
     }
 };
 
@@ -213,21 +136,39 @@ bestiary_page::bestiary_page()
     pimpl_->description_area_ = make_shared<text_area>();
     pimpl_->new_button_       = make_shared<button>(
         string_to_elements("New"));
+    pimpl_->clone_button_     = make_shared<button>(
+        string_to_elements("Clone"));
+    pimpl_->edit_button_      = make_shared<button>(
+        string_to_elements("Edit"));
     pimpl_->delete_button_    = make_shared<button>(
         string_to_elements("Delete"));
 
     // Set up event callbacks.
-    pimpl_->beast_list_->on_item_changed.connect(bind(
-        &impl::on_item_changed_thunk
-      , weak_ptr<impl>(pimpl_)));
+    pimpl_->connections_.push_back(
+        pimpl_->beast_list_->on_item_changed.connect(bind(
+            &impl::on_item_changed
+          , pimpl_
+          , _1)));
 
-    pimpl_->new_button_->on_click.connect(bind(
-        &impl::on_new_thunk
-      , weak_ptr<impl>(pimpl_)));
+    pimpl_->connections_.push_back(
+        pimpl_->new_button_->on_click.connect(bind(
+            &impl::on_new
+          , pimpl_)));
 
-    pimpl_->delete_button_->on_click.connect(bind(
-        &impl::on_delete_thunk
-      , weak_ptr<impl>(pimpl_)));
+    pimpl_->connections_.push_back(
+        pimpl_->clone_button_->on_click.connect(bind(
+            &impl::on_clone
+          , pimpl_)));
+
+    pimpl_->connections_.push_back(
+        pimpl_->clone_button_->on_click.connect(bind(
+            &impl::on_edit
+          , pimpl_)));
+
+    pimpl_->connections_.push_back(
+        pimpl_->delete_button_->on_click.connect(bind(
+            &impl::on_delete
+          , pimpl_)));
 
     // The split container will house both the beast list and the
     // details for the currently selected beast.  However, the details
@@ -252,17 +193,26 @@ bestiary_page::bestiary_page()
         make_shared<scroll_pane>(pimpl_->description_area_)
       , COMPASS_LAYOUT_CENTRE);
 
-    // The button layout sits on the bottom and is comprised of the new button
-    // on the left and the delete button on the right.  A spacer sits in the
-    // middle to keep them apart.
+    // The New, Clone, and Edit buttons sit together on the left; a group of
+    // "safe" buttons.  At the far right is the dangerous Delete button.
+    BOOST_AUTO(safe_buttons_container, make_shared<basic_container>());
+    safe_buttons_container->set_layout(make_shared<vertical_strip_layout>());
+    safe_buttons_container->add_component(pimpl_->edit_button_);
+    safe_buttons_container->add_component(pimpl_->new_button_);
+    safe_buttons_container->add_component(pimpl_->clone_button_);
+
+    BOOST_AUTO(dangerous_buttons_container, make_shared<basic_container>());
+    dangerous_buttons_container->set_layout(make_shared<vertical_strip_layout>());
+    dangerous_buttons_container->add_component(pimpl_->delete_button_);
+
     BOOST_AUTO(buttons_container, make_shared<basic_container>());
     buttons_container->set_layout(make_shared<compass_layout>());
     buttons_container->add_component(
-        pimpl_->new_button_, COMPASS_LAYOUT_WEST);
+        safe_buttons_container, COMPASS_LAYOUT_WEST);
     buttons_container->add_component(
         make_shared<filled_box>(element_type(' ')), COMPASS_LAYOUT_CENTRE);
     buttons_container->add_component(
-        pimpl_->delete_button_, COMPASS_LAYOUT_EAST);
+        dangerous_buttons_container, COMPASS_LAYOUT_EAST);
 
     // Arrange the upper and lower parts on the screen.
     BOOST_AUTO(content, get_container());
@@ -276,6 +226,10 @@ bestiary_page::bestiary_page()
 // ==========================================================================
 bestiary_page::~bestiary_page()
 {
+    BOOST_FOREACH(boost::signals::connection &cnx, pimpl_->connections_)
+    {
+        cnx.disconnect();
+    }
 }
 
 // ==========================================================================

@@ -235,7 +235,7 @@ void list::set_item_index(s32 index)
           , extent(size.width, 1))));
     }
     
-    on_item_changed(pimpl_->item_index_);
+    on_item_changed(old_index);
     on_cursor_position_changed(get_cursor_position());
 }
 

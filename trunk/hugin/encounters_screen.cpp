@@ -27,13 +27,20 @@
 #include "hugin/encounters_screen.hpp"
 #include "hugin/bestiary_page.hpp"
 #include "hugin/encounters_page.hpp"
-#include "munin/grid_layout.hpp"
+#include "munin/algorithm.hpp"
+#include "munin/basic_container.hpp"
+#include "munin/button.hpp"
+#include "munin/compass_layout.hpp"
+#include "munin/filled_box.hpp"
 #include "munin/tabbed_panel.hpp"
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <vector>
 
 using namespace munin;
 using namespace boost;
+using namespace std;
 
 namespace hugin {
 
@@ -45,6 +52,7 @@ struct encounters_screen::impl
     shared_ptr<tabbed_panel>    tabbed_panel_;
     shared_ptr<bestiary_page>   bestiary_page_;
     shared_ptr<encounters_page> encounters_page_;
+    shared_ptr<button>          back_button_;
 };
 
 // ==========================================================================
@@ -56,13 +64,25 @@ encounters_screen::encounters_screen()
     pimpl_->bestiary_page_   = make_shared<bestiary_page>();
     pimpl_->encounters_page_ = make_shared<encounters_page>();
 
+    pimpl_->back_button_ = make_shared<button>(
+        string_to_elements("Back"));
+    pimpl_->back_button_->on_click.connect(bind(ref(on_back)));
+
     pimpl_->tabbed_panel_ = make_shared<tabbed_panel>();
     pimpl_->tabbed_panel_->insert_tab("Bestiary", pimpl_->bestiary_page_);
     pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounters_page_);
 
+    BOOST_AUTO(buttons_panel, make_shared<basic_container>());
+    buttons_panel->set_layout(make_shared<compass_layout>());
+    buttons_panel->add_component(pimpl_->back_button_, COMPASS_LAYOUT_WEST);
+    buttons_panel->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , COMPASS_LAYOUT_CENTRE);
+
     BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
-    content->add_component(pimpl_->tabbed_panel_);
+    content->set_layout(make_shared<compass_layout>());
+    content->add_component(pimpl_->tabbed_panel_, COMPASS_LAYOUT_CENTRE);
+    content->add_component(buttons_panel, COMPASS_LAYOUT_SOUTH);
 }
     
 // ==========================================================================

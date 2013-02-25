@@ -161,6 +161,12 @@ public :
         boost::function<void ()> callback);
 
     //* =====================================================================
+    /// \brief Provide a function to be called if the user hits the 'back'
+    /// button on the encouters screen
+    //* =====================================================================
+    void on_encounters_back(boost::function<void ()> callback);
+
+    //* =====================================================================
     /// \brief Sets the character names belonging to this account.
     //* =====================================================================
     void set_character_names(

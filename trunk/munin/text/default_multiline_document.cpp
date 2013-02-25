@@ -384,7 +384,24 @@ void default_multiline_document::do_insert_text(
 void default_multiline_document::do_set_text(
     vector<element_type> const &text)
 {
-    // TODO:
+    BOOST_AUTO(old_size, get_size());
+
+    pimpl_->text_ = text;
+
+    // Re-index from the start.
+    pimpl_->reindex(0);
+
+    // Re-set the caret position so that it snaps to the new text.
+    set_caret_index(get_caret_index());
+
+    // Schedule a redraw for the union of the old and new documents.
+    BOOST_AUTO(new_size, get_size());
+
+    on_redraw(list_of(munin::rectangle(
+        munin::point(0, 0)
+      , munin::extent(
+          (std::max)(old_size.width, new_size.width),
+          (std::max)(old_size.height, new_size.height)))));
 }
 
 // ==========================================================================

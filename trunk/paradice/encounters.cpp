@@ -46,6 +46,7 @@ PARADICE_COMMAND_IMPL(encounter)
     if (argument == "edit")
     {
         user_interface->select_face(hugin::FACE_ENCOUNTERS);
+        user_interface->set_focus();
     }
     else if (argument == "show")
     {

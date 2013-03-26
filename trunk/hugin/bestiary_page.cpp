@@ -60,6 +60,7 @@ namespace hugin {
 // ==========================================================================
 struct bestiary_page::impl
 {
+    bestiary_page        &self_;
     shared_ptr<list>      beast_list_;
     shared_ptr<edit>      name_field_;
     shared_ptr<text_area> description_area_;
@@ -76,6 +77,14 @@ struct bestiary_page::impl
     std::vector< std::vector<element_type> > names_;
 
     std::vector<boost::signals::connection>  connections_;
+
+    // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl(bestiary_page &self)
+        : self_(self)
+    {
+    }
 
     // ======================================================================
     // ON_ITEM_CHANGED
@@ -101,6 +110,7 @@ struct bestiary_page::impl
     // ======================================================================
     void on_new()
     {
+        self_.on_new();
     }
 
     // ======================================================================
@@ -108,6 +118,12 @@ struct bestiary_page::impl
     // ======================================================================
     void on_clone()
     {
+        BOOST_AUTO(index, beast_list_->get_item_index());
+
+        if (index != -1)
+        {
+            self_.on_clone(beasts_[index]);
+        }
     }
 
     // ======================================================================
@@ -115,6 +131,12 @@ struct bestiary_page::impl
     // ======================================================================
     void on_edit()
     {
+        BOOST_AUTO(index, beast_list_->get_item_index());
+
+        if (index != -1)
+        {
+            self_.on_edit(beasts_[index]);
+        }
     }
 
     // ======================================================================
@@ -122,6 +144,12 @@ struct bestiary_page::impl
     // ======================================================================
     void on_delete()
     {
+        BOOST_AUTO(index, beast_list_->get_item_index());
+
+        if (index != -1)
+        {
+            self_.on_delete(beasts_[index]);
+        }
     }
 };
 
@@ -129,8 +157,9 @@ struct bestiary_page::impl
 // CONSTRUCTOR
 // ==========================================================================
 bestiary_page::bestiary_page()
-    : pimpl_(make_shared<impl>())
 {
+    pimpl_ = make_shared<impl>(ref(*this));
+
     pimpl_->beast_list_       = make_shared<list>();
     pimpl_->name_field_       = make_shared<edit>();
     pimpl_->description_area_ = make_shared<text_area>();

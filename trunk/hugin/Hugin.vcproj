@@ -152,6 +152,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\beast_editor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\bestiary_page.cpp"
 				>
 			</File>
@@ -203,6 +207,10 @@
 			>
 			<File
 				RelativePath=".\account_creation_screen.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\beast_editor.hpp"
 				>
 			</File>
 			<File

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Bestiary Page
+// Hugin Beast Editor
 //
 // Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,65 +24,63 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_BESTIARY_PAGE_HPP_
-#define HUGIN_BESTIARY_PAGE_HPP_
+#ifndef HUGIN_BEAST_EDITOR_HPP_
+#define HUGIN_BEAST_EDITOR_HPP_
 
 #include "munin/composite_component.hpp"
-#include "paradice/beast.hpp"
-#include <vector>
 
 namespace hugin {
 
 //* =========================================================================
-/// \brief The page for the bestiary tab in the encounter wizard.
+/// \brief The page for editing beasts in the encounter wizard.
 //* =========================================================================
-class bestiary_page : public munin::composite_component
+class beast_editor : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    bestiary_page();
+    beast_editor();
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    ~bestiary_page();
-    
-    //* =====================================================================
-    /// \brief Sets the beasts to be used in this component.
-    //* =====================================================================
-    void set_beasts(
-        std::vector< boost::shared_ptr<paradice::beast> > const &beasts);
+    ~beast_editor();
 
     //* =====================================================================
-    /// \brief Retrieves the beasts used in this component.
+    /// \brief Sets the name of the beast that the editor is working with.
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+    void set_beast_name(std::string const &name);
 
     //* =====================================================================
-    /// \fn on_new
-    /// \brief Called when the 'new' button is pressed.
+    /// \brief Retrieves the name of the beast that the editor is working 
+    /// with.
     //* =====================================================================
-    boost::signal<void ()> on_new;
+    std::string get_beast_name() const;
 
     //* =====================================================================
-    /// \fn on_clone
-    /// \brief Called when the 'clone' button is pressed.
+    /// \brief Sets the description of the beast that the editor is working
+    /// with.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_clone;
+    void set_beast_description(std::string const &description);
 
     //* =====================================================================
-    /// \fn on_edit
-    /// \brief Called when the 'edit' button is pressed.
+    /// \brief Retrieves the description of the beast that the editor is
+    /// working with.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_edit;
+    std::string get_beast_description() const;
 
     //* =====================================================================
-    /// \fn on_delete
-    /// \brief Called when the 'delete' button is pressed.
+    /// \fn on_revert
+    /// \brief Called when the revert button is pressed.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_delete;
+    boost::signal<void ()> on_revert;
+
+    //* =====================================================================
+    /// \fn on_save
+    /// \brief Called when the save button is pressed.
+    //* =====================================================================
+    boost::signal<void ()> on_save;
 
 private :
     struct impl;

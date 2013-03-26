@@ -54,6 +54,13 @@ public :
     //* =====================================================================
     boost::signal<void ()> on_back;
 
+protected :
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    virtual void do_event(boost::any const &event);
+
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

@@ -53,6 +53,7 @@ using namespace munin::ansi;
 using namespace odin;
 using namespace boost;
 
+
 namespace hugin {
 
 // ==========================================================================
@@ -288,6 +289,18 @@ void bestiary_page::set_beasts(std::vector< shared_ptr<beast> > const &beasts)
 std::vector< shared_ptr<beast> > bestiary_page::get_beasts() const
 {
     return pimpl_->beasts_;
+}
+
+// ==========================================================================
+// GET_SELECTED_BEAST
+// ==========================================================================
+shared_ptr<beast> bestiary_page::get_selected_beast() const
+{
+    BOOST_AUTO(selected_index, pimpl_->beast_list_->get_item_index());
+
+    return selected_index == -1
+        ? shared_ptr<beast>()
+        : pimpl_->beasts_[selected_index];
 }
 
 }

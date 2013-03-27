@@ -76,6 +76,22 @@ struct encounters_screen::impl
         bestiary_tab_card_->select_face(beast_editor_face);
     }
 
+    void on_clone_beast()
+    {
+        BOOST_AUTO(selected_beast, bestiary_page_->get_selected_beast());
+
+        if (selected_beast)
+        {
+            current_beast_ = make_shared<paradice::beast>();
+            beast_editor_->set_beast_name(
+                "Clone of " + selected_beast->get_name());
+            beast_editor_->set_beast_description(
+                selected_beast->get_description());
+
+            bestiary_tab_card_->select_face(beast_editor_face);
+        }
+    }
+
     void on_save_beast()
     {
         current_beast_->set_name(beast_editor_->get_beast_name());
@@ -126,6 +142,10 @@ encounters_screen::encounters_screen()
 
     pimpl_->bestiary_page_->on_new.connect(bind(
         &impl::on_new_beast
+      , pimpl_.get()));
+
+    pimpl_->bestiary_page_->on_clone.connect(bind(
+        &impl::on_clone_beast
       , pimpl_.get()));
 
     pimpl_->beast_editor_->on_save.connect(bind(

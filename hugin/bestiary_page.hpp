@@ -61,6 +61,11 @@ public :
     std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
 
     //* =====================================================================
+    /// \brief Retrieves the currently selected beast.
+    //* =====================================================================
+    boost::shared_ptr<paradice::beast> get_selected_beast() const;
+
+    //* =====================================================================
     /// \fn on_new
     /// \brief Called when the 'new' button is pressed.
     //* =====================================================================

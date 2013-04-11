@@ -191,7 +191,7 @@ bestiary_page::bestiary_page()
           , pimpl_)));
 
     pimpl_->connections_.push_back(
-        pimpl_->clone_button_->on_click.connect(bind(
+        pimpl_->edit_button_->on_click.connect(bind(
             &impl::on_edit
           , pimpl_)));
 

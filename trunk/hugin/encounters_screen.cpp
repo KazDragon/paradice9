@@ -28,6 +28,7 @@
 #include "hugin/beast_editor.hpp"
 #include "hugin/bestiary_page.hpp"
 #include "hugin/encounters_page.hpp"
+#include "hugin/delete_confirmation_dialog.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
@@ -50,6 +51,7 @@ namespace hugin {
 namespace {
     BOOST_STATIC_CONSTANT(string, bestiary_face = "BESTIARY");
     BOOST_STATIC_CONSTANT(string, beast_editor_face = "BEAST_EDITOR");
+    BOOST_STATIC_CONSTANT(string, delete_beast_face = "DELETE_BEAST");
 }
 
 // ==========================================================================
@@ -57,14 +59,19 @@ namespace {
 // ==========================================================================
 struct encounters_screen::impl
 {
-    shared_ptr<tabbed_panel>    tabbed_panel_;
-    shared_ptr<card>            bestiary_tab_card_;
-    shared_ptr<bestiary_page>   bestiary_page_;
-    shared_ptr<beast_editor>    beast_editor_;
-    shared_ptr<encounters_page> encounters_page_;
-    shared_ptr<button>          back_button_;
+    shared_ptr<tabbed_panel>               tabbed_panel_;
+    shared_ptr<card>                       bestiary_tab_card_;
+    shared_ptr<bestiary_page>              bestiary_page_;
+    shared_ptr<beast_editor>               beast_editor_;
+    shared_ptr<encounters_page>            encounters_page_;
+    shared_ptr<delete_confirmation_dialog> delete_beast_dialog_;
+    shared_ptr<button>                     back_button_;
 
-    shared_ptr<paradice::beast> current_beast_;
+    shared_ptr<paradice::beast>            current_beast_;
+
+    void on_edit_beast()
+    {
+    }
 
     void on_new_beast()
     {
@@ -74,6 +81,7 @@ struct encounters_screen::impl
         beast_editor_->set_beast_description("");
 
         bestiary_tab_card_->select_face(beast_editor_face);
+        bestiary_tab_card_->set_focus();
     }
 
     void on_clone_beast()
@@ -89,6 +97,7 @@ struct encounters_screen::impl
                 selected_beast->get_description());
 
             bestiary_tab_card_->select_face(beast_editor_face);
+            bestiary_tab_card_->set_focus();
         }
     }
 
@@ -117,11 +126,50 @@ struct encounters_screen::impl
 
         bestiary_page_->set_beasts(beasts);
         bestiary_tab_card_->select_face(bestiary_face);
+        bestiary_tab_card_->set_focus();
     }
 
     void on_revert_beast()
     {
         bestiary_tab_card_->select_face(bestiary_face);
+        bestiary_tab_card_->set_focus();
+    }
+
+    void on_delete_beast()
+    {
+        BOOST_AUTO(selected_beast, bestiary_page_->get_selected_beast());
+
+        if (selected_beast)
+        {
+            delete_beast_dialog_->set_deletion_target_text(
+                selected_beast->get_name());
+            bestiary_tab_card_->select_face(delete_beast_face);
+            bestiary_tab_card_->set_focus();
+        }
+    }
+
+    void on_delete_beast_confirmation()
+    {
+        BOOST_AUTO(selected_beast, bestiary_page_->get_selected_beast());
+
+        if (selected_beast)
+        {
+            BOOST_AUTO(beasts, bestiary_page_->get_beasts());
+            beasts.erase(remove(
+                beasts.begin()
+              , beasts.end()
+              , selected_beast));
+            bestiary_page_->set_beasts(beasts);
+        }
+
+        bestiary_tab_card_->select_face(bestiary_face);
+        bestiary_tab_card_->set_focus();
+    }
+
+    void on_delete_beast_rejection()
+    {
+        bestiary_tab_card_->select_face(bestiary_face);
+        bestiary_tab_card_->set_focus();
     }
 };
 
@@ -131,14 +179,20 @@ struct encounters_screen::impl
 encounters_screen::encounters_screen()
     : pimpl_(make_shared<impl>())
 {
-    pimpl_->bestiary_page_     = make_shared<bestiary_page>();
-    pimpl_->beast_editor_      = make_shared<beast_editor>();
-    pimpl_->encounters_page_   = make_shared<encounters_page>();
+    pimpl_->bestiary_page_       = make_shared<bestiary_page>();
+    pimpl_->beast_editor_        = make_shared<beast_editor>();
+    pimpl_->encounters_page_     = make_shared<encounters_page>();
+    pimpl_->delete_beast_dialog_ = make_shared<delete_confirmation_dialog>();
 
-    pimpl_->bestiary_tab_card_ = make_shared<card>();
+    pimpl_->bestiary_tab_card_   = make_shared<card>();
     pimpl_->bestiary_tab_card_->add_face(pimpl_->bestiary_page_, bestiary_face);
     pimpl_->bestiary_tab_card_->add_face(pimpl_->beast_editor_, beast_editor_face);
+    pimpl_->bestiary_tab_card_->add_face(pimpl_->delete_beast_dialog_, delete_beast_face);
     pimpl_->bestiary_tab_card_->select_face(bestiary_face);
+
+    pimpl_->bestiary_page_->on_edit.connect(bind(
+        &impl::on_edit_beast
+      , pimpl_.get()));
 
     pimpl_->bestiary_page_->on_new.connect(bind(
         &impl::on_new_beast
@@ -148,6 +202,10 @@ encounters_screen::encounters_screen()
         &impl::on_clone_beast
       , pimpl_.get()));
 
+    pimpl_->bestiary_page_->on_delete.connect(bind(
+        &impl::on_delete_beast
+      , pimpl_.get()));
+
     pimpl_->beast_editor_->on_save.connect(bind(
         &impl::on_save_beast
       , pimpl_.get()));
@@ -155,7 +213,15 @@ encounters_screen::encounters_screen()
     pimpl_->beast_editor_->on_revert.connect(bind(
         &impl::on_revert_beast
       , pimpl_.get()));
-        
+
+    pimpl_->delete_beast_dialog_->on_delete_confirmation.connect(bind(
+        &impl::on_delete_beast_confirmation
+      , pimpl_.get()));
+
+    pimpl_->delete_beast_dialog_->on_delete_rejection.connect(bind(
+        &impl::on_delete_beast_rejection
+      , pimpl_.get()));
+
     pimpl_->back_button_ = make_shared<button>(
         string_to_elements("Back"));
     pimpl_->back_button_->on_click.connect(bind(ref(on_back)));

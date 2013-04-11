@@ -172,6 +172,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\delete_confirmation_dialog.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\encounters_page.cpp"
 				>
 			</File>
@@ -227,6 +231,10 @@
 			</File>
 			<File
 				RelativePath=".\command_prompt.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\delete_confirmation_dialog.hpp"
 				>
 			</File>
 			<File

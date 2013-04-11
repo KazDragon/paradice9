@@ -71,6 +71,19 @@ struct encounters_screen::impl
 
     void on_edit_beast()
     {
+        BOOST_AUTO(selected_beast, bestiary_page_->get_selected_beast());
+
+        if (selected_beast)
+        {
+            current_beast_ = selected_beast;
+            beast_editor_->set_beast_name(
+                selected_beast->get_name());
+            beast_editor_->set_beast_description(
+                selected_beast->get_description());
+
+            bestiary_tab_card_->select_face(beast_editor_face);
+            bestiary_tab_card_->set_focus();
+        }
     }
 
     void on_new_beast()

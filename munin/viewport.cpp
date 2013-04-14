@@ -105,7 +105,7 @@ struct viewport::impl
 
         // If there is a dimension with no size, then we can't do anything 
         // with the cursor.
-        if (size.width == 0 || size.height == 0)
+        if (size.width <= 0 || size.height <= 0)
         {
             return;
         }

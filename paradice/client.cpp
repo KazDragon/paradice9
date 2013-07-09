@@ -680,13 +680,20 @@ private :
             {
                 BOOST_AUTO(other_ch, cli->get_character());
 
-                if (other_ch && other_ch->get_gm_level() != 0)
+                if (other_ch && other_ch != ch && other_ch->get_gm_level() != 0)
                 {
                     user_interface_->set_statusbar_text(string_to_elements(
                         "\\[1There is already a GM character online."));
                     return;
                 }
             }
+        }
+
+        // If this is a GM character, then be sure to set the beasts and
+        // encounters in the UI.
+        if (ch->get_gm_level() != 0)
+        {
+            user_interface_->set_beasts(ch->get_beasts());
         }
 
         character_ = ch;
@@ -805,6 +812,9 @@ private :
     // ======================================================================
     void on_encounters_back()
     {
+        character_->set_beasts(user_interface_->get_beasts());
+        context_->save_character(character_);
+
         user_interface_->select_face(hugin::FACE_MAIN);
         user_interface_->set_focus();
     }

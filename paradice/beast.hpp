@@ -34,6 +34,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/utility.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 #include <string>
 

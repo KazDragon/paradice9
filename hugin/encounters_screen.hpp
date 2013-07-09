@@ -28,6 +28,8 @@
 #define HUGIN_ENCOUNTERS_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
+#include "paradice/beast.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace hugin {
 
@@ -47,6 +49,17 @@ public :
     //* =====================================================================
     ~encounters_screen();
     
+    //* =====================================================================
+    /// \brief Sets the beasts to be used by the user interface
+    //* =====================================================================
+    void set_beasts(
+        std::vector< boost::shared_ptr<paradice::beast> > const &beasts);
+
+    //* =====================================================================
+    /// \brief Returns the beasts used by the user interface
+    //* =====================================================================
+    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+
     //* =====================================================================
     /// \fn on_encounters_back
     /// \brief Called when the 'back' button is pressed on the encounters

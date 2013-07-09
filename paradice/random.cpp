@@ -41,7 +41,7 @@ struct random_number_generator
         // Because of the fixed bit pattern for a lot of the current time, 
         // randomness doesn't really kick in for at least 10 rolls.  So,
         // We seed and run before actually using any numbers.
-        rng.seed(static_cast<unsigned int>(time(NULL)));
+        rng.seed(static_cast<boost::uint32_t>(time(NULL)));
 
         uniform_int<> numbers(1,100);
         variate_generator< mt19937&, uniform_int<> > roller(rng, numbers);

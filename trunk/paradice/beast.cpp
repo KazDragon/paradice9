@@ -25,17 +25,26 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/beast.hpp"
+#include <boost/random.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <ctime>
 
 using namespace odin;
 using namespace boost::uuids;
 using namespace std;
 
 namespace paradice {
+
+namespace {
+    boost::mt19937 ran(static_cast<boost::uint32_t>(time(NULL)));
+    boost::uuids::random_generator uuid_generator(ran);
+}
     
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 beast::beast()
+    : id_(uuid_generator())
 {
 }
 

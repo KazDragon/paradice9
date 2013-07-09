@@ -28,6 +28,7 @@
 
 using namespace std;
 using namespace odin;
+using namespace boost;
 
 namespace paradice {
     
@@ -109,6 +110,20 @@ u32 character::get_gm_level() const
     return gm_level_;
 }
 
-
+// ==========================================================================
+// SET_BEASTS
+// ==========================================================================
+void character::set_beasts(vector< shared_ptr<beast> > const &beasts)
+{
+    beasts_ = beasts;
 }
 
+// ==========================================================================
+// GET_BEASTS
+// ==========================================================================
+vector< shared_ptr<beast> > character::get_beasts() const
+{
+    return beasts_;
+}
+
+}

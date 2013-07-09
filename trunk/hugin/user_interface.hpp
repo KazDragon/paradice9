@@ -28,6 +28,7 @@
 #define HUGIN_USER_INTERFACE_HPP_
 
 #include "munin/composite_component.hpp"
+#include "paradice/beast.hpp"
 #include <boost/asio/strand.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -173,7 +174,18 @@ public :
         std::vector<
             std::pair<std::string, std::string>
         > const &names);
-    
+
+    //* =====================================================================
+    /// \brief Sets the beasts to be used by the user interface
+    //* =====================================================================
+    void set_beasts(
+        std::vector< boost::shared_ptr<paradice::beast> > const &beasts);
+
+    //* =====================================================================
+    /// \brief Returns the beasts used by the user interface
+    //* =====================================================================
+    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+
     //* =====================================================================
     /// \brief Select a user interface screen to be shown.
     //* =====================================================================

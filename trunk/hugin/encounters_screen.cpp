@@ -123,7 +123,7 @@ struct encounters_screen::impl
         BOOST_AUTO(beasts, bestiary_page_->get_beasts());
         bool found = false;
 
-        BOOST_FOREACH(shared_ptr<paradice::beast> beast, beasts)
+        BOOST_FOREACH(shared_ptr<paradice::beast> const &beast, beasts)
         {
             if (beast == current_beast_)
             {
@@ -262,7 +262,24 @@ encounters_screen::encounters_screen()
 encounters_screen::~encounters_screen()
 {
 }
-    
+
+// ==========================================================================
+// SET_BEASTS
+// ==========================================================================
+void encounters_screen::set_beasts(
+    vector< shared_ptr<paradice::beast> > const &beasts)
+{
+    pimpl_->bestiary_page_->set_beasts(beasts);
+}
+
+// ==========================================================================
+// GET_BEASTS
+// ==========================================================================
+vector< shared_ptr<paradice::beast> > encounters_screen::get_beasts() const
+{
+    return pimpl_->bestiary_page_->get_beasts();
+}
+
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================

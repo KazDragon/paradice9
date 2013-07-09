@@ -46,6 +46,7 @@
 #include <boost/typeof/typeof.hpp>
 #include <deque>
 
+using namespace paradice;
 using namespace munin;
 using namespace munin::ansi;
 using namespace odin;
@@ -354,7 +355,24 @@ void user_interface::set_character_names(
       , pimpl_->character_selection_screen_
       , names));
 }
-    
+
+// ==========================================================================
+// SET_BEASTS
+// ==========================================================================
+void user_interface::set_beasts(
+    vector< shared_ptr<beast> > const &beasts)
+{
+    pimpl_->encounters_screen_->set_beasts(beasts);
+}
+
+// ==========================================================================
+// GET_BEASTS
+// ==========================================================================
+vector< shared_ptr<beast> > user_interface::get_beasts() const
+{
+    return pimpl_->encounters_screen_->get_beasts();
+}
+
 // ==========================================================================
 // SELECT_FACE
 // ==========================================================================

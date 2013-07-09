@@ -27,13 +27,17 @@
 #ifndef PARADICE_CHARACTER_HPP_
 #define PARADICE_CHARACTER_HPP_
 
+#include "paradice/beast.hpp"
 #include "odin/types.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 #include <string>
+#include <vector>
 
 namespace paradice {
     
@@ -83,14 +87,24 @@ public :
     std::string get_suffix() const;
     
     //* =====================================================================
-    /// \brief Sets the character's GM level
+    /// \brief Sets the character's GM level.
     //* =====================================================================
     void set_gm_level(odin::u32 level);
 
     //* =====================================================================
-    /// \brief Retrieves the character's GM level
+    /// \brief Retrieves the character's GM level.
     //* =====================================================================
     odin::u32 get_gm_level() const;
+
+    //* =====================================================================
+    /// \brief Sets the character's beasts.
+    //* =====================================================================
+    void set_beasts(std::vector< boost::shared_ptr<beast> > const &beasts);
+
+    //* =====================================================================
+    /// \brief Retrieves the character's beasts.
+    //* =====================================================================
+    std::vector< boost::shared_ptr<beast> > get_beasts() const;
 
     //* =====================================================================
     /// \brief Serializes an character to or from an archive.
@@ -111,18 +125,25 @@ public :
         {
             gm_level_ = 0;
         }
+
+        // In version 3, the concept of a bestiary was introduced.
+        if (version >= 3)
+        {
+            ar & BOOST_SERIALIZATION_NVP(beasts_);
+        }
     }
     
 private :
-    std::string name_;
-    std::string prefix_;
-    std::string suffix_;
-    odin::u32   gm_level_;
+    std::string                             name_;
+    std::string                             prefix_;
+    std::string                             suffix_;
+    odin::u32                               gm_level_;
+    std::vector< boost::shared_ptr<beast> > beasts_;
 };
 
 }
 
-BOOST_CLASS_VERSION(paradice::character, 2)
+BOOST_CLASS_VERSION(paradice::character, 3)
 
 #endif
 

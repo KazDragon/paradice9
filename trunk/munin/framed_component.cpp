@@ -255,39 +255,36 @@ void framed_component::do_event(any const &event)
         
     if (report != NULL)
     {
-        if (report->button_ == 0)
+        // If this intersects the interior, then we send the event onto 
+        // that.  Otherwise, it's clicking the frame, so we set focus 
+        // instead.
+        if (intersection(
+            rectangle(pimpl_->interior_->get_position()
+                    , pimpl_->interior_->get_size())
+          , rectangle(point(report->x_position_, report->y_position_)
+                    , extent(1, 1))))
         {
-            // If this intersects the interior, then we send the event onto 
-            // that.  Otherwise, it's clicking the frame, so we set focus 
-            // instead.
-            if (intersection(
-                rectangle(pimpl_->interior_->get_position()
-                        , pimpl_->interior_->get_size())
-              , rectangle(point(report->x_position_, report->y_position_)
-                        , extent(1, 1))))
-            {
-                BOOST_AUTO(position, pimpl_->interior_->get_position());
-                odin::ansi::mouse_report subreport;
-                subreport.button_     = report->button_;
-                subreport.x_position_ = u8(report->x_position_ - position.x);
-                subreport.y_position_ = u8(report->y_position_ - position.y);
+            BOOST_AUTO(position, pimpl_->interior_->get_position());
+            odin::ansi::mouse_report subreport;
+            subreport.button_     = report->button_;
+            subreport.x_position_ = u8(report->x_position_ - position.x);
+            subreport.y_position_ = u8(report->y_position_ - position.y);
 
-                pimpl_->interior_->event(subreport);
-                handled = true;
-            }
-            else
-            {
-                BOOST_AUTO(position, pimpl_->border_->get_position());
-                odin::ansi::mouse_report subreport;
-                subreport.button_     = report->button_;
-                subreport.x_position_ = u8(report->x_position_ - position.x);
-                subreport.y_position_ = u8(report->y_position_ - position.y);
+            pimpl_->interior_->event(subreport);
+            handled = true;
+        }
+        else
+        {
+            BOOST_AUTO(position, pimpl_->border_->get_position());
+            odin::ansi::mouse_report subreport;
+            subreport.button_     = report->button_;
+            subreport.x_position_ = u8(report->x_position_ - position.x);
+            subreport.y_position_ = u8(report->y_position_ - position.y);
 
-                pimpl_->border_->event(subreport);
+            pimpl_->border_->event(subreport);
 
-                set_focus();
-                handled = true;
-            }
+            set_focus();
+            handled = true;
         }
     }
     

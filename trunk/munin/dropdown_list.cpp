@@ -266,6 +266,8 @@ struct dropdown_list::impl
     bool do_ansi_mouse_report_event(
         odin::ansi::mouse_report const &mouse_report)
     {
+        printf("button = %d", mouse_report.button_);
+
         // Detect if the click occurred within the dropdown-button area.
         // Otherwise, we don't care.
         if (mouse_report.x_position_ >= self_.get_size().width - 3

@@ -31,6 +31,7 @@
 #include <munin/basic_container.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
+#include <munin/dropdown_list.hpp>
 #include <munin/edit.hpp>
 #include <munin/filled_box.hpp>
 #include <munin/framed_component.hpp>
@@ -56,11 +57,11 @@ namespace hugin {
 // ==========================================================================
 struct beast_editor::impl
 {
-    shared_ptr<edit>      name_field_;
-    shared_ptr<text_area> description_area_;
-    shared_ptr<image>     alignment_widget_;
-    shared_ptr<button>    save_button_;
-    shared_ptr<button>    revert_button_;
+    shared_ptr<edit>          name_field_;
+    shared_ptr<text_area>     description_area_;
+    shared_ptr<dropdown_list> alignment_dropdown_;
+    shared_ptr<button>        save_button_;
+    shared_ptr<button>        revert_button_;
 };
 
 // ==========================================================================
@@ -84,8 +85,15 @@ beast_editor::beast_editor()
 
     pimpl_->name_field_ = make_shared<edit>();
     pimpl_->description_area_ = make_shared<text_area>();
-    pimpl_->alignment_widget_ = make_shared<image>(
-        string_to_elements("<-----|----->"));
+    pimpl_->alignment_dropdown_ = make_shared<dropdown_list>();
+
+    vector< vector<element_type> > dropdown_items;
+    dropdown_items.push_back(elements_from_string("Hostile"));
+    dropdown_items.push_back(elements_from_string("Neutral"));
+    dropdown_items.push_back(elements_from_string("Friendly"));
+
+    pimpl_->alignment_dropdown_->set_items(dropdown_items);
+    pimpl_->alignment_dropdown_->set_item_index(1);
     
     pimpl_->save_button_ = 
         make_shared<button>(string_to_elements(" Save "));
@@ -138,14 +146,14 @@ beast_editor::beast_editor()
         make_shared<scroll_pane>(pimpl_->description_area_)
       , COMPASS_LAYOUT_CENTRE);
 
-    // Lay out a container for the alignment label and widget.
+    // Lay out a container for the alignment label and dropdown.
     BOOST_AUTO(alignment_container, make_shared<basic_container>());
     alignment_container->set_layout(make_shared<compass_layout>());
     alignment_container->add_component(
         alignment_label
       , COMPASS_LAYOUT_WEST);
     alignment_container->add_component(
-        pimpl_->alignment_widget_
+        pimpl_->alignment_dropdown_
       , COMPASS_LAYOUT_CENTRE);
 
     // Lay out the current set of containers.

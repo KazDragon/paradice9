@@ -502,6 +502,14 @@
 			Name="Text Source Files"
 			>
 			<File
+				RelativePath=".\text\default_multiline_document.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\text\default_singleline_document.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\text\document.cpp"
 				>
 			</File>
@@ -510,15 +518,7 @@
 			Name="Text Header Files"
 			>
 			<File
-				RelativePath=".\text\default_multiline_document.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\text\default_multiline_document.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\text\default_singleline_document.cpp"
 				>
 			</File>
 			<File

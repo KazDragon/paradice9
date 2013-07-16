@@ -241,7 +241,9 @@ gm_tools_screen::gm_tools_screen()
 
     pimpl_->tabbed_panel_ = make_shared<tabbed_panel>();
     pimpl_->tabbed_panel_->insert_tab("Bestiary", pimpl_->bestiary_tab_card_);
-    pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounters_page_);
+    
+    //TODO: Re-enable this for developing the Encounters tab.
+    //pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounters_page_);
 
     BOOST_AUTO(buttons_panel, make_shared<basic_container>());
     buttons_panel->set_layout(make_shared<compass_layout>());

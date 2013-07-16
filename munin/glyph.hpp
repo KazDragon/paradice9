@@ -118,6 +118,10 @@ DECLARE_G0SCO_GLYPH(mix_lined_htop_left_corner, 214);
 DECLARE_G0SCO_GLYPH(mix_lined_hcross, 215);
 DECLARE_G0SCO_GLYPH(mix_lined_vcross, 216);
 
+// Other drawing characters.
+DECLARE_G0SCO_GLYPH(left_guillemet, 174);
+DECLARE_G0SCO_GLYPH(right_guillemet, 175);
+
 #undef DECLARE_G0SCO_GLYPH
 
 }

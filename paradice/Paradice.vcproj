@@ -191,7 +191,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\encounters.cpp"
+				RelativePath=".\gm.cpp"
 				>
 			</File>
 			<File
@@ -269,7 +269,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\encounters.hpp"
+				RelativePath=".\gm.hpp"
 				>
 			</File>
 			<File

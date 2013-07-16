@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Encounters Screen
+// Hugin GM Tools Screen
 //
 // Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "hugin/encounters_screen.hpp"
+#include "hugin/gm_tools_screen.hpp"
 #include "hugin/beast_editor.hpp"
 #include "hugin/bestiary_page.hpp"
 #include "hugin/encounters_page.hpp"
@@ -55,9 +55,9 @@ namespace {
 }
 
 // ==========================================================================
-// ENCOUNTERS_SCREEN::IMPLEMENTATION STRUCTURE
+// GM_TOOLS_SCREEN::IMPLEMENTATION STRUCTURE
 // ==========================================================================
-struct encounters_screen::impl
+struct gm_tools_screen::impl
 {
     shared_ptr<tabbed_panel>               tabbed_panel_;
     shared_ptr<card>                       bestiary_tab_card_;
@@ -189,7 +189,7 @@ struct encounters_screen::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-encounters_screen::encounters_screen()
+gm_tools_screen::gm_tools_screen()
     : pimpl_(make_shared<impl>())
 {
     pimpl_->bestiary_page_       = make_shared<bestiary_page>();
@@ -259,14 +259,14 @@ encounters_screen::encounters_screen()
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-encounters_screen::~encounters_screen()
+gm_tools_screen::~gm_tools_screen()
 {
 }
 
 // ==========================================================================
 // SET_BEASTS
 // ==========================================================================
-void encounters_screen::set_beasts(
+void gm_tools_screen::set_beasts(
     vector< shared_ptr<paradice::beast> > const &beasts)
 {
     pimpl_->bestiary_page_->set_beasts(beasts);
@@ -275,7 +275,7 @@ void encounters_screen::set_beasts(
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-vector< shared_ptr<paradice::beast> > encounters_screen::get_beasts() const
+vector< shared_ptr<paradice::beast> > gm_tools_screen::get_beasts() const
 {
     return pimpl_->bestiary_page_->get_beasts();
 }
@@ -283,7 +283,7 @@ vector< shared_ptr<paradice::beast> > encounters_screen::get_beasts() const
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void encounters_screen::do_event(any const &ev)
+void gm_tools_screen::do_event(any const &ev)
 {
     bool handled = false;
 

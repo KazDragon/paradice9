@@ -32,7 +32,7 @@
 #include "configuration.hpp"
 #include "connection.hpp"
 #include "context.hpp"
-#include "encounters.hpp"
+#include "gm.hpp"
 #include "help.hpp"
 #include "rules.hpp"
 #include "who.hpp"
@@ -117,7 +117,7 @@ namespace {
       , PARADICE_CMD_ENTRY(quit)
       , PARADICE_CMD_ENTRY(logout)
 
-      , PARADICE_GM_ENTRY(encounter, 100)
+      , PARADICE_GM_ENTRY(gm, 100)
 
       , PARADICE_ADMIN_ENTRY(admin_set_password, 100)
       , PARADICE_ADMIN_ENTRY(admin_shutdown,     100)
@@ -244,8 +244,8 @@ public :
             &impl::on_character_creation_cancelled
           , this));
 
-        user_interface_->on_encounters_back(bind(
-            &impl::on_encounters_back
+        user_interface_->on_gm_tools_back(bind(
+            &impl::on_gm_tools_back
           , this));
 
         user_interface_->on_help_closed(bind(
@@ -808,9 +808,9 @@ private :
     }
     
     // ======================================================================
-    // ON_ENCOUNTERS_BACK
+    // ON_GM_TOOLS_BACK
     // ======================================================================
-    void on_encounters_back()
+    void on_gm_tools_back()
     {
         character_->set_beasts(user_interface_->get_beasts());
         context_->save_character(character_);

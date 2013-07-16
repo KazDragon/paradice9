@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Encounters Screen
+// Hugin GM Tools Screen
 //
 // Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,8 +24,8 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_ENCOUNTERS_SCREEN_HPP_
-#define HUGIN_ENCOUNTERS_SCREEN_HPP_
+#ifndef HUGIN_GM_TOOLS_SCREEN_HPP_
+#define HUGIN_GM_TOOLS_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
 #include "paradice/beast.hpp"
@@ -34,20 +34,20 @@
 namespace hugin {
 
 //* =========================================================================
-/// \brief The screen for the encounters tab in the encounter wizard.
+/// \brief The screen for the GM tools.
 //* =========================================================================
-class encounters_screen : public munin::composite_component
+class gm_tools_screen : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    encounters_screen();
+    gm_tools_screen();
     
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    ~encounters_screen();
+    ~gm_tools_screen();
     
     //* =====================================================================
     /// \brief Sets the beasts to be used by the user interface
@@ -61,8 +61,8 @@ public :
     std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
 
     //* =====================================================================
-    /// \fn on_encounters_back
-    /// \brief Called when the 'back' button is pressed on the encounters
+    /// \fn on_back
+    /// \brief Called when the 'back' button is pressed on the GM Tools
     /// screen.
     //* =====================================================================
     boost::signal<void ()> on_back;

@@ -179,6 +179,15 @@ namespace {
         "\n"
         "Closes the help window.\n";
         
+    static string const help_gm =
+        "COMMAND: GM\n"
+        "  USAGE:   gm <command>\n"
+        "  EXAMPLE: gm tools\n"
+        "\n"
+        "Performs a GM action.  These include:\n"
+        "  TOOLS - brings up an screen of tools for GMs.\n"
+        "  ENCOUNTER <command> - manipulate the live encounters (todo).\n";
+
     static struct help_item 
     {
         string command;
@@ -202,6 +211,7 @@ namespace {
       , { "showrolls",   help_showrolls   }
       , { "clearrolls",  help_clearrolls  }
       , { "password",    help_password    }
+      , { "gm",          help_gm          }
       , { "help",        help_help        }
     };
 }

@@ -28,7 +28,7 @@
 #include "hugin/account_creation_screen.hpp"
 #include "hugin/character_creation_screen.hpp"
 #include "hugin/character_selection_screen.hpp"
-#include "hugin/encounters_screen.hpp"
+#include "hugin/gm_tools_screen.hpp"
 #include "hugin/intro_screen.hpp"
 #include "hugin/main_screen.hpp"
 #include "hugin/password_change_screen.hpp"
@@ -76,7 +76,7 @@ struct user_interface::impl
     shared_ptr<character_creation_screen>  character_creation_screen_;
     shared_ptr<main_screen>                main_screen_;
     shared_ptr<password_change_screen>     password_change_screen_;
-    shared_ptr<encounters_screen>          encounters_screen_;
+    shared_ptr<gm_tools_screen>            gm_tools_screen_;
 
     shared_ptr<status_bar>                 status_bar_;
 
@@ -150,7 +150,7 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->character_selection_screen_ = make_shared<character_selection_screen>();
     pimpl_->main_screen_                = make_shared<main_screen>();
     pimpl_->password_change_screen_     = make_shared<password_change_screen>();
-    pimpl_->encounters_screen_          = make_shared<encounters_screen>();
+    pimpl_->gm_tools_screen_            = make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = make_shared<status_bar>();
 
     pimpl_->active_screen_->add_face(
@@ -166,7 +166,7 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->active_screen_->add_face(
         pimpl_->password_change_screen_, hugin::FACE_PASSWORD_CHANGE);
     pimpl_->active_screen_->add_face(
-        pimpl_->encounters_screen_, hugin::FACE_ENCOUNTERS);
+        pimpl_->gm_tools_screen_, hugin::FACE_GM_TOOLS);
     
     pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
     pimpl_->active_face_ = hugin::FACE_INTRO;
@@ -337,11 +337,11 @@ void user_interface::on_character_creation_cancelled(
 }
 
 // ==========================================================================
-// ON_ENCOUNTERS_BACK
+// ON_GM_TOOLS_BACK
 // ==========================================================================
-void user_interface::on_encounters_back(function<void ()> callback)
+void user_interface::on_gm_tools_back(function<void ()> callback)
 {
-    pimpl_->encounters_screen_->on_back.connect(callback);
+    pimpl_->gm_tools_screen_->on_back.connect(callback);
 }
 
 // ==========================================================================
@@ -362,7 +362,7 @@ void user_interface::set_character_names(
 void user_interface::set_beasts(
     vector< shared_ptr<beast> > const &beasts)
 {
-    pimpl_->encounters_screen_->set_beasts(beasts);
+    pimpl_->gm_tools_screen_->set_beasts(beasts);
 }
 
 // ==========================================================================
@@ -370,7 +370,7 @@ void user_interface::set_beasts(
 // ==========================================================================
 vector< shared_ptr<beast> > user_interface::get_beasts() const
 {
-    return pimpl_->encounters_screen_->get_beasts();
+    return pimpl_->gm_tools_screen_->get_beasts();
 }
 
 // ==========================================================================

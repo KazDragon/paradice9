@@ -42,7 +42,7 @@ BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_SELECTION   = "CharSelect");
 BOOST_STATIC_CONSTANT(std::string, FACE_CHAR_CREATION    = "CharCreate");
 BOOST_STATIC_CONSTANT(std::string, FACE_PASSWORD_CHANGE  = "PwdChange");
 BOOST_STATIC_CONSTANT(std::string, FACE_MAIN             = "Main");
-BOOST_STATIC_CONSTANT(std::string, FACE_ENCOUNTERS       = "Encounters");
+BOOST_STATIC_CONSTANT(std::string, FACE_GM_TOOLS         = "GM Tools");
 
 //* =========================================================================
 /// \brief An abstraction of the primary user interface for the Paradice
@@ -163,9 +163,9 @@ public :
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user hits the 'back'
-    /// button on the encouters screen
+    /// button on the GM Tools screen
     //* =====================================================================
-    void on_encounters_back(boost::function<void ()> callback);
+    void on_gm_tools_back(boost::function<void ()> callback);
 
     //* =====================================================================
     /// \brief Sets the character names belonging to this account.

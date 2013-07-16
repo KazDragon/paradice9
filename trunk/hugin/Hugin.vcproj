@@ -180,7 +180,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\encounters_screen.cpp"
+				RelativePath=".\gm_tools_screen.cpp"
 				>
 			</File>
 			<File
@@ -242,7 +242,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\encounters_screen.hpp"
+				RelativePath=".\gm_tools_screen.hpp"
 				>
 			</File>
 			<File

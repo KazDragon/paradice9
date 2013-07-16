@@ -29,7 +29,7 @@
 
 namespace paradice {
 
-PARADICE_COMMAND_DECL(encounter);
+PARADICE_COMMAND_DECL(gm);
 
 }
 

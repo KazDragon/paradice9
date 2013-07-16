@@ -22,7 +22,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 // DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/encounters.hpp"
+#include "paradice/gm.hpp"
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
 #include "hugin/user_interface.hpp"
@@ -35,17 +35,17 @@ using namespace std;
 namespace paradice {
 
 // ==========================================================================
-// PARADICE COMMAND: ENCOUNTER
+// PARADICE COMMAND: GM
 // ==========================================================================
-PARADICE_COMMAND_IMPL(encounter)
+PARADICE_COMMAND_IMPL(gm)
 {
     string argument = tokenise(arguments).first;
     
     BOOST_AUTO(user_interface, player->get_user_interface());
     
-    if (argument == "edit")
+    if (argument == "tools")
     {
-        user_interface->select_face(hugin::FACE_ENCOUNTERS);
+        user_interface->select_face(hugin::FACE_GM_TOOLS);
         user_interface->set_focus();
     }
     else if (argument == "show")

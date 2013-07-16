@@ -222,6 +222,7 @@ string beast_editor::get_beast_description() const
     for (s32 index = 0; index < document_size.height; ++index)
     {
         result += string_from_elements(doc->get_line(index));
+        result += "\n";
     }
 
     return result;

@@ -407,6 +407,17 @@ private :
                 {
                     do_del_key_event();
                 }
+                // Check for F12 key
+                if (sequence.arguments_.size() >= 2
+                 && sequence.arguments_[0] == '2'
+                 && sequence.arguments_[1] == '4')
+                {
+                    if (self_.is_enabled())
+                    {
+                        get_document()->delete_text(
+                            make_pair(0, get_document()->get_text_size()));
+                    }
+                }
             }
         }
         else if (sequence.initiator_ == odin::ansi::SINGLE_SHIFT_SELECT_G3)

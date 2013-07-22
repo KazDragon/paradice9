@@ -19,3 +19,9 @@ An object-relational mapping system (in-line persistence for DBs, etc.)
 http://www.mongodb.org/
 
 A NoSQL database.
+
+== XText ==
+
+http://www.eclipse.org/Xtext/
+
+A framework for developing programming languages.  Java-based, but that's still good.

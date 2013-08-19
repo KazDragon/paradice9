@@ -146,15 +146,27 @@ beast_editor::beast_editor()
         make_shared<scroll_pane>(pimpl_->description_area_)
       , COMPASS_LAYOUT_CENTRE);
 
+    BOOST_AUTO(alignment_label_container, make_shared<basic_container>());
+    alignment_label_container->set_layout(make_shared<aligned_layout>());
+
+    alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
+    alignment.vertical_alignment = VERTICAL_ALIGNMENT_CENTRE;
+    alignment_label_container->add_component(alignment_label, alignment);
+
     // Lay out a container for the alignment label and dropdown.
     BOOST_AUTO(alignment_container, make_shared<basic_container>());
     alignment_container->set_layout(make_shared<compass_layout>());
     alignment_container->add_component(
-        alignment_label
+        alignment_label_container
       , COMPASS_LAYOUT_WEST);
     alignment_container->add_component(
         pimpl_->alignment_dropdown_
       , COMPASS_LAYOUT_CENTRE);
+    alignment_container->set_layout(make_shared<grid_layout>(1, 1), LOWEST_LAYER);
+    alignment_container->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , any()
+      , LOWEST_LAYER);
 
     // Lay out the current set of containers.
     BOOST_AUTO(editor_container, make_shared<basic_container>());

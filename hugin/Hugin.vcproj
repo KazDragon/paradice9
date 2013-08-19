@@ -176,6 +176,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\encounter_editor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\encounters_page.cpp"
 				>
 			</File>
@@ -235,6 +239,10 @@
 			</File>
 			<File
 				RelativePath=".\delete_confirmation_dialog.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounter_editor.hpp"
 				>
 			</File>
 			<File

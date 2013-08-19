@@ -28,11 +28,15 @@
 #define HUGIN_USER_INTERFACE_HPP_
 
 #include "munin/composite_component.hpp"
-#include "paradice/beast.hpp"
 #include <boost/asio/strand.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
+
+namespace paradice {
+    class beast;
+    class encounter;
+}
 
 namespace hugin {
 
@@ -179,12 +183,24 @@ public :
     /// \brief Sets the beasts to be used by the user interface
     //* =====================================================================
     void set_beasts(
-        std::vector< boost::shared_ptr<paradice::beast> > const &beasts);
+        std::vector< boost::shared_ptr<paradice::beast> > beasts);
 
     //* =====================================================================
     /// \brief Returns the beasts used by the user interface
     //* =====================================================================
     std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+
+    //* =====================================================================
+    /// \brief Sets the encounters to be used by the user interface
+    //* =====================================================================
+    void set_encounters(
+        std::vector< boost::shared_ptr<paradice::encounter> > encounters);
+
+    //* =====================================================================
+    /// \brief Returns the encounters used by the user interface
+    //* =====================================================================
+    std::vector< boost::shared_ptr<paradice::encounter> > 
+        get_encounters() const;
 
     //* =====================================================================
     /// \brief Select a user interface screen to be shown.

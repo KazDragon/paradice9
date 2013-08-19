@@ -241,9 +241,7 @@ gm_tools_screen::gm_tools_screen()
 
     pimpl_->tabbed_panel_ = make_shared<tabbed_panel>();
     pimpl_->tabbed_panel_->insert_tab("Bestiary", pimpl_->bestiary_tab_card_);
-    
-    //TODO: Re-enable this for developing the Encounters tab.
-    //pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounters_page_);
+    pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounters_page_);
 
     BOOST_AUTO(buttons_panel, make_shared<basic_container>());
     buttons_panel->set_layout(make_shared<compass_layout>());
@@ -269,7 +267,7 @@ gm_tools_screen::~gm_tools_screen()
 // SET_BEASTS
 // ==========================================================================
 void gm_tools_screen::set_beasts(
-    vector< shared_ptr<paradice::beast> > const &beasts)
+    vector< shared_ptr<paradice::beast> > beasts)
 {
     pimpl_->bestiary_page_->set_beasts(beasts);
 }
@@ -280,6 +278,23 @@ void gm_tools_screen::set_beasts(
 vector< shared_ptr<paradice::beast> > gm_tools_screen::get_beasts() const
 {
     return pimpl_->bestiary_page_->get_beasts();
+}
+
+// ==========================================================================
+// SET_ENCOUNTERS
+// ==========================================================================
+void gm_tools_screen::set_encounters(
+    vector< shared_ptr<paradice::encounter> > encounters)
+{
+    pimpl_->encounters_page_->set_encounters(encounters);
+}
+
+// ==========================================================================
+// GET_BEASTS
+// ==========================================================================
+vector< shared_ptr<paradice::encounter> > gm_tools_screen::get_encounters() const
+{
+    return pimpl_->encounters_page_->get_encounters();
 }
 
 // ==========================================================================

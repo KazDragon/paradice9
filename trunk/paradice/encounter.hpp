@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Encounters Page
+// Paradice Encounter
 //
 // Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,81 +24,90 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_ENCOUNTERS_PAGE_HPP_
-#define HUGIN_ENCOUNTERS_PAGE_HPP_
+#ifndef PARADICE_ENCOUNTER_HPP_
+#define PARADICE_ENCOUNTER_HPP_
 
-#include "munin/composite_component.hpp"
+#include "paradice/beast.hpp"
+#include "odin/types.hpp"
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/version.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/utility.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <string>
 #include <vector>
 
 namespace paradice {
-    class encounter;
-}
-
-namespace hugin {
-
-//* =========================================================================
-/// \brief The page for the encounters tab in the encounter wizard.
-//* =========================================================================
-class encounters_page : public munin::composite_component
+    
+class encounter : boost::noncopyable
 {
 public :
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
-    encounters_page();
+    friend class boost::serialization::access;
     
     //* =====================================================================
-    /// \brief Destructor
+    /// \brief Constructor.
     //* =====================================================================
-    ~encounters_page();
+    encounter();
     
     //* =====================================================================
-    /// \brief Sets the encounters visible on this page
+    /// \brief Destructor.
     //* =====================================================================
-    void set_encounters(
-        std::vector<boost::shared_ptr<paradice::encounter> > encounters);
+    ~encounter();
+    
+    //* =====================================================================
+    /// \brief Sets the ID of the Encounter.
+    //* =====================================================================
+    void set_id(boost::uuids::uuid const &id);
 
     //* =====================================================================
-    /// \brief Retrieves the encounters visible on this page
+    /// \brief Retreives the ID of the Encounter.
     //* =====================================================================
-    std::vector<boost::shared_ptr<paradice::encounter> > 
-        get_encounters() const;
+    boost::uuids::uuid get_id() const;
 
     //* =====================================================================
-    /// \brief Retrieves the currently selected encounter.
+    /// \brief Sets the name of the Encounter.
     //* =====================================================================
-    boost::shared_ptr<paradice::encounter> get_selected_encounter() const;
+    void set_name(std::string const &name);
+    
+    //* =====================================================================
+    /// \brief Retrieves the name of the Encounter.
+    //* =====================================================================
+    std::string get_name() const;
+    
+    //* =====================================================================
+    /// \brief Sets the beasts of the Encounter.
+    //* =====================================================================
+    void set_beasts(std::vector< boost::shared_ptr<paradice::beast> > beasts);
 
     //* =====================================================================
-    /// \fn on_new
-    /// \brief Called when the 'new' button is pressed.
+    /// \brief Retrieves the beasts of the Encounter.
     //* =====================================================================
-    boost::signal<void ()> on_new;
+    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
 
     //* =====================================================================
-    /// \fn on_clone
-    /// \brief Called when the 'clone' button is pressed.
+    /// \brief Serializes an character to or from an archive.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::encounter>)> on_clone;
-
-    //* =====================================================================
-    /// \fn on_edit
-    /// \brief Called when the 'edit' button is pressed.
-    //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::encounter>)> on_edit;
-
-    //* =====================================================================
-    /// \fn on_delete
-    /// \brief Called when the 'delete' button is pressed.
-    //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::encounter>)> on_delete;
-
+    template <class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(id_);
+        ar & BOOST_SERIALIZATION_NVP(name_);
+        ar & BOOST_SERIALIZATION_NVP(beasts_);
+    }
+    
 private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    boost::uuids::uuid                                id_;
+    std::string                                       name_;
+    std::vector< boost::shared_ptr<paradice::beast> > beasts_;
 };
 
 }
 
+BOOST_CLASS_VERSION(paradice::encounter, 1)
+
 #endif
+

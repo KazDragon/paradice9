@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\encounter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\gm.cpp"
 				>
 			</File>
@@ -266,6 +270,10 @@
 			</File>
 			<File
 				RelativePath=".\dice_roll_parser.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\encounter.hpp"
 				>
 			</File>
 			<File

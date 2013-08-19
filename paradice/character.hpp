@@ -28,6 +28,7 @@
 #define PARADICE_CHARACTER_HPP_
 
 #include "paradice/beast.hpp"
+#include "paradice/encounter.hpp"
 #include "odin/types.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -99,12 +100,23 @@ public :
     //* =====================================================================
     /// \brief Sets the character's beasts.
     //* =====================================================================
-    void set_beasts(std::vector< boost::shared_ptr<beast> > const &beasts);
+    void set_beasts(std::vector< boost::shared_ptr<beast> > beasts);
 
     //* =====================================================================
     /// \brief Retrieves the character's beasts.
     //* =====================================================================
     std::vector< boost::shared_ptr<beast> > get_beasts() const;
+
+    //* =====================================================================
+    /// \brief Sets the character's encounters.
+    //* =====================================================================
+    void set_encounters(
+        std::vector< boost::shared_ptr<encounter> > encounters);
+
+    //* =====================================================================
+    /// \brief Retreives the character's encounters.
+    //* =====================================================================
+    std::vector< boost::shared_ptr<encounter> > get_encounters() const;
 
     //* =====================================================================
     /// \brief Serializes an character to or from an archive.
@@ -131,14 +143,21 @@ public :
         {
             ar & BOOST_SERIALIZATION_NVP(beasts_);
         }
+
+        // In version 4, the concept of encounters was introduced.
+        if (version >= 4)
+        {
+            ar & BOOST_SERIALIZATION_NVP(encounters_);
+        }
     }
     
 private :
-    std::string                             name_;
-    std::string                             prefix_;
-    std::string                             suffix_;
-    odin::u32                               gm_level_;
-    std::vector< boost::shared_ptr<beast> > beasts_;
+    std::string                                 name_;
+    std::string                                 prefix_;
+    std::string                                 suffix_;
+    odin::u32                                   gm_level_;
+    std::vector< boost::shared_ptr<beast> >     beasts_;
+    std::vector< boost::shared_ptr<encounter> > encounters_;
 };
 
 }

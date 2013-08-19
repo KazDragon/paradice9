@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Character
+// Paradice Encounter
 //
-// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,32 +24,58 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice/character.hpp"
+#include "paradice/encounter.hpp"
+#include <boost/random.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <ctime>
 
-using namespace std;
 using namespace odin;
 using namespace boost;
+using namespace boost::uuids;
+using namespace std;
 
 namespace paradice {
+
+namespace {
+    boost::mt19937 ran(static_cast<boost::uint32_t>(time(NULL)));
+    boost::uuids::random_generator uuid_generator(ran);
+}
     
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-character::character()
+encounter::encounter()
+    : id_(uuid_generator())
 {
 }
 
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-character::~character()
+encounter::~encounter()
 {
+}
+
+// ==========================================================================
+// SET_ID
+// ==========================================================================
+void encounter::set_id(uuid const &id)
+{
+    id_ = id;
+}
+
+// ==========================================================================
+// GET_ID
+// ==========================================================================
+uuid encounter::get_id() const
+{
+    return id_;
 }
 
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void character::set_name(string const &name)
+void encounter::set_name(string const &name)
 {
     name_ = name;
 }
@@ -57,63 +83,15 @@ void character::set_name(string const &name)
 // ==========================================================================
 // GET_NAME
 // ==========================================================================
-string character::get_name() const
+string encounter::get_name() const
 {
     return name_;
 }
 
 // ==========================================================================
-// SET_PREFIX
-// ==========================================================================
-void character::set_prefix(string const &prefix)
-{
-    prefix_ = prefix;
-}
-
-// ==========================================================================
-// GET_PREFIX
-// ==========================================================================
-string character::get_prefix() const
-{
-    return prefix_;
-}
-
-// ==========================================================================
-// SET_SUFFIX
-// ==========================================================================
-void character::set_suffix(string const &suffix)
-{
-    suffix_ = suffix;
-}
-
-// ==========================================================================
-// GET_SUFFIX
-// ==========================================================================
-string character::get_suffix() const
-{
-    return suffix_;
-}
-
-// ==========================================================================
-// SET_GM_LEVEL
-// ==========================================================================
-void character::set_gm_level(u32 gm_level)
-{
-    gm_level_ = gm_level;
-}
-
-// ==========================================================================
-// GET_GM_LEVEL
-// ==========================================================================
-u32 character::get_gm_level() const
-{
-    return gm_level_;
-}
-
-// ==========================================================================
 // SET_BEASTS
 // ==========================================================================
-void character::set_beasts(vector< shared_ptr<beast> > beasts)
+void encounter::set_beasts(vector< shared_ptr<beast> > beasts)
 {
     beasts_ = beasts;
 }
@@ -121,25 +99,10 @@ void character::set_beasts(vector< shared_ptr<beast> > beasts)
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-vector< shared_ptr<beast> > character::get_beasts() const
+vector< shared_ptr<beast> > encounter::get_beasts() const
 {
     return beasts_;
 }
 
-// ==========================================================================
-// SET_ENCOUNTERS
-// ==========================================================================
-void character::set_encounters(vector< shared_ptr<encounter> > encounters)
-{
-    encounters_ = encounters;
 }
 
-// ==========================================================================
-// GET_ENCOUNTERS
-// ==========================================================================
-vector< shared_ptr<encounter> > character::get_encounters() const
-{
-    return encounters_;
-}
-
-}

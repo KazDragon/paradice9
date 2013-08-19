@@ -360,7 +360,7 @@ void user_interface::set_character_names(
 // SET_BEASTS
 // ==========================================================================
 void user_interface::set_beasts(
-    vector< shared_ptr<beast> > const &beasts)
+    vector< shared_ptr<beast> > beasts)
 {
     pimpl_->gm_tools_screen_->set_beasts(beasts);
 }
@@ -371,6 +371,23 @@ void user_interface::set_beasts(
 vector< shared_ptr<beast> > user_interface::get_beasts() const
 {
     return pimpl_->gm_tools_screen_->get_beasts();
+}
+
+// ==========================================================================
+// SET_ENCOUNTERS
+// ==========================================================================
+void user_interface::set_encounters(
+    vector< shared_ptr<encounter> > encounters)
+{
+    pimpl_->gm_tools_screen_->set_encounters(encounters);
+}
+
+// ==========================================================================
+// GET_ENCOUNTERS
+// ==========================================================================
+vector< shared_ptr<encounter> > user_interface::get_encounters() const
+{
+    return pimpl_->gm_tools_screen_->get_encounters();
 }
 
 // ==========================================================================

@@ -27,6 +27,7 @@
 #include "hugin/gm_tools_screen.hpp"
 #include "hugin/beast_editor.hpp"
 #include "hugin/bestiary_page.hpp"
+#include "hugin/encounter_editor.hpp"
 #include "hugin/encounters_page.hpp"
 #include "hugin/delete_confirmation_dialog.hpp"
 #include "munin/algorithm.hpp"
@@ -52,6 +53,10 @@ namespace {
     BOOST_STATIC_CONSTANT(string, bestiary_face = "BESTIARY");
     BOOST_STATIC_CONSTANT(string, beast_editor_face = "BEAST_EDITOR");
     BOOST_STATIC_CONSTANT(string, delete_beast_face = "DELETE_BEAST");
+
+    BOOST_STATIC_CONSTANT(string, encounters_face = "ENCOUNTERS");
+    BOOST_STATIC_CONSTANT(string, encounter_editor_face = "ENCOUNTER_EDITOR");
+    BOOST_STATIC_CONSTANT(string, delete_encounter_face = "DELETE_ENCOUNTER");
 }
 
 // ==========================================================================
@@ -63,11 +68,14 @@ struct gm_tools_screen::impl
     shared_ptr<card>                       bestiary_tab_card_;
     shared_ptr<bestiary_page>              bestiary_page_;
     shared_ptr<beast_editor>               beast_editor_;
+    shared_ptr<card>                       encounter_tab_card_;
     shared_ptr<encounters_page>            encounters_page_;
+    shared_ptr<encounter_editor>           encounter_editor_;
     shared_ptr<delete_confirmation_dialog> delete_beast_dialog_;
     shared_ptr<button>                     back_button_;
 
     shared_ptr<paradice::beast>            current_beast_;
+    shared_ptr<paradice::encounter>        current_encounter_;
 
     void on_edit_beast()
     {
@@ -148,6 +156,17 @@ struct gm_tools_screen::impl
         bestiary_tab_card_->set_focus();
     }
 
+    void on_new_encounter()
+    {
+        current_encounter_ = make_shared<paradice::encounter>();
+
+        encounter_editor_->set_encounter_name("New Encounter");
+        encounter_editor_->set_bestiary(bestiary_page_->get_beasts());
+
+        encounter_tab_card_->select_face(encounter_editor_face);
+        encounter_tab_card_->set_focus();
+    }
+
     void on_delete_beast()
     {
         BOOST_AUTO(selected_beast, bestiary_page_->get_selected_beast());
@@ -195,6 +214,7 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->bestiary_page_       = make_shared<bestiary_page>();
     pimpl_->beast_editor_        = make_shared<beast_editor>();
     pimpl_->encounters_page_     = make_shared<encounters_page>();
+    pimpl_->encounter_editor_    = make_shared<encounter_editor>();
     pimpl_->delete_beast_dialog_ = make_shared<delete_confirmation_dialog>();
 
     pimpl_->bestiary_tab_card_   = make_shared<card>();
@@ -202,6 +222,12 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->bestiary_tab_card_->add_face(pimpl_->beast_editor_, beast_editor_face);
     pimpl_->bestiary_tab_card_->add_face(pimpl_->delete_beast_dialog_, delete_beast_face);
     pimpl_->bestiary_tab_card_->select_face(bestiary_face);
+
+    pimpl_->encounter_tab_card_  = make_shared<card>();
+    pimpl_->encounter_tab_card_->add_face(pimpl_->encounters_page_, encounters_face);
+    pimpl_->encounter_tab_card_->add_face(pimpl_->encounter_editor_, encounter_editor_face);
+    // TODO: add delete page here
+    pimpl_->encounter_tab_card_->select_face(encounters_face);
 
     pimpl_->bestiary_page_->on_edit.connect(bind(
         &impl::on_edit_beast
@@ -227,6 +253,10 @@ gm_tools_screen::gm_tools_screen()
         &impl::on_revert_beast
       , pimpl_.get()));
 
+    pimpl_->encounters_page_->on_new.connect(bind(
+        &impl::on_new_encounter
+      , pimpl_.get()));
+
     pimpl_->delete_beast_dialog_->on_delete_confirmation.connect(bind(
         &impl::on_delete_beast_confirmation
       , pimpl_.get()));
@@ -241,7 +271,7 @@ gm_tools_screen::gm_tools_screen()
 
     pimpl_->tabbed_panel_ = make_shared<tabbed_panel>();
     pimpl_->tabbed_panel_->insert_tab("Bestiary", pimpl_->bestiary_tab_card_);
-    pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounters_page_);
+    pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounter_tab_card_);
 
     BOOST_AUTO(buttons_panel, make_shared<basic_container>());
     buttons_panel->set_layout(make_shared<compass_layout>());

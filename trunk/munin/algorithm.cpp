@@ -128,62 +128,6 @@ static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
 }
 
 // ==========================================================================
-// MERGE_OVERLAPPING_SLICES
-// ==========================================================================
-static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
-{
-    BOOST_AUTO(first_slice, rectangles.begin());
-    
-    while (first_slice != rectangles.end())
-    {
-        BOOST_AUTO(second_slice, first_slice + 1);
-        
-        while (second_slice != rectangles.end())
-        {
-            if (first_slice->origin.y == second_slice->origin.y)
-            {
-                rectangle const &leftmost = 
-                    first_slice->origin.x < second_slice->origin.x
-                  ? *first_slice
-                  : *second_slice;
-                  
-                rectangle const &not_leftmost =
-                    first_slice->origin.x < second_slice->origin.x
-                  ? *second_slice
-                  : *first_slice;
-                  
-                if (leftmost.origin.x + leftmost.size.width
-                   >= not_leftmost.origin.x)
-                {
-                    odin::s32 left = 
-                        (min)(first_slice->origin.x, second_slice->origin.x);
-                    odin::s32 right =
-                        (max)(first_slice->origin.x + first_slice->size.width
-                            , second_slice->origin.x + second_slice->size.width);
-                        
-                    first_slice->origin.x   = left;
-                    first_slice->size.width = right - left;
-    
-                    second_slice = rectangles.erase(second_slice);
-                }
-                else
-                {
-                    ++second_slice;
-                }
-            }
-            else
-            {
-                ++second_slice;
-            }
-        }
-        
-        ++first_slice;
-    }
-    
-    return rectangles;
-}
-
-// ==========================================================================
 // COMPARE_SLICES
 // ==========================================================================
 static bool compare_slices(rectangle const &lhs, rectangle const &rhs)
@@ -198,16 +142,104 @@ static bool compare_slices(rectangle const &lhs, rectangle const &rhs)
     }
 }
 
+// ==========================================================================
+// HAS_EMPTY_HEIGHT
+// ==========================================================================
+static bool has_empty_height(rectangle const &rect)
+{
+    return rect.size.height == 0;
+}
+
+// ==========================================================================
+// MERGE_OVERLAPPING_SLICES
+// ==========================================================================
+static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
+{
+    sort(rectangles.begin(), rectangles.end(), compare_slices);
+
+    BOOST_AUTO(first_slice, rectangles.begin());
+    
+    // Iterate through adjacent slices, merging any that overlap.
+    for (; first_slice != rectangles.end(); ++first_slice)
+    {
+        // Skip over any slices that have been merged.
+        if (first_slice->size.height == 0)
+        {
+            continue;
+        }
+
+        BOOST_AUTO(second_slice, first_slice + 1);
+
+        // Iterate through all adjacent slices that share a y-coordinate
+        // until we either run out of slices, or cannot merge a slice.
+        for (; 
+             second_slice != rectangles.end()
+          && first_slice->origin.y == second_slice->origin.y;
+             ++second_slice)
+        {
+            // If there is an overlap, then merge the slices and continue
+            // to the next adjacent slice.
+            if (first_slice->origin.x + first_slice->size.width
+               >= second_slice->origin.x)
+            {
+                // Change the first slice so that it is the union of both
+                // slices.  Note we only have to consider the x-coordinate
+                // since we already know that both slices share the same
+                // y-axis.
+                s32 required_width;
+
+                if (first_slice->origin.x == second_slice->origin.x)
+                {
+                    // Both slices share the same origin, so we can simply
+                    // take the width of the widest slice.
+                    required_width = (std::max)(
+                        first_slice->size.width, second_slice->size.width);
+                }
+                else if (first_slice->origin.x + first_slice->size.width
+                       >= second_slice->origin.x + second_slice->size.width)
+                {
+                    // The first slice completely encompasses the second,
+                    // so we can just take the width of the first slice.
+                    required_width = first_slice->size.width;
+                }
+                else
+                {
+                    // The slices only partially overlap.  Work out the union
+                    // of the slices.
+                    required_width = second_slice->size.width
+                      + (second_slice->origin.x - first_slice->origin.x);
+                }
+                    
+                first_slice->size.width = required_width;
+
+                // Mark the second slice as having been merged.
+                second_slice->size.height = 0;
+            }
+            // Otherwise, break out of this iteration and try to merge a
+            // different slice.
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    // Snip out any rectangles that have been merged (have 0 height).
+    rectangles.erase(remove_if(
+            rectangles.begin()
+          , rectangles.end()
+          , has_empty_height)
+      , rectangles.end());
+    
+    return rectangles;
+}
 
 // ==========================================================================
 // RECTANGULAR_SLICE
 // ==========================================================================
 vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
 {
-    vector<rectangle> slices = merge_overlapping_slices(cut_slices(rectangles));
-    sort(slices.begin(), slices.end(), &compare_slices);
-    
-    return slices;
+    return merge_overlapping_slices(cut_slices(rectangles));
 }
 
 // ==========================================================================

@@ -28,7 +28,6 @@
 #include "munin/canvas.hpp"
 #include "munin/layout.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -37,7 +36,6 @@
 
 using namespace odin;
 using namespace boost;
-using namespace boost::assign;
 using namespace std;
 
 namespace munin {
@@ -221,9 +219,9 @@ struct basic_container::impl
         {
             extent const subcomponent_size = subcomponent->get_size();
             
-            self_.on_redraw(list_of
-                (rectangle(changed_from, subcomponent_size))
-                (rectangle(changed_to, subcomponent_size)));
+            vector<rectangle> regions;
+            regions.push_back(rectangle(changed_from, subcomponent_size));
+            regions.push_back(rectangle(changed_to, subcomponent_size));
         }
     }
 

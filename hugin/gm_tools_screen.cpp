@@ -72,6 +72,7 @@ struct gm_tools_screen::impl
     shared_ptr<encounters_page>            encounters_page_;
     shared_ptr<encounter_editor>           encounter_editor_;
     shared_ptr<delete_confirmation_dialog> delete_beast_dialog_;
+    shared_ptr<delete_confirmation_dialog> delete_encounter_dialog_;
     shared_ptr<button>                     back_button_;
 
     shared_ptr<paradice::beast>            current_beast_;
@@ -211,11 +212,12 @@ struct gm_tools_screen::impl
 gm_tools_screen::gm_tools_screen()
     : pimpl_(make_shared<impl>())
 {
-    pimpl_->bestiary_page_       = make_shared<bestiary_page>();
-    pimpl_->beast_editor_        = make_shared<beast_editor>();
-    pimpl_->encounters_page_     = make_shared<encounters_page>();
-    pimpl_->encounter_editor_    = make_shared<encounter_editor>();
-    pimpl_->delete_beast_dialog_ = make_shared<delete_confirmation_dialog>();
+    pimpl_->bestiary_page_           = make_shared<bestiary_page>();
+    pimpl_->beast_editor_            = make_shared<beast_editor>();
+    pimpl_->encounters_page_         = make_shared<encounters_page>();
+    pimpl_->encounter_editor_        = make_shared<encounter_editor>();
+    pimpl_->delete_beast_dialog_     = make_shared<delete_confirmation_dialog>();
+    pimpl_->delete_encounter_dialog_ = make_shared<delete_confirmation_dialog>();
 
     pimpl_->bestiary_tab_card_   = make_shared<card>();
     pimpl_->bestiary_tab_card_->add_face(pimpl_->bestiary_page_, bestiary_face);
@@ -226,7 +228,7 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->encounter_tab_card_  = make_shared<card>();
     pimpl_->encounter_tab_card_->add_face(pimpl_->encounters_page_, encounters_face);
     pimpl_->encounter_tab_card_->add_face(pimpl_->encounter_editor_, encounter_editor_face);
-    // TODO: add delete page here
+    pimpl_->encounter_tab_card_->add_face(pimpl_->delete_encounter_dialog_, delete_encounter_face);
     pimpl_->encounter_tab_card_->select_face(encounters_face);
 
     pimpl_->bestiary_page_->on_edit.connect(bind(

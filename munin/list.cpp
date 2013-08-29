@@ -193,8 +193,12 @@ void list::set_items(vector< vector<element_type> > items)
 
     pimpl_->items_ = items;
 
-    // Ensure that the currently selected item is not a non-existent item.
-    set_item_index((min)(old_items_size - 1, items.size() - 1));
+    // If the displayed item index was previously valid, then ensure that the
+    // currently selected item is not a non-existent item.
+    if (get_item_index() != -1)
+    {
+        set_item_index((min)(old_items_size - 1, items.size() - 1));
+    }
 
     // We will probably require redrawing the entire component.
     on_redraw(list_of(rectangle(point(), size)));

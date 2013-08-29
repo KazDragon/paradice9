@@ -26,24 +26,28 @@
 // ==========================================================================
 #include "hugin/encounter_editor.hpp"
 #include <munin/algorithm.hpp>
+#include <munin/ansi/protocol.hpp>
 #include <munin/basic_container.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
 #include <munin/edit.hpp>
 #include <munin/filled_box.hpp>
 #include <munin/framed_component.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/horizontal_squeeze_layout.hpp>
 #include <munin/list.hpp>
 #include <munin/scroll_pane.hpp>
 #include <munin/solid_frame.hpp>
 #include <munin/text_area.hpp>
-#include <munin/vertical_squeeze_layout.hpp>
 #include <paradice/beast.hpp>
+#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
 using namespace paradice;
 using namespace odin;
 using namespace munin;
+using namespace munin::ansi;
 using namespace boost;
 using namespace std;
 
@@ -177,17 +181,134 @@ struct encounter_editor::impl
     shared_ptr<munin::list>      encounter_bestiary_list_;
     shared_ptr<munin::list>      encounter_beasts_list_;
 
-    shared_ptr<edit>             beast_name_field_;
     shared_ptr<text_area>        beast_description_area_;
     
     shared_ptr<basic_container>  split_container_;
     shared_ptr<basic_container>  lower_container_;
+    bool                         lower_container_shown_;
 
     shared_ptr<button>           insert_button_;
     shared_ptr<button>           delete_button_;
 
     shared_ptr<button>           save_button_;
     shared_ptr<button>           revert_button_;
+
+    vector< shared_ptr<beast> >  bestiary_;
+    vector< shared_ptr<beast> >  beasts_;
+
+    void update_bestiary_list()
+    {
+        vector< vector<element_type> > beast_names;
+
+        BOOST_FOREACH(shared_ptr<const beast> const &current_beast, bestiary_)
+        {
+            beast_names.push_back(string_to_elements(current_beast->get_name()));
+        }
+
+        encounter_bestiary_list_->set_items(beast_names);
+        encounter_bestiary_list_->set_item_index(-1);
+    }
+
+    void update_beasts_list()
+    {
+        vector< vector<element_type> > beast_names;
+
+        BOOST_FOREACH(shared_ptr<beast const> const &beast, beasts_)
+        {
+            beast_names.push_back(string_to_elements(beast->get_name()));
+        }
+
+        encounter_beasts_list_->set_items(beast_names);
+        encounter_beasts_list_->set_item_index(-1);
+    }
+
+    void on_bestiary_item_changed()
+    {
+        // Only one item of the bestiary and beasts lists can be highlighted
+        // at once.  Therefore, if this has been changed to a valid value,
+        // de-select the beasts list's item.
+        if (encounter_bestiary_list_->get_item_index() != -1)
+        {
+            encounter_beasts_list_->set_item_index(-1);
+        }
+    }
+
+    void on_beasts_item_changed()
+    {
+        // Only one item of the bestiary and beasts lists can be highlighted
+        // at once.  Therefore, if this has been changed to a valid value,
+        // de-select the bestiary list's item.
+        BOOST_AUTO(index, encounter_beasts_list_->get_item_index());
+
+        if (index == -1)
+        {
+            // There is no longer any selected beast.  Remove the description
+            // text area if it ever was there.
+            if (lower_container_shown_)
+            {
+                split_container_->remove_component(lower_container_);
+                lower_container_shown_ = false;
+            }
+        }
+        else
+        {
+            // Update the text of the encounter area to be that of the newly
+            // selected beast.
+            BOOST_AUTO(doc, beast_description_area_->get_document());
+            doc->delete_text(make_pair(0, doc->get_text_size()));
+            doc->insert_text(
+                string_to_elements(beasts_[index]->get_description()));
+
+            // Also show the text area if we aren't already.
+            if (!lower_container_shown_)
+            {
+                split_container_->add_component(lower_container_);
+                lower_container_shown_ = true;
+            }
+
+            encounter_bestiary_list_->set_item_index(-1);
+        }
+    }
+
+    void on_insert()
+    {
+        // Check to see if a beast is selected in the bestiary list on the 
+        // left.
+        BOOST_AUTO(
+            selected_beast_index
+          , encounter_bestiary_list_->get_item_index());
+
+        // If it is, then clone a new beast, and drop it in the beast list
+        // on the right.
+        if (selected_beast_index != -1)
+        {
+            shared_ptr<beast const> const &selected_beast(
+                bestiary_[selected_beast_index]);
+
+            BOOST_AUTO(new_beast, make_shared<beast>());
+            new_beast->set_name(selected_beast->get_name());
+            new_beast->set_description(selected_beast->get_description());
+
+            beasts_.push_back(new_beast);
+            update_beasts_list();
+        }
+    }
+
+    void on_delete()
+    {
+        // Check to see if a beast is selected in the beast list on the right.
+        BOOST_AUTO(
+            selected_beast_index
+          , encounter_beasts_list_->get_item_index());
+
+        // If it is, then delete the beast from the list on the right.
+        if (selected_beast_index != -1)
+        {
+            beasts_.erase(beasts_.begin() + selected_beast_index);
+            update_beasts_list();
+            encounter_beasts_list_->set_item_index(selected_beast_index);
+        }
+    }
 };
 
 // ==========================================================================
@@ -198,14 +319,24 @@ encounter_editor::encounter_editor()
 {
     // Initialise all the viewable components
     pimpl_->encounter_name_field_ = make_shared<edit>();
-    pimpl_->encounter_bestiary_list_ = make_shared<munin::list>();
-    pimpl_->encounter_beasts_list_ = make_shared<munin::list>();
 
-    pimpl_->beast_name_field_ = make_shared<edit>();
+    pimpl_->encounter_bestiary_list_ = make_shared<munin::list>();
+    pimpl_->encounter_bestiary_list_->on_item_changed.connect(
+        bind(&impl::on_bestiary_item_changed, pimpl_.get()));
+
+    pimpl_->encounter_beasts_list_ = make_shared<munin::list>();
+    pimpl_->encounter_beasts_list_->on_item_changed.connect(
+        bind(&impl::on_beasts_item_changed, pimpl_.get()));
+
     pimpl_->beast_description_area_ = make_shared<text_area>();
 
     pimpl_->insert_button_ = make_shared<button>(string_to_elements(" + "));
+    pimpl_->insert_button_->on_click.connect(
+        bind(&impl::on_insert, pimpl_.get()));
+
     pimpl_->delete_button_ = make_shared<button>(string_to_elements(" - "));
+    pimpl_->delete_button_->on_click.connect(
+        bind(&impl::on_delete, pimpl_.get()));
 
     pimpl_->save_button_ = make_shared<button>(string_to_elements(" Save "));
     pimpl_->revert_button_ = make_shared<button>(string_to_elements(" Revert "));
@@ -247,19 +378,15 @@ encounter_editor::encounter_editor()
 
     pimpl_->split_container_ = make_shared<basic_container>();
     pimpl_->split_container_->set_layout(
-        make_shared<vertical_squeeze_layout>());
+        make_shared<horizontal_squeeze_layout>());
     pimpl_->split_container_->add_component(upper_container);
 
     pimpl_->lower_container_ = make_shared<basic_container>();
-    pimpl_->lower_container_->set_layout(make_shared<compass_layout>());
+    pimpl_->lower_container_shown_ = false;
+
+    pimpl_->lower_container_->set_layout(make_shared<grid_layout>(1, 1));
     pimpl_->lower_container_->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
-          , pimpl_->beast_name_field_)
-      , COMPASS_LAYOUT_NORTH);
-    pimpl_->lower_container_->add_component(
-        make_shared<scroll_pane>(pimpl_->beast_description_area_)
-      , COMPASS_LAYOUT_CENTRE);
+        make_shared<scroll_pane>(pimpl_->beast_description_area_));
 
     BOOST_AUTO(buttons_container, make_shared<basic_container>());
     buttons_container->set_layout(make_shared<compass_layout>());
@@ -290,15 +417,8 @@ encounter_editor::~encounter_editor()
 // ==========================================================================
 void encounter_editor::set_bestiary(vector< shared_ptr<beast> > beasts)
 {
-    vector< vector<element_type> > beast_names;
-
-    BOOST_FOREACH(shared_ptr<const beast> const &current_beast, beasts)
-    {
-        beast_names.push_back(string_to_elements(current_beast->get_name()));
-    }
-
-    pimpl_->encounter_bestiary_list_->set_items(beast_names);
-    pimpl_->encounter_bestiary_list_->set_item_index(-1);
+    pimpl_->bestiary_ = beasts;
+    pimpl_->update_bestiary_list();
 }
 
 // ==========================================================================
@@ -306,6 +426,8 @@ void encounter_editor::set_bestiary(vector< shared_ptr<beast> > beasts)
 // ==========================================================================
 void encounter_editor::set_encounter_beasts(vector< shared_ptr<beast> > beasts)
 {
+    pimpl_->beasts_ = beasts;
+    pimpl_->update_beasts_list();
 }
 
 // ==========================================================================
@@ -313,7 +435,7 @@ void encounter_editor::set_encounter_beasts(vector< shared_ptr<beast> > beasts)
 // ==========================================================================
 vector< shared_ptr<beast> > encounter_editor::get_encounter_beasts() const
 {
-    return vector< shared_ptr<beast> >();
+    return pimpl_->beasts_;
 }
 
 // ==========================================================================
@@ -321,11 +443,9 @@ vector< shared_ptr<beast> > encounter_editor::get_encounter_beasts() const
 // ==========================================================================
 void encounter_editor::set_encounter_name(string const &name)
 {
-    /*
-    BOOST_AUTO(doc, pimpl_->name_field_->get_document());
+    BOOST_AUTO(doc, pimpl_->encounter_name_field_->get_document());
     doc->delete_text(make_pair(0, doc->get_text_size()));
     doc->insert_text(string_to_elements(name));
-    */
 }
 
 // ==========================================================================
@@ -333,13 +453,10 @@ void encounter_editor::set_encounter_name(string const &name)
 // ==========================================================================
 string encounter_editor::get_encounter_name() const
 {
-    /*
-    BOOST_AUTO(doc, pimpl_->name_field_->get_document());
+    BOOST_AUTO(doc, pimpl_->encounter_name_field_->get_document());
     BOOST_AUTO(name, doc->get_line(0));
     
     return string_from_elements(name);
-    */
-    return "";
 }
 
 }

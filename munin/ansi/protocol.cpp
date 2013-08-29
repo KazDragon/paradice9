@@ -135,12 +135,19 @@ string cursor_position(munin::point const &position)
     // We would like to take advantage of some of the space-saving features
     // of ANSI here, but Ubuntu Telnet chokes on them.  So we always use the
     // long-hand version.
-    return str(format("%c%c%s;%s%c")
-        % odin::ansi::ESCAPE
-        % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        % (position.y + 1)
-        % (position.x + 1)
-        % odin::ansi::CURSOR_POSITION);
+
+    // TODO: replace with a Spirit variant for safety.
+    char buffer[2+10+1+10+1+1];
+    sprintf(
+        buffer
+      , "%c%c%d;%d%c"
+      , odin::ansi::ESCAPE
+      , odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+      , (position.y + 1)
+      , (position.x + 1)
+      , odin::ansi::CURSOR_POSITION);
+
+    return buffer;
 }
 
 // ==========================================================================
@@ -172,7 +179,7 @@ string set_normal_cursor_keys()
 // ==========================================================================
 string colour_string(attribute::high_colour const &colour)
 {
-    return str(format("%s")
+    return str(format("%d")
         % ((colour.red_ * 36) + (colour.green_ * 6) + colour.blue_ + 16)); 
 }
 
@@ -181,7 +188,7 @@ string colour_string(attribute::high_colour const &colour)
 // ==========================================================================
 string colour_string(attribute::greyscale_colour const &colour)
 {
-    return str(format("%s")% (colour.shade_ + 232));
+    return str(format("%d")% (colour.shade_ + 232));
 }
 
 // ==========================================================================

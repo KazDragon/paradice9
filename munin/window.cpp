@@ -184,11 +184,13 @@ static string change_attribute(munin::attribute &from, munin::attribute to)
      || (from.background_colour_ != to.background_colour_
       && to.background_colour_ == odin::ansi::graphics::COLOUR_DEFAULT))
     {
-        default_sequence = string()
-            + odin::ansi::ESCAPE
-            + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-            + str(format("%s") % int(odin::ansi::graphics::NO_ATTRIBUTES))
-            + odin::ansi::SELECT_GRAPHICS_RENDITION;
+        static string const clear_sequence = string()
+          + odin::ansi::ESCAPE
+          + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+          + str(format("%d") % int(odin::ansi::graphics::NO_ATTRIBUTES))
+          + odin::ansi::SELECT_GRAPHICS_RENDITION;
+
+        default_sequence = clear_sequence;
             
         // Clear the attribute so that it can be rewritten entirely.
         from = munin::attribute();

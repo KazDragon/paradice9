@@ -222,6 +222,7 @@ struct basic_container::impl
             vector<rectangle> regions;
             regions.push_back(rectangle(changed_from, subcomponent_size));
             regions.push_back(rectangle(changed_to, subcomponent_size));
+            self_.on_redraw(regions);
         }
     }
 

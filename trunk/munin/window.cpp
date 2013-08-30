@@ -583,19 +583,13 @@ private :
         
         // First, clip all of the regions so that they are bound by the size
         // of our content - no point in drawing anything that's off-screen.
-        BOOST_AUTO(
-            clipped_regions
-          , clip_regions(redraw_regions_, content_->get_size()));
-        
         // Next, prune out any regions with 0-sized dimensions, since they
         // don't exist.
-        BOOST_AUTO(pruned_regions, prune_regions(clipped_regions));
-        
-        // Next, redistribute the regions into slices that have a height
+        // Finally, redistribute the regions into slices that have a height
         // of only one.
-        BOOST_AUTO(slices, rectangular_slice(pruned_regions));
-        
-        return slices;
+        return rectangular_slice(
+            prune_regions(
+                clip_regions(redraw_regions_, content_->get_size())));
     }
     
     // ======================================================================

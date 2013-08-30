@@ -343,8 +343,7 @@ void copy_region(
              x_coord < region.origin.x + region.size.width;
              ++x_coord)
         {
-            destination[x_coord][y_coord] = 
-                source[x_coord][y_coord];
+            destination[x_coord][y_coord] = source[x_coord][y_coord];
         }
     }
 }

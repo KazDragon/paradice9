@@ -185,13 +185,21 @@ struct encounter_editor::impl
     
     shared_ptr<basic_container>  split_container_;
     shared_ptr<basic_container>  lower_container_;
-    bool                         lower_container_shown_;
+
+    shared_ptr<basic_container>  buttons_container_;
+    shared_ptr<basic_container>  bestiary_button_container_;
+    shared_ptr<basic_container>  beast_button_container_;
+    
+    bool                         beasts_active_;
 
     shared_ptr<button>           insert_button_;
     shared_ptr<button>           delete_button_;
 
     shared_ptr<button>           save_button_;
     shared_ptr<button>           revert_button_;
+
+    shared_ptr<button>           up_button_;
+    shared_ptr<button>           down_button_;
 
     vector< shared_ptr<beast> >  bestiary_;
     vector< shared_ptr<beast> >  beasts_;
@@ -243,11 +251,13 @@ struct encounter_editor::impl
         if (index == -1)
         {
             // There is no longer any selected beast.  Remove the description
-            // text area if it ever was there.
-            if (lower_container_shown_)
+            // text area if it ever was there.  Also switch the buttons around.
+            if (beasts_active_)
             {
                 split_container_->remove_component(lower_container_);
-                lower_container_shown_ = false;
+                buttons_container_->remove_component(beast_button_container_);
+                buttons_container_->add_component(bestiary_button_container_);
+                beasts_active_ = false;
             }
         }
         else
@@ -258,12 +268,17 @@ struct encounter_editor::impl
             doc->delete_text(make_pair(0, doc->get_text_size()));
             doc->insert_text(
                 string_to_elements(beasts_[index]->get_description()));
+            doc->set_caret_index(0);
 
-            // Also show the text area if we aren't already.
-            if (!lower_container_shown_)
+            // Also show the text area if we aren't already, and switch the
+            // buttons around.
+            if (!beasts_active_)
             {
                 split_container_->add_component(lower_container_);
-                lower_container_shown_ = true;
+                buttons_container_->remove_component(
+                    bestiary_button_container_);
+                buttons_container_->add_component(beast_button_container_);
+                beasts_active_ = true;
             }
 
             encounter_bestiary_list_->set_item_index(-1);
@@ -309,6 +324,14 @@ struct encounter_editor::impl
             encounter_beasts_list_->set_item_index(selected_beast_index);
         }
     }
+
+    void on_up()
+    {
+    }
+
+    void on_down()
+    {
+    }
 };
 
 // ==========================================================================
@@ -317,7 +340,7 @@ struct encounter_editor::impl
 encounter_editor::encounter_editor()
     : pimpl_(make_shared<impl>())
 {
-    // Initialise all the viewable components
+    // Initialise all the viewable components and connect the events.
     pimpl_->encounter_name_field_ = make_shared<edit>();
 
     pimpl_->encounter_bestiary_list_ = make_shared<munin::list>();
@@ -338,20 +361,58 @@ encounter_editor::encounter_editor()
     pimpl_->delete_button_->on_click.connect(
         bind(&impl::on_delete, pimpl_.get()));
 
+    pimpl_->up_button_ = make_shared<button>(string_to_elements(" ^ "));
+    pimpl_->up_button_->on_click.connect(
+        bind(&impl::on_up, pimpl_.get()));
+
+    pimpl_->down_button_ = make_shared<button>(string_to_elements(" v "));
+    pimpl_->down_button_->on_click.connect(
+        bind(&impl::on_down, pimpl_.get()));
+
     pimpl_->save_button_ = make_shared<button>(string_to_elements(" Save "));
     pimpl_->revert_button_ = make_shared<button>(string_to_elements(" Revert "));
 
-    BOOST_AUTO(manipulators_container, make_shared<basic_container>());
-    manipulators_container->set_layout(make_shared<compass_layout>());
-    manipulators_container->add_component(
+    // Initialise the dynamic containers
+    pimpl_->split_container_           = make_shared<basic_container>();
+    pimpl_->lower_container_           = make_shared<basic_container>();
+    pimpl_->buttons_container_         = make_shared<basic_container>();
+    pimpl_->bestiary_button_container_ = make_shared<basic_container>();
+    pimpl_->beast_button_container_    = make_shared<basic_container>();
+    pimpl_->beasts_active_ = false;
+
+    // Now lay out the containers.
+    pimpl_->bestiary_button_container_->set_layout(
+        make_shared<compass_layout>());
+    pimpl_->bestiary_button_container_->add_component(
         pimpl_->insert_button_
       , COMPASS_LAYOUT_NORTH);
-    manipulators_container->add_component(
+    pimpl_->bestiary_button_container_->add_component(
         make_shared<filled_box>(element_type(' '))
       , COMPASS_LAYOUT_CENTRE);
-    manipulators_container->add_component(
+
+    BOOST_AUTO(inner_beast_button_container, make_shared<basic_container>());
+    inner_beast_button_container->set_layout(make_shared<compass_layout>());
+    inner_beast_button_container->add_component(
+        pimpl_->down_button_
+      , COMPASS_LAYOUT_NORTH);
+    inner_beast_button_container->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , COMPASS_LAYOUT_CENTRE);
+
+    pimpl_->beast_button_container_->set_layout(make_shared<compass_layout>());
+    pimpl_->beast_button_container_->add_component(
+        pimpl_->up_button_
+      , COMPASS_LAYOUT_NORTH);
+    pimpl_->beast_button_container_->add_component(
+        inner_beast_button_container
+      , COMPASS_LAYOUT_CENTRE);
+    pimpl_->beast_button_container_->add_component(
         pimpl_->delete_button_
       , COMPASS_LAYOUT_SOUTH);
+
+    pimpl_->buttons_container_->set_layout(make_shared<grid_layout>(1, 1));
+    pimpl_->buttons_container_->add_component(
+        pimpl_->bestiary_button_container_);
 
     BOOST_AUTO(outer_container, make_shared<basic_container>());
     outer_container->set_layout(make_shared<balanced_layout>());
@@ -359,7 +420,7 @@ encounter_editor::encounter_editor()
         make_shared<scroll_pane>(pimpl_->encounter_bestiary_list_)
       , balanced_layout::SHARED);
     outer_container->add_component(
-        manipulators_container
+        pimpl_->buttons_container_
       , balanced_layout::PREFERRED);
     outer_container->add_component(
         make_shared<scroll_pane>(pimpl_->encounter_beasts_list_)
@@ -376,25 +437,24 @@ encounter_editor::encounter_editor()
         outer_container
       , COMPASS_LAYOUT_CENTRE);
 
-    pimpl_->split_container_ = make_shared<basic_container>();
     pimpl_->split_container_->set_layout(
         make_shared<horizontal_squeeze_layout>());
     pimpl_->split_container_->add_component(upper_container);
 
     pimpl_->lower_container_ = make_shared<basic_container>();
-    pimpl_->lower_container_shown_ = false;
+    pimpl_->beasts_active_ = false;
 
     pimpl_->lower_container_->set_layout(make_shared<grid_layout>(1, 1));
     pimpl_->lower_container_->add_component(
         make_shared<scroll_pane>(pimpl_->beast_description_area_));
 
-    BOOST_AUTO(buttons_container, make_shared<basic_container>());
-    buttons_container->set_layout(make_shared<compass_layout>());
-    buttons_container->add_component(
+    BOOST_AUTO(lower_buttons_container, make_shared<basic_container>());
+    lower_buttons_container->set_layout(make_shared<compass_layout>());
+    lower_buttons_container->add_component(
         pimpl_->save_button_, COMPASS_LAYOUT_WEST);
-    buttons_container->add_component(
+    lower_buttons_container->add_component(
         make_shared<filled_box>(element_type(' ')), COMPASS_LAYOUT_CENTRE);
-    buttons_container->add_component(
+    lower_buttons_container->add_component(
         pimpl_->revert_button_, COMPASS_LAYOUT_EAST);
 
     BOOST_AUTO(content, get_container());
@@ -402,7 +462,7 @@ encounter_editor::encounter_editor()
     content->add_component(
         pimpl_->split_container_, COMPASS_LAYOUT_CENTRE);
     content->add_component(
-        buttons_container, COMPASS_LAYOUT_SOUTH);
+        lower_buttons_container, COMPASS_LAYOUT_SOUTH);
 }
     
 // ==========================================================================

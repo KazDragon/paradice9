@@ -31,6 +31,7 @@
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 #include <algorithm>
+#include <cstdio>
 
 using namespace std;
 using namespace boost;

@@ -69,6 +69,8 @@ MUNIN_NAMES       = algorithm \
                     scroll_pane \
                     solid_frame \
                     status_bar \
+                    tabbed_panel \
+                    tabbed_frame \
                     text_area \
                     text/default_multiline_document \
                     text/default_singleline_document \
@@ -77,6 +79,7 @@ MUNIN_NAMES       = algorithm \
                     types \
                     vertical_scroll_bar \
                     vertical_squeeze_layout \
+                    vertical_strip_layout \
                     viewport \
                     window
 MUNIN_O_FILES     = $(MUNIN_NAMES:%=munin/%.o)
@@ -84,9 +87,15 @@ MUNIN_D_FILES     = $(MUNIN_O_FILES:.o=.d)
 MUNIN_LIB         = libmunin.a
 
 HUGIN_NAMES       = account_creation_screen \
+                    beast_editor \
+                    bestiary_page \
                     character_creation_screen \
                     character_selection_screen \
                     command_prompt \
+                    delete_confirmation_dialog \
+                    encounter_editor \
+                    encounters_page \
+                    gm_tools_screen \
                     intro_screen \
                     main_screen \
                     password_change_screen \
@@ -107,6 +116,7 @@ G_NAME            = guibuilder.exe
 
 PARADICE_NAMES    = account \
                     admin \
+                    beast \
                     character \
                     client \
                     communication \
@@ -114,6 +124,8 @@ PARADICE_NAMES    = account \
                     connection \
                     cryptography \
                     dice_roll_parser \
+                    encounter \
+                    gm \
                     help \
                     random \
                     rules \

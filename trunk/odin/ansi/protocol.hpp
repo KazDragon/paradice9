@@ -202,7 +202,7 @@ struct mouse_report
 // What on earth are these doing here and why is it static?  Because Visual 
 // Studio 2008 has trouble recognising source files in the same project that
 // have the same name.  odin/ansi/protocol.cpp, odin/telnet/protocol.cpp, etc.
-static bool operator==(control_sequence const& lhs, control_sequence const& rhs)
+inline bool operator==(control_sequence const& lhs, control_sequence const& rhs)
 {
     return lhs.meta_      == rhs.meta_
         && lhs.command_   == rhs.command_
@@ -210,7 +210,7 @@ static bool operator==(control_sequence const& lhs, control_sequence const& rhs)
         && lhs.arguments_ == rhs.arguments_;
 }
 
-static bool operator==(mouse_report const &lhs, mouse_report const &rhs)
+inline bool operator==(mouse_report const &lhs, mouse_report const &rhs)
 {
     return lhs.button_     == rhs.button_
         && lhs.x_position_ == rhs.x_position_

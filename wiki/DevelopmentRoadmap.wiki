@@ -17,9 +17,12 @@ Feature requests for Paradice9, with Issue #107 (Encounter Control) being the pr
 Two performance-related issues are scheduled here.  The first is an effort to reduce the number of memory allocations, since profiling has revealed that allocations and deallocations are the largest consumers of processing time during the application's life.  This is tracked in Issue 115.  The second ticket is for other performance considerations.  In particular, usage of Valgrind has yielded some interesting performance hotspots that can be quickly cleaned up.  This is tracked in Issue #121.
 
 == Release 1.4 {Paradice} ==
+Update Paradice to C++11.  This will include re-working Munin/Hugin to be less pointer-based and more value-based, which will make it much easier to form the basis that 1.6 will sit on.
+
+== Release 1.6 {Paradice} ==
 Incorporate multi-threading capabilities across the application and library.  This is tracked in Issue #67.
 
-== Release 1.6 {Application} ==
+== Release 1.8 {Application} ==
 Addition of the 'Room' concept to allow multiple gaming sessions.  This is tracked in Issue #123.
 
 == Release 2.0 {Paradice} ==

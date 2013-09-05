@@ -382,6 +382,9 @@ encounter_editor::encounter_editor()
     pimpl_->save_button_ = make_shared<button>(string_to_elements(" Save "));
     pimpl_->revert_button_ = make_shared<button>(string_to_elements(" Revert "));
 
+    pimpl_->save_button_->on_click.connect(bind(ref(on_save)));
+    pimpl_->revert_button_->on_click.connect(bind(ref(on_revert)));
+
     // Initialise the dynamic containers
     pimpl_->split_container_           = make_shared<basic_container>();
     pimpl_->lower_container_           = make_shared<basic_container>();

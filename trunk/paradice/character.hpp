@@ -162,7 +162,7 @@ private :
 
 }
 
-BOOST_CLASS_VERSION(paradice::character, 3)
+BOOST_CLASS_VERSION(paradice::character, 4)
 
 #endif
 

@@ -694,6 +694,7 @@ private :
         if (ch->get_gm_level() != 0)
         {
             user_interface_->set_beasts(ch->get_beasts());
+            user_interface_->set_encounters(ch->get_encounters());
         }
 
         character_ = ch;
@@ -813,6 +814,7 @@ private :
     void on_gm_tools_back()
     {
         character_->set_beasts(user_interface_->get_beasts());
+        character_->set_encounters(user_interface_->get_encounters());
         context_->save_character(character_);
 
         user_interface_->select_face(hugin::FACE_MAIN);

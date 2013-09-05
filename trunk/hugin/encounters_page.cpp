@@ -278,4 +278,16 @@ vector< shared_ptr<encounter> > encounters_page::get_encounters() const
     return pimpl_->encounters_;
 }
 
+// ==========================================================================
+// GET_SELECTED_ENCOUNTER
+// ==========================================================================
+shared_ptr<encounter> encounters_page::get_selected_encounter() const
+{
+    BOOST_AUTO(selected_index, pimpl_->encounters_list_->get_item_index());
+
+    return selected_index == -1
+        ? shared_ptr<encounter>()
+        : pimpl_->encounters_[selected_index];
+}
+
 }

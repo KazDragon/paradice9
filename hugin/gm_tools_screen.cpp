@@ -168,6 +168,54 @@ struct gm_tools_screen::impl
         encounter_tab_card_->set_focus();
     }
 
+    void on_edit_encounter()
+    {
+        BOOST_AUTO(
+            selected_encounter
+          , encounters_page_->get_selected_encounter());
+
+        if (selected_encounter)
+        {
+            current_encounter_ = selected_encounter;
+            encounter_editor_->set_encounter_name(
+                current_encounter_->get_name());
+            encounter_editor_->set_encounter_beasts(
+                current_encounter_->get_beasts());
+            encounter_editor_->set_bestiary(
+                bestiary_page_->get_beasts());
+
+            encounter_tab_card_->select_face(encounter_editor_face);
+            encounter_tab_card_->set_focus();
+        }
+    }
+
+    void on_save_encounter()
+    {
+        // Copy encounter attributess to current_encounter_
+        current_encounter_->set_name(encounter_editor_->get_encounter_name());
+        current_encounter_->set_beasts(
+            encounter_editor_->get_encounter_beasts());
+
+        // If it's not in the encounter list, then add it and make it selected.
+        BOOST_AUTO(encounters, encounters_page_->get_encounters());
+
+        if (find(encounters.begin(), encounters.end(), current_encounter_)
+            == encounters.end())
+        {
+            encounters.push_back(current_encounter_);
+        }
+
+        encounters_page_->set_encounters(encounters);
+        encounter_tab_card_->select_face(encounters_face);
+        encounter_tab_card_->set_focus();
+    }
+
+    void on_revert_encounter()
+    {
+        encounter_tab_card_->select_face(encounters_face);
+        encounter_tab_card_->set_focus();
+    }
+
     void on_delete_beast()
     {
         BOOST_AUTO(selected_beast, bestiary_page_->get_selected_beast());
@@ -257,6 +305,18 @@ gm_tools_screen::gm_tools_screen()
 
     pimpl_->encounters_page_->on_new.connect(bind(
         &impl::on_new_encounter
+      , pimpl_.get()));
+
+    pimpl_->encounters_page_->on_edit.connect(bind(
+        &impl::on_edit_encounter
+      , pimpl_.get()));
+
+    pimpl_->encounter_editor_->on_save.connect(bind(
+        &impl::on_save_encounter
+      , pimpl_.get()));
+
+    pimpl_->encounter_editor_->on_revert.connect(bind(
+        &impl::on_revert_encounter
       , pimpl_.get()));
 
     pimpl_->delete_beast_dialog_->on_delete_confirmation.connect(bind(

@@ -195,6 +195,8 @@ struct encounter_editor::impl
     shared_ptr<button>           insert_button_;
     shared_ptr<button>           delete_button_;
 
+    shared_ptr<button>           edit_button_;
+
     shared_ptr<button>           save_button_;
     shared_ptr<button>           revert_button_;
 
@@ -325,6 +327,10 @@ struct encounter_editor::impl
         }
     }
 
+    void on_edit()
+    {
+    }
+
     void on_up()
     {
     }
@@ -360,6 +366,10 @@ encounter_editor::encounter_editor()
     pimpl_->delete_button_ = make_shared<button>(string_to_elements(" - "));
     pimpl_->delete_button_->on_click.connect(
         bind(&impl::on_delete, pimpl_.get()));
+
+    pimpl_->edit_button_ = make_shared<button>(string_to_elements("Edit"));
+    pimpl_->edit_button_->on_click.connect(
+        bind(&impl::on_edit, pimpl_.get()));
 
     pimpl_->up_button_ = make_shared<button>(string_to_elements(" ^ "));
     pimpl_->up_button_->on_click.connect(
@@ -441,12 +451,24 @@ encounter_editor::encounter_editor()
         make_shared<horizontal_squeeze_layout>());
     pimpl_->split_container_->add_component(upper_container);
 
-    pimpl_->lower_container_ = make_shared<basic_container>();
+    BOOST_AUTO(edit_button_container, make_shared<basic_container>());
+    edit_button_container->set_layout(make_shared<compass_layout>());
+    edit_button_container->add_component(
+        make_shared<filled_box>(element_type(' '))
+      , COMPASS_LAYOUT_CENTRE);
+    edit_button_container->add_component(
+        pimpl_->edit_button_
+      , COMPASS_LAYOUT_EAST);
+
     pimpl_->beasts_active_ = false;
 
-    pimpl_->lower_container_->set_layout(make_shared<grid_layout>(1, 1));
+    pimpl_->lower_container_->set_layout(make_shared<compass_layout>());
     pimpl_->lower_container_->add_component(
-        make_shared<scroll_pane>(pimpl_->beast_description_area_));
+        make_shared<scroll_pane>(pimpl_->beast_description_area_)
+      , COMPASS_LAYOUT_CENTRE);
+    pimpl_->lower_container_->add_component(
+        edit_button_container
+      , COMPASS_LAYOUT_SOUTH);
 
     BOOST_AUTO(lower_buttons_container, make_shared<basic_container>());
     lower_buttons_container->set_layout(make_shared<compass_layout>());

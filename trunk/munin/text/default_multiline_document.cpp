@@ -133,8 +133,9 @@ struct default_multiline_document::impl
         
         if (index >= last_line_index)
         {
-            // First, clamp it to the end of the text at most.
-            if (index > text_.size())
+            // First, clamp it to the end of the text 
+            // (+1 for the invisible blank) at most.
+            if (index > text_.size() + 1)
             {
                 index = text_.size();
             }

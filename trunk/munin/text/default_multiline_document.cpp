@@ -269,12 +269,14 @@ void default_multiline_document::do_set_caret_position(munin::point const& pt)
     if (line_length != 0)
     {
         pimpl_->caret_position_.x = 
-            (min)(u32(pt.x), u32(line_length - 1));
+            (min)(u32(pt.x), u32(line_length));
     }
     else
     {
         pimpl_->caret_position_.x = 0;
     }
+
+    printf("Caret Position = (%d,%d)\n", pimpl_->caret_position_.x, pimpl_->caret_position_.y);
 }
 
 // ==========================================================================
@@ -290,6 +292,7 @@ munin::point default_multiline_document::do_get_caret_position() const
 // ==========================================================================
 void default_multiline_document::do_set_caret_index(u32 index)
 {
+    printf("Set Caret Index = (%d)\n", index);
     pimpl_->caret_position_ = pimpl_->position_from_index(index);
 }
 

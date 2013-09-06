@@ -13,11 +13,15 @@ This release saw a large stabilisation effort as regular usage of the applicatio
 == Release 1.2 {Application/In Progress} ==
 Feature requests for Paradice9, with Issue #107 (Encounter Control) being the primary feature for the release.
 
-== Release 1.3 {Bug Fix Release} ==
-Two performance-related issues are scheduled here.  The first is an effort to reduce the number of memory allocations, since profiling has revealed that allocations and deallocations are the largest consumers of processing time during the application's life.  This is tracked in Issue 115.  The second ticket is for other performance considerations.  In particular, usage of Valgrind has yielded some interesting performance hotspots that can be quickly cleaned up.  This is tracked in Issue #121.
+== Release 1.3 {Bug Fix Release/Complete} ==
+Two performance-related issues are scheduled here.  The first is an effort to reduce the number of memory allocations, since profiling has revealed that allocations and deallocations are the largest consumers of processing time during the application's life.  This is tracked in Issue #115.  The second ticket is for other performance considerations.  In particular, usage of Valgrind has yielded some interesting performance hotspots that can be quickly cleaned up.  This is tracked in Issue #121.
+
+These issues have been mostly worked on in spare time and are solved.  As such, Release 1.3 will be for actual bugs discovered after the release of 1.2 and before the release of 1.4.
 
 == Release 1.4 {Paradice} ==
-Update Paradice to C++11.  This will include re-working Munin/Hugin to be less pointer-based and more value-based, which will make it much easier to form the basis that 1.6 will sit on.
+The flagship feature for this release is to re-work the GUI to have value semantics.  Following Bjarne Stroustrup's and Sean Parent's presentations during GoingNative 2013, I became convinced that this is the right way to go around it.  It also promises easier integration with threads -- an area where the GUI has problems.  This change is tracked in Issue #133.
+
+This will require upgrading to C++11, which itself is quite the task.  That is tracked in Issue #92.
 
 == Release 1.6 {Paradice} ==
 Incorporate multi-threading capabilities across the application and library.  This is tracked in Issue #67.

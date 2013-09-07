@@ -558,7 +558,10 @@ private :
         // Coalesce all redraw events into a single repaint.  That way,
         // there is only one major repaint if 100 components decide they
         // need drawing at once.
-        copy(regions.begin(), regions.end(), back_inserter(redraw_regions_));
+        redraw_regions_.insert(
+            redraw_regions_.end()
+          , regions.begin()
+          , regions.end());
         schedule_repaint();
     }
     

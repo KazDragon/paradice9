@@ -54,6 +54,11 @@ using namespace std;
 
 namespace hugin {
 
+namespace {
+    BOOST_STATIC_CONSTANT(u32, BALANCED_LAYOUT_PREFERRED = 0);
+    BOOST_STATIC_CONSTANT(u32, BALANCED_LAYOUT_SHARED = 1);
+}
+
 // ==========================================================================
 // \brief A class that implements a balanced horizontal layout, with two 
 // kinds of component: one where width is preferred, and one where width is
@@ -61,10 +66,6 @@ namespace hugin {
 // ==========================================================================
 class balanced_layout : public layout
 {
-public :
-    BOOST_STATIC_CONSTANT(u32, PREFERRED = 0);
-    BOOST_STATIC_CONSTANT(u32, SHARED = 1);
-
 private :
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
@@ -106,9 +107,9 @@ private :
         for (size_t index = 0; index < components.size(); ++index)
         {
             u32 const *psize_hint = any_cast<u32>(&hints[index]);
-            u32 size_hint = psize_hint ? *psize_hint : PREFERRED;
+            u32 size_hint = psize_hint ? *psize_hint : BALANCED_LAYOUT_PREFERRED;
 
-            if (size_hint == PREFERRED)
+            if (size_hint == BALANCED_LAYOUT_PREFERRED)
             {
                 BOOST_AUTO(
                     preferred_width
@@ -143,9 +144,9 @@ private :
             BOOST_AUTO(comp, components[index]);
 
             u32 const *psize_hint = any_cast<u32>(&hints[index]);
-            u32 size_hint = psize_hint ? *psize_hint : PREFERRED;
+            u32 size_hint = psize_hint ? *psize_hint : BALANCED_LAYOUT_PREFERRED;
 
-            if (size_hint == PREFERRED)
+            if (size_hint == BALANCED_LAYOUT_PREFERRED)
             {
                 BOOST_AUTO(width, comp->get_preferred_size().width);
                 comp->set_position(point(current_x, 0));
@@ -153,7 +154,7 @@ private :
 
                 current_x += width;
             }
-            else // size_hint == SHARED
+            else // size_hint == BALANCED_LAYOUT_SHARED
             {
                 u32 extras = 0;
 
@@ -432,13 +433,13 @@ encounter_editor::encounter_editor()
     outer_container->set_layout(make_shared<balanced_layout>());
     outer_container->add_component(
         make_shared<scroll_pane>(pimpl_->encounter_bestiary_list_)
-      , balanced_layout::SHARED);
+      , BALANCED_LAYOUT_SHARED);
     outer_container->add_component(
         pimpl_->buttons_container_
-      , balanced_layout::PREFERRED);
+      , BALANCED_LAYOUT_PREFERRED);
     outer_container->add_component(
         make_shared<scroll_pane>(pimpl_->encounter_beasts_list_)
-      , balanced_layout::SHARED);
+      , BALANCED_LAYOUT_SHARED);
 
     BOOST_AUTO(upper_container, make_shared<basic_container>());
     upper_container->set_layout(make_shared<compass_layout>());

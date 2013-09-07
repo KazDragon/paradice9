@@ -163,6 +163,8 @@ struct gm_tools_screen::impl
 
         encounter_editor_->set_encounter_name("New Encounter");
         encounter_editor_->set_bestiary(bestiary_page_->get_beasts());
+        encounter_editor_->set_encounter_beasts(
+            current_encounter_->get_beasts());
 
         encounter_tab_card_->select_face(encounter_editor_face);
         encounter_tab_card_->set_focus();
@@ -185,6 +187,57 @@ struct gm_tools_screen::impl
                 bestiary_page_->get_beasts());
 
             encounter_tab_card_->select_face(encounter_editor_face);
+            encounter_tab_card_->set_focus();
+        }
+    }
+
+    void on_clone_encounter()
+    {
+        BOOST_AUTO(
+            selected_encounter
+          , encounters_page_->get_selected_encounter());
+
+        if (selected_encounter)
+        {
+            current_encounter_ = make_shared<paradice::encounter>();
+            encounter_editor_->set_encounter_name(
+                "Clone of " + selected_encounter->get_name());
+
+            // Deep copy the beasts.
+            vector< shared_ptr<paradice::beast> > beasts;
+            vector< shared_ptr<paradice::beast> > const &original_beasts =
+                selected_encounter->get_beasts();
+
+            BOOST_FOREACH(
+                shared_ptr<paradice::beast const> const &original_beast
+              , original_beasts)
+            {
+                BOOST_AUTO(new_beast, make_shared<paradice::beast>());
+
+                new_beast->set_name(original_beast->get_name());
+                new_beast->set_description(original_beast->get_description());
+                beasts.push_back(new_beast);
+            }
+
+            encounter_editor_->set_encounter_beasts(beasts);
+            encounter_editor_->set_bestiary(bestiary_page_->get_beasts());
+
+            encounter_tab_card_->select_face(encounter_editor_face);
+            encounter_tab_card_->set_focus();
+        }
+    }
+
+    void on_delete_encounter()
+    {
+        BOOST_AUTO(
+            selected_encounter
+          , encounters_page_->get_selected_encounter());
+
+        if (selected_encounter)
+        {
+            delete_encounter_dialog_->set_deletion_target_text(
+                selected_encounter->get_name());
+            encounter_tab_card_->select_face(delete_encounter_face);
             encounter_tab_card_->set_focus();
         }
     }
@@ -252,6 +305,32 @@ struct gm_tools_screen::impl
         bestiary_tab_card_->select_face(bestiary_face);
         bestiary_tab_card_->set_focus();
     }
+
+    void on_delete_encounter_confirmation()
+    {
+        BOOST_AUTO(
+            selected_encounter
+          , encounters_page_->get_selected_encounter());
+
+        if (selected_encounter)
+        {
+            BOOST_AUTO(encounters, encounters_page_->get_encounters());
+            encounters.erase(remove(
+                encounters.begin()
+              , encounters.end()
+              , selected_encounter));
+            encounters_page_->set_encounters(encounters);
+        }
+
+        encounter_tab_card_->select_face(encounters_face);
+        encounter_tab_card_->set_focus();
+    }
+
+    void on_delete_encounter_rejection()
+    {
+        encounter_tab_card_->select_face(encounters_face);
+        encounter_tab_card_->set_focus();
+    }
 };
 
 // ==========================================================================
@@ -311,6 +390,14 @@ gm_tools_screen::gm_tools_screen()
         &impl::on_edit_encounter
       , pimpl_.get()));
 
+    pimpl_->encounters_page_->on_clone.connect(bind(
+        &impl::on_clone_encounter
+      , pimpl_.get()));
+
+    pimpl_->encounters_page_->on_delete.connect(bind(
+        &impl::on_delete_encounter
+      , pimpl_.get()));
+
     pimpl_->encounter_editor_->on_save.connect(bind(
         &impl::on_save_encounter
       , pimpl_.get()));
@@ -325,6 +412,14 @@ gm_tools_screen::gm_tools_screen()
 
     pimpl_->delete_beast_dialog_->on_delete_rejection.connect(bind(
         &impl::on_delete_beast_rejection
+      , pimpl_.get()));
+
+    pimpl_->delete_encounter_dialog_->on_delete_confirmation.connect(bind(
+        &impl::on_delete_encounter_confirmation
+      , pimpl_.get()));
+
+    pimpl_->delete_encounter_dialog_->on_delete_rejection.connect(bind(
+        &impl::on_delete_encounter_rejection
       , pimpl_.get()));
 
     pimpl_->back_button_ = make_shared<button>(

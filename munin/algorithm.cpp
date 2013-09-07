@@ -174,53 +174,19 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
         // until we either run out of slices, or cannot merge a slice.
         for (; 
              second_slice != rectangles.end()
-          && first_slice->origin.y == second_slice->origin.y;
+          && first_slice->origin.y == second_slice->origin.y
+          && first_slice->origin.x + first_slice->size.width >= second_slice->origin.x;
              ++second_slice)
         {
-            // If there is an overlap, then merge the slices and continue
-            // to the next adjacent slice.
-            if (first_slice->origin.x + first_slice->size.width
-               >= second_slice->origin.x)
-            {
-                // Change the first slice so that it is the union of both
-                // slices.  Note we only have to consider the x-coordinate
-                // since we already know that both slices share the same
-                // y-axis.
-                s32 required_width;
+            // Set the width of the first slice to be equivalent to the
+            // rightmost point of the two rectangles.
+            first_slice->size.width = (std::max)(
+                first_slice->origin.x + first_slice->size.width
+              , second_slice->origin.x + second_slice->size.width)
+              - first_slice->origin.x;
 
-                if (first_slice->origin.x == second_slice->origin.x)
-                {
-                    // Both slices share the same origin, so we can simply
-                    // take the width of the widest slice.
-                    required_width = (std::max)(
-                        first_slice->size.width, second_slice->size.width);
-                }
-                else if (first_slice->origin.x + first_slice->size.width
-                       >= second_slice->origin.x + second_slice->size.width)
-                {
-                    // The first slice completely encompasses the second,
-                    // so we can just take the width of the first slice.
-                    required_width = first_slice->size.width;
-                }
-                else
-                {
-                    // The slices only partially overlap.  Work out the union
-                    // of the slices.
-                    required_width = second_slice->size.width
-                      + (second_slice->origin.x - first_slice->origin.x);
-                }
-                    
-                first_slice->size.width = required_width;
-
-                // Mark the second slice as having been merged.
-                second_slice->size.height = 0;
-            }
-            // Otherwise, break out of this iteration and try to merge a
-            // different slice.
-            else
-            {
-                break;
-            }
+            // Mark the second slice as having been merged.
+            second_slice->size.height = 0;
         }
     }
 

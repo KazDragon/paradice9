@@ -442,11 +442,12 @@ vector<element_type> string_to_elements(string const &str)
 vector< vector<element_type> > strings_to_elements(
     vector<string> const &strings)
 {
-    vector< vector<element_type> > result;
-    BOOST_FOREACH(string const &str, strings)
-    {
-        result.push_back(string_to_elements(str));
-    }
+    vector< vector<element_type> > result(strings.size());
+    transform(
+        strings.begin()
+      , strings.end()
+      , result.begin()
+      , string_to_elements);
     
     return result;
 }

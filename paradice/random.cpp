@@ -36,7 +36,8 @@ namespace paradice {
 u32 random_number(u32 from, u32 to)
 {
     // TODO: Make this code thread-safe.
-    static mt19937 rng((random_device()));
+    static random_device rdev;
+    static mt19937 rng((rdev()));
     uniform_int<> distribution(from, to);
     variate_generator< mt19937&, uniform_int<> > roller(rng, distribution);
 

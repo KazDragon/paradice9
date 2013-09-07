@@ -136,7 +136,8 @@ PARADICE_D_FILES  = $(PARADICE_O_FILES:.o=.d)
 PARADICE_LIB      = libparadice.a
 LIBS              = -lparadice -lhugin -lmunin -lodin -lboost_program_options \
                     -lboost_filesystem -lboost_system -lboost_signals \
-                    -lboost_serialization -lboost_thread -lcryptopp
+                    -lboost_serialization -lboost_thread -lboost_random \
+                    -lcryptopp
 
 PARADICE9_NAMES   = context_impl paradice9 main
 PARADICE9_O_FILES = $(PARADICE9_NAMES:%=paradice9/%.o)

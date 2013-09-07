@@ -26,47 +26,21 @@
 // ==========================================================================
 #include "paradice/random.hpp"
 #include <boost/random.hpp>
-#include <ctime>
+#include <boost/random/random_device.hpp>
 
 using namespace odin;
 using namespace boost;
-using namespace std;
 
 namespace paradice {
 
-struct random_number_generator
+u32 random_number(u32 from, u32 to)
 {
-    random_number_generator()
-    {
-        // Because of the fixed bit pattern for a lot of the current time, 
-        // randomness doesn't really kick in for at least 10 rolls.  So,
-        // We seed and run before actually using any numbers.
-        rng.seed(static_cast<boost::uint32_t>(time(NULL)));
+    // TODO: Make this code thread-safe.
+    static mt19937 rng((random_device()));
+    uniform_int<> distribution(from, to);
+    variate_generator< mt19937&, uniform_int<> > roller(rng, distribution);
 
-        uniform_int<> numbers(1,100);
-        variate_generator< mt19937&, uniform_int<> > roller(rng, numbers);
-
-        for (u32 roll = 0; roll < 20; ++roll)
-        {
-            roller();
-        }
-    }
-
-    u32 operator()(u32 from, u32 to)
-    {
-        uniform_int<> die(from, to);
-        variate_generator< mt19937&, uniform_int<> > roller(rng, die);
-
-        return roller();
-    }
-
-    mt19937 rng;
-};
-
-odin::u32 random_number(odin::u32 from, odin::u32 to)
-{
-    static random_number_generator generate;
-    return generate(from, to);
+    return roller();
 }
 
 }

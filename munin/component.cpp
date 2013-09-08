@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "munin/component.hpp"
+#include <cassert>
 
 namespace munin {
     
@@ -63,6 +64,8 @@ point component::get_position() const
 // ==========================================================================
 void component::set_size(extent const &size)
 {
+    assert(size.width >= 0);
+    assert(size.height >= 0);
     do_set_size(size);
 }
 

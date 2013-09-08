@@ -147,10 +147,21 @@ private :
                     border_left_width_
                   , border_top_height_));
 
-                comp->set_size(extent(
-                    (size.width - border_left_width_) - border_right_width_
-                  , (size.height - border_top_height_) - border_bottom_height_)
-                );
+                extent new_size;
+
+                // Have care that the new size we would set does not become 
+                // less than zero due to taking the borders into account.
+                new_size.width = 
+                    (size.width >= (border_left_width_ + border_right_width_))
+                  ? (size.width - border_left_width_) - border_right_width_
+                  : 0;
+
+                new_size.height =
+                    (size.height >= (border_top_height_ + border_bottom_height_))
+                  ? (size.height - border_top_height_) - border_bottom_height_
+                  : 0;
+
+                comp->set_size(new_size);
             }
         }
     }

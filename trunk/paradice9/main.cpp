@@ -46,8 +46,6 @@ static void run_io_service(asio::io_service &io_service)
 
 int main(int argc, char *argv[])
 {
-    srand(static_cast<unsigned int>(time(NULL)));
-
     unsigned int port        = 4000;
     string       threads     = "";
     unsigned int concurrency = 0;

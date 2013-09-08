@@ -152,6 +152,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\active_encounter_view.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\beast_editor.cpp"
 				>
 			</File>
@@ -215,6 +219,10 @@
 			>
 			<File
 				RelativePath=".\account_creation_screen.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\active_encounter_view.hpp"
 				>
 			</File>
 			<File

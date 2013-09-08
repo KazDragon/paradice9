@@ -87,6 +87,7 @@ MUNIN_D_FILES     = $(MUNIN_O_FILES:.o=.d)
 MUNIN_LIB         = libmunin.a
 
 HUGIN_NAMES       = account_creation_screen \
+                    active_encounter_view \
                     beast_editor \
                     bestiary_page \
                     character_creation_screen \

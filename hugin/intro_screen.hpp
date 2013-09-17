@@ -30,6 +30,7 @@
 #include "munin/composite_component.hpp"
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/signal.hpp>
 #include <string>
 
 namespace hugin {
@@ -52,11 +53,18 @@ public :
     void clear();
     
     //* =====================================================================
+    /// \fn on_login
     /// \brief Set a function to be called when the user inputs a name
-    /// on the intro screen.
+    /// and password on the intro screen.
     //* =====================================================================
-    void on_account_details_entered(
-        boost::function<void (std::string, std::string)> callback);
+    boost::signal<void (std::string, std::string)> on_login;
+
+    //* =====================================================================
+    /// \fn on_new_account
+    /// \brief Set a function to be called when the user clicks on the
+    /// new account button.
+    //* =====================================================================
+    boost::signal<void ()> on_new_account;
 
 protected :
     //* =====================================================================

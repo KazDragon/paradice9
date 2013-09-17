@@ -208,12 +208,16 @@ public :
           , this
           , _1));
         
-        user_interface_->on_account_details_entered(bind(
-            &impl::on_account_details_entered
+        user_interface_->on_login(bind(
+            &impl::on_login
           , this
           , _1
           , _2));
         
+        user_interface_->on_new_account(bind(
+            &impl::on_new_account
+          , this));
+
         user_interface_->on_account_created(bind(
             &impl::on_account_created
           , this
@@ -489,62 +493,63 @@ private :
     }
 
     // ======================================================================
-    // ON_ACCOUNT_DETAILS_ENTERED
+    // ON_LOGIN
     // ======================================================================
-    void on_account_details_entered(
+    void on_login(
         string const &username
       , string const &password)
     {
-        if (username == "" && password == "")
+        string account_name(username);
+        capitalise(account_name);
+
+        shared_ptr<account> account;
+
+        try
         {
-            user_interface_->clear_account_creation_screen();
-            user_interface_->select_face(hugin::FACE_ACCOUNT_CREATION);
-            user_interface_->set_focus();
+            account = context_->load_account(account_name);
         }
-        else
+        catch(std::exception &ex)
         {
-            string account_name(username);
-            capitalise(account_name);
-    
-            shared_ptr<account> account;
-
-            try
-            {
-                account = context_->load_account(account_name);
-            }
-            catch(std::exception &ex)
-            {
-                // TODO: Use an actual logging library for this message.
-                printf("Error loading account: %s\n", ex.what());
-                user_interface_->set_statusbar_text(string_to_elements(
-                    "\\[1Invalid username/password combination"));
-                return;
-            }
-    
-            if (account == NULL)
-            {
-                user_interface_->set_statusbar_text(string_to_elements(
-                    "\\[1Invalid username/password combination"));
-                return;
-            }
-            
-            if (!account->password_match(password))
-            {
-                user_interface_->set_statusbar_text(string_to_elements(
-                    "\\[1Invalid username/password combination"));
-                return;
-            }
-
-            // First, ensure that if this account is logged in already,
-            // it is booted.
-            remove_duplicate_accounts(account);
-            
-            account_ = account;
-            update_character_names();
-
-            user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
-            user_interface_->set_focus();
+            // TODO: Use an actual logging library for this message.
+            printf("Error loading account: %s\n", ex.what());
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Invalid username/password combination"));
+            return;
         }
+
+        if (account == NULL)
+        {
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Invalid username/password combination"));
+            return;
+        }
+        
+        if (!account->password_match(password))
+        {
+            user_interface_->set_statusbar_text(string_to_elements(
+                "\\[1Invalid username/password combination"));
+            return;
+        }
+
+        // First, ensure that if this account is logged in already,
+        // it is booted.
+        remove_duplicate_accounts(account);
+        
+        account_ = account;
+        update_character_names();
+
+        user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        user_interface_->set_focus();
+    }
+
+    // ======================================================================
+    // ON_NEW_ACCOUNT
+    // ======================================================================
+    void on_new_account()
+    {
+        user_interface_->clear_account_creation_screen();
+        user_interface_->select_face(hugin::FACE_ACCOUNT_CREATION);
+        user_interface_->set_focus();
     }
 
     // ======================================================================

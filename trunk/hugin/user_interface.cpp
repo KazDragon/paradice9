@@ -268,12 +268,20 @@ void user_interface::on_password_change_cancelled(function<void ()> callback)
 }
 
 // ==========================================================================
-// ON_ACCOUNT_DETAILS_ENTERED
+// ON_LOGIN
 // ==========================================================================
-void user_interface::on_account_details_entered(
+void user_interface::on_login(
     function<void (string, string)> callback)
 {
-    pimpl_->intro_screen_->on_account_details_entered(callback);
+    pimpl_->intro_screen_->on_login.connect(callback);
+}
+
+// ==========================================================================
+// ON_NEW_ACCOUNT
+// ==========================================================================
+void user_interface::on_new_account(function<void ()> callback)
+{
+    pimpl_->intro_screen_->on_new_account.connect(callback);
 }
 
 // ==========================================================================

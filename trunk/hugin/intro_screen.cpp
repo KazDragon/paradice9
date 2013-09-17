@@ -29,6 +29,7 @@
 #include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
+#include "munin/button.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
 #include "munin/filled_box.hpp"
@@ -38,6 +39,7 @@
 #include "munin/solid_frame.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/assign/list_of.hpp>
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <vector>
@@ -89,38 +91,46 @@ static vector<string> const main_image = list_of
 struct intro_screen::impl
 {
     // ======================================================================
-    // ON_ACCOUNT_DETAILS_ENTERED
+    // CONSTRUCTOR
     // ======================================================================
-    void on_account_details_entered()
+    impl(intro_screen &self)
+        : self_(self)
     {
-        if (on_account_details_entered_)
-        {
-            BOOST_AUTO(document, intro_name_field_->get_document());
-            BOOST_AUTO(elements, document->get_line(0));
-            BOOST_AUTO(username, string_from_elements(elements));
-
-            document = intro_password_field_->get_document();
-            elements = document->get_line(0);
-            
-            BOOST_AUTO(password, string_from_elements(elements));
-            
-            on_account_details_entered_(username, password);
-        }
     }
 
+    // ======================================================================
+    // ON_LOGIN_CLICKED
+    // ======================================================================
+    void on_login_clicked()
+    {
+        BOOST_AUTO(document, intro_name_field_->get_document());
+        BOOST_AUTO(elements, document->get_line(0));
+        BOOST_AUTO(username, string_from_elements(elements));
+
+        document = intro_password_field_->get_document();
+        elements = document->get_line(0);
+        
+        BOOST_AUTO(password, string_from_elements(elements));
+            
+        self_.on_login(username, password);
+    }
+
+    intro_screen                    &self_;
     shared_ptr<edit>                 intro_name_field_;
     shared_ptr<edit>                 intro_password_field_;
-    function<void (string, string)>  on_account_details_entered_;
+    shared_ptr<button>               login_button_;
+    shared_ptr<button>               new_account_button_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 intro_screen::intro_screen()
-    : pimpl_(make_shared<impl>())
 {
-    BOOST_AUTO(inner_content, make_shared<basic_container>());
-    inner_content->set_layout(make_shared<compass_layout>());
+    pimpl_ = make_shared<impl>(ref(*this));
+
+    BOOST_AUTO(content, get_container());
+    content->set_layout(make_shared<compass_layout>());
 
     BOOST_AUTO(image_container, make_shared<basic_container>());
     image_container->set_layout(make_shared<aligned_layout>());
@@ -130,7 +140,7 @@ intro_screen::intro_screen()
       , make_shared<image>(strings_to_elements(main_image)));
     image_container->add_component(greetings_image);
 
-    inner_content->add_component(image_container, COMPASS_LAYOUT_CENTRE);
+    content->add_component(image_container, COMPASS_LAYOUT_CENTRE);
 
     alignment_data alignment;
     alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
@@ -165,6 +175,29 @@ intro_screen::intro_screen()
         EDIT_PASSWORD_ELEMENT
       , password_element);
     
+    pimpl_->login_button_ = make_shared<button>(
+        string_to_elements(" Login "));
+    pimpl_->login_button_->on_click.connect(
+        bind(&impl::on_login_clicked, pimpl_.get()));
+
+    pimpl_->new_account_button_ = make_shared<button>(
+        string_to_elements(" New "));
+    pimpl_->new_account_button_->on_click.connect(on_new_account);
+
+    BOOST_AUTO(buttons_container, make_shared<basic_container>());
+    buttons_container->set_layout(make_shared<compass_layout>());
+    buttons_container->add_component(
+        pimpl_->login_button_, COMPASS_LAYOUT_WEST);
+    buttons_container->add_component(
+        pimpl_->new_account_button_, COMPASS_LAYOUT_EAST);
+
+    BOOST_AUTO(outer_buttons_container, make_shared<basic_container>());
+    outer_buttons_container->set_layout(make_shared<compass_layout>());
+    outer_buttons_container->add_component(
+        make_shared<filled_box>(element_type(' ')), COMPASS_LAYOUT_CENTRE);
+    outer_buttons_container->add_component(
+        buttons_container, COMPASS_LAYOUT_EAST);
+
     BOOST_AUTO(fields_container, make_shared<basic_container>());
     fields_container->set_layout(make_shared<grid_layout>(2, 1));
     
@@ -175,35 +208,23 @@ intro_screen::intro_screen()
         make_shared<solid_frame>()
       , pimpl_->intro_password_field_));
 
-    string instructions_label_elements =
-        "Enter details, or leave empty to create a new account. "
-        "Then hit enter.";
-    
-    BOOST_AUTO(instructions_container, make_shared<basic_container>());
-    instructions_container->set_layout(make_shared<aligned_layout>());
-    instructions_container->add_component(
-        make_shared<image>(string_to_elements(instructions_label_elements))
-      , alignment);
-    
     BOOST_AUTO(bottom_container, make_shared<basic_container>());
     bottom_container->set_layout(make_shared<compass_layout>());
-    bottom_container->add_component(instructions_container, COMPASS_LAYOUT_NORTH);
     bottom_container->add_component(labels_container, COMPASS_LAYOUT_WEST);
     bottom_container->add_component(fields_container, COMPASS_LAYOUT_CENTRE);
 
-    inner_content->add_component(bottom_container, COMPASS_LAYOUT_SOUTH);
+    BOOST_AUTO(outer_container, make_shared<basic_container>());
+    outer_container->set_layout(make_shared<compass_layout>());
+    outer_container->add_component(bottom_container, COMPASS_LAYOUT_NORTH);
+    outer_container->add_component(outer_buttons_container, COMPASS_LAYOUT_SOUTH);
 
-    BOOST_AUTO(outer_content, get_container());
-    outer_content->set_layout(make_shared<compass_layout>());
-    
-    outer_content->add_component(inner_content, COMPASS_LAYOUT_CENTRE);
-    // TODO: Coalesce
+    content->add_component(outer_container, COMPASS_LAYOUT_SOUTH);
 
     // Add a filler to ensure that the background is opaque.
-    outer_content->set_layout(
+    content->set_layout(
         make_shared<grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
-    outer_content->add_component(
+    content->add_component(
         make_shared<filled_box>(element_type(' '))
       , any()
       , munin::LOWEST_LAYER);
@@ -221,15 +242,6 @@ void intro_screen::clear()
     // Erase the text in the password field.
     document = pimpl_->intro_password_field_->get_document();
     document->delete_text(make_pair(u32(0), document->get_text_size()));
-}
-
-// ==========================================================================
-// ON_ACCOUNT_DETAILS_ENTERED
-// ==========================================================================
-void intro_screen::on_account_details_entered(
-    function<void (string, string)> callback)
-{
-    pimpl_->on_account_details_entered_ = callback;
 }
 
 // ==========================================================================
@@ -254,11 +266,6 @@ void intro_screen::do_event(any const &ev)
                 focus_next();
             }
             
-            handled = true;
-        }
-        else if (*ch == '\n')
-        {
-            pimpl_->on_account_details_entered();
             handled = true;
         }
     }

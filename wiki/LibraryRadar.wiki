@@ -1,5 +1,13 @@
 #summary A list of pages of libraries that may be of use.
 
+= Testing =
+
+== Cucumber-cpp ==
+
+https://github.com/cucumber/cucumber-cpp
+
+An implementation of the Cucumber testing environment for C++.  May come in useful during Issue #133 to enable testing of the new UI components.
+
 = Databases =
 
 == CppDB ==

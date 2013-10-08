@@ -36,6 +36,7 @@ namespace paradice {
 // CONSTRUCTOR
 // ==========================================================================
 character::character()
+  : gm_level_(0)
 {
 }
 

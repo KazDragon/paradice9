@@ -1,5 +1,5 @@
 // ==========================================================================
-// Hugin Active Encounter view
+// Paradice Active Encounter
 //
 // Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,46 +24,43 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef HUGIN_ACTIVE_ENCOUNTER_VIEW_HPP_
-#define HUGIN_ACTIVE_ENCOUNTER_VIEW_HPP_
+#ifndef PARADICE_ACTIVE_ENCOUNTER_HPP_
+#define PARADICE_ACTIVE_ENCOUNTER_HPP_
 
-#include "munin/composite_component.hpp"
-#include "paradice/active_encounter.hpp"
+#include <paradice/beast.hpp>
+#include <paradice/character.hpp>
+#include <boost/variant.hpp>
+#include <boost/weak_ptr.hpp>
+#include <string>
+#include <vector>
 
-namespace hugin {
+namespace paradice {
 
 //* =========================================================================
-/// \brief The view for the active encounter in the main window
+/// \brief A structure to represent an active in-game encounter.
 //* =========================================================================
-class active_encounter_view : public munin::composite_component
+struct active_encounter
 {
-public :
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
-    active_encounter_view();
-    
-    //* =====================================================================
-    /// \brief Destructor
-    //* =====================================================================
-    ~active_encounter_view();
+    struct player
+    {
+        boost::weak_ptr<character> character_;
+        std::string name_;
+    };
 
-    //* =====================================================================
-    /// \brief Sets the mode of the view; whether the GM is controlling it
-    /// or not.
-    //* =====================================================================
-    void set_gm_mode(bool mode);
+    struct entry
+    {
+        boost::variant<
+            boost::shared_ptr<character>,
+            boost::shared_ptr<beast>
+        > participant_;
 
-    //* =====================================================================
-    /// \brief Sets the encounter that the view should work with.
-    //* =====================================================================
-    void set_encounter(boost::shared_ptr<paradice::active_encounter> encounter);
+        odin::u32 id_;
+    };
 
-private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::vector<entry> entries_;
 };
 
 }
 
 #endif
+

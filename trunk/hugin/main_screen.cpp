@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "main_screen.hpp"
+#include "hugin/active_encounter_view.hpp"
 #include "hugin/command_prompt.hpp"
 #include "hugin/wholist.hpp"
 #include "munin/ansi/protocol.hpp"
@@ -32,8 +33,9 @@
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
 #include "munin/framed_component.hpp"
-#include "munin/solid_frame.hpp"
+#include "munin/horizontal_squeeze_layout.hpp"
 #include "munin/named_frame.hpp"
+#include "munin/solid_frame.hpp"
 #include "munin/scroll_pane.hpp"
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
@@ -44,6 +46,7 @@
 
 using namespace munin::ansi;
 using namespace munin;
+using namespace paradice;
 using namespace odin;
 using namespace boost;
 using namespace std;
@@ -60,6 +63,7 @@ struct main_screen::impl
     // ======================================================================
     impl()
         : help_field_visible_(false)
+        , active_encounter_view_visible_(false)
     {
     } 
     
@@ -95,16 +99,19 @@ struct main_screen::impl
         }
     }
     
-    shared_ptr<wholist>             wholist_;
-    shared_ptr<command_prompt>      input_field_;
-    shared_ptr<container>           output_container_;
-    shared_ptr<text_area>           output_field_;
-    shared_ptr<text_area>           help_field_;
-    shared_ptr<scroll_pane>         help_field_frame_;
-    bool                            help_field_visible_;
+    shared_ptr<wholist>               wholist_;
+    shared_ptr<command_prompt>        input_field_;
+    shared_ptr<container>             output_encounter_container_;
+    shared_ptr<container>             output_container_;
+    shared_ptr<text_area>             output_field_;
+    shared_ptr<text_area>             help_field_;
+    shared_ptr<scroll_pane>           help_field_frame_;
+    bool                              help_field_visible_;
+    shared_ptr<active_encounter_view> active_encounter_view_;
+    bool                              active_encounter_view_visible_;
     
-    function<void (string)>         on_input_entered_;
-    function<void ()>               on_help_closed_;
+    function<void (string)>           on_input_entered_;
+    function<void ()>                 on_help_closed_;
 };
 
 // ==========================================================================
@@ -145,8 +152,17 @@ main_screen::main_screen()
     pimpl_->help_field_->disable();
     
     pimpl_->help_field_frame_ = make_shared<scroll_pane>(pimpl_->help_field_);
-    
-    content->add_component(pimpl_->output_container_, COMPASS_LAYOUT_CENTRE);
+
+    pimpl_->output_encounter_container_ = make_shared<basic_container>();
+    pimpl_->output_encounter_container_->set_layout(
+        make_shared<horizontal_squeeze_layout>());
+
+    pimpl_->output_encounter_container_->add_component(
+        pimpl_->output_container_);
+
+    pimpl_->active_encounter_view_ = make_shared<active_encounter_view>();
+
+    content->add_component(pimpl_->output_encounter_container_, COMPASS_LAYOUT_CENTRE);
 }
 
 // ==========================================================================
@@ -229,6 +245,45 @@ void main_screen::hide_help_window()
             pimpl_->input_field_->set_focus();
         }
     }
+}
+
+// ==========================================================================
+// SHOW_ACTIVE_ENCOUNTER_WINDOW
+// ==========================================================================
+void main_screen::show_active_encounter_window()
+{
+    if (!pimpl_->active_encounter_view_visible_)
+    {
+        pimpl_->output_encounter_container_->add_component(
+            pimpl_->active_encounter_view_);
+        pimpl_->active_encounter_view_visible_ = true;
+    }
+}
+
+// ==========================================================================
+// HIDE_ACTIVE_ENCOUNTER_WINDOW
+// ==========================================================================
+void main_screen::hide_active_encounter_window()
+{
+    if (pimpl_->active_encounter_view_visible_)
+    {
+        pimpl_->output_encounter_container_->remove_component(
+            pimpl_->active_encounter_view_);
+        pimpl_->active_encounter_view_visible_ = false;
+
+        if (pimpl_->active_encounter_view_->has_focus())
+        {
+            pimpl_->input_field_->set_focus();
+        }
+    }
+}
+
+// ==========================================================================
+// SET_ACTIVE_ENCOUNTER
+// ==========================================================================
+void main_screen::set_active_encounter(
+    shared_ptr<active_encounter> active_encounter)
+{
 }
 
 // ==========================================================================

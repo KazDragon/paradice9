@@ -229,6 +229,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\active_encounter.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\admin.hpp"
 				>
 			</File>

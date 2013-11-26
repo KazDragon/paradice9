@@ -28,6 +28,7 @@
 #define HUGIN_MAIN_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
+#include "paradice/active_encounter.hpp"
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
@@ -86,6 +87,22 @@ public :
     //* =====================================================================
     void hide_help_window();
     
+    //* =====================================================================
+    /// \brief Shows the active encounter window.
+    //* =====================================================================
+    void show_active_encounter_window();
+
+    //* =====================================================================
+    /// \brief Hides the active encounter window.
+    //* =====================================================================
+    void hide_active_encounter_window();
+
+    //* =====================================================================
+    /// \brief Sets the Active Encounter.
+    //* =====================================================================
+    void set_active_encounter(
+        boost::shared_ptr<paradice::active_encounter> active_encounter);
+
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.
     //* =====================================================================

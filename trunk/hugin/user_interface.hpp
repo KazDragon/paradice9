@@ -28,6 +28,7 @@
 #define HUGIN_USER_INTERFACE_HPP_
 
 #include "munin/composite_component.hpp"
+#include "paradice/active_encounter.hpp"
 #include <boost/asio/strand.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -176,6 +177,22 @@ public :
     /// button on the GM Tools screen
     //* =====================================================================
     void on_gm_tools_back(boost::function<void ()> callback);
+
+    //* =====================================================================
+    /// \brief Shows the active encounter window.
+    //* =====================================================================
+    void show_active_encounter_window();
+
+    //* =====================================================================
+    /// \brief Hides the active encounter window.
+    //* =====================================================================
+    void hide_active_encounter_window();
+
+    //* =====================================================================
+    /// \brief Sets the Active Encounter.
+    //* =====================================================================
+    void set_active_encounter(
+        boost::shared_ptr<paradice::active_encounter> active_encounter);
 
     //* =====================================================================
     /// \brief Sets the character names belonging to this account.

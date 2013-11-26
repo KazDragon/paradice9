@@ -46,6 +46,7 @@ using namespace boost;
 using namespace boost::archive;
 using namespace boost::filesystem;
 using namespace odin;
+using namespace paradice;
 
 // ==========================================================================
 // GET_ACCOUNTS_PATH
@@ -371,3 +372,24 @@ void context_impl::shutdown()
     pimpl_->server_->shutdown();
 }
 
+// ==========================================================================
+// GET_ACTIVE_ENCOUNTER
+// ==========================================================================
+shared_ptr<active_encounter> context_impl::get_active_encounter()
+{
+    return shared_ptr<active_encounter>();
+}
+
+// ==========================================================================
+// SET_ACTIVE_ENCOUNTER
+// ==========================================================================
+void context_impl::set_active_encounter(shared_ptr<active_encounter> enc)
+{
+}
+
+// ==========================================================================
+// UPDATE_ACTIVE_ENCOUNTER
+// ==========================================================================
+void context_impl::update_active_encounter()
+{
+}

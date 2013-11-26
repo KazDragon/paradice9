@@ -112,6 +112,23 @@ public :
     //* =====================================================================
     virtual void shutdown();
     
+    //* =====================================================================
+    /// \brief Gets the currently active encounter
+    //* =====================================================================
+    virtual boost::shared_ptr<paradice::active_encounter> get_active_encounter();
+
+    //* =====================================================================
+    /// \brief Sets the currently active encounter
+    //* =====================================================================
+    virtual void set_active_encounter(
+        boost::shared_ptr<paradice::active_encounter> enc);
+
+    //* =====================================================================
+    /// \brief Informs the context that changes have been made to the
+    /// active encounter and that any related views should be updated.
+    //* =====================================================================
+    virtual void update_active_encounter();
+
 private :
     struct impl;
     boost::shared_ptr<impl> pimpl_;

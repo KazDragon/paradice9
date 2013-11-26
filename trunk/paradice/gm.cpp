@@ -38,6 +38,94 @@ using namespace std;
 
 namespace paradice {
 
+namespace {
+
+PARADICE_COMMAND_IMPL(gm_tools)
+{
+    BOOST_AUTO(user_interface, player->get_user_interface());
+    user_interface->select_face(hugin::FACE_GM_TOOLS);
+    user_interface->set_focus();
+}
+
+PARADICE_COMMAND_IMPL(gm_encounter_show)
+{
+    BOOST_AUTO(clients, ctx->get_clients());
+    BOOST_FOREACH(shared_ptr<client> cli, clients)
+    {
+        if (cli)
+        {
+            cli->get_user_interface()->show_active_encounter_window();
+        }
+    }
+}
+
+PARADICE_COMMAND_IMPL(gm_encounter_hide)
+{
+    BOOST_AUTO(clients, ctx->get_clients());
+    BOOST_FOREACH(shared_ptr<client> cli, clients)
+    {
+        if (cli)
+        {
+            cli->get_user_interface()->hide_active_encounter_window();
+        }
+    }
+}
+
+PARADICE_COMMAND_IMPL(gm_encounter_add_player)
+{
+    BOOST_AUTO(arg0, tokenise(arguments));
+    string argument = arg0.first;
+
+
+}
+
+PARADICE_COMMAND_IMPL(gm_encounter_add)
+{
+    BOOST_AUTO(arg0, tokenise(arguments));
+    string argument = arg0.first;
+
+#define DISPATCH_GM_ENCOUNTER_ADD_COMMAND(cmd) \
+    if (argument == #cmd) \
+    { \
+        INVOKE_PARADICE_COMMAND(gm_encounter_add_##cmd, ctx, arg0.second, player); \
+        return; \
+    }
+
+    DISPATCH_GM_ENCOUNTER_ADD_COMMAND(player);
+#undef DISPATCH_GM_ENCOUNTER_ADD_COMMAND
+
+    send_to_player(
+        ctx
+      , "Unknown: gm encounter add " + argument
+      , player);
+
+}
+
+PARADICE_COMMAND_IMPL(gm_encounter)
+{
+    BOOST_AUTO(arg0, tokenise(arguments));
+    string argument = arg0.first;
+
+#define DISPATCH_GM_ENCOUNTER_COMMAND(cmd) \
+    if (argument == #cmd) \
+    { \
+        INVOKE_PARADICE_COMMAND(gm_encounter_##cmd, ctx, arg0.second, player); \
+        return; \
+    }
+
+    DISPATCH_GM_ENCOUNTER_COMMAND(show);
+    DISPATCH_GM_ENCOUNTER_COMMAND(hide);
+    DISPATCH_GM_ENCOUNTER_COMMAND(add);
+#undef DISPATCH_GM_ENCOUNTER_COMMAND
+
+    send_to_player(
+        ctx
+      , "Unknown: gm encounter " + argument
+      , player);
+}
+
+}
+
 // ==========================================================================
 // PARADICE COMMAND: GM
 // ==========================================================================
@@ -45,57 +133,22 @@ PARADICE_COMMAND_IMPL(gm)
 {
     BOOST_AUTO(arg0, tokenise(arguments));
     string argument = arg0.first;
-    
-    BOOST_AUTO(user_interface, player->get_user_interface());
-    
-    if (argument == "tools")
-    {
-        user_interface->select_face(hugin::FACE_GM_TOOLS);
-        user_interface->set_focus();
-    }
-    else if (argument == "encounter")
-    {
-        BOOST_AUTO(arg1, tokenise(arg0.second));
-        argument = arg1.first;
 
-        if (argument == "show")
-        {
-            BOOST_AUTO(clients, ctx->get_clients());
-            BOOST_FOREACH(shared_ptr<client> cli, clients)
-            {
-                if (cli)
-                {
-                    cli->get_user_interface()->show_active_encounter_window();
-                }
-            }
-        }
-        else if (argument == "hide")
-        {
-            BOOST_AUTO(clients, ctx->get_clients());
-            BOOST_FOREACH(shared_ptr<client> cli, clients)
-            {
-                if (cli)
-                {
-                    cli->get_user_interface()->hide_active_encounter_window();
-                }
-            }
-        }
-        else
-        {
-            send_to_player(
-                ctx
-              , "Unknown: gm encounter " + argument
-              , player);
-        }
+#define DISPATCH_GM_COMMAND(cmd) \
+    if (argument == #cmd) \
+    { \
+        INVOKE_PARADICE_COMMAND(gm_##cmd, ctx, arg0.second, player); \
+        return; \
     }
-    else
-    {
-        send_to_player(
-            ctx
-          , "<TODO: usage statement>\n"
-          , player);
-    }
+    
+    DISPATCH_GM_COMMAND(tools);
+    DISPATCH_GM_COMMAND(encounter);
+#undef DISPATCH_GM_COMMAND
 
+    send_to_player(
+        ctx
+      , "<TODO: usage statement>\n"
+      , player);
 }
 
 }

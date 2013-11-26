@@ -36,6 +36,8 @@ class account;
 class character;
 class client;
 
+struct active_encounter;
+
 //* =========================================================================
 /// \brief Describes the interface for a context in which a Paradice server
 /// can run.
@@ -106,6 +108,23 @@ public :
     /// \brief Enacts a server shutdown.
     //* =====================================================================
     virtual void shutdown() = 0;
+
+    //* =====================================================================
+    /// \brief Gets the currently active encounter
+    //* =====================================================================
+    virtual boost::shared_ptr<paradice::active_encounter> get_active_encounter() = 0;
+
+    //* =====================================================================
+    /// \brief Sets the currently active encounter
+    //* =====================================================================
+    virtual void set_active_encounter(
+        boost::shared_ptr<paradice::active_encounter> enc) = 0;
+
+    //* =====================================================================
+    /// \brief Informs the context that changes have been made to the
+    /// active encounter and that any related views should be updated.
+    //* =====================================================================
+    virtual void update_active_encounter() = 0;
 };
 
 }

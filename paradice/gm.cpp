@@ -25,11 +25,15 @@
 #include "paradice/gm.hpp"
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
+#include "paradice/context.hpp"
 #include "hugin/user_interface.hpp"
 #include "odin/tokenise.hpp"
+#include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/typeof/typeof.hpp>
 
 using namespace odin;
+using namespace boost;
 using namespace std;
 
 namespace paradice {
@@ -39,7 +43,8 @@ namespace paradice {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(gm)
 {
-    string argument = tokenise(arguments).first;
+    BOOST_AUTO(arg0, tokenise(arguments));
+    string argument = arg0.first;
     
     BOOST_AUTO(user_interface, player->get_user_interface());
     
@@ -48,9 +53,40 @@ PARADICE_COMMAND_IMPL(gm)
         user_interface->select_face(hugin::FACE_GM_TOOLS);
         user_interface->set_focus();
     }
-    else if (argument == "show")
+    else if (argument == "encounter")
     {
-        // pop up encounters for all.
+        BOOST_AUTO(arg1, tokenise(arg0.second));
+        argument = arg1.first;
+
+        if (argument == "show")
+        {
+            BOOST_AUTO(clients, ctx->get_clients());
+            BOOST_FOREACH(shared_ptr<client> cli, clients)
+            {
+                if (cli)
+                {
+                    cli->get_user_interface()->show_active_encounter_window();
+                }
+            }
+        }
+        else if (argument == "hide")
+        {
+            BOOST_AUTO(clients, ctx->get_clients());
+            BOOST_FOREACH(shared_ptr<client> cli, clients)
+            {
+                if (cli)
+                {
+                    cli->get_user_interface()->hide_active_encounter_window();
+                }
+            }
+        }
+        else
+        {
+            send_to_player(
+                ctx
+              , "Unknown: gm encounter " + argument
+              , player);
+        }
     }
     else
     {

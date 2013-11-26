@@ -353,6 +353,30 @@ void user_interface::on_gm_tools_back(function<void ()> callback)
 }
 
 // ==========================================================================
+// SHOW_ACTIVE_ENCOUNTER_WINDOW
+// ==========================================================================
+void user_interface::show_active_encounter_window()
+{
+    pimpl_->main_screen_->show_active_encounter_window();
+}
+
+// ==========================================================================
+// HIDE_ACTIVE_ENCOUNTER_WINDOW
+// ==========================================================================
+void user_interface::hide_active_encounter_window()
+{
+    pimpl_->main_screen_->hide_active_encounter_window();
+}
+
+// ==========================================================================
+// SET_ACTIVE_ENCOUNTER
+// ==========================================================================
+void user_interface::set_active_encounter(shared_ptr<active_encounter> enc)
+{
+    pimpl_->main_screen_->set_active_encounter(enc);
+}
+
+// ==========================================================================
 // SET_CHARACTER_NAMES
 // ==========================================================================
 void user_interface::set_character_names(        

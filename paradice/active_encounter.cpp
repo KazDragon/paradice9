@@ -24,46 +24,33 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_ACTIVE_ENCOUNTER_HPP_
-#define PARADICE_ACTIVE_ENCOUNTER_HPP_
+#include "paradice/active_encounter.hpp"
+#include <boost/foreach.hpp>
+#include <algorithm>
 
-#include "paradice/beast.hpp"
-#include "paradice/character.hpp"
-#include <boost/variant.hpp>
-#include <boost/weak_ptr.hpp>
-#include <string>
-#include <vector>
+using namespace odin;
 
 namespace paradice {
 
-//* =========================================================================
-/// \brief A structure to represent an active in-game encounter.
-//* =========================================================================
-struct active_encounter
+// ==========================================================================
+// ADD_PARTICIPANT
+// ==========================================================================
+void active_encounter::add_participant(active_encounter::participant part)
 {
-    struct player
+    // First, find the maximum ID currently used in the encounter.
+    u32 max_id = 0;
+
+    BOOST_FOREACH(entry const &ent, entries_)
     {
-        boost::weak_ptr<character> character_;
-        std::string name_;
-    };
+        max_id = (std::max)(ent.id_, max_id);
+    }
 
-    typedef boost::variant<
-        player,
-        boost::shared_ptr<beast>
-    > participant;
+    // The next ID should be one higher than the maximum ID.
+    entry new_entry;
+    new_entry.id_ = max_id + 1;
+    new_entry.participant_ = part;
 
-    struct entry
-    {
-        participant participant_;
-        odin::u32 id_;
-    };
-
-    std::vector<entry> entries_;
-
-    void add_participant(participant part);
-};
-
+    entries_.push_back(new_entry);
 }
 
-#endif
-
+}

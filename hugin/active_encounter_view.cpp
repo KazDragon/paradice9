@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/active_encounter_view.hpp"
+#include <munin/algorithm.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/list.hpp>
 #include <munin/scroll_pane.hpp>
@@ -54,16 +55,15 @@ struct active_encounter_view::impl
     struct active_encounter_entry_visitor 
         : static_visitor< vector<element_type> >
     {
-        vector<element_type> operator()(shared_ptr<character> character)
+        vector<element_type> operator()(active_encounter::player ply)
         {
-            return vector<element_type>();
+            return string_to_elements(ply.name_);
         }
 
         vector<element_type> operator()(shared_ptr<beast> beast)
         {
             return vector<element_type>();
         }
-
     };
     
     void update()

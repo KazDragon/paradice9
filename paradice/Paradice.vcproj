@@ -155,6 +155,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\active_encounter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\admin.cpp"
 				>
 			</File>

@@ -284,6 +284,7 @@ void main_screen::hide_active_encounter_window()
 void main_screen::set_active_encounter(
     shared_ptr<active_encounter> active_encounter)
 {
+    pimpl_->active_encounter_view_->set_encounter(active_encounter);
 }
 
 // ==========================================================================

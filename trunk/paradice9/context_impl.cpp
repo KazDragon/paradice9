@@ -48,6 +48,11 @@ using namespace boost::filesystem;
 using namespace odin;
 using namespace paradice;
 
+namespace {
+    static boost::shared_ptr<active_encounter> gm_encounter;
+    static bool gm_encounter_visible = false;
+}
+
 // ==========================================================================
 // GET_ACCOUNTS_PATH
 // ==========================================================================
@@ -377,7 +382,7 @@ void context_impl::shutdown()
 // ==========================================================================
 shared_ptr<active_encounter> context_impl::get_active_encounter()
 {
-    return shared_ptr<active_encounter>();
+    return gm_encounter;
 }
 
 // ==========================================================================
@@ -385,6 +390,38 @@ shared_ptr<active_encounter> context_impl::get_active_encounter()
 // ==========================================================================
 void context_impl::set_active_encounter(shared_ptr<active_encounter> enc)
 {
+    gm_encounter = enc;
+}
+
+// ==========================================================================
+// IS_ACTIVE_ENCOUNTER_VISIBLE
+// ==========================================================================
+bool context_impl::is_active_encounter_visible() const
+{
+    return gm_encounter_visible;
+}
+
+// ==========================================================================
+// SET_ACTIVE_ENCOUNTER_VISIBLE
+// ==========================================================================
+void context_impl::set_active_encounter_visible(bool visibility)
+{
+    gm_encounter_visible = visibility;
+
+    BOOST_FOREACH(shared_ptr<client> cli, pimpl_->clients_)
+    {
+        if (cli)
+        {
+            if (gm_encounter_visible)
+            {
+                cli->get_user_interface()->show_active_encounter_window();
+            }
+            else
+            {
+                cli->get_user_interface()->hide_active_encounter_window();
+            }
+        }
+    }
 }
 
 // ==========================================================================
@@ -392,4 +429,11 @@ void context_impl::set_active_encounter(shared_ptr<active_encounter> enc)
 // ==========================================================================
 void context_impl::update_active_encounter()
 {
+    BOOST_FOREACH(shared_ptr<client> cli, pimpl_->clients_)
+    {
+        if (cli)
+        {
+            cli->get_user_interface()->set_active_encounter(gm_encounter);
+        }
+    }
 }

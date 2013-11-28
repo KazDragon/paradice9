@@ -23,6 +23,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/gm.hpp"
+#include "paradice/active_encounter.hpp"
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
 #include "paradice/context.hpp"
@@ -40,6 +41,23 @@ namespace paradice {
 
 namespace {
 
+static shared_ptr<active_encounter> 
+    get_active_encounter(shared_ptr<context> ctx)
+{
+    // Retrieve the active encounter from the context.
+    BOOST_AUTO(enc, ctx->get_active_encounter());
+
+    // If it doesn't yet exist, then create a new one and ensure the context
+    // knows about it.
+    if (!enc)
+    {
+        enc = make_shared<active_encounter>();
+        ctx->set_active_encounter(enc);
+    }
+
+    return enc;
+}
+
 PARADICE_COMMAND_IMPL(gm_tools)
 {
     BOOST_AUTO(user_interface, player->get_user_interface());
@@ -49,34 +67,69 @@ PARADICE_COMMAND_IMPL(gm_tools)
 
 PARADICE_COMMAND_IMPL(gm_encounter_show)
 {
-    BOOST_AUTO(clients, ctx->get_clients());
-    BOOST_FOREACH(shared_ptr<client> cli, clients)
-    {
-        if (cli)
-        {
-            cli->get_user_interface()->show_active_encounter_window();
-        }
-    }
+    ctx->set_active_encounter_visible(true);
 }
 
 PARADICE_COMMAND_IMPL(gm_encounter_hide)
 {
-    BOOST_AUTO(clients, ctx->get_clients());
-    BOOST_FOREACH(shared_ptr<client> cli, clients)
-    {
-        if (cli)
-        {
-            cli->get_user_interface()->hide_active_encounter_window();
-        }
-    }
+    ctx->set_active_encounter_visible(false);
 }
 
 PARADICE_COMMAND_IMPL(gm_encounter_add_player)
 {
     BOOST_AUTO(arg0, tokenise(arguments));
     string argument = arg0.first;
+}
 
+PARADICE_COMMAND_IMPL(gm_encounter_add_players)
+{
+    BOOST_AUTO(enc, get_active_encounter(ctx));
 
+    BOOST_FOREACH(shared_ptr<client> cli, ctx->get_clients())
+    {
+        BOOST_AUTO(ch, cli->get_character());
+
+        // Don't add the GM.
+        if (ch->get_gm_level() != 0)
+        {
+            continue;
+        }
+
+        bool found = false;
+
+        BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
+        {
+            BOOST_AUTO(
+                participant
+              , get< shared_ptr<character> >(&entry.participant_));
+
+            // If this entry is not a character, then move to the next entry.
+            if (!participant)
+            {
+                continue;
+            }
+
+            // If this entry is the same as the character, then it has already 
+            // been added, so we can skip to the next player.
+            if (*participant == ch)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        // Only add characters that are not already in the encounter.
+        if (!found)
+        {
+            active_encounter::player ply;
+            ply.character_ = ch;
+            ply.name_ = ctx->get_moniker(ch);
+
+            enc->add_participant(ply);
+        }
+    }
+
+    ctx->update_active_encounter();
 }
 
 PARADICE_COMMAND_IMPL(gm_encounter_add)
@@ -92,6 +145,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_add)
     }
 
     DISPATCH_GM_ENCOUNTER_ADD_COMMAND(player);
+    DISPATCH_GM_ENCOUNTER_ADD_COMMAND(players);
 #undef DISPATCH_GM_ENCOUNTER_ADD_COMMAND
 
     send_to_player(

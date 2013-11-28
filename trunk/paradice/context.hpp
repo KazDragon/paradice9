@@ -121,6 +121,16 @@ public :
         boost::shared_ptr<paradice::active_encounter> enc) = 0;
 
     //* =====================================================================
+    /// \brief Gets the visibility of the encounter.
+    //* =====================================================================
+    virtual bool is_active_encounter_visible() const = 0;
+
+    //* =====================================================================
+    /// \brief Sets the visibility of the encounter for all players.
+    //* =====================================================================
+    virtual void set_active_encounter_visible(bool visibility) = 0;
+
+    //* =====================================================================
     /// \brief Informs the context that changes have been made to the
     /// active encounter and that any related views should be updated.
     //* =====================================================================

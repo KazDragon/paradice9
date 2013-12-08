@@ -75,62 +75,79 @@ PARADICE_COMMAND_IMPL(gm_encounter_hide)
     ctx->set_active_encounter_visible(false);
 }
 
+static void add_encounter_player(
+    shared_ptr<character> ch
+  , shared_ptr<context> ctx)
+{
+    // Don't add the GM.
+    if (ch->get_gm_level() != 0)
+    {
+        return;
+    }
+
+    bool found = false;
+
+    BOOST_AUTO(enc, get_active_encounter(ctx));
+    BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
+    {
+        BOOST_AUTO(
+            participant_player
+          , get<active_encounter::player>(&entry.participant_));
+
+        // If this entry is not a character, then move to the next entry.
+        if (!participant_player)
+        {
+            continue;
+        }
+
+        BOOST_AUTO(
+            participant_character
+          , participant_player->character_.lock());
+
+        // If this entry is the same as the character, then it has already 
+        // been added, so we can skip to the next player.
+        if (participant_character == ch)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    // Only add characters that are not already in the encounter.
+    if (!found)
+    {
+        active_encounter::player ply;
+        ply.character_ = ch;
+        ply.name_ = ctx->get_moniker(ch);
+
+        enc->add_participant(ply);
+    }
+}
+
 PARADICE_COMMAND_IMPL(gm_encounter_add_player)
 {
     BOOST_AUTO(arg0, tokenise(arguments));
     string argument = arg0.first;
-}
-
-PARADICE_COMMAND_IMPL(gm_encounter_add_players)
-{
-    BOOST_AUTO(enc, get_active_encounter(ctx));
 
     BOOST_FOREACH(shared_ptr<client> cli, ctx->get_clients())
     {
         BOOST_AUTO(ch, cli->get_character());
 
-        // Don't add the GM.
-        if (ch->get_gm_level() != 0)
+        if (ch->get_name() == argument)
         {
-            continue;
+            add_encounter_player(ch, ctx);
+            break;
         }
+    }
 
-        bool found = false;
+    ctx->update_active_encounter();
+}
 
-        BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
-        {
-            BOOST_AUTO(
-                participant_player
-              , get<active_encounter::player>(&entry.participant_));
-
-            // If this entry is not a character, then move to the next entry.
-            if (!participant_player)
-            {
-                continue;
-            }
-
-            BOOST_AUTO(
-                participant_character
-              , participant_player->character_.lock());
-
-            // If this entry is the same as the character, then it has already 
-            // been added, so we can skip to the next player.
-            if (participant_character == ch)
-            {
-                found = true;
-                break;
-            }
-        }
-
-        // Only add characters that are not already in the encounter.
-        if (!found)
-        {
-            active_encounter::player ply;
-            ply.character_ = ch;
-            ply.name_ = ctx->get_moniker(ch);
-
-            enc->add_participant(ply);
-        }
+PARADICE_COMMAND_IMPL(gm_encounter_add_players)
+{
+    BOOST_FOREACH(shared_ptr<client> cli, ctx->get_clients())
+    {
+        add_encounter_player(cli->get_character(), ctx);
     }
 
     ctx->update_active_encounter();
@@ -159,6 +176,14 @@ PARADICE_COMMAND_IMPL(gm_encounter_add)
 
 }
 
+PARADICE_COMMAND_IMPL(gm_encounter_remove)
+{
+    send_to_player(
+        ctx
+      , "Not implemented"
+      , player);
+}
+
 PARADICE_COMMAND_IMPL(gm_encounter)
 {
     BOOST_AUTO(arg0, tokenise(arguments));
@@ -174,6 +199,8 @@ PARADICE_COMMAND_IMPL(gm_encounter)
     DISPATCH_GM_ENCOUNTER_COMMAND(show);
     DISPATCH_GM_ENCOUNTER_COMMAND(hide);
     DISPATCH_GM_ENCOUNTER_COMMAND(add);
+    DISPATCH_GM_ENCOUNTER_COMMAND(remove);
+
 #undef DISPATCH_GM_ENCOUNTER_COMMAND
 
     send_to_player(

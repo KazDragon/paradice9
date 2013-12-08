@@ -100,18 +100,22 @@ PARADICE_COMMAND_IMPL(gm_encounter_add_players)
         BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
         {
             BOOST_AUTO(
-                participant
-              , get< shared_ptr<character> >(&entry.participant_));
+                participant_player
+              , get<active_encounter::player>(&entry.participant_));
 
             // If this entry is not a character, then move to the next entry.
-            if (!participant)
+            if (!participant_player)
             {
                 continue;
             }
 
+            BOOST_AUTO(
+                participant_character
+              , participant_player->character_.lock());
+
             // If this entry is the same as the character, then it has already 
             // been added, so we can skip to the next player.
-            if (*participant == ch)
+            if (participant_character == ch)
             {
                 found = true;
                 break;

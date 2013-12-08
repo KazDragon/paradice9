@@ -32,6 +32,7 @@
 #include <paradice/beast.hpp>
 #include <paradice/character.hpp>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -52,17 +53,25 @@ struct active_encounter_view::impl
 
     shared_ptr<munin::list>      participant_list_;
 
-    struct active_encounter_entry_visitor 
-        : static_visitor< vector<element_type> >
+    struct active_encounter_entry_visitor : static_visitor<string>
     {
-        vector<element_type> operator()(active_encounter::player ply)
+        string operator()(active_encounter::player ply)
         {
-            return string_to_elements(ply.name_);
+            shared_ptr<character> ch = ply.character_.lock();
+
+            if (ch)
+            {
+                return ch->get_name();
+            }
+            else
+            {
+                return ply.name_;
+            }
         }
 
-        vector<element_type> operator()(shared_ptr<beast> beast)
+        string operator()(shared_ptr<beast> beast)
         {
-            return vector<element_type>();
+            return beast->get_name();
         }
     };
     
@@ -81,8 +90,12 @@ struct active_encounter_view::impl
 
         BOOST_FOREACH(active_encounter::entry const &entry, encounter_->entries_)
         {
-            list_data.push_back(
-                apply_visitor(entry_visitor, entry.participant_));
+            string name = apply_visitor(entry_visitor, entry.participant_);
+            name = str(format("(%d) %s")
+                % entry.id_
+                % name);
+
+            list_data.push_back(string_to_elements(name));
         }
 
         participant_list_->set_items(list_data);

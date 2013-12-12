@@ -29,6 +29,9 @@
 #include "paradice/context.hpp"
 #include "hugin/user_interface.hpp"
 #include "odin/tokenise.hpp"
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -124,6 +127,24 @@ static void add_encounter_player(
     }
 }
 
+static void remove_encounter_participant(
+    u32 id
+  , shared_ptr<context> ctx)
+{
+    namespace bll = boost::lambda;
+
+    BOOST_AUTO(enc, get_active_encounter(ctx));
+
+    enc->entries_.erase(
+        remove_if(
+            enc->entries_.begin()
+          , enc->entries_.end()
+          , bll::bind(&active_encounter::entry::id_, bll::_1) == id)
+      , enc->entries_.end());
+
+    ctx->update_active_encounter();
+}
+
 PARADICE_COMMAND_IMPL(gm_encounter_add_player)
 {
     BOOST_AUTO(arg0, tokenise(arguments));
@@ -178,9 +199,20 @@ PARADICE_COMMAND_IMPL(gm_encounter_add)
 
 PARADICE_COMMAND_IMPL(gm_encounter_remove)
 {
+    BOOST_AUTO(arg0, tokenise(arguments));
+    string argument = arg0.first;
+
+    BOOST_AUTO(id, lexical_cast<u32>(argument));
+
+    if (id != 0)
+    {
+        remove_encounter_participant(id, ctx);
+        return;
+    }
+
     send_to_player(
         ctx
-      , "Not implemented"
+      , "USAGE: gm encounter remove <id>"
       , player);
 }
 
@@ -232,7 +264,11 @@ PARADICE_COMMAND_IMPL(gm)
 
     send_to_player(
         ctx
-      , "<TODO: usage statement>\n"
+      , "USAGE:   gm <command> [<arguments>...]\n"
+        "EXAMPLE: gm tools\n"
+        "EXAMPLE: gm encounter add player <player>\n"
+        "EXAMPLE: gm encounter add players\n"
+        "EXAMPLE: gm encounter remove <id>\n"
       , player);
 }
 

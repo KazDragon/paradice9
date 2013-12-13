@@ -41,62 +41,18 @@
 
 namespace odin { namespace telnet { namespace detail {
     
-template <class Iterator>
-class generator_grammar;
-    
-class generator
-{
-public :
-    typedef odin::u8 output_element_type;
-    typedef std::vector<output_element_type> result_type;
-
-    typedef boost::variant<
-        odin::telnet::command
-      , odin::telnet::negotiation_type
-      , odin::telnet::subnegotiation_type
-      , std::string
-    > input_element_type;
-    
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    template <typename ForwardInputIterator>
-    result_type operator()(
-        ForwardInputIterator &start
-      , ForwardInputIterator  end) const
-    {
-        // For the user's sake, make sure that the iterators iterate over
-        // the variants.  Otherwise, this will go into the Spirit Karma
-        // structure and spew error messages all over the place.
-        BOOST_MPL_ASSERT((
-            boost::is_same<
-                typename std::iterator_traits<ForwardInputIterator>::value_type
-              , input_element_type
-            >
-        ));
-        
-        result_type result;
-        
-        BOOST_AUTO(output_iterator, std::back_inserter(result));
-        
-        static generator_grammar<BOOST_TYPEOF(output_iterator)> g;
-        
-        while (
-            start != end
-         && boost::spirit::karma::generate(output_iterator, g, *start++))
-        {
-            // Do nothing
-        }
-
-        return result;
-    }
-};
+typedef boost::variant<
+    odin::telnet::command
+  , odin::telnet::negotiation_type
+  , odin::telnet::subnegotiation_type
+  , std::string
+> input_element_type;
 
 template <class OutputIterator>
 class generator_grammar
   : public boost::spirit::karma::grammar<
         OutputIterator
-      , generator::input_element_type()
+      , input_element_type()
     >
 {
 public :
@@ -139,9 +95,48 @@ private :
     boost::spirit::karma::rule<OutputIterator, char()> telnet_byte_;
     boost::spirit::karma::rule<OutputIterator, std::string()> telnet_bytes_;
     
-    boost::spirit::karma::rule<
-        OutputIterator
-      , odin::telnet::detail::generator::input_element_type()> telnet_element_;
+    boost::spirit::karma::rule<OutputIterator, input_element_type()> telnet_element_;
+};
+
+class generator
+{
+public :
+    typedef odin::u8 output_element_type;
+    typedef std::vector<output_element_type> result_type;
+
+    // ======================================================================
+    // OPERATOR()
+    // ======================================================================
+    template <typename ForwardInputIterator>
+    result_type operator()(
+        ForwardInputIterator &start
+      , ForwardInputIterator  end) const
+    {
+        // For the user's sake, make sure that the iterators iterate over
+        // the variants.  Otherwise, this will go into the Spirit Karma
+        // structure and spew error messages all over the place.
+        BOOST_MPL_ASSERT((
+            boost::is_same<
+                typename std::iterator_traits<ForwardInputIterator>::value_type
+              , input_element_type
+            >
+        ));
+        
+        result_type result;
+        
+        BOOST_AUTO(output_iterator, std::back_inserter(result));
+        
+        static generator_grammar<BOOST_TYPEOF(output_iterator)> g;
+        
+        while (
+            start != end
+         && boost::spirit::karma::generate(output_iterator, g, *start++))
+        {
+            // Do nothing
+        }
+
+        return result;
+    }
 };
 
 }}}

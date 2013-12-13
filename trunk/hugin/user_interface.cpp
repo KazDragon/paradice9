@@ -353,6 +353,24 @@ void user_interface::on_gm_tools_back(function<void ()> callback)
 }
 
 // ==========================================================================
+// ON_GM_FIGHT_BEAST
+// ==========================================================================
+void user_interface::on_gm_fight_beast(
+    function<void (shared_ptr<paradice::beast>)> callback)
+{
+    pimpl_->gm_tools_screen_->on_fight_beast.connect(callback);
+}
+
+// ==========================================================================
+// ON_GM_FIGHT_ENCOUNTER
+// ==========================================================================
+void user_interface::on_gm_fight_encounter(
+    function<void (shared_ptr<paradice::encounter>)> callback)
+{
+    pimpl_->gm_tools_screen_->on_fight_encounter.connect(callback);
+}
+
+// ==========================================================================
 // SHOW_ACTIVE_ENCOUNTER_WINDOW
 // ==========================================================================
 void user_interface::show_active_encounter_window()

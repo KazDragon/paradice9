@@ -179,6 +179,24 @@ public :
     void on_gm_tools_back(boost::function<void ()> callback);
 
     //* =====================================================================
+    /// \brief Provide a function to be called if the user inserts a
+    /// beast into the current encounter.
+    //* =====================================================================
+    void on_gm_fight_beast(
+        boost::function<
+            void (boost::shared_ptr<paradice::beast>)
+        > callback);
+
+    //* =====================================================================
+    /// \brief Provide a function to be called if the user inserts an
+    /// encounter into the current encounter.
+    //* =====================================================================
+    void on_gm_fight_encounter(
+        boost::function<
+            void (boost::shared_ptr<paradice::encounter>)
+        > callback);
+
+    //* =====================================================================
     /// \brief Shows the active encounter window.
     //* =====================================================================
     void show_active_encounter_window();

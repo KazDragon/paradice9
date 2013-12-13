@@ -370,6 +370,8 @@ gm_tools_screen::gm_tools_screen()
         &impl::on_clone_beast
       , pimpl_.get()));
 
+    pimpl_->bestiary_page_->on_fight.connect(on_fight_beast);
+
     pimpl_->bestiary_page_->on_delete.connect(bind(
         &impl::on_delete_beast
       , pimpl_.get()));
@@ -393,6 +395,8 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->encounters_page_->on_clone.connect(bind(
         &impl::on_clone_encounter
       , pimpl_.get()));
+
+    pimpl_->encounters_page_->on_fight.connect(on_fight_encounter);
 
     pimpl_->encounters_page_->on_delete.connect(bind(
         &impl::on_delete_encounter

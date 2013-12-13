@@ -89,6 +89,12 @@ public :
     boost::signal<void (boost::shared_ptr<paradice::encounter>)> on_edit;
 
     //* =====================================================================
+    /// \fn on_fight
+    /// \brief Called when the 'fight!' button is pressed.
+    //* =====================================================================
+    boost::signal<void (boost::shared_ptr<paradice::encounter>)> on_fight;
+
+    //* =====================================================================
     /// \fn on_delete
     /// \brief Called when the 'delete' button is pressed.
     //* =====================================================================

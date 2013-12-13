@@ -60,6 +60,7 @@ struct encounters_page::impl
     shared_ptr<button>                  new_button_;
     shared_ptr<button>                  edit_button_;
     shared_ptr<button>                  clone_button_;
+    shared_ptr<button>                  fight_button_;
     shared_ptr<button>                  delete_button_;
 
     shared_ptr<container>               split_container_;
@@ -126,6 +127,19 @@ struct encounters_page::impl
     }
 
     // ======================================================================
+    // ON_FIGHT
+    // ======================================================================
+    void on_fight()
+    {
+        BOOST_AUTO(index, encounters_list_->get_item_index());
+
+        if (index != -1)
+        {
+            self_.on_fight(encounters_[index]);
+        }
+    }
+
+    // ======================================================================
     // ON_EDIT
     // ======================================================================
     void on_edit()
@@ -167,6 +181,8 @@ encounters_page::encounters_page()
         string_to_elements("Clone"));
     pimpl_->edit_button_      = make_shared<button>(
         string_to_elements("Edit"));
+    pimpl_->fight_button_     = make_shared<button>(
+        string_to_elements("Fight!"));
     pimpl_->delete_button_    = make_shared<button>(
         string_to_elements("Delete"));
 
@@ -184,6 +200,11 @@ encounters_page::encounters_page()
     pimpl_->connections_.push_back(
         pimpl_->clone_button_->on_click.connect(bind(
             &impl::on_clone
+          , pimpl_)));
+
+    pimpl_->connections_.push_back(
+        pimpl_->fight_button_->on_click.connect(bind(
+            &impl::on_fight
           , pimpl_)));
 
     pimpl_->connections_.push_back(
@@ -219,6 +240,7 @@ encounters_page::encounters_page()
     safe_buttons_container->add_component(pimpl_->edit_button_);
     safe_buttons_container->add_component(pimpl_->new_button_);
     safe_buttons_container->add_component(pimpl_->clone_button_);
+    safe_buttons_container->add_component(pimpl_->fight_button_);
 
     BOOST_AUTO(dangerous_buttons_container, make_shared<basic_container>());
     dangerous_buttons_container->set_layout(make_shared<vertical_strip_layout>());

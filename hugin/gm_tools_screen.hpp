@@ -74,6 +74,20 @@ public :
         get_encounters() const;
 
     //* =====================================================================
+    /// \fn on_fight_beast
+    /// \brief Called when a beast is selected to enter the active encounter.
+    //* =====================================================================
+    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_fight_beast;
+
+    //* =====================================================================
+    /// \fn on_fight_encounter
+    /// \brief Called when an encounter is selected to enter the active 
+    /// encounter.
+    //* =====================================================================
+    boost::signal<void (boost::shared_ptr<paradice::encounter>)> 
+        on_fight_encounter;
+
+    //* =====================================================================
     /// \fn on_back
     /// \brief Called when the 'back' button is pressed on the GM Tools
     /// screen.

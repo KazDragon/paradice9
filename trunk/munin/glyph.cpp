@@ -367,6 +367,10 @@ bool is_printable(glyph const &gly)
         case odin::ansi::character_set::LOCALE_US_ASCII:
             lookup = is_printable_g0_us_ascii;
             break;
+
+        case odin::ansi::character_set::LOCALE_SCO:
+            lookup = is_printable_g0_sco;
+            break;
         }
         break;
 
@@ -383,6 +387,10 @@ bool is_printable(glyph const &gly)
 
         case odin::ansi::character_set::LOCALE_US_ASCII:
             lookup = is_printable_g1_us_ascii;
+            break;
+
+        case odin::ansi::character_set::LOCALE_SCO:
+            lookup = is_printable_g1_sco;
             break;
         }
         break;

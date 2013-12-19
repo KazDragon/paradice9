@@ -44,23 +44,6 @@ namespace paradice {
 
 namespace {
 
-static shared_ptr<active_encounter> 
-    get_active_encounter(shared_ptr<context> ctx)
-{
-    // Retrieve the active encounter from the context.
-    BOOST_AUTO(enc, ctx->get_active_encounter());
-
-    // If it doesn't yet exist, then create a new one and ensure the context
-    // knows about it.
-    if (!enc)
-    {
-        enc = make_shared<active_encounter>();
-        ctx->set_active_encounter(enc);
-    }
-
-    return enc;
-}
-
 PARADICE_COMMAND_IMPL(gm_tools)
 {
     BOOST_AUTO(user_interface, player->get_user_interface());
@@ -90,7 +73,7 @@ static void add_encounter_player(
 
     bool found = false;
 
-    BOOST_AUTO(enc, get_active_encounter(ctx));
+    BOOST_AUTO(enc, ctx->get_active_encounter());
     BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
     {
         BOOST_AUTO(
@@ -119,11 +102,7 @@ static void add_encounter_player(
     // Only add characters that are not already in the encounter.
     if (!found)
     {
-        active_encounter::player ply;
-        ply.character_ = ch;
-        ply.name_ = ctx->get_moniker(ch);
-
-        enc->add_participant(ply);
+        add_character(enc, ch);
     }
 }
 
@@ -133,7 +112,7 @@ static void remove_encounter_participant(
 {
     namespace bll = boost::lambda;
 
-    BOOST_AUTO(enc, get_active_encounter(ctx));
+    BOOST_AUTO(enc, ctx->get_active_encounter());
 
     enc->entries_.erase(
         remove_if(

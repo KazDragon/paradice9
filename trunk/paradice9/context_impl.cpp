@@ -382,6 +382,10 @@ void context_impl::shutdown()
 // ==========================================================================
 shared_ptr<active_encounter> context_impl::get_active_encounter()
 {
+    if (!gm_encounter) {
+        gm_encounter = make_shared<active_encounter>();
+    }
+
     return gm_encounter;
 }
 

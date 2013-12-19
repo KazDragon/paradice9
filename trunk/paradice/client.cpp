@@ -46,6 +46,7 @@
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -251,6 +252,16 @@ public :
         user_interface_->on_gm_tools_back(bind(
             &impl::on_gm_tools_back
           , this));
+
+        user_interface_->on_gm_fight_beast(bind(
+            &impl::on_gm_fight_beast
+          , this
+          , _1));
+
+        user_interface_->on_gm_fight_encounter(bind(
+            &impl::on_gm_fight_encounter
+          , this
+          , _1));
 
         user_interface_->on_help_closed(bind(
             &impl::on_help_closed
@@ -824,6 +835,40 @@ private :
 
         user_interface_->select_face(hugin::FACE_MAIN);
         user_interface_->set_focus();
+    }
+
+    // ======================================================================
+    // ON_GM_FIGHT_BEAST
+    // ======================================================================
+    void on_gm_fight_beast(shared_ptr<paradice::beast> beast)
+    {
+        add_beast(context_->get_active_encounter(), beast);
+        context_->update_active_encounter();
+        
+        user_interface_->set_statusbar_text(string_to_elements(
+            str(format("\\[3Added \\x%s\\x\\[3 to active encounter")
+                % beast->get_name())));
+    }
+
+    // ======================================================================
+    // ON_GM_FIGHT_ENCOUNTER
+    // ======================================================================
+    void on_gm_fight_encounter(shared_ptr<paradice::encounter> encounter)
+    {
+        BOOST_AUTO(enc, context_->get_active_encounter());
+
+        BOOST_FOREACH(
+            shared_ptr<paradice::beast> beast
+          , encounter->get_beasts())
+        {
+            add_beast(enc, beast);
+        }
+
+        context_->update_active_encounter();
+
+        user_interface_->set_statusbar_text(string_to_elements(
+            str(format("\\[3Added \\x%s\\x\\[3 to active encounter!")
+                % encounter->get_name())));
     }
 
     // ======================================================================

@@ -25,32 +25,67 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/active_encounter.hpp"
+#include "paradice/beast.hpp"
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <algorithm>
 
 using namespace odin;
+using namespace boost;
 
 namespace paradice {
 
 // ==========================================================================
 // ADD_PARTICIPANT
 // ==========================================================================
-void active_encounter::add_participant(active_encounter::participant part)
+void add_participant(
+    shared_ptr<active_encounter> enc
+  , active_encounter::participant part)
 {
     // First, find the maximum ID currently used in the encounter.
     u32 max_id = 0;
 
-    BOOST_FOREACH(entry const &ent, entries_)
+    BOOST_FOREACH(active_encounter::entry const &ent, enc->entries_)
     {
         max_id = (std::max)(ent.id_, max_id);
     }
 
     // The next ID should be one higher than the maximum ID.
-    entry new_entry;
+    active_encounter::entry new_entry;
     new_entry.id_ = max_id + 1;
     new_entry.participant_ = part;
 
-    entries_.push_back(new_entry);
+    enc->entries_.push_back(new_entry);
+}
+
+// ==========================================================================
+// ADD_CHARACTER
+// ==========================================================================
+void add_character(
+    shared_ptr<active_encounter> enc
+  , shared_ptr<character> ch)
+{
+    // Create a player from the character.
+    active_encounter::player ply;
+    ply.character_ = ch;
+    ply.name_ = ch->get_name();
+
+    // Add the player as a participant.
+    add_participant(enc, ply);
+}
+
+// ==========================================================================
+// ADD_BEAST
+// ==========================================================================
+void add_beast(
+    shared_ptr<active_encounter> enc
+  , shared_ptr<paradice::beast> beast)
+{
+    shared_ptr<paradice::beast> cloned_beast(make_shared<paradice::beast>());
+    cloned_beast->set_name(beast->get_name());
+    cloned_beast->set_description(beast->get_description());
+   
+    add_participant(enc, cloned_beast);
 }
 
 }

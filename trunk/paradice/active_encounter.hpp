@@ -59,9 +59,28 @@ struct active_encounter
     };
 
     std::vector<entry> entries_;
-
-    void add_participant(participant part);
 };
+
+//* =========================================================================
+/// \brief Add a new participant to the encounter.
+//* =========================================================================
+void add_participant(
+    boost::shared_ptr<active_encounter> enc
+  , active_encounter::participant part);
+
+//* =========================================================================
+/// \brief Adds a character to the encounter.
+//* =========================================================================
+void add_character(
+    boost::shared_ptr<active_encounter> enc
+  , boost::shared_ptr<character> ch);
+
+//* =========================================================================
+/// \brief Adds a beast (clones it first) to the encounter.
+//* =========================================================================
+void add_beast(
+    boost::shared_ptr<active_encounter> enc
+  , boost::shared_ptr<paradice::beast> beast);
 
 }
 

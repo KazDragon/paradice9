@@ -116,6 +116,7 @@ GUIBUILDER_LIBS   = -lmunin -lodin -lboost_program_options -lboost_system \
 G_NAME            = guibuilder.exe
 
 PARADICE_NAMES    = account \
+                    active_encounter \
                     admin \
                     beast \
                     character \

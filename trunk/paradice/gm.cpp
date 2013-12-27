@@ -33,6 +33,7 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/typeof/typeof.hpp>
 
@@ -181,18 +182,122 @@ PARADICE_COMMAND_IMPL(gm_encounter_remove)
     BOOST_AUTO(arg0, tokenise(arguments));
     string argument = arg0.first;
 
-    BOOST_AUTO(id, lexical_cast<u32>(argument));
-
-    if (id != 0)
+    if (argument == "all")
     {
+        BOOST_AUTO(enc, ctx->get_active_encounter());
+        enc->entries_.clear();
+        ctx->update_active_encounter();
+    }
+    else
+    {
+        u32 id = 0;
+ 
+        try
+        {
+            id = lexical_cast<u32>(argument);
+        }
+        catch(bad_lexical_cast const &)
+        {
+            send_to_player(
+                ctx
+              , "USAGE: gm encounter remove (all|<id>)\n"
+              , player);
+            return;
+        }
+
         remove_encounter_participant(id, ctx);
+        ctx->update_active_encounter();
         return;
     }
 
     send_to_player(
         ctx
-      , "USAGE: gm encounter remove <id>"
+      , "USAGE: gm encounter remove (all|<id>)\n"
       , player);
+}
+
+PARADICE_COMMAND_IMPL(gm_encounter_move)
+{
+    BOOST_AUTO(arg0, tokenise(arguments));
+    string id_arg = arg0.first;
+
+    u32 id = 0;
+
+    try
+    {
+        id = lexical_cast<u32>(id_arg);
+    }
+    catch(bad_lexical_cast const &)
+    {
+        send_to_player(
+            ctx
+          , "USAGE: gm encounter move <id> (up|down|top|bottom)\n"
+          , player);
+        return;
+    }
+
+    BOOST_AUTO(enc, ctx->get_active_encounter());
+    BOOST_AUTO(entry_it, enc->entries_.begin());
+
+    for (; entry_it != enc->entries_.end(); ++entry_it)
+    {
+        if (entry_it->id_ == id)
+        {
+            break;
+        }
+    }
+
+    if (entry_it == enc->entries_.end())
+    {
+        send_to_player(
+            ctx
+          , str(format(
+                "Error: No entry in the active encounter with id %d\n")
+                % id)
+          , player);
+        return;
+    }
+
+    BOOST_AUTO(arg1, tokenise(arg0.second));
+    string dir_arg = arg1.first;
+
+    if (dir_arg == "up")
+    {
+        if (entry_it != enc->entries_.begin())
+        {
+            iter_swap(entry_it, entry_it - 1);
+            ctx->update_active_encounter();
+        }
+    }
+    else if (dir_arg == "down")
+    {
+        if (entry_it + 1 != enc->entries_.end())
+        {
+            iter_swap(entry_it, entry_it + 1);
+            ctx->update_active_encounter();
+        }
+    }
+    else if (dir_arg == "top")
+    {
+        active_encounter::entry cloned_entry = *entry_it;
+        enc->entries_.erase(entry_it);
+        enc->entries_.insert(enc->entries_.begin(), cloned_entry);
+        ctx->update_active_encounter();
+    }
+    else if (dir_arg == "bottom")
+    {
+        active_encounter::entry cloned_entry = *entry_it;
+        enc->entries_.erase(entry_it);
+        enc->entries_.insert(enc->entries_.end(), cloned_entry);
+        ctx->update_active_encounter();
+    }
+    else
+    {
+        send_to_player(
+            ctx
+          , "USAGE: gm encounter move <id> (up|down|top|bottom)\n"
+          , player);
+    }
 }
 
 PARADICE_COMMAND_IMPL(gm_encounter)
@@ -207,10 +312,11 @@ PARADICE_COMMAND_IMPL(gm_encounter)
         return; \
     }
 
-    DISPATCH_GM_ENCOUNTER_COMMAND(show);
-    DISPATCH_GM_ENCOUNTER_COMMAND(hide);
     DISPATCH_GM_ENCOUNTER_COMMAND(add);
+    DISPATCH_GM_ENCOUNTER_COMMAND(hide);
+    DISPATCH_GM_ENCOUNTER_COMMAND(move);
     DISPATCH_GM_ENCOUNTER_COMMAND(remove);
+    DISPATCH_GM_ENCOUNTER_COMMAND(show);
 
 #undef DISPATCH_GM_ENCOUNTER_COMMAND
 
@@ -245,9 +351,13 @@ PARADICE_COMMAND_IMPL(gm)
         ctx
       , "USAGE:   gm <command> [<arguments>...]\n"
         "EXAMPLE: gm tools\n"
+        "EXAMPLE: gm encounter show\n"
+        "EXAMPLE: gm encounter hide\n"
         "EXAMPLE: gm encounter add player <player>\n"
         "EXAMPLE: gm encounter add players\n"
-        "EXAMPLE: gm encounter remove <id>\n"
+        "EXAMPLE: gm encounter remove (all|<id>)\n"
+        "EXAMPLE: gm encounter move <id> (up|down|top|bottom)\n"
+        "\n"
       , player);
 }
 

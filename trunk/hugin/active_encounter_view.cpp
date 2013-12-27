@@ -91,9 +91,11 @@ struct active_encounter_view::impl
         BOOST_FOREACH(active_encounter::entry const &entry, encounter_->entries_)
         {
             string name = apply_visitor(entry_visitor, entry.participant_);
-            name = str(format("(%d) %s")
+            name = str(format("(%d) %s %s %s")
                 % entry.id_
-                % name);
+                % name
+                % (entry.last_roll_.empty() ? "" : "|")
+                % entry.last_roll_);
 
             list_data.push_back(string_to_elements(name));
         }

@@ -58,6 +58,10 @@ struct list::impl
     // ======================================================================
     void do_character_event(char ch)
     {
+        if (ch == '\b' || ch == odin::ascii::DEL)
+        {
+            self_.set_item_index(-1);
+        }
     }
     
     // ======================================================================
@@ -155,7 +159,14 @@ struct list::impl
             
             if (u32(item_selected) <= items_.size())
             {
-                self_.set_item_index(item_selected);
+                if (self_.get_item_index() == item_selected)
+                {
+                    self_.set_item_index(-1);
+                }
+                else
+                {
+                    self_.set_item_index(item_selected);
+                }
             }
             
             self_.set_focus();

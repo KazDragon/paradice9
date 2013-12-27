@@ -28,10 +28,13 @@
 #include "communication.hpp"
 #include "connection.hpp"
 #include "dice_roll_parser.hpp"
+#include "paradice/active_encounter.hpp"
+#include "paradice/context.hpp"
 #include "paradice/random.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
+#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -344,6 +347,36 @@ PARADICE_COMMAND_IMPL(roll)
       , total_pen);
     concat_text(room_output, "\n", normal_pen);
     
+    BOOST_AUTO(enc, ctx->get_active_encounter());
+    BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
+    {
+        BOOST_AUTO(ply, get<active_encounter::player>(&entry.participant_));
+ 
+        if (ply != NULL)
+        {
+            BOOST_AUTO(ch, ply->character_.lock());
+
+            if (ch != NULL)
+            {
+                if (ch->get_name() == player->get_character()->get_name())
+                {
+                    if (dice_roll.repetitions_ == 1)
+                    {
+                        entry.last_roll_ = 
+                            str(format("%dd%d%s%d -> %d")
+                                % dice_roll.amount_
+                                % dice_roll.sides_
+                                % (dice_roll.bonus_ >= 0 ? "+" : "-")
+                                % dice_roll.bonus_
+                                % total_score);
+                    }
+
+                    ctx->update_active_encounter();
+                }
+            }
+        }
+    }
+
     send_to_room(ctx, room_output, player);
 }
 

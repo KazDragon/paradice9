@@ -55,7 +55,8 @@ struct active_encounter
     struct entry
     {
         participant participant_;
-        odin::u32 id_;
+        std::string last_roll_;
+        odin::u32   id_;
     };
 
     std::vector<entry> entries_;

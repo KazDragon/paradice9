@@ -29,8 +29,10 @@
 
 #include "paradice/beast.hpp"
 #include "paradice/character.hpp"
+#include "paradice/dice_roll_parser.hpp"
 #include <boost/variant.hpp>
 #include <boost/weak_ptr.hpp>
+#include <deque>
 #include <string>
 #include <vector>
 
@@ -54,9 +56,10 @@ struct active_encounter
 
     struct entry
     {
-        participant participant_;
-        std::string last_roll_;
-        odin::u32   id_;
+        participant             participant_;
+        std::string             annotation_;
+        std::deque<dice_result> roll_data_;
+        odin::u32               id_;
     };
 
     std::vector<entry> entries_;

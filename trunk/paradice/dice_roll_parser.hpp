@@ -25,20 +25,12 @@
 #ifndef PARADICE_DICE_ROLL_PARSER_HPP_
 #define PARADICE_DICE_ROLL_PARSER_HPP_
 
-#include "odin/types.hpp"
+#include "paradice/dice.hpp"
 #include <boost/optional.hpp>
 #include <string>
 
 namespace paradice {
     
-struct dice_roll
-{
-    odin::u32 repetitions_;
-    odin::u32 amount_;
-    odin::u32 sides_;
-    odin::s32 bonus_;
-};
-
 //* =========================================================================
 /// \brief Parses a string (bounded by the two iterators) into a dice_roll.
 /// After the parse, begin is left where the parsing stopped.

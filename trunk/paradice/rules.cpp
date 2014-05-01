@@ -38,8 +38,8 @@
 #include <boost/format.hpp>
 #include <boost/thread.hpp>
 #include <boost/typeof/typeof.hpp>
-#include <boost/weak_ptr.hpp>
 #include <map>
+#include <numeric>
 #include <vector>
 
 using namespace munin::ansi;
@@ -51,15 +51,7 @@ using namespace std;
 namespace paradice {
 
 namespace {
-    struct roll_data
-    {
-        weak_ptr<client> roller;
-        string           name;
-        string           roll_text;
-        s32              raw_score;
-        s32              score;
-        bool             max_roll;
-    };
+    BOOST_STATIC_CONSTANT(u32, max_encounter_rolls = 10);
     
     static map<
         string            // category.
@@ -80,6 +72,10 @@ namespace {
     {
         return lhs.score > rhs.score;
     }
+
+    static string const DEFAULT_ATTRIBUTE   = "\\x";      // Default
+    static string const MAXIMUM_HIT         = "\\i>\\[2!\\x"; // Bold, Green "!"
+    static string const TOTAL_ATTRIBUTE     = "\\i>";     // Bold
 }
 
 // ==========================================================================
@@ -101,6 +97,59 @@ void concat_text(
   , attribute const      &attr = attribute())
 {
     concat_text(dest, elements_from_string(source, attr));
+}
+
+// ==========================================================================
+// DESCRIBE_DICE
+// ==========================================================================
+string describe_dice(dice_roll const &roll)
+{
+    string description;
+
+    if (roll.repetitions_ != 1)
+    {
+        description += str(format("%d*") % roll.repetitions_);
+    }
+
+    description += str(format("%dd%d") 
+        % roll.amount_
+        % roll.sides_);
+
+    if (roll.bonus_ > 0)
+    {
+        description += "+";
+    }
+
+    if (roll.bonus_ != 0)
+    {
+        description += str(format("%d") % roll.bonus_);
+    }
+
+    return description;
+}
+
+// ==========================================================================
+// THROW_DICE
+// ==========================================================================
+static dice_result throw_dice(roller const &rlr, dice_roll const &roll)
+{
+    dice_result result;
+    result.roller_ = rlr;
+    result.roll_ = roll;
+
+    for (u32 repetition = 0; repetition < roll.repetitions_; ++repetition)
+    {
+        vector<s32> raw_dice;
+
+        for (u32 die = 0; die < roll.amount_; ++die)
+        {
+            raw_dice.push_back(random_number(1, roll.sides_));
+        }
+
+        result.results_.push_back(raw_dice);
+    }
+
+    return result;
 }
 
 // ==========================================================================
@@ -129,10 +178,10 @@ PARADICE_COMMAND_IMPL(roll)
     // Store a category if the user entered one.
     string category = tokenise(string(begin, end)).first;
 
-    BOOST_AUTO(dice_roll, rolls.get());
+    BOOST_AUTO(roll, rolls.get());
 
-    if (dice_roll.repetitions_ == 0
-     || dice_roll.amount_      == 0)
+    if (roll.repetitions_ == 0
+     || roll.amount_      == 0)
     {
         send_to_player(
             ctx
@@ -149,7 +198,7 @@ PARADICE_COMMAND_IMPL(roll)
         return;
     }
 
-    if (dice_roll.sides_ == 0)
+    if (roll.sides_ == 0)
     {
         send_to_player(
             ctx
@@ -168,7 +217,7 @@ PARADICE_COMMAND_IMPL(roll)
         return;
     }
     
-    if (dice_roll.repetitions_ * dice_roll.amount_ > 200)
+    if (roll.repetitions_ * roll.amount_ > 200)
     {
         send_to_player(
             ctx
@@ -178,175 +227,120 @@ PARADICE_COMMAND_IMPL(roll)
         return;
     }
 
-    attribute normal_pen;
-    attribute max_roll_pen;
-    attribute total_pen;
-    
-    max_roll_pen.intensity_         = odin::ansi::graphics::INTENSITY_BOLD;
-    max_roll_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_GREEN;
-    
-    total_pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
-    
-    vector<element_type> total_description;    
-    s32                  total_score = 0;
-    
-    for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
+    dice_result result = throw_dice(player, roll);
+    string dice_description = describe_dice(roll);
+
+    string second_person_lead = 
+        "You roll " 
+      + dice_description
+      + (category.empty() ? "" : ("(category: " + category + ")"))
+      + " and score ";
+
+    string third_person_lead = 
+        player->get_character()->get_name() 
+      + " rolls " 
+      + dice_description 
+      + (category.empty() ? "" : ("(category: " + category + ")"))
+      + " and scores ";
+
+    s32 total_score = 0;
+
+    string dice_text;
+
+    s32 const theoretical_max_roll = 
+        (roll.sides_ * roll.amount_) + roll.bonus_;
+    s32 const theoretical_max_total =
+        theoretical_max_roll * roll.repetitions_;
+
+    for (vector< vector<s32> >::const_iterator repetition = result.results_.begin();
+         repetition != result.results_.end();
+         ++repetition)
     {
-        vector<element_type> roll_description;
-        s32                  total = dice_roll.bonus_;
-
-        for (u32 current_roll = 0; 
-             current_roll < dice_roll.amount_; 
-             ++current_roll)
+        if (repetition != result.results_.begin())
         {
-            s32 score = s32(random_number(1, dice_roll.sides_));
-
-            concat_text(
-                roll_description
-              , current_roll == 0 ? "" : ", "
-              , normal_pen);  
-
-            concat_text(
-                roll_description
-              , str(format("%d") % score)
-              , dice_roll.bonus_ == 0 ? total_pen : normal_pen);
-            
-            total += score;
+            dice_text += ", ";
         }
 
-        bool max_roll = 
-            total == s32(dice_roll.amount_ * dice_roll.sides_)
-                   + dice_roll.bonus_;
-            
-        if (dice_roll.bonus_ == 0 && dice_roll.amount_ == 1)
-        {
-            concat_text(
-                total_description
-              , repetition == 0 ? "" : ", "
-              , normal_pen);
-
-            concat_text(
-                total_description
-              , str(format("%d") % total)
-              , total_pen);
-
-            concat_text(
-                total_description
-              , max_roll ? "!" : ""
-              , max_roll_pen);
-        }
-        else
-        {
-            concat_text(
-                total_description
-              , repetition == 0 ? "" : ", "
-              , normal_pen);
-            
-            concat_text(
-                total_description
-              , str(format("%d") % total)
-              , total_pen);
-            
-            concat_text(
-                total_description
-              , " ["
-              , normal_pen);
-            
-            concat_text(total_description, roll_description);
-            
-            concat_text(
-                total_description
-              , max_roll ? "!" : ""
-              , max_roll_pen);
-            
-            concat_text(
-                total_description
-              , "]"
-              , normal_pen);
-        }
+        s32 const subtotal = std::accumulate(
+            repetition->begin(),
+            repetition->end(), 
+            0);
+        s32 const total = subtotal + roll.bonus_;
 
         total_score += total;
-        
-        // If the player has rolled in a category, add the roll to the list.
-        if (category != "")
+
+        dice_text += TOTAL_ATTRIBUTE;
+        dice_text += str(format("%d") % total);
+        dice_text += DEFAULT_ATTRIBUTE;
+
+        if (total == theoretical_max_roll)
         {
+            dice_text += MAXIMUM_HIT;
+        }
+
+        if (roll.amount_ > 1)
+        {
+            dice_text += " [";
+
+            for (vector<s32>::const_iterator current_roll = repetition->begin();
+                 current_roll != repetition->end();
+                 ++current_roll)
+            {
+                if (current_roll != repetition->begin())
+                {
+                    dice_text += ", ";
+                }
+
+                dice_text += str(format("%d") % *current_roll);
+
+                if (*current_roll == roll.sides_)
+                {
+                    dice_text += MAXIMUM_HIT;
+                }
+            }
+
+            dice_text += "]";
+        }
+
+        if (!category.empty())
+        {
+            dice_roll temp_roll = roll;
+            temp_roll.repetitions_ = 1;
+
             roll_data data;
             data.roller = player;
-            data.name   = player->get_character()->get_name();
-            data.roll_text = str(format("%dd%d%s%d")
-                % dice_roll.amount_
-                % dice_roll.sides_
-                % (dice_roll.bonus_ >= 0 ? "+" : "")
-                % dice_roll.bonus_);
-            data.raw_score = total - dice_roll.bonus_;
-            data.score     = total;
-            data.max_roll  = max_roll;
-            
-            {
-                unique_lock<mutex> lock(roll_category_mutex);
-                roll_category[category].push_back(data);
-            }
+            data.name = player->get_character()->get_name();
+            data.roll_text = describe_dice(temp_roll);
+            data.score = total;
+            data.raw_score = subtotal;
+            data.max_roll = (total == theoretical_max_roll);
+            roll_category[category].push_back(data);
         }
     }
 
-    vector<element_type> player_output;
-    concat_text(
-        player_output
-      , str(format("You roll %dd%d%s%d %s%sand score ")
-            % dice_roll.amount_
-            % dice_roll.sides_
-            % (dice_roll.bonus_ >= 0 ? "+" : "")
-            % dice_roll.bonus_
-            % (category == "" 
-                ? "" 
-                : str(format("(category: %s) ") % category))
-            % (dice_roll.repetitions_ == 1 
-                ? ""
-                : str(format("%d times ") % dice_roll.repetitions_)))
-      , normal_pen);
-    concat_text(player_output, total_description);
-    concat_text(
-        player_output
-      , dice_roll.repetitions_ == 1 ? "" : " for a grand total of "
-      , normal_pen);
-    concat_text(
-        player_output
-      , dice_roll.repetitions_ == 1 ? "" : str(format("%d") % total_score)
-      , total_pen);
-    concat_text(player_output, "\n", normal_pen); 
-    
-    send_to_player(ctx, player_output, player);
+    if (roll.repetitions_ != 1)
+    {
+        dice_text += " for a grand total of ";
+        dice_text += TOTAL_ATTRIBUTE;
+        dice_text += str(format("%d") % total_score);
+        dice_text += DEFAULT_ATTRIBUTE;
 
-    vector<element_type> room_output;
-    concat_text(
-        room_output
-      , player->get_character()->get_name()
-      , normal_pen);
-    concat_text(
-        room_output
-      , str(format(" rolls %dd%d%s%d %s%sand scores ")
-            % dice_roll.amount_
-            % dice_roll.sides_
-            % (dice_roll.bonus_ >= 0 ? "+" : "")
-            % dice_roll.bonus_
-            % (category == "" 
-                ? "" 
-                : str(format("(category: %s) ") % category))
-            % (dice_roll.repetitions_ == 1 
-                ? ""
-                : str(format("%d times ") % dice_roll.repetitions_)))
-      , normal_pen);
-    concat_text(room_output, total_description);
-    concat_text(
-        room_output
-      , dice_roll.repetitions_ == 1 ? "" : " for a grand total of "
-      , normal_pen);
-    concat_text(
-        room_output
-      , dice_roll.repetitions_ == 1 ? "" : str(format("%d") % total_score)
-      , total_pen);
-    concat_text(room_output, "\n", normal_pen);
-    
+        if (total_score == theoretical_max_total)
+        {
+            dice_text += MAXIMUM_HIT;
+        }
+    }
+
+    if (total_score != theoretical_max_total)
+    {
+        dice_text += ".";
+    }
+
+    dice_text += "\n";
+
+    send_to_player(ctx, second_person_lead + dice_text, player);
+    send_to_room(ctx, third_person_lead + dice_text, player);
+
     BOOST_AUTO(enc, ctx->get_active_encounter());
     BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
     {
@@ -360,15 +354,11 @@ PARADICE_COMMAND_IMPL(roll)
             {
                 if (ch->get_name() == player->get_character()->get_name())
                 {
-                    if (dice_roll.repetitions_ == 1)
+                    entry.roll_data_.push_back(result);
+
+                    if (entry.roll_data_.size() > max_encounter_rolls)
                     {
-                        entry.last_roll_ = 
-                            str(format("%dd%d%s%d -> %d")
-                                % dice_roll.amount_
-                                % dice_roll.sides_
-                                % (dice_roll.bonus_ >= 0 ? "+" : "-")
-                                % dice_roll.bonus_
-                                % total_score);
+                        entry.roll_data_.pop_front();
                     }
 
                     ctx->update_active_encounter();
@@ -376,8 +366,6 @@ PARADICE_COMMAND_IMPL(roll)
             }
         }
     }
-
-    send_to_room(ctx, room_output, player);
 }
 
 // ==========================================================================
@@ -598,8 +586,7 @@ PARADICE_COMMAND_IMPL(showrolls)
     }
     
     string output = str(format(
-        "===== Rolls in the %s category ====="
-        "\n")
+        "\n===== Rolls in the %s category =====")
         % category);
     
     for (u32 index = 0; index < rolls.size(); ++index)

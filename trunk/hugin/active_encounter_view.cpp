@@ -35,9 +35,11 @@
 #include <boost/format.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <numeric>
 
 using namespace paradice;
 using namespace munin;
+using namespace odin;
 using namespace boost;
 using namespace std;
 
@@ -91,13 +93,41 @@ struct active_encounter_view::impl
         BOOST_FOREACH(active_encounter::entry const &entry, encounter_->entries_)
         {
             string name = apply_visitor(entry_visitor, entry.participant_);
-            name = str(format("(%d) %s %s %s")
-                % entry.id_
-                % name
-                % (entry.last_roll_.empty() ? "" : "|")
-                % entry.last_roll_);
+            string text = str(format("(%d)") % entry.id_)
+                 + " "
+                 + name;
 
-            list_data.push_back(string_to_elements(name));
+            if (!entry.annotation_.empty())
+            {
+                text += str(format(" [%s]") % entry.annotation_);
+            }
+
+            boost::optional<dice_result> const &last_roll =
+                entry.roll_data_.empty()
+              ? boost::optional<dice_result>()
+              : entry.roll_data_.back();
+
+            if (last_roll)
+            {
+                s32 total_score = 0;
+
+                for (vector< vector<s32> >::const_iterator repetition = last_roll->results_.begin();
+                     repetition != last_roll->results_.end();
+                     ++repetition)
+                {
+                    total_score += std::accumulate(
+                        repetition->begin(),
+                        repetition->end(),
+                        last_roll->roll_.bonus_);
+                }
+
+                text += str(
+                    format(" | %s -> %d")
+                        % describe_dice(last_roll->roll_) 
+                        % total_score);
+            }
+
+            list_data.push_back(string_to_elements(text));
         }
 
         participant_list_->set_items(list_data);

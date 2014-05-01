@@ -277,6 +277,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dice.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dice_roll_parser.hpp"
 				>
 			</File>

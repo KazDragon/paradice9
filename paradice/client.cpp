@@ -694,13 +694,16 @@ private :
         {
             BOOST_FOREACH(shared_ptr<client> cli, context_->get_clients())
             {
-                BOOST_AUTO(other_ch, cli->get_character());
-
-                if (other_ch && other_ch != ch && other_ch->get_gm_level() != 0)
+                if (cli.get() != &self_)
                 {
-                    user_interface_->set_statusbar_text(string_to_elements(
-                        "\\[1There is already a GM character online."));
-                    return;
+                    BOOST_AUTO(other_ch, cli->get_character());
+
+                    if (other_ch && other_ch->get_gm_level() != 0)
+                    {
+                        user_interface_->set_statusbar_text(string_to_elements(
+                            "\\[1There is already a GM character online."));
+                        return;
+                    }
                 }
             }
         }

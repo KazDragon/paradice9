@@ -153,33 +153,15 @@ static dice_result throw_dice(roller const &rlr, dice_roll const &roll)
 }
 
 // ==========================================================================
-// PARADICE COMMAND: ROLL
+// EXECUTE_ROLL
 // ==========================================================================
-PARADICE_COMMAND_IMPL(roll)
+static void execute_roll(
+    boost::shared_ptr<context> &ctx
+  , std::string const          &category
+  , dice_roll const            &roll
+  , boost::shared_ptr<client>  &player
+  , bool                        is_rolling_privately)
 {
-    static string const usage_message =
-        "\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
-        "\n Example: roll 2d6+3-20"
-        "\n Example: roll 20*2d6"
-        "\n Example: roll 1d10+4 initiative"
-        "\n";
-
-    string::const_iterator begin = arguments.begin();
-    string::const_iterator end   = arguments.end();
-    
-    BOOST_AUTO(rolls, parse_dice_roll(begin, end));
-
-    if (!rolls)
-    {
-        send_to_player(ctx, usage_message, player);
-        return;
-    }
-
-    // Store a category if the user entered one.
-    string category = tokenise(string(begin, end)).first;
-
-    BOOST_AUTO(roll, rolls.get());
-
     if (roll.repetitions_ == 0
      || roll.amount_      == 0)
     {
@@ -188,13 +170,16 @@ PARADICE_COMMAND_IMPL(roll)
           , "You roll no dice and score nothing.\n"
           , player);
         
-        send_to_room(
-            ctx
-          , str(format(
-                "%s rolls no dice and scores nothing.\n")
-              % player->get_character()->get_name())
-          , player);
-        
+        if (!is_rolling_privately)
+        {
+            send_to_room(
+                ctx
+              , str(format(
+                    "%s rolls no dice and scores nothing.\n")
+                  % player->get_character()->get_name())
+              , player);
+        }
+
         return;
     }
 
@@ -206,14 +191,17 @@ PARADICE_COMMAND_IMPL(roll)
             "the floor.\n"
           , player);
         
-        send_to_room(
-            ctx
-          , str(format(
-                "%s fumbles their roll and spills a pile of zero-"
-                "sided dice on the floor.\n")
-              % player->get_character()->get_name())
-          , player);
-        
+        if (!is_rolling_privately)
+        {
+            send_to_room(
+                ctx
+              , str(format(
+                    "%s fumbles their roll and spills a pile of zero-"
+                    "sided dice on the floor.\n")
+                  % player->get_character()->get_name())
+              , player);
+        }
+
         return;
     }
     
@@ -229,19 +217,6 @@ PARADICE_COMMAND_IMPL(roll)
 
     dice_result result = throw_dice(player, roll);
     string dice_description = describe_dice(roll);
-
-    string second_person_lead = 
-        "You roll " 
-      + dice_description
-      + (category.empty() ? "" : ("(category: " + category + ")"))
-      + " and score ";
-
-    string third_person_lead = 
-        player->get_character()->get_name() 
-      + " rolls " 
-      + dice_description 
-      + (category.empty() ? "" : ("(category: " + category + ")"))
-      + " and scores ";
 
     s32 total_score = 0;
 
@@ -338,34 +313,79 @@ PARADICE_COMMAND_IMPL(roll)
 
     dice_text += "\n";
 
+    string second_person_lead = 
+        "You roll " 
+      + dice_description
+      + (category.empty() ? "" : ("(category: " + category + ")"))
+      + " and score ";
+
     send_to_player(ctx, second_person_lead + dice_text, player);
-    send_to_room(ctx, third_person_lead + dice_text, player);
 
-    BOOST_AUTO(enc, ctx->get_active_encounter());
-    BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
+    if (!is_rolling_privately)
     {
-        BOOST_AUTO(ply, get<active_encounter::player>(&entry.participant_));
- 
-        if (ply != NULL)
+        string third_person_lead = 
+            player->get_character()->get_name() 
+          + " rolls " 
+          + dice_description 
+          + (category.empty() ? "" : ("(category: " + category + ")"))
+          + " and scores ";
+            send_to_room(ctx, third_person_lead + dice_text, player);
+
+        BOOST_AUTO(enc, ctx->get_active_encounter());
+        BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
         {
-            BOOST_AUTO(ch, ply->character_.lock());
-
-            if (ch != NULL)
+            BOOST_AUTO(ply, get<active_encounter::player>(&entry.participant_));
+     
+            if (ply != NULL)
             {
-                if (ch->get_name() == player->get_character()->get_name())
+                BOOST_AUTO(ch, ply->character_.lock());
+
+                if (ch != NULL)
                 {
-                    entry.roll_data_.push_back(result);
-
-                    if (entry.roll_data_.size() > max_encounter_rolls)
+                    if (ch->get_name() == player->get_character()->get_name())
                     {
-                        entry.roll_data_.pop_front();
-                    }
+                        entry.roll_data_.push_back(result);
 
-                    ctx->update_active_encounter();
+                        if (entry.roll_data_.size() > max_encounter_rolls)
+                        {
+                            entry.roll_data_.pop_front();
+                        }
+
+                        ctx->update_active_encounter();
+                    }
                 }
             }
         }
     }
+}
+
+// ==========================================================================
+// PARADICE COMMAND: ROLL
+// ==========================================================================
+PARADICE_COMMAND_IMPL(roll)
+{
+    static string const usage_message =
+        "\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
+        "\n Example: roll 2d6+3-20"
+        "\n Example: roll 20*2d6"
+        "\n Example: roll 1d10+4 initiative"
+        "\n";
+
+    string::const_iterator begin = arguments.begin();
+    string::const_iterator end   = arguments.end();
+    
+    BOOST_AUTO(rolls, parse_dice_roll(begin, end));
+
+    if (!rolls)
+    {
+        send_to_player(ctx, usage_message, player);
+        return;
+    }
+
+    // Store a category if the user entered one.
+    string category = tokenise(string(begin, end)).first;
+
+    execute_roll(ctx, category, rolls.get(), player, false);
 }
 
 // ==========================================================================
@@ -390,144 +410,7 @@ PARADICE_COMMAND_IMPL(rollprivate)
         return;
     }
 
-    BOOST_AUTO(dice_roll, rolls.get());
-
-    if (dice_roll.repetitions_ == 0
-     || dice_roll.amount_      == 0)
-    {
-        send_to_player(
-            ctx
-          , "You roll no dice and score nothing.\n"
-          , player);
-        
-        return;
-    }
-
-    if (dice_roll.sides_ == 0)
-    {
-        send_to_player(
-            ctx
-          , "You fumble your roll and spill all your zero-sided dice on "
-            "the floor.\n"
-          , player);
-        
-        return;
-    }
-    
-    if (dice_roll.repetitions_ * dice_roll.amount_ > 200)
-    {
-        send_to_player(
-            ctx
-          , "You can only roll at most 200 dice at once.\n"
-          , player);
-        
-        return;
-    }
-
-    attribute normal_pen;
-    attribute max_roll_pen;
-    attribute total_pen;
-    
-    max_roll_pen.intensity_         = odin::ansi::graphics::INTENSITY_BOLD;
-    max_roll_pen.foreground_colour_ = odin::ansi::graphics::COLOUR_GREEN;
-    
-    total_pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
-    
-    vector<element_type> total_description;    
-    s32                  total_score = 0;
-    
-    for (u32 repetition = 0; repetition < dice_roll.repetitions_; ++repetition)
-    {
-        vector<element_type> roll_description;
-        s32                  total = dice_roll.bonus_;
-
-        for (u32 current_roll = 0; 
-             current_roll < dice_roll.amount_; 
-             ++current_roll)
-        {
-            s32 score = s32(random_number(1, dice_roll.sides_));
-
-            concat_text(
-                roll_description
-              , current_roll == 0 ? "" : ", "
-              , normal_pen);
-            
-            concat_text(
-                roll_description
-              , str(format("%d") % score)
-              , dice_roll.bonus_ == 0 ? total_pen : normal_pen);
-    
-            total += score;
-        }
-
-        bool max_roll = 
-            total == s32(dice_roll.amount_ * dice_roll.sides_)
-                   + dice_roll.bonus_;
-            
-        if (dice_roll.bonus_ == 0 && dice_roll.amount_ == 1)
-        {
-            concat_text(
-                total_description
-              , repetition == 0 ? "" : ", "
-              , normal_pen);
-            concat_text(
-                total_description
-              , str(format("%d") % total)
-              , total_pen);
-            concat_text(
-                total_description
-              , max_roll ? "!" : ""
-              , max_roll_pen);
-        }
-        else
-        {
-            concat_text(
-                total_description
-              , repetition == 0 ? "" : ", "
-              , normal_pen);
-            concat_text(
-                total_description
-              , str(format("%d") % total)
-              , total_pen);
-            concat_text(
-                total_description
-              , " ["
-              , normal_pen);
-            concat_text(total_description, roll_description);
-            concat_text(
-                total_description
-              , max_roll ? "!" : ""
-              , max_roll_pen);
-            concat_text(total_description, "]", normal_pen);
-        }
-
-        total_score += total;
-    }
-
-    vector<element_type> player_output;
-    concat_text(
-        player_output
-      , str(format("You roll privately %dd%d%s%d %sand score ")
-            % dice_roll.amount_
-            % dice_roll.sides_
-            % (dice_roll.bonus_ >= 0 ? "+" : "")
-            % dice_roll.bonus_
-            % (dice_roll.repetitions_ == 1 
-                ? ""
-                : str(format("%d times ") % dice_roll.repetitions_)))
-      , normal_pen);
-    concat_text(player_output, total_description);
-    concat_text(
-        player_output
-      , dice_roll.repetitions_ == 1 ? "" : " for a grand total of "
-      , normal_pen);
-    concat_text(
-        player_output
-      , dice_roll.repetitions_ == 1 ? "" : str(format("%d") % total_score)
-      , total_pen);
-    concat_text(player_output, "\n", normal_pen);
-    
-    send_to_player(ctx, player_output, player);
+    execute_roll(ctx, "", rolls.get(), player, true);
 }
 
 // ==========================================================================

@@ -1000,6 +1000,7 @@ private :
         }
     
         BOOST_AUTO(admin_level, account_->get_admin_level());
+        BOOST_AUTO(gm_level, player->get_character()->get_gm_level());
         
         // Search through the list for commands
         BOOST_FOREACH(command const &cur_command, command_list)
@@ -1009,7 +1010,8 @@ private :
                 // If the account in question has the required access rights,
                 // then execute the command.  Otherwise, pretend it doesn't
                 // exist.
-                if (admin_level >= cur_command.admin_level_required_)
+                if (admin_level >= cur_command.admin_level_required_
+                 && gm_level >= cur_command.gm_level_required_)
                 {
                     cur_command.function_(context_, arg.second, player);
                     last_command_ = input;
@@ -1023,7 +1025,8 @@ private :
     
         BOOST_FOREACH(command const &cur_command, command_list)
         {
-            if (admin_level >= cur_command.admin_level_required_)
+            if (admin_level >= cur_command.admin_level_required_
+             && gm_level >= cur_command.gm_level_required_)
             {
                 text += cur_command.command_ + " ";
             }

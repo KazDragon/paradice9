@@ -10,7 +10,7 @@ Initial release of Paradice9 with the Munin user interface.  The Munin User Inte
 == Release 1.1 {Bug Fix Release/Complete 3rd October 2011} ==
 This release saw a large stabilisation effort as regular usage of the application showed opportunities for all kinds of improvements.
 
-== Release 1.2 {Application/Cancelled} ==
+== Release 1.2 {Application/Abandoned} ==
 Feature requests for Paradice9, with Issue #107 (Encounter Control) being the primary feature for the release.
 
 Update: Our RP group dissolved and the both the need for the feature and the implementation of the feature itself have stagnated.  Therefore, I am pushing the issues for 1.2 back to the backlog and will go back to work on the codebase.

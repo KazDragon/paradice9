@@ -8,6 +8,12 @@ https://github.com/cucumber/cucumber-cpp
 
 An implementation of the Cucumber testing environment for C++.  May come in useful during Issue #133 to enable testing of the new UI components.
 
+== CppSpec ==
+
+https://github.com/tpuronen/cppspec
+
+Another unit testing library, but more focused on testing behaviours of objects in a particular state.
+
 = Databases =
 
 == CppDB ==

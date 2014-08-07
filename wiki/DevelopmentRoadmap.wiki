@@ -10,8 +10,10 @@ Initial release of Paradice9 with the Munin user interface.  The Munin User Inte
 == Release 1.1 {Bug Fix Release/Complete 3rd October 2011} ==
 This release saw a large stabilisation effort as regular usage of the application showed opportunities for all kinds of improvements.
 
-== Release 1.2 {Application/In Progress} ==
+== Release 1.2 {Application/Cancelled} ==
 Feature requests for Paradice9, with Issue #107 (Encounter Control) being the primary feature for the release.
+
+Update: Our RP group dissolved and the both the need for the feature and the implementation of the feature itself have stagnated.  Therefore, I am pushing the issues for 1.2 back to the backlog and will go back to work on the codebase.
 
 == Release 1.3 {Bug Fix Release/Complete} ==
 Two performance-related issues are scheduled here.  The first is an effort to reduce the number of memory allocations, since profiling has revealed that allocations and deallocations are the largest consumers of processing time during the application's life.  This is tracked in Issue #115.  The second ticket is for other performance considerations.  In particular, usage of Valgrind has yielded some interesting performance hotspots that can be quickly cleaned up.  This is tracked in Issue #121.

@@ -41,3 +41,11 @@ A NoSQL database.
 http://www.eclipse.org/Xtext/
 
 A framework for developing programming languages.  Java-based, but that's still good.
+
+= Components =
+
+== CppComponents ==
+
+https://github.com/jbandela/cppcomponents
+
+A header-only C++ plug-in component framework.

@@ -1,4 +1,5 @@
 #summary A list of properties that every component has.
+<wiki:toc max_depth="3" />
 
 = Introduction =
 
@@ -35,7 +36,19 @@ The Element is the fundamental unit of screen space, and fully describes one "pi
 
 == Canvas ==
 
-A canvas is a rectangular region of screen space upon which Elements can be plotted.
+A canvas is a rectangular region of screen space upon which Elements can be plotted.  Upon a canvas, the point (0,0) is at the top left of the screen space, and extends in an (x,y) direction.
+
+== Point ==
+
+A point represents an (x,y) co-ordinate on a Canvas.
+
+== Extent ==
+
+An extent represents an (x,y) size.  (1,1) is the size of exactly one Element.  Anything with an extent containing a dimension of value 0 is not rendered.
+
+== Rectangle ==
+
+A rectangular region of a Canvas.  Comprises a Point for its origin and an Extent for its size.
 
 = Component Concepts =
 
@@ -45,8 +58,44 @@ First and foremost, a component must be capable of drawing a region of itself on
 
   * void draw(canvas &, const rectangle &)
 
-== Event Sink ==
+== Model ==
 
-A component must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.
+The Model is the changeable portion of the component  The model itself has certain requirements, and these may be extended upon for more concrete components.  
 
-  * void event(const boost::any &)
+  * model &get_model() const;
+
+=== Event Sink ===
+
+A model must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.  There is a set of common events (e.g. keyboard events, mouse events, focus events, layout events), but a model does not need to subscribe to every event type; only the ones it cares about.
+
+  * void event(const any &)
+
+=== Extents ===
+
+As far as a component is aware, it always has the screen position (0,0).  Its size changes, however.  A component also knows how large it wants to be.
+
+  * void set_size(const extent&);
+  * extent get_preferred_size() const;
+
+= Layout Concepts =
+
+A Layout is an abstraction of the process of arranging components on the screen in a particular way.  A Layout could, for example, arrange all components in a grid-like fashion, or it could arrange them so in horizontal strips so that that they all take up the maximum width possible and then on top of each other.  There are many possible variations.
+
+A Layout needs to be able to perform only two tasks: to calculate how large it would like to be, and to actually perform the layout in a given region of space.  Both of these processes carry the idea of a "hint", which is a layout-specific piece of data that specifies variations in layout (for example, it might contain information that the component be centred horizontally.)
+
+  * extent get_preferred_size(vector`<component>` const &, vector`<any>` const &) const;
+  * void operator()(vector`<component>` const &, vector`<any>` const &, extent) const;
+
+Implementation Note: Layouts generally don't contain data.  it may be more efficient to implement them as flyweights.
+
+= Container Concepts =
+
+A Container is a special type of Component that is capable of containing other components.
+
+== Model ==
+
+The Container's model consists of a list of layouts and a list of components to apply to those layouts.  Each component and layout are also given a "layer" index.   A Layout only lays out components on the same layer as itself.  The container should consider the index to be the Z-order when it comes to drawing the components within.
+
+  * void add_component(component &/&&, any hint = {}, int layer = 0);
+  * remove_component(component &);
+  * set_layout(layout &/&&, int layer = 0);

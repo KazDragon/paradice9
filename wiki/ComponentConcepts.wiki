@@ -96,6 +96,15 @@ A Container is a special type of Component that is capable of containing other c
 
 The Container's model consists of a list of layouts and a list of components to apply to those layouts.  Each component and layout are also given a "layer" index.   A Layout only lays out components on the same layer as itself.  The container should consider the index to be the Z-order when it comes to drawing the components within.
 
+=== Component List ===
+
+It must be possible to add and remove components from the model.
+
   * void add_component(component &/&&, any hint = {}, int layer = 0);
   * remove_component(component &);
+
+=== Layout List ===
+
+It must be possible to set layers' layouts in the model.
+
   * set_layout(layout &/&&, int layer = 0);

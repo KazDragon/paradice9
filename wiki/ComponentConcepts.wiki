@@ -1,0 +1,52 @@
+#summary A list of properties that every component has.
+
+= Introduction =
+
+In order to create a decent basis for a component-based UI, I think it's important to consider what the fundamental properties of a component are, and the concepts that support it.  This document lists those concepts and how they work together.  It begins from the bottom up, first defining the fundamentals of how the user interface is put together, up to the component level and beyond.
+
+Note: some of the fundamental elements are based around how virtual terminals (ANSI/VT100) work, where the fundamental "pixel" is a full character.  Once higher levels of abstractions are established, things become a little more general.
+
+= Fundamentals =
+
+== Glyph ==
+
+A glyph represents a raw character on the screen.  It comprises:
+  * The character code used for the glyph
+  * The character set the glyph is presented in
+  * The locale for the character.
+
+For example, character code 218 in the G0 character set and the SCO extension locale is a top-left corner graphical character (┌).  At least in PuTTY.
+
+Implementation Note: this is strongly ASCII oriented, and needs strong consideration for including Unicode characters.  Since the glyph structure is three chars wide, that means that there will be a padding byte.  This implies that the character code could be represented by a wide char, which would support basic UTF-16 without increasing data size.
+
+== Attribute ==
+
+This is used to describe the attributes of a glyph.  Attributes include:
+  * Foreground colour
+  * Background colour
+  * Intensity (bold/normal)
+  * Underlining
+  * Polarity (normal/reverse)
+  * etc.
+
+== Element ==
+
+The Element is the fundamental unit of screen space, and fully describes one "pixel" on the screen.  It comprises a glyph and its associated attribute.
+
+== Canvas ==
+
+A canvas is a rectangular region of screen space upon which Elements can be plotted.
+
+= Component Concepts =
+
+== Drawable ==
+
+First and foremost, a component must be capable of drawing a region of itself onto a Canvas.
+
+  * void draw(canvas &, const rectangle &)
+
+== Event Sink ==
+
+A component must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.
+
+  * void event(const boost::any &)

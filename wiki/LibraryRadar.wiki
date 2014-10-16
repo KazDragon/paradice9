@@ -34,6 +34,12 @@ http://www.mongodb.org/
 
 A NoSQL database.
 
+== Redis ==
+
+https://github.com/mrpi/redis-cplusplus-client
+
+A key-value cache/store.
+
 = Language Development =
 
 == XText ==
@@ -49,3 +55,11 @@ A framework for developing programming languages.  Java-based, but that's still 
 https://github.com/jbandela/cppcomponents
 
 A header-only C++ plug-in component framework.
+
+= Concurrency =
+
+== HPX ==
+
+https://github.com/STEllAR-GROUP/hpx/
+
+A general purpose C++ runtime system for parallel and distributed applications of any scale.

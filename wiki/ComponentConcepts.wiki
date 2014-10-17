@@ -83,7 +83,7 @@ A Layout is an abstraction of the process of arranging components on the screen 
 
 A Layout needs to be able to perform only two tasks: to calculate how large it would like to be, and to actually perform the layout in a given region of space.  Both of these processes carry the idea of a "hint", which is a layout-specific piece of data that specifies variations in layout (for example, it might contain information that the component be centred horizontally.)
 
-  * extent get_preferred_size(vector`<component>` const &, vector`<any>` const &) const;
+  * `extent get_preferred_size(vector<component> const &, vector<any> const &) const;`
   * void operator()(vector`<component>` const &, vector`<any>` const &, extent) const;
 
 Implementation Note: Layouts generally don't contain data.  it may be more efficient to implement them as flyweights.
@@ -108,3 +108,21 @@ It must be possible to add and remove components from the model.
 It must be possible to set layers' layouts in the model.
 
   * set_layout(layout &/&&, int layer = 0);
+
+= Graphics Context =
+
+A final consideration is the Graphics Context.  How a component wishes to draw itself will differ from client to client.  For example, some clients support 256 colours, some support 16, and some support 9 (TeraTerm, as I recall, has the 8 normal colours, and any bold colour is always bright white!).  Some clients may support Unicode (so a chess piece queen could be represented as ♕), while others may not (so it would have to be represented by a Q).
+
+The Context must therefore make all details about the current client accessible to components.  A list of commonly used attributes should be made available.
+
+  * any get_client_attribute(string const &);
+
+It also has other needs to fulfill.  For example, it must be possible to register some kind of timer in order to provide support for animations.
+
+  * `void register_timer(component &, duration const &);  /* Note: lifetime issues; consider using a weak_ptr<timer> or similar. */`
+
+It is unnecessarily cumbersome for every component to have to carry around a context at all times, so it must be accessible.  However, while UI routines themselves are planned to be single threaded (e.g. a client pressed a key and clicks the mouse; the event for the mouse click is not processed until the event for the key is processed), many clients will run concurrently.  Additionally, a UI routine for a given client may occur on different threads at different times.
+
+A solution to this is to provide a function that returns a thread-local context.  The event dispatcher is then required to set the current thread's graphics context to be the current client's graphics context at the beginning of every event block.  
+
+  * `[[thread_local]]` graphics_context& get_graphics_context();

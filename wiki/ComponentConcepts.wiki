@@ -125,4 +125,4 @@ It is unnecessarily cumbersome for every component to have to carry around a con
 
 A solution to this is to provide a function that returns a thread-local context.  The event dispatcher is then required to set the current thread's graphics context to be the current client's graphics context at the beginning of every event block.  
 
-  * `[[thread_local]]` graphics_context& get_graphics_context();
+  * `[[thread_local]]` graphics_context& ::get_graphics_context();

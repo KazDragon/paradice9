@@ -66,9 +66,9 @@ The Model is the changeable portion of the component  The model itself has certa
 
 === Event Sink ===
 
-A model must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.  There is a set of common events (e.g. keyboard events, mouse events, focus events, layout events), but a model does not need to subscribe to every event type; only the ones it cares about.
+A model must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.  There is a set of common events (e.g. keyboard events, mouse events, focus events, layout events), but a model does not need to subscribe to every event type; only the ones it cares about.  It is possible that events may represent questions that only certain types of component may care about.  The responses to these questions are passed back in the return value (e.g. "do you have focus" might return either "yes, I do" (any(true)), "no, I don't" (any(false)), or "what the heck is focus?" (any(nullptr)).
 
-  * void event(const any &)
+  * any event(const any &)
 
 === Extents ===
 

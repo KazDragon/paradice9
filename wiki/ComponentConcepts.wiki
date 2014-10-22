@@ -129,12 +129,18 @@ A solution to this is to provide a function that returns a thread-local context.
 
 = Window Concepts =
 
-Now that it is possible to build up an abstract representation of a user interface, the Window concept takes that and abstracts an entry point to the user.  In particular, it knows how to update its state and return the string that is the data necessary to transition from the old to new state.  During this call, the graphics context may be accessed in order to determine what the best sequence is.
+Now that it is possible to build up an abstract representation of a user interface, the Window concept takes that and abstracts an entry point to the user.  
+
+A concrete window type may supply more functions to, for example, set the window title and so on, depending on what the terminal window actually is.
+
+== Redrawable ==
+
+A Window knows how to update its state and return the string that is the data necessary to transition from the old to new state.  During this call, the graphics context may be accessed in order to determine what the best sequence is.
 
   * `string redraw();`
 
-In addition, this is the point at which events enter the user interface.
+== Event Sink ==
+
+In addition, this is the point at which events enter the user interface.  During this call, the graphics context may be access in order to determine the correct response to the event.
 
   * `any event(any const &);`
-
-A concrete window type may supply more functions to, for example, set the window title and so on, depending on what the terminal window actually is.

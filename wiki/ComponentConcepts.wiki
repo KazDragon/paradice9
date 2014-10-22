@@ -56,26 +56,26 @@ A rectangular region of a Canvas.  Comprises a Point for its origin and an Exten
 
 First and foremost, a component must be capable of drawing a region of itself onto a Canvas.
 
-  * void draw(canvas &, const rectangle &)
+  * `void draw(canvas &, rectangle const &)`
 
 == Model ==
 
 The Model is the changeable portion of the component  The model itself has certain requirements, and these may be extended upon for more concrete components.  
 
-  * model &get_model() const;
+  * `model &get_model() const;`
 
 === Event Sink ===
 
 A model must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.  There is a set of common events (e.g. keyboard events, mouse events, focus events, layout events), but a model does not need to subscribe to every event type; only the ones it cares about.  It is possible that events may represent questions that only certain types of component may care about.  The responses to these questions are passed back in the return value (e.g. "do you have focus" might return either "yes, I do" (any(true)), "no, I don't" (any(false)), or "what the heck is focus?" (any(nullptr)).
 
-  * any event(const any &)
+  * `any event(any const &);`
 
 === Extents ===
 
 As far as a component is aware, it always has the screen position (0,0).  Its size changes, however.  A component also knows how large it wants to be.
 
-  * void set_size(const extent&);
-  * extent get_preferred_size() const;
+  * `void set_size(extent const &);`
+  * `extent get_preferred_size() const;`
 
 = Layout Concepts =
 
@@ -84,7 +84,7 @@ A Layout is an abstraction of the process of arranging components on the screen 
 A Layout needs to be able to perform only two tasks: to calculate how large it would like to be, and to actually perform the layout in a given region of space.  Both of these processes carry the idea of a "hint", which is a layout-specific piece of data that specifies variations in layout (for example, it might contain information that the component be centred horizontally.)
 
   * `extent get_preferred_size(vector<component> const &, vector<any> const &) const;`
-  * void operator()(vector`<component>` const &, vector`<any>` const &, extent) const;
+  * `void operator()(vector<component> const &, vector<any> const &, extent) const;`
 
 Implementation Note: Layouts generally don't contain data.  it may be more efficient to implement them as flyweights.
 
@@ -100,8 +100,8 @@ The Container's model consists of a list of layouts and a list of components to 
 
 It must be possible to add and remove components from the model.
 
-  * void add_component(component &/&&, any hint = {}, int layer = 0);
-  * remove_component(component &);
+  * `void add_component(component &/&&, any hint = {}, int layer = 0);`
+  * `remove_component(component &);`
 
 === Layout List ===
 
@@ -126,3 +126,13 @@ It is unnecessarily cumbersome for every component to have to carry around a con
 A solution to this is to provide a function that returns a thread-local context.  The event dispatcher is then required to set the current thread's graphics context to be the current client's graphics context at the beginning of every event block.  
 
   * `[[thread_local]]` graphics_context& ::get_graphics_context();
+
+= Window Concepts =
+
+Now that it is possible to build up an abstract representation of a user interface, the Window concept takes that and abstracts an entry point to the user.  In particular, it knows how to update its state and return the string that is the data necessary to transition from the old to new state.  During this call, the graphics context may be accessed in order to determine what the best sequence is.
+
+  * `string redraw();`
+
+In addition, this is the point at which events enter the user interface.
+
+  * `any event(any const &);`

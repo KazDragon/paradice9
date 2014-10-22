@@ -136,3 +136,5 @@ Now that it is possible to build up an abstract representation of a user interfa
 In addition, this is the point at which events enter the user interface.
 
   * `any event(any const &);`
+
+A concrete window type may supply more functions to, for example, set the window title and so on, depending on what the terminal window actually is.

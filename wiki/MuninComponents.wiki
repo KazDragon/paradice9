@@ -1,0 +1,13 @@
+#summary A list of components and their behaviour
+
+= Introduction =
+
+The Munin library is comprised of a number of standard components.  This article documents them and their behaviour.
+
+= Static Components =
+
+Some components are static in that they have no special behaviours.  They just draw what they are told to draw.
+
+== Filled Box ==
+
+The filled box is the most basic component.  It takes up all the space given to it and fills the entire space with a given element.

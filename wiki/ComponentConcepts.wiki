@@ -38,6 +38,10 @@ The Element is the fundamental unit of screen space, and fully describes one "pi
 
 A canvas is a rectangular region of screen space upon which Elements can be plotted.  Upon a canvas, the point (0,0) is at the top left of the screen space, and extends in an (x,y) direction.
 
+  * `canvas[x][y] = elem`;
+
+Implementation Note: although a canvas is indexed first x then y, i.e. column-major, the actual implementation should note that in loops, y is usually a fixed value.  Therefore, the actual storage should be row-major.
+
 == Point ==
 
 A point represents an (x,y) co-ordinate on a Canvas.

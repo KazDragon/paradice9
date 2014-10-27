@@ -42,6 +42,17 @@ A canvas is a rectangular region of screen space upon which Elements can be plot
 
 Implementation Note: although a canvas is indexed first x then y, i.e. column-major, the actual implementation should note that in loops, y is usually a fixed value.  Therefore, the actual storage should be row-major.
 
+A canvas also has a variable size.  Note: since terminal clients may vary in behaviour when resized, so is the effect of resizing the canvas unspecified. For example, when shrinking, some clients prefer to clip the text, others wrap it.
+
+For quality of implementation, an implementation might consider looking at the current context to determine if a known client with a known behaviour is being used.  Otherwise, it should request a repaint of the entire screen.
+
+  * `void set_size(extent)`
+
+Finally, since each component believes itself to be the centre of the universe (or at least positioned at (0,0)), it must be possible for to offset the canvas in order to achieve this transparently.  Furthermore, in order for components to be able to request of the context that a region of itself be redrawn, it must be possible for the context to determine the current offset of the canvas.
+
+  * `void offset_by(extent)`
+  * `extent get_offset() const`
+
 == Point ==
 
 A point represents an (x,y) co-ordinate on a Canvas.

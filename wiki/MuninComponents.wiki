@@ -14,7 +14,10 @@ The filled box is the most basic component.  It takes up all the space given to 
 
 === Model ===
 
-Filled Box's model has no extra requirements.
+Filled Box's model must know what element is to be displayed.  We refer to this as its 'brush.'
+
+  * `void set_brush(element const &brush)`
+  * `element get_brush() const`
 
 === Theme ===
 

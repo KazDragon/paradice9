@@ -14,7 +14,7 @@ The filled box is the most basic component.  It takes up all the space given to 
 
 === Model ===
 
-Filled Box has no model.
+Filled Box's model has no extra requirements.
 
 === Theme ===
 

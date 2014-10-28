@@ -11,3 +11,11 @@ Some components are static in that they have no special behaviours.  They just d
 == Filled Box ==
 
 The filled box is the most basic component.  It takes up all the space given to it and fills the entire space with a given element.
+
+=== Model ===
+
+Filled Box has no model.
+
+=== Theme ===
+
+There are no thematic requirements for a Filled Box.

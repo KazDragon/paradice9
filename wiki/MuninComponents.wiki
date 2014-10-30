@@ -42,4 +42,4 @@ Image's model must know the image that it wishes to display.  It must also know 
 
 === Theme ===
 
-There are no thematic requirements for a Filled Box.
+There are no thematic requirements for an Image.

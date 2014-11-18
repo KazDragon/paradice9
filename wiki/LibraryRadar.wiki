@@ -63,3 +63,8 @@ A header-only C++ plug-in component framework.
 https://github.com/STEllAR-GROUP/hpx/
 
 A general purpose C++ runtime system for parallel and distributed applications of any scale.
+
+== Cogmind ==
+
+Not a library, but perhaps UI inspiration:
+http://www.gridsagegames.com/cogmind/media.html

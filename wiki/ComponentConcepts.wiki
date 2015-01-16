@@ -18,7 +18,7 @@ A glyph represents a raw character on the screen.  It comprises:
 
 For example, character code 218 in the G0 character set and the SCO extension locale is a top-left corner graphical character (┌).  At least in PuTTY.
 
-Implementation Note: this is strongly ASCII oriented, and needs strong consideration for including Unicode characters.  Since the glyph structure is three chars wide, that means that there will be a padding byte.  This implies that the character code could be represented by a wide char, which would support basic UTF-16 without increasing data size.
+Implementation Note: this is strongly ASCII oriented, and needs strong consideration for including Unicode characters.  Since the glyph structure is three chars wide, that means that there will be a padding byte.  This implies that the character code could be represented by a wide char, which would support UCS-2 without increasing data size.
 
 == Attribute ==
 

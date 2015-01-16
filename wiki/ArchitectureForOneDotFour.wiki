@@ -20,10 +20,10 @@ The Norse pantheon's messenger god, Hermod will be where the I/O primitives are 
 
 == Munin ==
 
-As before, Munin is in charge of ANSI graphical output.
+As before, Munin is in charge of ANSI graphical output, and will implement a renderer specifically for that style of output.
 
 = Paradice =
 
 The application that we use for RP sessions keeps its de facto name (the 9 was nearly never said out aloud).  Alas, Google Code doesn't let you rename projects, so the 9 stays there in the project name.
 
-As a naming convension, Norse mythology should stay out of Paradice.  This should help keep the two parts of the project mentally separate.
+As a naming convention, Norse mythology should stay out of Paradice.  This should help keep the two parts of the project mentally separate.

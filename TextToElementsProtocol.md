@@ -1,0 +1,133 @@
+# Introduction #
+
+Some components may require colours or other types of manipulation.  For example, drawing a border on an image component using the extended ASCII drawing characters requires changing both the character set to G1 and the locale to SCO.
+
+This document describes a method whereby these codes can be placed in-line in text, so that a function may convert this to an array of `element_type`.
+
+# Details #
+
+## Escape ##
+  * \\: \
+
+## Default ##
+  * \x: set all attributes to their default values
+
+E.g. \x
+
+## Character Code ##
+
+  * \C_???_
+    * _???_ = 000..255: the character to display.
+
+E.g. \C097 = the 'a' character.
+
+## Character Set ##
+
+  * \c_?_
+    * _?_ = x: default character set (currently G0)
+    * _?_ = 0: character set G0
+    * _?_ = 1: character set G1
+
+E.g. \c1
+
+## Locale ##
+
+  * \l_?_ (lowercase L)
+    * _?_ = x: default locale (currently US ASCII)
+    * _?_ = 0: DEC locale
+    * _?_ = A: UK locale
+    * _?_ = B: US ASCII locale
+    * _?_ = U: SCO locale
+
+E.g. \lB
+
+## Intensity ##
+
+  * \i_?_
+    * _?_ = x: default intensity (currenly normal)
+    * _?_ = >: bold intensity
+    * _?_ = =: normal intensity
+    * _?_ = <: faint intensity
+
+E.g. \i>
+
+## Polarity ##
+
+  * \p_?_
+    * _?_ = x: default polarity (currently positive)
+    * _?_ = +: positive polarity
+    * _?_ = -: negative polarity
+
+E.g. \p-
+
+## Underlining ##
+
+  * \u_?_
+    * _?_ = x: default underlining (currently off)
+    * _?_ = +: underlining on
+    * _?_ = -: underlining off
+
+E.g. \u+
+
+## Colours ##
+
+### 16-colours ###
+
+See http://www.mudpedia.org/wiki/ANSI_colors for exact colours
+
+  * \[_?_
+    * _?_ = 0..9: change the foreground colour.
+
+  * \]_?_
+    * _?_ = 0..9: change the background colour.
+
+E.g. `\[6\]0` (cyan on a black background)
+
+### 256-colours ###
+
+See http://www.mudpedia.org/wiki/Xterm_256_colors for exact colour codes.  Note that there are three segments: overlap with the original 16 colours (the only place where true black lies), a central coloured section of 216 colours, a greyscale section of 24 colours.
+
+#### Overlapping Colours ####
+For the overlap with the original 16 colours, use the 16-colour codes above.
+
+#### Central 216 Colours ####
+
+  * \<_?R?G?B_
+    * _?R_ = 0..5: intensity of red value as foreground
+    * _?G_ = 0..5: intensity of green value as foreground
+    * _?B_ = 0..5: intensity of blue value as foreground
+
+To match up to the colour chart, the following conversion is applied:
+
+colour = (_?R_ x 36) + (_?G_ x 6) + (_?B_) + 16
+
+E.g. `\<510`: (5 x 36) + (1 x 6) + (0) + 16 = foreground colour 202, a deep orange.
+
+  * \>_?R?G?B_
+    * _?R_ = 0..5: intensity of red value as background
+    * _?G_ = 0..5: intensity of green value as background
+    * _?B_ = 0..5: intensity of blue value as background
+
+See above for colour chart meanings.
+
+E.g. `\>135`: (1 x 36) + (3 x 6) + (5) + 16 = background colour  75,  a greeny-blue.
+
+#### Greyscale Colours ####
+
+  * \{_?_
+    * _?_ = 0..23: grey intensity as foreground
+
+colour = _?_ + 232
+
+E.g. `\{12`: = 12 + 232 = colour 244, a medium grey on the foreground.
+
+  * \}_?_
+    * _?_ = 0..23: grey intensity as background
+
+See above for colour chart meanings.
+
+E.g. `\}23`: = 23 + 232 = colour 255, off-white on the background.
+
+## Examples ##
+
+`\i>\[1\]3\c0\lU\C201` = A bright red foreground, yellow background, double-lined top left corner glyph (╔).

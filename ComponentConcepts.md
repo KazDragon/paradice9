@@ -1,0 +1,161 @@
+
+
+# Introduction #
+
+In order to create a decent basis for a component-based UI, I think it's important to consider what the fundamental properties of a component are, and the concepts that support it.  This document lists those concepts and how they work together.  It begins from the bottom up, first defining the fundamentals of how the user interface is put together, up to the component level and beyond.
+
+Note: some of the fundamental elements are based around how virtual terminals (ANSI/VT100) work, where the fundamental "pixel" is a full character.  Once higher levels of abstractions are established, things become a little more general.
+
+# Fundamentals #
+
+## Glyph ##
+
+A glyph represents a raw character on the screen.  It comprises:
+  * The character code used for the glyph
+  * The character set the glyph is presented in
+  * The locale for the character.
+
+For example, character code 218 in the G0 character set and the SCO extension locale is a top-left corner graphical character (┌).  At least in PuTTY.
+
+Implementation Note: this is strongly ASCII oriented, and needs strong consideration for including Unicode characters.  Since the glyph structure is three chars wide, that means that there will be a padding byte.  This implies that the character code could be represented by a wide char, which would support UCS-2 without increasing data size.
+
+## Attribute ##
+
+This is used to describe the attributes of a glyph.  Attributes include:
+  * Foreground colour
+  * Background colour
+  * Intensity (bold/normal)
+  * Underlining
+  * Polarity (normal/reverse)
+  * etc.
+
+## Element ##
+
+The Element is the fundamental unit of screen space, and fully describes one "pixel" on the screen.  It comprises a glyph and its associated attribute.
+
+## Canvas ##
+
+A canvas is a rectangular region of screen space upon which Elements can be plotted.  Upon a canvas, the point (0,0) is at the top left of the screen space, and extends in an (x,y) direction.
+
+  * `canvas[x][y] = elem`;
+
+Implementation Note: although a canvas is indexed first x then y, i.e. column-major, the actual implementation should note that in loops, y is usually a fixed value.  Therefore, the actual storage should be row-major.
+
+A canvas also has a variable size.  Note: since terminal clients may vary in behaviour when resized, so is the effect of resizing the canvas unspecified. For example, when shrinking, some clients prefer to clip the text, others wrap it.
+
+For quality of implementation, an implementation might consider looking at the current context to determine if a known client with a known behaviour is being used.  Otherwise, it should request a repaint of the entire screen.
+
+  * `void set_size(extent)`
+
+Finally, since each component believes itself to be the centre of the universe (or at least positioned at (0,0)), it must be possible for to offset the canvas in order to achieve this transparently.  Furthermore, in order for components to be able to request of the context that a region of itself be redrawn, it must be possible for the context to determine the current offset of the canvas.
+
+  * `void offset_by(extent)`
+  * `extent get_offset() const`
+
+## Point ##
+
+A point represents an (x,y) co-ordinate on a Canvas.
+
+## Extent ##
+
+An extent represents an (x,y) size.  (1,1) is the size of exactly one Element.  Anything with an extent containing a dimension of value 0 is not rendered.
+
+## Rectangle ##
+
+A rectangular region of a Canvas.  Comprises a Point for its origin and an Extent for its size.
+
+# Component Concepts #
+
+## Drawable ##
+
+First and foremost, a component must be capable of drawing a region of itself onto a Canvas.
+
+  * `void draw(canvas &, rectangle const &)`
+
+## Model ##
+
+The Model is the changeable portion of the component  The model itself has certain requirements, and these may be extended upon for more concrete components.
+
+  * `model &get_model() const;`
+
+### Event Sink ###
+
+A model must be able to receive events.  Events could be anything, but only the event source and event sink need to know specifically what it is.  There is a set of common events (e.g. keyboard events, mouse events, focus events, layout events), but a model does not need to subscribe to every event type; only the ones it cares about.  It is possible that events may represent questions that only certain types of component may care about.  The responses to these questions are passed back in the return value (e.g. "do you have focus" might return either "yes, I do" (any(true)), "no, I don't" (any(false)), or "what the heck is focus?" (any(nullptr)).
+
+  * `any event(any const &);`
+
+### Extents ###
+
+As far as a component is aware, it always has the screen position (0,0).  Its size changes, however.  A component also knows how large it wants to be.
+
+  * `extent get_size() const;`
+  * `void set_size(extent const &);`
+  * `extent get_preferred_size() const;`
+
+# Layout Concepts #
+
+A Layout is an abstraction of the process of arranging components on the screen in a particular way.  A Layout could, for example, arrange all components in a grid-like fashion, or it could arrange them so in horizontal strips so that that they all take up the maximum width possible and then on top of each other.  There are many possible variations.
+
+A Layout needs to be able to perform only two tasks: to calculate how large it would like to be, and to actually perform the layout in a given region of space.  Both of these processes carry the idea of a "hint", which is a layout-specific piece of data that specifies variations in layout (for example, it might contain information that the component be centred horizontally.)
+
+  * `extent get_preferred_size(vector<component> const &, vector<any> const &) const;`
+  * `void operator()(vector<component> const &, vector<any> const &, extent) const;`
+
+Implementation Note: Layouts generally don't contain data.  it may be more efficient to implement them as flyweights.
+
+# Container Concepts #
+
+A Container is a special type of Component that is capable of containing other components.
+
+## Model ##
+
+The Container's model consists of a list of layouts and a list of components to apply to those layouts.  Each component and layout are also given a "layer" index.   A Layout only lays out components on the same layer as itself.  The container should consider the index to be the Z-order when it comes to drawing the components within.
+
+### Component List ###
+
+It must be possible to add and remove components from the model.
+
+  * `void add_component(component &/&&, any hint = {}, int layer = 0);`
+  * `remove_component(component &);`
+
+### Layout List ###
+
+It must be possible to set layers' layouts in the model.
+
+  * set\_layout(layout &/&&, int layer = 0);
+
+# Graphics Context #
+
+A final consideration is the Graphics Context.  How a component wishes to draw itself will differ from client to client.  For example, some clients support 256 colours, some support 16, and some support 9 (TeraTerm, as I recall, has the 8 normal colours, and any bold colour is always bright white!).  Some clients may support Unicode (so a chess piece queen could be represented as ♕), while others may not (so it would have to be represented by a Q).
+
+The Context must therefore make all details about the current client accessible to components.  A list of commonly used attributes should be made available.
+
+  * any get\_client\_attribute(string const &);
+
+It also has other needs to fulfill.  For example, it must be possible to register some kind of timer in order to provide support for animations.
+
+  * `void register_timer(component &, duration const &);  /* Note: lifetime issues; consider using a weak_ptr<timer> or similar. */`
+
+It is unnecessarily cumbersome for every component to have to carry around a context at all times, so it must be accessible.  However, while UI routines themselves are planned to be single threaded (e.g. a client pressed a key and clicks the mouse; the event for the mouse click is not processed until the event for the key is processed), many clients will run concurrently.  Additionally, a UI routine for a given client may occur on different threads at different times.
+
+A solution to this is to provide a function that returns a thread-local context.  The event dispatcher is then required to set the current thread's graphics context to be the current client's graphics context at the beginning of every event block.
+
+  * `[[thread_local]]` graphics\_context& ::get\_graphics\_context();
+
+# Window Concepts #
+
+Now that it is possible to build up an abstract representation of a user interface, the Window concept takes that and abstracts an entry point to the user.
+
+A concrete window type may supply more functions to, for example, set the window title and so on, depending on what the terminal window actually is.
+
+## Redrawable ##
+
+A Window knows how to update its state and return the string that is the data necessary to transition from the old to new state.  During this call, the graphics context may be accessed in order to determine what the best sequence is.
+
+  * `string redraw();`
+
+## Event Sink ##
+
+In addition, this is the point at which events enter the user interface.  During this call, the graphics context may be access in order to determine the correct response to the event.
+
+  * `any event(any const &);`

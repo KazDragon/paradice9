@@ -1,0 +1,10 @@
+TODO: The protocol should involve:
+  * A header stating:
+    * The dimensions of the animated image
+    * The looping characteristics of the image:
+      * Whether it loops at all
+      * From what frame the image loops.
+      * NB: could be factored out into a generic "repeating block"
+  * A series of frames containing:
+    * Information about how long the frame remains shown
+    * The actual image shown, using TextToElementsProtocol

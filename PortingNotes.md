@@ -1,0 +1,29 @@
+# About #
+
+Paradice is more than just the server it currently implements.  It is designed as a framework upon which the implementation of any similar style of server could be built.  Immediate examples include MUDs and Chatters.  Paradice9 could be considered a technology demo of the Paradice framework on a basic chatter.
+
+In order to use the Paradice framework on a new project, it is necessary to port the framework to your new application.  This page documents lists the steps necessary and highlights some considerations for this process.
+
+Fear not, though.  Paradice has been designed to be easy to dismantle and reassemble into a new application. Indeed, this has already been done with the 'guibuilder' folder, which is a lightweight port of the Paradice framework to provide a test-bed container for development of some of the more complicated Munin components (e.g. the munin::list control).
+
+# Folder Hierarchy #
+
+The Paradice framework keeps a strict application/library segregation policy, and applies it on a per-folder basis.
+
+## Generic Folders ##
+
+The following folders contain only generic code, and do not in general require any porting:
+
+  * \odin - generically reusable components that contain patterns, classes, and functions that are generally applicable to programming in general.  For example: protocol definitions, parsers, and generic handlers.  There should be no need to port any components from this folder.  Proposed corrections and additions are more than welcome.
+
+  * \munin - generically reusable UI components for an strongly ANSI-capable client environment (e.g. PuTTY, TeraTerm).  There should be no need to port any components from this folder.  Proposed corrections and new generic components are also more than welcome.
+
+  * \paradice - generic application components, including server and connection management, protocol support, etc.  Contains components that supply algorithms generic to terminal servers (command parsing/handling, etc.)
+
+## Application-specific Folders ##
+
+There are currently two application-specific folders.  However, although these contain code specific to the Paradice9 application, their structure can be used as a reference for porting to new applications.
+
+  * \hugin - application-specific UI components.  In general, these are the 'screens' that provide client views into the server.  For example, in the Paradice9 application's version of the hugin directory, there are screens for the intro screen, the new account creation screen, the character creation and selection screens, and so on.
+
+  * \paradice9 - application-specific code, including command tables, rulesets, etc.  This can be used as a reference for a ported application.

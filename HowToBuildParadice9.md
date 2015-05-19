@@ -1,0 +1,42 @@
+(Caution: Work In Progress)
+
+## Windows (Visual Studio) ##
+
+### Prerequisite Tools ###
+
+  * Visual Studio 2008 Express
+    * Download and install from http://www.microsoft.com/visualstudio/en-us/products/2008-editions/express
+
+### Prerequisite Libraries ###
+
+  * Boost
+    * Follow the instructions at boost.org in order to get and build Boost.
+  * Crypto++
+    * Extract the zip file.
+    * Open the cryptest.sln solution and allow Visual Studio to convert it to a VS2008 solution.
+    * Build the "cryptlib" projects for debug and release.
+  * CppUnit
+    * TODO
+
+## Unix (including Cygwin) ##
+
+### Prerequisite Tools ###
+
+  * g++ compiler
+    * TODO
+  * GNU make
+    * TODO
+### Prerequisite Libraries ###
+
+  * Boost
+    * Download and extract the latest Boost distribution from http://boost.org
+    * find and run:
+      * ./bootstrap.sh
+    * In the same directory, run:
+      * ./b2 --toolset=gcc --build-type=complete stage
+      * ./b2 --toolset=gcc --build-type=complete install
+    * Note: if you do not have control over the /usr/local directory, then you may need to add "--prefix=$HOME/boost" or similar to those lines.
+  * Crypto++
+    * TODO
+  * CppUnit
+    * TODO

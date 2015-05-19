@@ -1,0 +1,27 @@
+# Introduction #
+
+My codebase is confused, and the dependency chart is wrong in many places.  This is acknowledged in [Issue #101](https://code.google.com/p/paradice9/issues/detail?id=#101), which is slated for the far future in 2.0.  That doesn't mean we can't work towards it now.  My proposal is that, in 1.4, components that are re-worked should go to a new naming scheme, that should form two distinct separate parts of the final product.
+
+# Yggdrasil #
+
+It seems right that the codebase continues the Norse mythology theme.  Yggdrasil was the name of the tree that held the world, the heavens, and the underworld.  It's an appropriate name for the codebase as a whole.
+
+Yggdrasil's job is twofold: the first primary purpose is to provide the server's entry point, connection handling, and an engine to drive the server.  The secondary purpose is to provide APIs for common tasks, such as account management and data display primitives.  The dependency graph must work so that there are no dependencies from Yggdrasil to the application.
+
+## Kvasir ##
+
+As the Norse god of inspiration, Kvasir will be the container for all small utilities.
+
+## Hermod ##
+
+The Norse pantheon's messenger god, Hermod will be where the I/O primitives are kept.
+
+## Munin ##
+
+As before, Munin is in charge of ANSI graphical output, and will implement a renderer specifically for that style of output.
+
+# Paradice #
+
+The application that we use for RP sessions keeps its de facto name (the 9 was nearly never said out aloud).  Alas, Google Code doesn't let you rename projects, so the 9 stays there in the project name.
+
+As a naming convention, Norse mythology should stay out of Paradice.  This should help keep the two parts of the project mentally separate.

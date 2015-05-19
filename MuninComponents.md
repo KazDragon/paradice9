@@ -1,0 +1,43 @@
+# Introduction #
+
+The Munin library is comprised of a number of standard components.  This article documents them and their behaviour.
+
+# Static Components #
+
+Some components are static in that they have no special behaviours.  They just draw what they are told to draw.
+
+## Filled Box ##
+
+The filled box is the most basic component.  It takes up all the space given to it and fills the entire space with a given element.
+
+Its preferred size is (1,1).
+
+### Model ###
+
+Filled Box's model must know what element is to be displayed.  We refer to this as its 'brush.'
+
+  * `void set_brush(element const &brush)`
+  * `element const &get_brush() const`
+
+### Theme ###
+
+There are no thematic requirements for a Filled Box.
+
+## Image ##
+
+The image is an extension upon the filled box where, instead of a single element, it is given an array of element strings upon which to work.
+
+Its preferred size is (x,y) where y is the number of element strings in the array, and x is the length of the largest string.
+
+### Model ###
+
+Image's model must know the image that it wishes to display.  It must also know what "brush" to use as a background for those parts of the display that are not covered by the image.
+
+  * `void set_image(vector<estring> const &image)`
+  * `vector<estring> const &get_image() const`
+  * `void set_background_brush(element const &brush)`
+  * `element const &get_background_brush() const`
+
+### Theme ###
+
+There are no thematic requirements for an Image.

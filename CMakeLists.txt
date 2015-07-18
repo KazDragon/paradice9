@@ -26,6 +26,7 @@ if (CPPUNIT_FOUND)
     enable_testing()
 endif()
 
+add_subdirectory(yggdrasil)
 add_subdirectory(odin)
 add_subdirectory(munin)
 add_subdirectory(paradice)

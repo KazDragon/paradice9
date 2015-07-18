@@ -48,7 +48,7 @@ public :
     //* =====================================================================
     /// \brief Retrieves the document that models this command prompt.
     //* =====================================================================
-    boost::shared_ptr<munin::text::document> get_document();
+    std::shared_ptr<munin::text::document> get_document();
 
     //* =====================================================================
     /// \brief Adds a history element to the command prompt
@@ -69,7 +69,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

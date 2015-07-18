@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "configuration.hpp"
 #include "account.hpp"
@@ -35,13 +35,8 @@
 #include "hugin/user_interface.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <cstdio>
-
-using namespace std;
-using namespace boost;
 
 namespace paradice {
 
@@ -50,13 +45,13 @@ namespace paradice {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(set)
 {
-    static string const usage =
+    static std::string const usage =
         "\r\n USAGE:   set <setting> [<argument>]"
         "\r\n Current setting are:"
         "\r\n     commandmode (mud|mmo)"
         "\r\n\r\n";
 
-    pair<string, string> token0 = odin::tokenise(arguments);
+    auto token0 = odin::tokenise(arguments);
 
     if (token0.first.empty())
     {
@@ -68,13 +63,13 @@ PARADICE_COMMAND_IMPL(set)
     // settings functions.
     if (token0.first == "commandmode")
     {
-        static string const commandmode_usage =
+        static std::string const commandmode_usage =
             "\r\n USAGE:   set commandmode (mud|mmo)"
             "\r\n Example: set commandmode mmo"
             "\r\n\r\n";
 
-        pair<string, string> token1 = odin::tokenise(token0.second);
-    
+        auto token1 = odin::tokenise(token0.second);
+
         if (token1.first.empty())
         {
             send_to_player(ctx, commandmode_usage, player);
@@ -86,7 +81,7 @@ PARADICE_COMMAND_IMPL(set)
         {
             player->get_account()->set_command_mode(
                 account::command_mode_mud);
-            
+
             send_to_player(
                 ctx
               , "Your command mode is now 'mud'.  Type commands normally, and "
@@ -97,7 +92,7 @@ PARADICE_COMMAND_IMPL(set)
         {
             player->get_account()->set_command_mode(
                 account::command_mode_mmo);
-            
+
             send_to_player(
                 ctx
               , "Your command mode is now 'mmo'.  Use the '/' character to "
@@ -110,7 +105,7 @@ PARADICE_COMMAND_IMPL(set)
             send_to_player(ctx, commandmode_usage, player);
         }
     }
-    
+
     try
     {
         ctx->save_account(player->get_account());
@@ -118,7 +113,7 @@ PARADICE_COMMAND_IMPL(set)
     catch(std::exception &ex)
     {
         // TODO: Use an actual logging library for this message.
-        printf("Error saving account: %s\n", ex.what());
+        std::printf("Error saving account: %s\n", ex.what());
 
         send_to_player(
             ctx
@@ -155,20 +150,20 @@ PARADICE_COMMAND_IMPL(logout)
     // First, announce the removal of the player from the game, and make it so.
     send_to_room(
         ctx
-      , "#SERVER: " 
+      , "#SERVER: "
       + player->get_character()->get_name()
       + " has left Paradice!\n"
       , player);
-    
-    player->set_character(shared_ptr<character>());
-    player->set_account(shared_ptr<account>());
-    
+
+    player->set_character({});
+    player->set_account({});
+
     ctx->update_names();
 
     player->set_window_title("Paradice9");
-    
+
     // Now, return the player to the login screen
-    BOOST_AUTO(user_interface, player->get_user_interface());
+    auto user_interface = player->get_user_interface();
     user_interface->clear_intro_screen();
     user_interface->select_face(hugin::FACE_INTRO);
     user_interface->set_focus();

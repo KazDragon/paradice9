@@ -1,8 +1,6 @@
 #include "ansi_parser_fixture.hpp"
 #include "odin/ansi/ansi_parser.hpp"
 #include "odin/ascii/protocol.hpp"
-#include <boost/foreach.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <deque>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ansi_parser_fixture);
@@ -25,11 +23,12 @@ void ansi_parser_fixture::test_constructor()
 void ansi_parser_fixture::test_plain_string()
 {
     odin::ansi::parser parse;
-    
+
     std::string const plain_string = "This is a plain string.";
-    
+
     vector<odin::ansi::parser::token_type> expected_results;
-    BOOST_FOREACH(char ch, plain_string)
+
+    for (char ch : plain_string)
     {
         expected_results.push_back(
             odin::ansi::parser::token_type(ch));
@@ -37,11 +36,11 @@ void ansi_parser_fixture::test_plain_string()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, plain_string)
+    for (char ch : plain_string)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -56,13 +55,13 @@ void ansi_parser_fixture::test_plain_string()
          ++index)
     {
         // In this case, they're all chars.
-        BOOST_AUTO(expected_char, get<char>(expected_results[index]));
-        BOOST_AUTO(actual_char, get<char>(actual_results[index]));
+        auto expected_char = get<char>(expected_results[index]);
+        auto actual_char = get<char>(actual_results[index]);
 
         CPPUNIT_ASSERT_EQUAL(expected_char, actual_char);
     }
-         
-        
+
+
 }
 
 //* =========================================================================
@@ -89,11 +88,11 @@ void ansi_parser_fixture::test_csi_no_argument()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, ansi_command)
+    for (char ch : ansi_command)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -103,7 +102,7 @@ void ansi_parser_fixture::test_csi_no_argument()
 
     CPPUNIT_ASSERT_EQUAL(expected_results.size(), actual_results.size());
 
-    BOOST_AUTO(actual_sequence, get<odin::ansi::control_sequence>(actual_results[0]));
+    auto actual_sequence = get<odin::ansi::control_sequence>(actual_results[0]);
     CPPUNIT_ASSERT(actual_sequence == expected_sequence);
 }
 
@@ -113,7 +112,7 @@ void ansi_parser_fixture::test_csi_no_argument()
 void ansi_parser_fixture::test_csi_one_argument()
 {
     odin::ansi::parser parse;
-    
+
     // This is the 'cursor up 2 spaces' control sequence.
     string const ansi_command = string("")
         + odin::ascii::ESC
@@ -133,11 +132,11 @@ void ansi_parser_fixture::test_csi_one_argument()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, ansi_command)
+    for (char ch : ansi_command)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -147,7 +146,7 @@ void ansi_parser_fixture::test_csi_one_argument()
 
     CPPUNIT_ASSERT_EQUAL(expected_results.size(), actual_results.size());
 
-    BOOST_AUTO(actual_sequence, get<odin::ansi::control_sequence>(actual_results[0]));
+    auto actual_sequence = get<odin::ansi::control_sequence>(actual_results[0]);
     CPPUNIT_ASSERT(actual_sequence == expected_sequence);
 }
 
@@ -183,11 +182,11 @@ void ansi_parser_fixture::test_csi_two_arguments()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, ansi_command)
+    for (char ch : ansi_command)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -197,7 +196,7 @@ void ansi_parser_fixture::test_csi_two_arguments()
 
     CPPUNIT_ASSERT_EQUAL(expected_results.size(), actual_results.size());
 
-    BOOST_AUTO(actual_sequence, get<odin::ansi::control_sequence>(actual_results[0]));
+    auto actual_sequence = get<odin::ansi::control_sequence>(actual_results[0]);
     CPPUNIT_ASSERT(actual_sequence == expected_sequence);
 }
 
@@ -209,7 +208,7 @@ void ansi_parser_fixture::test_multiple_tokens()
     odin::ansi::parser parse;
 
     // This is a text string, followed by 'cursor up', followed by another
-    // text string.    
+    // text string.
     string const input = string("")
         + "1"
         + odin::ascii::ESC
@@ -218,12 +217,12 @@ void ansi_parser_fixture::test_multiple_tokens()
         + "2";
 
     char const expected_element0 = '1';
-    
+
     odin::ansi::control_sequence expected_element1;
     expected_element1.meta_      = false;
     expected_element1.initiator_ = odin::ascii::OPEN_SQUARE_BRACKET;
     expected_element1.command_   = odin::ascii::UPPERCASE_A;
-    
+
     char const expected_element2 = '2';
 
     vector<odin::ansi::parser::token_type> expected_results;
@@ -233,11 +232,11 @@ void ansi_parser_fixture::test_multiple_tokens()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, input)
+    for (char ch : input)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -247,11 +246,11 @@ void ansi_parser_fixture::test_multiple_tokens()
 
     CPPUNIT_ASSERT_EQUAL(expected_results.size(), actual_results.size());
 
-    BOOST_AUTO(actual_element0, get<char>(actual_results[0]));
+    auto actual_element0 = get<char>(actual_results[0]);
+    auto actual_element1 = get<odin::ansi::control_sequence>(actual_results[1]);
+    auto actual_element2 = get<char>(actual_results[2]);
     CPPUNIT_ASSERT(actual_element0 == expected_element0);
-    BOOST_AUTO(actual_element1, get<odin::ansi::control_sequence>(actual_results[1]));
     CPPUNIT_ASSERT(actual_element1 == expected_element1);
-    BOOST_AUTO(actual_element2, get<char>(actual_results[2]));
     CPPUNIT_ASSERT(actual_element2 == expected_element2);
 }
 
@@ -262,14 +261,14 @@ void ansi_parser_fixture::test_multiple_tokens()
 void ansi_parser_fixture::test_csi_meta_no_argument()
 {
     odin::ansi::parser parse;
-    
+
     // This is actually the 'meta+cursor up 1 space' control sequence.
     string const ansi_command = string("")
         + odin::ascii::ESC
         + odin::ascii::ESC
         + odin::ascii::OPEN_SQUARE_BRACKET
         + odin::ascii::UPPERCASE_A;
-        
+
     odin::ansi::control_sequence expected_sequence;
     expected_sequence.meta_      = true;
     expected_sequence.initiator_ = odin::ascii::OPEN_SQUARE_BRACKET;
@@ -280,11 +279,11 @@ void ansi_parser_fixture::test_csi_meta_no_argument()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, ansi_command)
+    for (char ch : ansi_command)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -294,7 +293,7 @@ void ansi_parser_fixture::test_csi_meta_no_argument()
 
     CPPUNIT_ASSERT_EQUAL(expected_results.size(), actual_results.size());
 
-    BOOST_AUTO(actual_sequence, get<odin::ansi::control_sequence>(actual_results[0]));
+    auto actual_sequence = get<odin::ansi::control_sequence>(actual_results[0]);
     CPPUNIT_ASSERT(actual_sequence == expected_sequence);
 }
 
@@ -304,7 +303,7 @@ void ansi_parser_fixture::test_csi_meta_no_argument()
 void ansi_parser_fixture::test_mouse_report()
 {
     odin::ansi::parser parse;
-    
+
     // This is actually the 'meta+cursor up 1 space' control sequence.
     string const ansi_command = string("")
         + odin::ascii::ESC
@@ -314,7 +313,7 @@ void ansi_parser_fixture::test_mouse_report()
         + '\x34'
         + '\x35'
         + 'c'; // <- normal character
-        
+
     odin::ansi::mouse_report expected_element0;
     expected_element0.button_     = 0x33;
     expected_element0.x_position_ = 0x34;
@@ -328,11 +327,11 @@ void ansi_parser_fixture::test_mouse_report()
 
     vector<odin::ansi::parser::token_type> actual_results;
 
-    BOOST_FOREACH(char ch, ansi_command)
+    for (char ch : ansi_command)
     {
         parse(ch);
 
-        BOOST_AUTO(token, parse.token());
+        auto token = parse.token();
 
         if (token.is_initialized())
         {
@@ -342,8 +341,8 @@ void ansi_parser_fixture::test_mouse_report()
 
     CPPUNIT_ASSERT_EQUAL(expected_results.size(), actual_results.size());
 
-    BOOST_AUTO(actual_element0, get<odin::ansi::mouse_report>(actual_results[0]));
+    auto actual_element0 = get<odin::ansi::mouse_report>(actual_results[0]);
+    auto actual_element1 = get<char>(actual_results[1]);
     CPPUNIT_ASSERT(actual_element0 == expected_element0);
-    BOOST_AUTO(actual_element1, get<char>(actual_results[1]));
     CPPUNIT_ASSERT(actual_element1 == expected_element1);
 }

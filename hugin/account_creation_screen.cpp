@@ -39,16 +39,6 @@
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace munin::ansi;
-using namespace munin;
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace hugin {
 
@@ -64,19 +54,19 @@ struct account_creation_screen::impl
     {
         if (on_account_created_)
         {
-            BOOST_AUTO(document, name_field_->get_document());
-            BOOST_AUTO(elements, document->get_line(0));
-            BOOST_AUTO(name, string_from_elements(elements));
+            auto document = name_field_->get_document();
+            auto elements = document->get_line(0);
+            auto name = munin::ansi::string_from_elements(elements);
             
             document = password_field_->get_document();
             elements = document->get_line(0);
             
-            BOOST_AUTO(password, string_from_elements(elements));
+            auto password = munin::ansi::string_from_elements(elements);
             
             document = password_verify_field_->get_document();
             elements = document->get_line(0);
             
-            BOOST_AUTO(password_verify, string_from_elements(elements));
+            auto password_verify = munin::ansi::string_from_elements(elements);
             
             on_account_created_(name, password, password_verify);
         }
@@ -94,149 +84,152 @@ struct account_creation_screen::impl
     }
     
     // Account Creation components
-    shared_ptr<edit>                        name_field_;
-    shared_ptr<edit>                        password_field_;
-    shared_ptr<edit>                        password_verify_field_;
-    shared_ptr<button>                      ok_button_;
-    shared_ptr<button>                      cancel_button_;
-    function<void (string, string, string)> on_account_created_;
-    function<void ()>                       on_account_creation_cancelled_;
-    vector<boost::signals::connection>      connections_;
+    std::shared_ptr<munin::edit>              name_field_;
+    std::shared_ptr<munin::edit>              password_field_;
+    std::shared_ptr<munin::edit>              password_verify_field_;
+    std::shared_ptr<munin::button>            ok_button_;
+    std::shared_ptr<munin::button>            cancel_button_;
+    std::function<void (std::string const &, 
+                        std::string const &, 
+                        std::string const &)> on_account_created_;
+    std::function<void ()>                    on_account_creation_cancelled_;
+    std::vector<boost::signals::connection>   connections_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 account_creation_screen::account_creation_screen()
-    : pimpl_(make_shared<impl>())
+    : pimpl_(std::make_shared<impl>())
 {
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
+    auto content = get_container();
+    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     
-    BOOST_AUTO(screen_frame, make_shared<named_frame>());
+    auto screen_frame = std::make_shared<munin::named_frame>();
     screen_frame->set_name("ACCOUNT CREATION");
     
     // Create the Name, Password and Password (verify) labels.
-    alignment_data alignment;
-    alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
-    alignment.vertical_alignment   = VERTICAL_ALIGNMENT_CENTRE;
+    munin::alignment_data alignment;
+    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
+    alignment.vertical_alignment   = munin::VERTICAL_ALIGNMENT_CENTRE;
     
-    BOOST_AUTO(name_container, make_shared<basic_container>());
-    name_container->set_layout(make_shared<aligned_layout>());
+    auto name_container = std::make_shared<munin::basic_container>();
+    name_container->set_layout(std::make_shared<munin::aligned_layout>());
     name_container->add_component(
-        make_shared<image>(string_to_elements("Name: "))
-      , alignment);
+        std::make_shared<munin::image>(munin::string_to_elements("Name: ")),
+        alignment);
     
-    BOOST_AUTO(password0_container, make_shared<basic_container>());
-    password0_container->set_layout(make_shared<aligned_layout>());
+    auto password0_container = std::make_shared<munin::basic_container>();
+    password0_container->set_layout(std::make_shared<munin::aligned_layout>());
     password0_container->add_component(
-        make_shared<image>(string_to_elements("Password: "))
+        std::make_shared<munin::image>(munin::string_to_elements("Password: "))
       , alignment);
     
-    BOOST_AUTO(password1_container, make_shared<basic_container>());
-    password1_container->set_layout(make_shared<aligned_layout>());
+    auto password1_container = std::make_shared<munin::basic_container>();
+    password1_container->set_layout(std::make_shared<munin::aligned_layout>());
     password1_container->add_component(
-        make_shared<image>(string_to_elements("Password (verify): "))
-      , alignment);
+        std::make_shared<munin::image>(
+            munin::string_to_elements("Password (verify): ")),
+        alignment);
 
-    BOOST_AUTO(labels_container, make_shared<basic_container>());
-    labels_container->set_layout(make_shared<grid_layout>(3, 1));
+    auto labels_container = std::make_shared<munin::basic_container>();
+    labels_container->set_layout(std::make_shared<munin::grid_layout>(3, 1));
     labels_container->add_component(name_container);
     labels_container->add_component(password0_container);
     labels_container->add_component(password1_container);
     
     // Create the Name, Password, Password (verify) edit fields.
-    pimpl_->name_field_            = make_shared<edit>();
-    pimpl_->password_field_        = make_shared<edit>();
-    pimpl_->password_verify_field_ = make_shared<edit>();
+    pimpl_->name_field_            = std::make_shared<munin::edit>();
+    pimpl_->password_field_        = std::make_shared<munin::edit>();
+    pimpl_->password_verify_field_ = std::make_shared<munin::edit>();
     
-    element_type password_element;
+    munin::element_type password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        odin::ansi::graphics::COLOUR_RED;
+        odin::ansi::graphics::colour::red;
     pimpl_->password_field_->set_attribute(
-        EDIT_PASSWORD_ELEMENT
+        munin::EDIT_PASSWORD_ELEMENT
       , password_element);
     pimpl_->password_verify_field_->set_attribute(
-        EDIT_PASSWORD_ELEMENT
+        munin::EDIT_PASSWORD_ELEMENT
       , password_element);
 
-    BOOST_AUTO(fields_container, make_shared<basic_container>());
-    fields_container->set_layout(make_shared<grid_layout>(3, 1));
+    auto fields_container = std::make_shared<munin::basic_container>();
+    fields_container->set_layout(std::make_shared<munin::grid_layout>(3, 1));
     fields_container->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
+        std::make_shared<munin::framed_component>(
+            std::make_shared<munin::solid_frame>()
           , pimpl_->name_field_));
     fields_container->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
+        std::make_shared<munin::framed_component>(
+            std::make_shared<munin::solid_frame>()
           , pimpl_->password_field_));
     fields_container->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
+        std::make_shared<munin::framed_component>(
+            std::make_shared<munin::solid_frame>()
           , pimpl_->password_verify_field_));
     
-    BOOST_AUTO(labels_fields_container, make_shared<basic_container>());
-    labels_fields_container->set_layout(make_shared<compass_layout>());
+    auto labels_fields_container = std::make_shared<munin::basic_container>();
+    labels_fields_container->set_layout(std::make_shared<munin::compass_layout>());
     labels_fields_container->add_component(
-        labels_container
-      , COMPASS_LAYOUT_WEST);
+        labels_container,
+        munin::COMPASS_LAYOUT_WEST);
     labels_fields_container->add_component(
-        fields_container
-      , COMPASS_LAYOUT_CENTRE);
+        fields_container,
+        munin::COMPASS_LAYOUT_CENTRE);
     
-    BOOST_AUTO(inner_container, make_shared<basic_container>());
-    inner_container->set_layout(make_shared<compass_layout>());
+    auto inner_container = std::make_shared<munin::basic_container>();
+    inner_container->set_layout(std::make_shared<munin::compass_layout>());
     inner_container->add_component(
-        labels_fields_container
-      , COMPASS_LAYOUT_NORTH);
+        labels_fields_container,
+        munin::COMPASS_LAYOUT_NORTH);
 
     // Create the OK and Cancel buttons.
-    pimpl_->ok_button_ = make_shared<button>(
-        string_to_elements("  OK  "));
+    pimpl_->ok_button_ = std::make_shared<munin::button>(
+        munin::string_to_elements("  OK  "));
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
-        bind(&impl::on_account_creation_ok, pimpl_)));
+        [this]{pimpl_->on_account_creation_ok();}));
     
-    pimpl_->cancel_button_ = make_shared<button>(
-        string_to_elements("Cancel"));
+    pimpl_->cancel_button_ = std::make_shared<munin::button>(
+        munin::string_to_elements("Cancel"));
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
-        bind(&impl::on_account_creation_cancelled, pimpl_)));
+        [this]{pimpl_->on_account_creation_cancelled();}));
     
-    BOOST_AUTO(buttons_inner_container, make_shared<basic_container>());
-    buttons_inner_container->set_layout(make_shared<grid_layout>(1, 2));
+    auto buttons_inner_container = std::make_shared<munin::basic_container>();
+    buttons_inner_container->set_layout(std::make_shared<munin::grid_layout>(1, 2));
     buttons_inner_container->add_component(pimpl_->ok_button_);
     buttons_inner_container->add_component(pimpl_->cancel_button_);
     
-    BOOST_AUTO(buttons_outer_container, make_shared<basic_container>());
-    buttons_outer_container->set_layout(make_shared<compass_layout>());
+    auto buttons_outer_container = std::make_shared<munin::basic_container>();
+    buttons_outer_container->set_layout(std::make_shared<munin::compass_layout>());
     buttons_outer_container->add_component(
-        buttons_inner_container
-      , COMPASS_LAYOUT_EAST);
+        buttons_inner_container,
+        munin::COMPASS_LAYOUT_EAST);
     
-    BOOST_AUTO(inner_container2, make_shared<basic_container>());
-    inner_container2->set_layout(make_shared<compass_layout>());
+    auto inner_container2 = std::make_shared<munin::basic_container>();
+    inner_container2->set_layout(std::make_shared<munin::compass_layout>());
     inner_container2->add_component(
-        inner_container
-      , COMPASS_LAYOUT_NORTH);
+        inner_container,
+        munin::COMPASS_LAYOUT_NORTH);
     inner_container2->add_component(
-        buttons_outer_container
-      , COMPASS_LAYOUT_CENTRE);
+        buttons_outer_container,
+        munin::COMPASS_LAYOUT_CENTRE);
     
-    BOOST_AUTO(inner_container3, make_shared<basic_container>());
-    inner_container3->set_layout(make_shared<compass_layout>());
-    inner_container3->add_component(inner_container2, COMPASS_LAYOUT_NORTH);
+    auto inner_container3 = std::make_shared<munin::basic_container>();
+    inner_container3->set_layout(std::make_shared<munin::compass_layout>());
+    inner_container3->add_component(inner_container2, munin::COMPASS_LAYOUT_NORTH);
     // TODO: I think this can be coalesced now the statusbar has gone.
-    content->add_component(make_shared<framed_component>(
+    content->add_component(std::make_shared<munin::framed_component>(
         screen_frame
       , inner_container3));
 
     // Add a filler to ensure that the background is opaque.
     content->set_layout(
-        make_shared<grid_layout>(1, 1)
+        std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        make_shared<filled_box>(element_type(' '))
-      , any()
+        std::make_shared<munin::filled_box>(munin::element_type(' '))
+      , {}
       , munin::LOWEST_LAYER);
 }
 
@@ -245,7 +238,7 @@ account_creation_screen::account_creation_screen()
 // ==========================================================================
 account_creation_screen::~account_creation_screen()
 {
-    BOOST_FOREACH(boost::signals::connection &cnx, pimpl_->connections_)
+    for (auto &cnx : pimpl_->connections_)
     {
         cnx.disconnect();
     }
@@ -256,21 +249,24 @@ account_creation_screen::~account_creation_screen()
 // ==========================================================================
 void account_creation_screen::clear()
 {
-    BOOST_AUTO(document, pimpl_->name_field_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    auto document = pimpl_->name_field_->get_document();
+    document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
     
     document = pimpl_->password_field_->get_document();
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
     
     document = pimpl_->password_verify_field_->get_document();
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
 }
 
 // ==========================================================================
 // ON_ACCOUNT_CREATED
 // ==========================================================================
 void account_creation_screen::on_account_created(
-    function<void (string, string, string)> callback)
+    std::function<
+        void (std::string const &, 
+              std::string const &, 
+              std::string const &)> const &callback)
 {
     pimpl_->on_account_created_ = callback;
 }
@@ -278,7 +274,8 @@ void account_creation_screen::on_account_created(
 // ==========================================================================
 // ON_ACCOUNT_CREATION_CANCELLED
 // ==========================================================================
-void account_creation_screen::on_account_creation_cancelled(function<void ()> callback)
+void account_creation_screen::on_account_creation_cancelled(
+    std::function<void ()> const &callback)
 {
     pimpl_->on_account_creation_cancelled_ = callback;
 }
@@ -286,13 +283,13 @@ void account_creation_screen::on_account_creation_cancelled(function<void ()> ca
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void account_creation_screen::do_event(any const &ev)
+void account_creation_screen::do_event(boost::any const &ev)
 {
     bool handled = false;
     
-    char const *ch = any_cast<char>(&ev);
-    odin::ansi::control_sequence const *control_sequence = 
-        any_cast<odin::ansi::control_sequence>(&ev);
+    auto const *ch = boost::any_cast<char>(&ev);
+    auto const *control_sequence = 
+        boost::any_cast<odin::ansi::control_sequence>(&ev);
 
     if (ch)
     {

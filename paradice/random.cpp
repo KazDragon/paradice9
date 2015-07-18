@@ -28,18 +28,16 @@
 #include <boost/random.hpp>
 #include <boost/random/random_device.hpp>
 
-using namespace odin;
-using namespace boost;
-
 namespace paradice {
 
-u32 random_number(u32 from, u32 to)
+odin::u32 random_number(odin::u32 from, odin::u32 to)
 {
     // TODO: Make this code thread-safe.
-    static random_device rdev;
-    static mt19937 rng((rdev()));
-    uniform_int<> distribution(from, to);
-    variate_generator< mt19937&, uniform_int<> > roller(rng, distribution);
+    static boost::random_device rdev;
+    static boost::mt19937 rng((rdev()));
+    boost::uniform_int<> distribution(from, to);
+    boost::variate_generator< boost::mt19937&, boost::uniform_int<> > roller(
+        rng, distribution);
 
     return roller();
 }

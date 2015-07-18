@@ -6,36 +6,29 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/detail/generator.hpp"
 #include "odin/telnet/detail/parser.hpp"
 #include <boost/asio/io_service.hpp>
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <deque>
-
-using namespace std;
-using namespace boost;
 
 namespace odin { namespace telnet {
 
@@ -43,7 +36,7 @@ namespace odin { namespace telnet {
 // STREAM IMPLEMENTATION STRUCTURE
 // ==========================================================================
 class stream::impl
-    : public enable_shared_from_this<stream::impl>
+    : public std::enable_shared_from_this<stream::impl>
 {
 public :
     typedef odin::io::byte_stream::input_value_type     underlying_input_value_type;
@@ -59,49 +52,47 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        shared_ptr<odin::io::byte_stream> const &underlying_stream
-      , boost::asio::io_service                 &io_service)
-        : underlying_stream_(underlying_stream)
-        , io_service_(io_service)
-        , read_request_active_(false)
-        , write_request_active_(false)
+        std::shared_ptr<odin::io::byte_stream>  underlying_stream,
+        boost::asio::io_service                &io_service)
+      : underlying_stream_(std::move(underlying_stream)),
+        io_service_(io_service),
+        read_request_active_(false),
+        write_request_active_(false)
     {
     }
-    
+
     // ======================================================================
     // AVAILABLE
     // ======================================================================
-    optional<stream::input_size_type> available() const
+    boost::optional<stream::input_size_type> available() const
     {
         // If there is a read request ongoing, we must return a "would block"
         // message.
         if (!read_requests_.empty())
         {
-            return optional<stream::input_size_type>();
+            return {};
         }
-        
+
         // Grab any data that is available on the underlying datastream.
-        BOOST_AUTO(underlying_available, underlying_stream_->available());
-        
+        auto underlying_available = underlying_stream_->available();
+
         if (underlying_available.is_initialized())
         {
-            BOOST_AUTO(
-                values 
-              , underlying_stream_->read(underlying_available.get()));
-            
+            auto values = underlying_stream_->read(underlying_available.get());
+
             unparsed_input_buffer_.insert(
-                unparsed_input_buffer_.end()
-              , values.begin()
-              , values.end());
-            
+                unparsed_input_buffer_.end(),
+                values.begin(),
+                values.end());
+
             parse_input_buffer();
         }
-        
+
         return parsed_input_buffer_.empty()
-             ? optional<stream::input_size_type>()
-             : optional<stream::input_size_type>(parsed_input_buffer_.size());
+             ? boost::optional<stream::input_size_type>()
+             : boost::optional<stream::input_size_type>(parsed_input_buffer_.size());
     }
-    
+
     // ======================================================================
     // READ
     // ======================================================================
@@ -117,24 +108,24 @@ public :
             // causing this to block forever, but still fill up with data.
             // There should be a user-configurable point at which an exception
             // is thrown.
-            
+
             // For example:
             // if (unparsed_input_stream_.size() > 64000) { throw something; }
-            
+
             // However, this would only occur if a client made a call to
             // read() which actually did block.  Most use cases involve calling
             // available() first to see how much can be read without blocking.
             // However, available() suffers from the same memory issue.
         }
-        
+
         stream::input_storage_type result(
-            parsed_input_buffer_.begin()
-          , parsed_input_buffer_.begin() + size);
-        
+            parsed_input_buffer_.begin(),
+            parsed_input_buffer_.begin() + size);
+
         parsed_input_buffer_.erase(
-            parsed_input_buffer_.begin()
-          , parsed_input_buffer_.begin() + size);
-        
+            parsed_input_buffer_.begin(),
+            parsed_input_buffer_.begin() + size);
+
         return result;
     }
 
@@ -145,7 +136,7 @@ public :
         stream::input_size_type            size
       , stream::input_callback_type const &callback)
     {
-        read_requests_.push_back(read_request(size, callback));
+        read_requests_.emplace_back(size, callback);
         schedule_read_request();
     }
 
@@ -154,20 +145,17 @@ public :
     // ======================================================================
     output_size_type write(output_storage_type const &values)
     {
-        BOOST_AUTO(begin, values.begin());
-        BOOST_AUTO(end,   values.end());
-        
-        BOOST_AUTO(generated_output, (generate_(begin, end)));
-        
-        underlying_output_storage_type output_values(
-            generated_output.begin()
-          , generated_output.end());
-        
-        underlying_stream_->write(output_values);
-        
+        auto begin = values.begin();
+        auto end = values.end();
+
+        auto generated_output = generate_(begin, end);
+
+        underlying_stream_->write(underlying_output_storage_type(
+            generated_output.begin(), generated_output.end()));
+
         return values.size();
     }
-    
+
     // ======================================================================
     // ASYNC_WRITE
     // ======================================================================
@@ -175,10 +163,10 @@ public :
         stream::output_storage_type const  &values
       , stream::output_callback_type const &callback)
     {
-        write_requests_.push_back(write_request(values, callback));
+        write_requests_.emplace_back(values, callback);
         schedule_write_request();
     }
-    
+
     // ======================================================================
     // IS_ALIVE
     // ======================================================================
@@ -186,41 +174,43 @@ public :
     {
         return underlying_stream_->is_alive();
     }
-    
+
 private :
     // ======================================================================
     // PARSE
     // ======================================================================
     template <class ForwardInputIterator>
-    vector<input_value_type> parse(
-        ForwardInputIterator &start
-      , ForwardInputIterator  end)
+    std::vector<input_value_type> parse(
+        ForwardInputIterator &&start
+      , ForwardInputIterator &&end)
     {
-        return parse_(start, end);
+        return parse_(
+            std::forward<ForwardInputIterator>(start),
+            std::forward<ForwardInputIterator>(end));
     }
-    
+
     // ======================================================================
     // SYNC_UNDERFLOW
     // ======================================================================
     void sync_underflow()
     {
-        // Read as much data as is available from the underlying 
+        // Read as much data as is available from the underlying
         // datastream, to a minimum of one byte.
-        BOOST_AUTO(available, underlying_stream_->available());
-        
-        BOOST_AUTO(amount_to_read,
+        auto available = underlying_stream_->available();
+
+        auto amount_to_read =
             available.is_initialized()
-          ? *available 
-          : 1);
-          
-        BOOST_AUTO(data, underlying_stream_->read(amount_to_read));
-            
+          ? *available
+          : 1;
+
+        auto data = underlying_stream_->read(amount_to_read);
+
         unparsed_input_buffer_.insert(
-            unparsed_input_buffer_.end()
-          , data.begin()
-          , data.end());
+            unparsed_input_buffer_.end(),
+            data.begin(),
+            data.end());
     }
-    
+
     // ======================================================================
     // PARSE_INPUT_BUFFER
     // ======================================================================
@@ -228,20 +218,20 @@ private :
     {
         // Take input from the unparsed input buffer and parse as much as
         // it as possible.  Then erase any consumed input.
-        BOOST_FOREACH(odin::u8 element, unparsed_input_buffer_)
+        for (odin::u8 element : unparsed_input_buffer_)
         {
             parse_(element);
 
-            BOOST_AUTO(result, parse_.token());
+            auto result = parse_.token();
 
             if (result.is_initialized())
             {
                 // If the last element parsed is a string, and this element
                 // is also a string, then coalesce the two together.
-                char   *current  = get<char>(&result.get());
-                string *previous = parsed_input_buffer_.empty()
-                                 ? NULL
-                                 : get<string>(&parsed_input_buffer_.back());
+                char        *current  = boost::get<char>(&result.get());
+                std::string *previous = parsed_input_buffer_.empty()
+                  ? NULL
+                  : boost::get<std::string>(&parsed_input_buffer_.back());
 
                 if (current != NULL)
                 {
@@ -251,7 +241,7 @@ private :
                     }
                     else
                     {
-                        parsed_input_buffer_.push_back(string(current, 1));
+                        parsed_input_buffer_.push_back(std::string(current, 1));
                     }
                 }
                 else
@@ -263,17 +253,16 @@ private :
 
         unparsed_input_buffer_.clear();
     }
-    
+
     // ======================================================================
     // SCHEDULE_READ_REQUEST
     // ======================================================================
     void schedule_read_request()
     {
         // Schedules a call to look at the read requests asynchronously.
-        io_service_.post(boost::bind(
-            &impl::check_async_read_requests, shared_from_this()));
+        io_service_.post([this]{check_async_read_requests();});
     }
-    
+
     // ======================================================================
     // CHECK_ASYNC_READ_REQUESTS
     // ======================================================================
@@ -284,29 +273,35 @@ private :
         {
             return;
         }
-        
+
         // If the socket has died, then inform all the readers that their
-        // operations have gone as far as they ever will, and then return 
+        // operations have gone as far as they ever will, and then return
         // with no further ado.
         if (!underlying_stream_->is_alive())
         {
+            // Since a callback might cause something to lose a reference
+            // to this object, it could be destroyed while we're calling
+            // back.  Therefore, we hold a reference until the end of this
+            // block.
+            const auto &lifetime_lock = shared_from_this();
+            
             while (!read_requests_.empty())
             {
                 read_request &top_request = read_requests_[0];
-                
+
                 if (top_request.callback_ != NULL)
                 {
                     top_request.callback_(stream::input_storage_type());
                 }
-                
+
                 read_requests_.pop_front();
             }
-            
+
             return;
         }
-        
+
         read_request &request = read_requests_[0];
-        
+
         // If there is already an async read requested, then this flag will
         // be set and we don't need to do anything yet.
         if (!read_request_active_)
@@ -316,12 +311,12 @@ private :
             {
                 // We can fulfill the request from the data we have available.
                 stream::input_storage_type result(
-                    parsed_input_buffer_.begin()
-                  , parsed_input_buffer_.begin() + request.size_);
+                    parsed_input_buffer_.begin(),
+                    parsed_input_buffer_.begin() + request.size_);
 
                 parsed_input_buffer_.erase(
-                    parsed_input_buffer_.begin()
-                  , parsed_input_buffer_.begin() + request.size_);
+                    parsed_input_buffer_.begin(),
+                    parsed_input_buffer_.begin() + request.size_);
 
                 // If this is the only request, then it is valid for the client
                 // to call available() during the callback.  Therefore, this
@@ -330,7 +325,7 @@ private :
                 // call it.
                 input_callback_type callback = request.callback_;
                 read_requests_.pop_front();
-                
+
                 if (callback != NULL)
                 {
                     callback(result);
@@ -340,59 +335,54 @@ private :
             {
                 // There is insufficient data to fulfill the request.  Perform
                 // an asynchronous read on the underlying input stream.
-                BOOST_AUTO(
-                    underlying_available
-                  , underlying_stream_->available());
-                
-                BOOST_AUTO(
-                    amount
-                  , underlying_available.is_initialized()
-                      ? underlying_available.get()
-                      : 1);
+                auto underlying_available = underlying_stream_->available();
+
+                auto amount = underlying_available.is_initialized()
+                  ? underlying_available.get()
+                  : 1;
 
                 underlying_stream_->async_read(
-                    amount
-                  , bind(
-                        &impl::async_read_complete
-                      , shared_from_this()
-                      , _1));
-                    
+                    amount,
+                    [this](underlying_input_storage_type const &values)
+                    {
+                        async_read_complete(values);
+                    });
+
                 read_request_active_ = true;
             }
         }
     }
-    
+
     // ======================================================================
     // ASYNC_READ_COMPLETE
     // ======================================================================
     void async_read_complete(underlying_input_storage_type const &values)
     {
         unparsed_input_buffer_.insert(
-            unparsed_input_buffer_.end()
-          , values.begin()
-          , values.end());
-        
+            unparsed_input_buffer_.end(),
+            values.begin(),
+            values.end());
+
         parse_input_buffer();
 
         // The read requests is now complete.  Unset the flag that records
         // this.
         read_request_active_ = false;
-        
+
         // Schedule a check for the read requests.  One might now have been
         // fulfilled.
         schedule_read_request();
     }
-    
+
     // ======================================================================
     // SCHEDULE_WRITE_REQUEST
     // ======================================================================
     void schedule_write_request()
     {
         // Schedules a call to look at the write requests asynchronously.
-        io_service_.post(boost::bind(
-            &impl::check_async_write_requests, shared_from_this()));
+        io_service_.post([this]{check_async_write_requests();});
     }
-    
+
     // ======================================================================
     // CHECK_ASYNC_WRITE_REQUESTS
     // ======================================================================
@@ -403,24 +393,24 @@ private :
             // There are no write requests.  Return immediately.
             return;
         }
-        
+
         // If the socket has died, then inform all the writers that their
-        // operations have gone as far as they ever will, and then return 
+        // operations have gone as far as they ever will, and then return
         // with no further ado.
         if (!underlying_stream_->is_alive())
         {
             while (!write_requests_.empty())
             {
                 write_request &top_request = write_requests_[0];
-                
+
                 if (top_request.callback_ != NULL)
                 {
                     top_request.callback_(stream::output_size_type(0));
                 }
-                
+
                 write_requests_.pop_front();
             }
-            
+
             return;
         }
 
@@ -429,45 +419,45 @@ private :
             // No request is active, so generate output for the next request
             // and send it to the underlying stream.
             write_request &request = write_requests_[0];
-            
-            BOOST_AUTO(begin, request.values_.begin());
-            BOOST_AUTO(end,   request.values_.end());
-        
-            BOOST_AUTO(generated_output, (generate_(begin, end)));
+
+            auto begin = request.values_.begin();
+            auto end = request.values_.end();
+
+            auto generated_output = generate_(begin, end);
 
             underlying_output_storage_type output_values(
-                generated_output.begin()
-              , generated_output.end());
-            
+                generated_output.begin(),
+                generated_output.end());
+
             underlying_stream_->async_write(
-                output_values
-              , bind(
-                    &impl::async_write_complete
-                  , shared_from_this()
-                  , _1));
-            
+                output_values,
+                [this](output_size_type bytes_written)
+                {
+                    async_write_complete(bytes_written);
+                });
+
             write_request_active_ = true;
         }
     }
-    
+
     // ======================================================================
     // ASYNC_WRITE_COMPLETE
     // ======================================================================
     void async_write_complete(output_size_type)
     {
         write_request &request = write_requests_[0];
-        
+
         if (request.callback_)
         {
             request.callback_(request.values_.size());
         }
 
-        write_requests_.pop_front();        
+        write_requests_.pop_front();
         write_request_active_ = false;
-        
+
         schedule_write_request();
     }
-    
+
     // READ_REQUEST =========================================================
     //  A structure to encapsulate read requests.
     // ======================================================================
@@ -480,11 +470,11 @@ private :
             , callback_(callback)
         {
         }
-            
+
         stream::input_size_type     size_;
         stream::input_callback_type callback_;
     };
-    
+
     // WRITE_REQUEST ========================================================
     //  A structure to encapsulate write requests.
     // ======================================================================
@@ -497,38 +487,38 @@ private :
             , callback_(callback)
         {
         }
-          
+
         stream::output_storage_type  values_;
         stream::output_callback_type callback_;
     };
-    
+
     // The underlying byte stream that we read from and write to.
-    shared_ptr<odin::io::byte_stream> underlying_stream_;
-    
+    std::shared_ptr<odin::io::byte_stream> underlying_stream_;
+
     // The IO service we use for asynchronous dispatch.
     boost::asio::io_service &io_service_;
-    
+
     // A parser for dealing with the input stream.
     mutable odin::telnet::detail::parser parse_;
-    
+
     // A generator for dealing with the output stream.
     odin::telnet::detail::generator generate_;
-    
+
     // This buffer is full of unparsed input from the underlying stream.
-    mutable deque<odin::u8> unparsed_input_buffer_;
-    
+    mutable std::deque<odin::u8> unparsed_input_buffer_;
+
     // This buffer is full of parsed input.
-    mutable deque<input_value_type> parsed_input_buffer_;
-    
+    mutable std::deque<input_value_type> parsed_input_buffer_;
+
     // This is the queue of asynchronous input requests.
-    deque<read_request> read_requests_;
-    
+    std::deque<read_request> read_requests_;
+
     // This is the queue of asynchronous output requests.
-    deque<write_request> write_requests_;
-    
+    std::deque<write_request> write_requests_;
+
     // A flag to record whether an asynchronous read is currently in progress.
     bool read_request_active_;
-    
+
     // A flag to record whether an asynchronous write is currently in progress.
     bool write_request_active_;
 };
@@ -537,9 +527,9 @@ private :
 // CONSTRUCTOR
 // ==========================================================================
 stream::stream(
-    shared_ptr<odin::io::byte_stream> const &underlying_stream
-  , boost::asio::io_service                 &io_service)
-    : pimpl_(new impl(underlying_stream, io_service))
+    std::shared_ptr<odin::io::byte_stream>  underlying_stream,
+    boost::asio::io_service                &io_service)
+  : pimpl_(std::make_shared<impl>(underlying_stream, std::ref(io_service)))
 {
 }
 
@@ -577,7 +567,7 @@ void stream::async_read(
 }
 
 // ==========================================================================
-// WRITE 
+// WRITE
 // ==========================================================================
 stream::output_size_type stream::write(output_storage_type const &values)
 {
@@ -585,7 +575,7 @@ stream::output_size_type stream::write(output_storage_type const &values)
 }
 
 // ==========================================================================
-// ASYNC_WRITE 
+// ASYNC_WRITE
 // ==========================================================================
 void stream::async_write(
     output_storage_type const  &values
@@ -595,7 +585,7 @@ void stream::async_write(
 }
 
 // ==========================================================================
-// IS_ALIVE 
+// IS_ALIVE
 // ==========================================================================
 bool stream::is_alive() const
 {

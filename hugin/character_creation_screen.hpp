@@ -28,8 +28,6 @@
 #define HUGIN_CHARACTER_CREATION_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace hugin {
@@ -62,15 +60,16 @@ public :
     /// for the creation of an character.
     //* =====================================================================
     void on_character_created(
-        boost::function<void (
-            std::string character_name
-          , bool        is_gm)> callback);
+        std::function<void (
+            std::string const &character_name,
+            bool               is_gm)> const &callback);
     
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation
     /// of an character.
     //* =====================================================================
-    void on_character_creation_cancelled(boost::function<void ()> callback);
+    void on_character_creation_cancelled(
+        std::function<void ()> const &callback);
     
 protected :
     //* =====================================================================
@@ -81,7 +80,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

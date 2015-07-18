@@ -53,17 +53,17 @@ public :
     /// \brief Sets the beasts to be used in this component.
     //* =====================================================================
     void set_beasts(
-        std::vector< boost::shared_ptr<paradice::beast> > const &beasts);
+        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
 
     //* =====================================================================
     /// \brief Retrieves the beasts used in this component.
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+    std::vector<std::shared_ptr<paradice::beast>> get_beasts() const;
 
     //* =====================================================================
     /// \brief Retrieves the currently selected beast.
     //* =====================================================================
-    boost::shared_ptr<paradice::beast> get_selected_beast() const;
+    std::shared_ptr<paradice::beast> get_selected_beast() const;
 
     //* =====================================================================
     /// \fn on_new
@@ -75,29 +75,29 @@ public :
     /// \fn on_clone
     /// \brief Called when the 'clone' button is pressed.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_clone;
+    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_clone;
 
     //* =====================================================================
     /// \fn on_edit
     /// \brief Called when the 'edit' button is pressed.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_edit;
+    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_edit;
 
     //* =====================================================================
     /// \fn on_fight
     /// \brief Called when the 'fight!' button is pressed.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_fight;
+    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_fight;
 
     //* =====================================================================
     /// \fn on_delete
     /// \brief Called when the 'delete' button is pressed.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_delete;
+    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_delete;
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

@@ -28,8 +28,6 @@
 #define HUGIN_CHARACTER_SELECTION_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace hugin {
@@ -73,14 +71,14 @@ public :
     /// a new character.
     //* =====================================================================
     void on_new_character(
-        boost::function<void ()> callback);
+        std::function<void ()> const &callback);
     
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to use an
     /// existing character.
     //* =====================================================================
     void on_character_selected(
-        boost::function<void (std::string)> callback);
+        std::function<void (std::string const &)> const &callback);
     
 protected :
     //* =====================================================================
@@ -91,7 +89,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

@@ -26,22 +26,14 @@
 // ==========================================================================
 #include "hugin/active_encounter_view.hpp"
 #include <munin/algorithm.hpp>
+#include <munin/container.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/list.hpp>
 #include <munin/scroll_pane.hpp>
 #include <paradice/beast.hpp>
 #include <paradice/character.hpp>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <numeric>
-
-using namespace paradice;
-using namespace munin;
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace hugin {
 
@@ -50,16 +42,16 @@ namespace hugin {
 // ==========================================================================
 struct active_encounter_view::impl
 {
-    shared_ptr<active_encounter> encounter_;
-    bool                         gm_mode_;
+    std::shared_ptr<paradice::active_encounter> encounter_;
+    bool                                        gm_mode_;
 
-    shared_ptr<munin::list>      participant_list_;
+    std::shared_ptr<munin::list>                participant_list_;
 
-    struct active_encounter_entry_visitor : static_visitor<string>
+    struct active_encounter_entry_visitor : boost::static_visitor<std::string>
     {
-        string operator()(active_encounter::player ply)
+        std::string operator()(paradice::active_encounter::player ply)
         {
-            shared_ptr<character> ch = ply.character_.lock();
+            std::shared_ptr<paradice::character> ch = ply.character_.lock();
 
             if (ch)
             {
@@ -71,7 +63,7 @@ struct active_encounter_view::impl
             }
         }
 
-        string operator()(shared_ptr<beast> beast)
+        std::string operator()(std::shared_ptr<paradice::beast> beast)
         {
             return beast->get_name();
         }
@@ -81,53 +73,54 @@ struct active_encounter_view::impl
     {
         if (!encounter_)
         {
-            participant_list_->set_items(vector< vector<element_type> >());
+            participant_list_->set_items({});
             return;
         }
 
-        BOOST_AUTO(selected_index, participant_list_->get_item_index());
+        auto selected_index = participant_list_->get_item_index();
 
         active_encounter_entry_visitor entry_visitor;
-        vector< vector<element_type> > list_data;
+        std::vector<std::vector<munin::element_type>> list_data;
 
-        BOOST_FOREACH(active_encounter::entry const &entry, encounter_->entries_)
+        for (auto const &entry : encounter_->entries_)
         {
-            string name = apply_visitor(entry_visitor, entry.participant_);
-            string text = str(format("(%d)") % entry.id_)
+            std::string name = boost::apply_visitor(entry_visitor, entry.participant_);
+            std::string text = boost::str(boost::format("(%d)") % entry.id_)
                  + " "
                  + name;
 
             if (!entry.annotation_.empty())
             {
-                text += str(format(" [%s]") % entry.annotation_);
+                text += boost::str(boost::format(" [%s]") % entry.annotation_);
             }
 
-            boost::optional<dice_result> const &last_roll =
+            boost::optional<paradice::dice_result> const &last_roll =
                 entry.roll_data_.empty()
-              ? boost::optional<dice_result>()
+              ? boost::optional<paradice::dice_result>()
               : entry.roll_data_.back();
 
             if (last_roll)
             {
-                s32 total_score = 0;
+                odin::s32 total_score = 0;
 
-                for (vector< vector<s32> >::const_iterator repetition = last_roll->results_.begin();
-                     repetition != last_roll->results_.end();
-                     ++repetition)
+                for (auto const &repetition : last_roll->results_)
                 {
+                    using std::begin;
+                    using std::end;
+                    
                     total_score += std::accumulate(
-                        repetition->begin(),
-                        repetition->end(),
+                        begin(repetition),
+                        end(repetition),
                         last_roll->roll_.bonus_);
                 }
 
-                text += str(
-                    format(" | %s -> %d")
+                text += boost::str(
+                    boost::format(" | %s -> %d")
                         % describe_dice(last_roll->roll_) 
                         % total_score);
             }
 
-            list_data.push_back(string_to_elements(text));
+            list_data.push_back(munin::string_to_elements(text));
         }
 
         participant_list_->set_items(list_data);
@@ -139,15 +132,15 @@ struct active_encounter_view::impl
 // CONSTRUCTOR
 // ==========================================================================
 active_encounter_view::active_encounter_view()
-    : pimpl_(make_shared<impl>())
+    : pimpl_(std::make_shared<impl>())
 {
     pimpl_->gm_mode_ = false;
-    pimpl_->participant_list_ = make_shared<munin::list>();
+    pimpl_->participant_list_ = std::make_shared<munin::list>();
 
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
+    auto content = get_container();
+    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     content->add_component(
-        make_shared<scroll_pane>(pimpl_->participant_list_));
+        std::make_shared<munin::scroll_pane>(pimpl_->participant_list_));
 }
 
 // ==========================================================================
@@ -170,7 +163,7 @@ void active_encounter_view::set_gm_mode(bool mode)
 // SET_ENCOUNTER
 // ==========================================================================
 void active_encounter_view::set_encounter(
-    shared_ptr<active_encounter> encounter)
+    std::shared_ptr<paradice::active_encounter> const &encounter)
 {
     pimpl_->encounter_ = encounter;
     pimpl_->update();

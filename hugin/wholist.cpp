@@ -30,21 +30,11 @@
 #include "munin/context.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/bind.hpp>
-#include <boost/format.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <vector>
 
-using namespace munin;
-using namespace munin::ansi;
-using namespace odin;
-using namespace boost;
-using namespace std;
-
-BOOST_STATIC_CONSTANT(u16, MIN_COLUMN_WIDTH        = 36);
-BOOST_STATIC_CONSTANT(u16, NUMBER_OF_ROWS          = 3);
-BOOST_STATIC_CONSTANT(u16, COLUMN_SEPERATOR_WIDTH  = 3);
+BOOST_STATIC_CONSTANT(odin::u16, MIN_COLUMN_WIDTH        = 36);
+BOOST_STATIC_CONSTANT(odin::u16, NUMBER_OF_ROWS          = 3);
+BOOST_STATIC_CONSTANT(odin::u16, COLUMN_SEPERATOR_WIDTH  = 3);
 
 namespace hugin {
 
@@ -67,16 +57,16 @@ struct wholist::impl
     // DRAW
     // ======================================================================
     void draw(
-        canvas          &cvs
-      , rectangle const &region)
+        munin::canvas          &cvs,
+        munin::rectangle const &region)
     {
-        copy_region(region, view_, cvs);
+        munin::copy_region(region, view_, cvs);
     }
     
     // ======================================================================
     // SET_NAMES
     // ======================================================================
-    void set_names(vector<string> const &names)
+    void set_names(std::vector<std::string> const &names)
     {
         names_ = names; 
         check_selected_index();
@@ -85,7 +75,7 @@ struct wholist::impl
     // ======================================================================
     // GET_NAMES
     // ======================================================================
-    vector<string> get_names() const
+    std::vector<std::string> get_names() const
     {
         return names_;
     }
@@ -93,7 +83,7 @@ struct wholist::impl
     // ======================================================================
     // GET_NUMBER_OF_COLUMNS
     // ======================================================================
-    u32 get_number_of_columns() const
+    odin::u32 get_number_of_columns() const
     {
         return columns_;
     }
@@ -101,7 +91,7 @@ struct wholist::impl
     // ======================================================================
     // GET_SELECTED_INDEX
     // ======================================================================
-    u32 get_selected_index() const
+    odin::u32 get_selected_index() const
     {
         return current_selection_;
     }
@@ -109,7 +99,7 @@ struct wholist::impl
     // ======================================================================
     // SET_SELECTED_INDEX
     // ======================================================================
-    void set_selected_index(u32 index)
+    void set_selected_index(odin::u32 index)
     {
         current_selection_ = index;
         check_selected_index();
@@ -133,59 +123,55 @@ private :
     void render_names()
     {
         // Find the begin and end indices of this page.
-        u32 current_page_begin_index = u32(name_index_);
-        u32 current_page_end_index   = u32(name_index_ + names_per_page_);
+        odin::u32 current_page_begin_index = odin::u32(name_index_);
+        odin::u32 current_page_end_index   = odin::u32(name_index_ + names_per_page_);
 
         // Loop through all the players in the current page.
-        for (u32 current_cell_index = current_page_begin_index;
+        for (odin::u32 current_cell_index = current_page_begin_index;
              current_cell_index < current_page_end_index;
              ++current_cell_index)
         {
             // Work out the current column and row.
-            u32 column = current_cell_index % columns_;
+            odin::u32 column = current_cell_index % columns_;
 
-            u32 row    = (current_cell_index - current_page_begin_index)
+            odin::u32 row    = (current_cell_index - current_page_begin_index)
                        / columns_;
 
             // Because we are displaying vertically and not horizontally, 
             // the name being displayed here is a matrix rotation of the 
             // cell row/col.
-            u32 const current_name_index =
+            odin::u32 const current_name_index =
                 name_index_ + (column * rows_) + (row);
 
             if (current_name_index < names_.size())
             {
-                attribute pen;
+                munin::attribute pen;
                 pen.underlining_ = 
                     current_name_index == current_selection_
                  && self_.has_focus()
-                    ? odin::ansi::graphics::UNDERLINING_UNDERLINED
-                    : odin::ansi::graphics::UNDERLINING_NOT_UNDERLINED;
+                    ? odin::ansi::graphics::underlining::underlined
+                    : odin::ansi::graphics::underlining::not_underlined;
                 
                 // Trim down the name if it is too long.
-                BOOST_AUTO(
-                    current_name
-                  , names_[current_name_index]);
+                auto current_name = names_[current_name_index];
                 
                 current_name = current_name.substr(
-                    0, (min)(current_name.size(), size_t(MIN_COLUMN_WIDTH)));
+                    0, (std::min)(current_name.size(), size_t(MIN_COLUMN_WIDTH)));
                 
                 // Convert this to elements.
-                BOOST_AUTO(
-                    name_elements
-                  , elements_from_string(current_name, pen));
+                auto name_elements = munin::ansi::elements_from_string(current_name, pen);
                 
                 // Find the x coordinate of this cell.
-                u32 cell_x_coordinate = 
+                odin::u32 cell_x_coordinate = 
                     (column * MIN_COLUMN_WIDTH)
                   + (column == 0 ? 0 : (column * COLUMN_SEPERATOR_WIDTH))
                   + (column == 0 ? 0 : padding_per_column_);
                 
                 // Find the y coordinate of this cell.
-                u32 cell_y_coordinate = row;
+                odin::u32 cell_y_coordinate = row;
                   
                 // Copy these into the correct location.
-                for (u32 index = 0; index < name_elements.size(); ++index)
+                for (odin::u32 index = 0; index < name_elements.size(); ++index)
                 {
                     view_[cell_x_coordinate + index]
                          [cell_y_coordinate        ] = name_elements[index];
@@ -199,7 +185,7 @@ private :
     // ======================================================================
     void initialise_view()
     {
-        BOOST_AUTO(size, self_.get_size());
+        auto size = self_.get_size();
         
         if (size.width <= 0 || size.height <= 0)
         {
@@ -214,13 +200,13 @@ private :
 
         current_size_ = size;
         
-        attribute pen;
-        element_type const blank_element(' ', pen);
+        munin::attribute pen;
+        munin::element_type const blank_element(' ', pen);
         
         // Blank out the view.
-        for (s32 column = 0; column < size.width; ++column)
+        for (odin::s32 column = 0; column < size.width; ++column)
         {
-            for (s32 row = 0; row < size.height; ++row)
+            for (odin::s32 row = 0; row < size.height; ++row)
             {
                 view_[column][row] = blank_element;
             }
@@ -232,8 +218,8 @@ private :
     // ======================================================================
     void repaint()
     {
-        vector<rectangle> regions;
-        regions.push_back(rectangle(point(), self_.get_size()));
+        std::vector<munin::rectangle> regions;
+        regions.push_back(munin::rectangle(munin::point(), self_.get_size()));
         self_.on_redraw(regions);
     }
     
@@ -245,7 +231,7 @@ private :
         if (current_selection_ != 0)
         {
             current_selection_ = 
-                (min)(current_selection_, u32(names_.size() - 1));
+                (std::min)(current_selection_, odin::u32(names_.size() - 1));
         }
 
         // Scroll up if necessary.
@@ -276,7 +262,7 @@ private :
     // ======================================================================
     void cache_constants()
     {
-        BOOST_AUTO(size, self_.get_size());
+        auto size = self_.get_size();
         
         rows_    = size.height;
         columns_ = 0;
@@ -289,7 +275,7 @@ private :
             } 
             while (((columns_ + 1) * MIN_COLUMN_WIDTH)
                  + (columns_ * COLUMN_SEPERATOR_WIDTH)
-                < u32(size.width));
+                < odin::u32(size.width));
         }
 
         if (columns_ == 0)
@@ -317,20 +303,20 @@ private :
         }
     }
 
-    wholist                                      &self_;
-    vector<string>                                names_;
-    canvas                                        view_;
-    munin::extent                                 current_size_;
-    u32                                           name_index_;
-    u32                                           current_selection_;
+    wholist                  &self_;
+    std::vector<std::string>  names_;
+    munin::canvas             view_;
+    munin::extent             current_size_;
+    odin::u32                 name_index_;
+    odin::u32                 current_selection_;
     
     // A selection of cached constants to ease rendering
-    u32                                           rows_;
-    u32                                           columns_;
-    u32                                           padding_per_row_;
-    u32                                           padding_per_column_;
-    u32                                           names_per_page_;
-    u32                                           pages_;
+    odin::u32                 rows_;
+    odin::u32                 columns_;
+    odin::u32                 padding_per_row_;
+    odin::u32                 padding_per_column_;
+    odin::u32                 names_per_page_;
+    odin::u32                 pages_;
 };
 
 // ==========================================================================
@@ -338,15 +324,15 @@ private :
 // ==========================================================================
 wholist::wholist()
 {
-    pimpl_ = make_shared<impl>(ref(*this));
-    on_focus_set.connect(bind(&impl::render, pimpl_.get()));
-    on_focus_lost.connect(bind(&impl::render, pimpl_.get()));
+    pimpl_ = std::make_shared<impl>(ref(*this));
+    on_focus_set.connect([this]{pimpl_->render();});
+    on_focus_lost.connect([this]{pimpl_->render();});
 }
 
 // ==========================================================================
 // SET_NAMES
 // ==========================================================================
-void wholist::set_names(vector<string> const &names)
+void wholist::set_names(std::vector<std::string> const &names)
 {
     pimpl_->set_names(names);
     pimpl_->render();
@@ -373,8 +359,8 @@ void wholist::do_set_size(munin::extent const &size)
 // DO_DRAW
 // ==========================================================================
 void wholist::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    munin::context         &ctx,
+    munin::rectangle const &region)
 {
     pimpl_->draw(ctx.get_canvas(), region);
 }
@@ -382,20 +368,20 @@ void wholist::do_draw(
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void wholist::do_event(any const &ev)
+void wholist::do_event(boost::any const &ev)
 {
-    BOOST_AUTO(sequence, any_cast<odin::ansi::control_sequence>(&ev));
+    auto *sequence = boost::any_cast<odin::ansi::control_sequence>(&ev);
     
     if (sequence != NULL)
     {
         if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
          && sequence->command_   == odin::ansi::CURSOR_UP)
         {
-            u32 times = sequence->arguments_.empty()
+            odin::u32 times = sequence->arguments_.empty()
                       ? 1
                       : atoi(sequence->arguments_.c_str());
                       
-            BOOST_AUTO(selected_index, pimpl_->get_selected_index());
+            auto selected_index = pimpl_->get_selected_index();
             
             pimpl_->set_selected_index(
                 selected_index < times
@@ -408,11 +394,11 @@ void wholist::do_event(any const &ev)
         if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
          && sequence->command_   == odin::ansi::CURSOR_DOWN)
         {
-            u32 times = sequence->arguments_.empty()
+            odin::u32 times = sequence->arguments_.empty()
                       ? 1
                       : atoi(sequence->arguments_.c_str());
                       
-            BOOST_AUTO(selected_index, pimpl_->get_selected_index());
+            auto selected_index = pimpl_->get_selected_index();
             
             pimpl_->set_selected_index(selected_index + times);
             

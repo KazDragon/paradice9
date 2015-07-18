@@ -6,37 +6,27 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/card.hpp"
 #include "munin/context.hpp"
-#include <boost/assign/list_of.hpp>
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <map>
-
-using namespace odin;
-using namespace boost;
-using namespace boost::assign;
-using namespace std;
 
 namespace munin {
 
@@ -48,31 +38,31 @@ struct card::impl
     // ======================================================================
     //  GET_CURRENT_FACE
     // ======================================================================
-    optional< shared_ptr<component> > get_current_face() const
+    boost::optional<std::shared_ptr<component>> get_current_face() const
     {
         if (current_face_.is_initialized())
         {
-            BOOST_AUTO(face_iter, faces_.find(current_face_.get()));
-    
+            auto face_iter = faces_.find(current_face_.get());
+
             if (face_iter != faces_.end())
             {
                 return face_iter->second;
             }
         }
-    
-        return NULL;
+
+        return {};
     }
-    
-    typedef map< string, shared_ptr<component> > face_map_type;
-    face_map_type                                faces_;
-    optional<string>                             current_face_;
+
+    typedef std::map<std::string, std::shared_ptr<component>> face_map_type;
+    face_map_type                                             faces_;
+    boost::optional<std::string>                              current_face_;
 };
 
 // ==========================================================================
-// CONSTRUCTOR 
+// CONSTRUCTOR
 // ==========================================================================
 card::card()
-    : pimpl_(make_shared<impl>())
+    : pimpl_(std::make_shared<impl>())
 {
 }
 
@@ -84,42 +74,47 @@ card::~card()
 }
 
 // ==========================================================================
-// ADD_FACE 
+// ADD_FACE
 // ==========================================================================
 void card::add_face(
-    shared_ptr<component> const &comp,
-    string                const &name)
+    std::shared_ptr<component> const &comp,
+    std::string                const &name)
 {
     pimpl_->faces_[name] = comp;
 
     // Connect the underlying container's default signals to the signals
     // of this component with.
-    comp->on_redraw.connect(
-        boost::bind(boost::ref(on_redraw), _1));
+    comp->on_redraw.connect([this](auto const &regions){on_redraw(regions);});
 
-    comp->on_layout_change.connect(
-        boost::bind(boost::ref(on_layout_change)));
+    comp->on_layout_change.connect([this]{on_layout_change();});
 
     comp->on_position_changed.connect(
-        boost::bind(boost::ref(on_position_changed), _1, _2));
+        [this](auto const &x, auto const &y)
+        {
+            on_position_changed(x, y);
+        });
 
-    comp->on_focus_set.connect(
-        boost::bind(boost::ref(on_focus_set)));
+    comp->on_focus_set.connect([this]{on_focus_set();});
 
-    comp->on_focus_lost.connect(
-        boost::bind(boost::ref(on_focus_lost)));
-    
+    comp->on_focus_lost.connect([this]{on_focus_lost();});
+
     comp->on_cursor_state_changed.connect(
-        boost::bind(boost::ref(on_cursor_state_changed), _1));
+        [this](auto const &state)
+        {
+            on_cursor_state_changed(state);
+        });
 
     comp->on_cursor_position_changed.connect(
-        boost::bind(boost::ref(on_cursor_position_changed), _1));
+        [this](auto const &pos)
+        {
+            on_cursor_position_changed(pos);
+        });
 }
 
 // ==========================================================================
 // GET_NUMBER_OF_FACES
 // ==========================================================================
-u32 card::get_number_of_faces() const
+odin::u32 card::get_number_of_faces() const
 {
     return pimpl_->faces_.size();
 }
@@ -127,19 +122,19 @@ u32 card::get_number_of_faces() const
 // ==========================================================================
 // SELECT_FACE
 // ==========================================================================
-void card::select_face(string const &name)
+void card::select_face(std::string const &name)
 {
-    BOOST_AUTO(old_face,      pimpl_->get_current_face());
-    BOOST_AUTO(old_face_name, pimpl_->current_face_);
+    auto old_face = pimpl_->get_current_face();
+    auto old_face_name = pimpl_->current_face_;
 
     pimpl_->current_face_ = name;
 
-    BOOST_AUTO(new_face, pimpl_->get_current_face());
+    auto new_face = pimpl_->get_current_face();
 
-    if (!old_face_name.is_initialized() 
+    if (!old_face_name.is_initialized()
      || old_face_name.get() != pimpl_->current_face_)
     {
-        // The name was initialised, so there must be a face to go with 
+        // The name was initialised, so there must be a face to go with
         // it.
 
         // Determine any focus change between the faces.
@@ -186,7 +181,7 @@ void card::select_face(string const &name)
 
         // The face of the card has changed.  Fire an on_redraw event for
         // the entire component.
-        on_redraw(list_of(rectangle(point(), get_size())));
+        on_redraw({{point(), get_size()}});
     }
 }
 
@@ -195,7 +190,7 @@ void card::select_face(string const &name)
 // ==========================================================================
 bool card::do_has_focus() const
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -210,7 +205,7 @@ bool card::do_has_focus() const
 // ==========================================================================
 bool card::do_can_focus() const
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -225,7 +220,7 @@ bool card::do_can_focus() const
 // ==========================================================================
 void card::do_set_focus()
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -246,7 +241,7 @@ extent card::do_get_preferred_size() const
 // ==========================================================================
 void card::do_layout()
 {
-    BOOST_FOREACH(impl::face_map_type::value_type face_pair, pimpl_->faces_)
+    for (auto &face_pair : pimpl_->faces_)
     {
         face_pair.second->layout();
     }
@@ -261,8 +256,8 @@ void card::do_draw(
 {
     if (pimpl_->current_face_.is_initialized())
     {
-        BOOST_AUTO(current_face, pimpl_->current_face_.get());
-        BOOST_AUTO(face_iter, pimpl_->faces_.find(current_face));
+        auto current_face = pimpl_->current_face_.get();
+        auto face_iter = pimpl_->faces_.find(current_face);
 
         if (face_iter != pimpl_->faces_.end())
         {
@@ -274,12 +269,12 @@ void card::do_draw(
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void card::do_event(any const &event)
+void card::do_event(boost::any const &event)
 {
     if (pimpl_->current_face_.is_initialized())
     {
-        BOOST_AUTO(current_face, pimpl_->current_face_.get());
-        BOOST_AUTO(face_iter, pimpl_->faces_.find(current_face));
+        auto current_face = pimpl_->current_face_.get();
+        auto face_iter = pimpl_->faces_.find(current_face);
 
         if (face_iter != pimpl_->faces_.end())
         {
@@ -291,11 +286,11 @@ void card::do_event(any const &event)
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void card::do_set_size(extent const &size) 
+void card::do_set_size(extent const &size)
 {
     basic_component::do_set_size(size);
 
-    BOOST_FOREACH(impl::face_map_type::value_type entry, pimpl_->faces_)
+    for (auto &entry : pimpl_->faces_)
     {
         entry.second->set_size(size);
     }
@@ -304,9 +299,9 @@ void card::do_set_size(extent const &size)
 // ==========================================================================
 // DO_FOCUS_NEXT
 // ==========================================================================
-void card::do_focus_next() 
+void card::do_focus_next()
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -317,9 +312,9 @@ void card::do_focus_next()
 // ==========================================================================
 // DO_FOCUS_PREVIOUS
 // ==========================================================================
-void card::do_focus_previous() 
+void card::do_focus_previous()
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -330,16 +325,16 @@ void card::do_focus_previous()
 // ==========================================================================
 // DO_GET_FOCUSSED_COMPONENT
 // ==========================================================================
-shared_ptr<component> card::do_get_focussed_component() 
+std::shared_ptr<component> card::do_get_focussed_component()
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
         return current_face.get()->get_focussed_component();
     }
 
-    return shared_ptr<component>();
+    return {};
 }
 
 // ==========================================================================
@@ -347,7 +342,7 @@ shared_ptr<component> card::do_get_focussed_component()
 // ==========================================================================
 void card::do_enable()
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -360,7 +355,7 @@ void card::do_enable()
 // ==========================================================================
 void card::do_disable()
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -373,7 +368,7 @@ void card::do_disable()
 // ==========================================================================
 bool card::do_is_enabled() const
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -386,24 +381,24 @@ bool card::do_is_enabled() const
 // ==========================================================================
 // DO_GET_CURSOR_STATE
 // ==========================================================================
-bool card::do_get_cursor_state() const 
+bool card::do_get_cursor_state() const
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
         return current_face.get()->get_cursor_state();
     }
-    
+
     return false;
 }
 
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point card::do_get_cursor_position() const 
+point card::do_get_cursor_position() const
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -418,7 +413,7 @@ point card::do_get_cursor_position() const
 // ==========================================================================
 void card::do_set_cursor_position(point const &position)
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {
@@ -430,9 +425,9 @@ void card::do_set_cursor_position(point const &position)
 // DO_SET_ATTRIBUTE
 // ==========================================================================
 void card::do_set_attribute(
-    string const &name, any const &attr)
+    std::string const &name, boost::any const &attr)
 {
-    BOOST_AUTO(current_face, pimpl_->get_current_face());
+    auto current_face = pimpl_->get_current_face();
 
     if (current_face.is_initialized())
     {

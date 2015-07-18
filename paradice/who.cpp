@@ -36,32 +36,24 @@
 #include "odin/tokenise.hpp"
 #include "odin/types.hpp"
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/utility.hpp>
 #include <cstdio>
-
-using namespace std;
-using namespace boost;
-using namespace odin;
-using namespace munin;
 
 namespace paradice {
 
 // ==========================================================================
 // IS_ACCEPTIBLE_NAME
 // ==========================================================================
-bool is_acceptible_name(string const &name)
+bool is_acceptible_name(std::string const &name)
 {
     if (name.length() < 3)
     {
         return false;
     }
     
-    BOOST_FOREACH(char ch, name)
+    for (auto ch : name)
     {
-        if (!is_alpha()(ch))
+        if (!boost::is_alpha()(ch))
         {
             return false;
         }
@@ -76,16 +68,16 @@ bool is_acceptible_name(string const &name)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(title)
 {
-    BOOST_AUTO(character, player->get_character());
+    auto character = player->get_character();
     character->set_suffix(boost::algorithm::trim_copy(arguments));
 
-    send_to_player(ctx, str(
-        format("\r\nYou are now %s.\r\n")
+    send_to_player(ctx, boost::str(
+        boost::format("\r\nYou are now %s.\r\n")
             % ctx->get_moniker(character))
       , player);
     
-    send_to_room(ctx, str(
-        format("\r\n%s is now %s.\r\n")
+    send_to_room(ctx, boost::str(
+        boost::format("\r\n%s is now %s.\r\n")
             % player->get_character()->get_name()
             % ctx->get_moniker(character))
       , player);
@@ -101,7 +93,8 @@ PARADICE_COMMAND_IMPL(title)
 
         send_to_player(
             ctx
-          , string_to_elements("\\[1There was an error saving your character.")
+          , munin::string_to_elements(
+                "\\[1There was an error saving your character.")
           , player);
     }
 
@@ -113,16 +106,16 @@ PARADICE_COMMAND_IMPL(title)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(prefix)
 {
-    BOOST_AUTO(character, player->get_character());
+    auto character = player->get_character();
     character->set_prefix(boost::algorithm::trim_copy(arguments));
 
-    send_to_player(ctx, str(
-        format("\r\nYou are now %s.\r\n")
+    send_to_player(ctx, boost::str(
+        boost::format("\r\nYou are now %s.\r\n")
             % ctx->get_moniker(character))
       , player);
     
-    send_to_room(ctx, str(
-        format("\r\n%s is now %s.\r\n")
+    send_to_room(ctx, boost::str(
+        boost::format("\r\n%s is now %s.\r\n")
             % player->get_character()->get_name()
             % ctx->get_moniker(character))
       , player);
@@ -139,7 +132,8 @@ PARADICE_COMMAND_IMPL(prefix)
 
         send_to_player(
             ctx
-          , string_to_elements("\\[1There was an error saving your character.")
+          , munin::string_to_elements(
+                "\\[1There was an error saving your character.")
           , player);
     }
 

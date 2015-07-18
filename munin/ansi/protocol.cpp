@@ -6,132 +6,136 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
-#include <boost/bind.hpp>
 #include <boost/format.hpp>
-#include <boost/foreach.hpp>
 #include <algorithm>
+#include <iterator>
 #include <cstdio>
 
-using namespace std;
-using namespace boost;
-using namespace odin;
-
 namespace munin { namespace ansi {
-    
+
 // ==========================================================================
 // ELEMENTS_FROM_STRINGS
 // ==========================================================================
-vector< vector<munin::element_type> > 
-    elements_from_strings(vector<string> const &strings
+std::vector<std::vector<munin::element_type>>
+    elements_from_strings(std::vector<std::string> const &strings
   , attribute const &attr)
 {
-    vector< vector<munin::element_type> > elements(strings.size());
+    std::vector<std::vector<munin::element_type>> elements(strings.size());
 
-    transform(
-        strings.begin(), strings.end()
-      , elements.begin()
-      , bind(elements_from_string, _1, attr));
-    
+    for(auto const &str : strings)
+    {
+        elements.push_back(elements_from_string(str, attr));
+    }
+
     return elements;
 }
 
 // ==========================================================================
 // ELEMENTS_FROM_STRING
 // ==========================================================================
-vector<element_type> elements_from_string(
-    string const    &source_line
-  , attribute const &attr)
+std::vector<munin::element_type> elements_from_string(
+    std::string const &source_line
+  , attribute const   &attr)
 {
-    vector<munin::element_type> dest_line(source_line.size());
-    
-    for (u32 index = 0; index < source_line.size(); ++index)
+    std::vector<munin::element_type> dest_line;
+
+    for (auto const &ch : source_line)
     {
-        dest_line[index] = munin::element_type(source_line[index], attr);
+        dest_line.emplace_back(ch, attr);
     }
-    
+
     return dest_line;
 }
 
 // ==========================================================================
 // STRING_FROM_ELEMENTS
 // ==========================================================================
-string string_from_elements(
-    vector<munin::element_type> const &elements)
+std::string string_from_elements(
+    std::vector<munin::element_type> const &elements)
 {
-    string text(elements.size(), ' ');
-    
-    for (u32 index = 0; index < elements.size(); ++index)
+    std::string text;
+
+    for (auto const &element : elements)
     {
-        text[index] = elements[index].glyph_.character_;
+        text.push_back(element.glyph_.character_);
     }
-    
+
     return text;
 }
 
 // ==========================================================================
 // ENABLE_MOUSE_TRACKING
 // ==========================================================================
-string enable_mouse_tracking()
+std::string enable_mouse_tracking()
 {
-    return string()
-        + odin::ansi::ESCAPE
-        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        + odin::ansi::PRIVATE_MODE_SET
-        + "1000"
-        + odin::ascii::LOWERCASE_H;
+    static std::string enable_mouse_tracking_sequence =
+        std::string()
+      + odin::ansi::ESCAPE
+      + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+      + odin::ansi::PRIVATE_MODE_SET
+      + "1000"
+      + odin::ascii::LOWERCASE_H;
+      
+    return enable_mouse_tracking_sequence;
 }
 
 // ==========================================================================
 // HIDE_CURSOR
 // ==========================================================================
-string hide_cursor()
+std::string hide_cursor()
 {
-    return string()
-        + odin::ansi::ESCAPE
-        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        + odin::ansi::PRIVATE_MODE_SET
-        + "25"
-        + odin::ascii::LOWERCASE_L;
+    static std::string hide_cursor_sequence =
+        std::string()
+      + odin::ansi::ESCAPE
+      + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+      + odin::ansi::PRIVATE_MODE_SET
+      + "25"
+      + odin::ascii::LOWERCASE_L;
+      
+    return hide_cursor_sequence;
 }
 
 // ==========================================================================
 // SHOW_CURSOR
 // ==========================================================================
-string show_cursor()
+std::string show_cursor()
 {
-    return string()
-        + odin::ansi::ESCAPE
-        + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-        + odin::ansi::PRIVATE_MODE_SET
-        + "25"
-        + odin::ascii::LOWERCASE_H;
+    static std::string show_cursor_sequence =
+        std::string()
+      + odin::ansi::ESCAPE
+      + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
+      + odin::ansi::PRIVATE_MODE_SET
+      + "25"
+      + odin::ascii::LOWERCASE_H;
+      
+    return show_cursor_sequence;
 }
 
 // ==========================================================================
 // CURSOR_POSITION
-// ==========================================================================    
-string cursor_position(munin::point const &position)
+// ==========================================================================
+std::string cursor_position(munin::point const &position)
 {
     // We would like to take advantage of some of the space-saving features
     // of ANSI here, but Ubuntu Telnet chokes on them.  So we always use the
@@ -139,7 +143,7 @@ string cursor_position(munin::point const &position)
 
     // TODO: replace with a Spirit variant for safety.
     char buffer[2+10+1+10+1+1];
-    sprintf(
+    std::sprintf(
         buffer
       , "%c%c%d;%d%c"
       , odin::ansi::ESCAPE
@@ -154,9 +158,9 @@ string cursor_position(munin::point const &position)
 // ==========================================================================
 // SET_WINDOW_TITLE
 // ==========================================================================
-string set_window_title(string const &text)
+std::string set_window_title(std::string const &text)
 {
-    return str(format("%c%c0;%s%c")
+    return boost::str(boost::format("%c%c0;%s%c")
         % odin::ansi::ESCAPE
         % odin::ansi::OPERATING_SYSTEM_COMMAND
         % text
@@ -166,9 +170,9 @@ string set_window_title(string const &text)
 // ==========================================================================
 // SET_NORMAL_CURSOR_KEYS
 // ==========================================================================
-string set_normal_cursor_keys()
+std::string set_normal_cursor_keys()
 {
-    return str(format("%c%c%c1%c")
+    return boost::str(boost::format("%c%c%c1%c")
          % odin::ansi::ESCAPE
          % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
          % odin::ansi::PRIVATE_MODE_SET
@@ -178,26 +182,26 @@ string set_normal_cursor_keys()
 // ==========================================================================
 // COLOUR_STRING
 // ==========================================================================
-string colour_string(attribute::high_colour const &colour)
+std::string colour_string(attribute::high_colour const &colour)
 {
-    return str(format("%d")
-        % ((colour.red_ * 36) + (colour.green_ * 6) + colour.blue_ + 16)); 
+    return boost::str(boost::format("%d")
+        % ((colour.red_ * 36) + (colour.green_ * 6) + colour.blue_ + 16));
 }
 
 // ==========================================================================
 // COLOUR_STRING
 // ==========================================================================
-string colour_string(attribute::greyscale_colour const &colour)
+std::string colour_string(attribute::greyscale_colour const &colour)
 {
-    return str(format("%d")% (colour.shade_ + 232));
+    return boost::str(boost::format("%d")% (colour.shade_ + 232));
 }
 
 // ==========================================================================
 // CLEAR_SCREEN
 // ==========================================================================
-string clear_screen()
+std::string clear_screen()
 {
-    return str(format("%c%c2%c")
+    return boost::str(boost::format("%c%c2%c")
         % odin::ansi::ESCAPE
         % odin::ansi::CONTROL_SEQUENCE_INTRODUCER
         % odin::ansi::ERASE_DATA);

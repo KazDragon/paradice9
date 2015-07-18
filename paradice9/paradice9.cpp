@@ -34,16 +34,8 @@
 #include "odin/net/socket.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/placeholders.hpp>
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <map>
 #include <utility>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 // ==========================================================================
 // PARADICE9::IMPLEMENTATION STRUCTURE
@@ -55,16 +47,16 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        asio::io_service                   &io_service
-      , shared_ptr<asio::io_service::work>  work
-      , unsigned int                        port)
+        boost::asio::io_service                        &io_service
+      , std::shared_ptr<boost::asio::io_service::work>  work
+      , unsigned int                                    port)
         : io_service_(io_service) 
         , server_(new odin::net::server(
               io_service_
             , port
-            , bind(&impl::on_accept, this, _1)))
-        , context_(make_shared<context_impl>(
-              ref(io_service), server_, ref(work)))
+            , [this](auto socket){on_accept(socket);}))
+        , context_(std::make_shared<context_impl>(
+              std::ref(io_service), server_, std::ref(work)))
     {
     }
 
@@ -72,32 +64,35 @@ private :
     // ======================================================================
     // ON_ACCEPT
     // ======================================================================
-    void on_accept(shared_ptr<odin::net::socket> socket)
+    void on_accept(std::shared_ptr<odin::net::socket> const &socket)
     {
         // Create the connection and client structures for the socket.
-        BOOST_AUTO(connection, make_shared<paradice::connection>(socket));
+        auto connection = std::make_shared<paradice::connection>(socket);
         pending_connections_.push_back(connection);
         
         // Before creating a client object, we first negotiate some
         // knowledge about the connection.  Set up the callbacks for this.
-        connection->on_socket_death(bind(
-            &impl::on_connection_death
-          , this
-          , weak_ptr<paradice::connection>(connection)));
+        connection->on_socket_death(
+            [this, wp=std::weak_ptr<paradice::connection>(connection)] 
+            {
+                on_connection_death(wp);
+            });
     
-        connection->on_window_size_changed(bind(
-            &impl::on_window_size_changed
-          , this
-          , weak_ptr<paradice::connection>(connection)
-          , _1
-          , _2));
+        connection->on_window_size_changed(
+            [this, wp=std::weak_ptr<paradice::connection>(connection)]
+            (auto w, auto h) 
+            {
+                on_window_size_changed(wp, w, h);
+            });
 
-        connection->async_get_terminal_type(bind(
-            &impl::on_terminal_type
-          , this
-          , weak_ptr<odin::net::socket>(socket)
-          , weak_ptr<paradice::connection>(connection)
-          , _1));
+        connection->async_get_terminal_type(
+            [this, 
+             ws=std::weak_ptr<odin::net::socket>(socket),
+             wc=std::weak_ptr<paradice::connection>(connection)]
+            (auto const &type)
+            {
+                on_terminal_type(ws, wc, type);
+            });
 
         connection->start();
     }
@@ -106,23 +101,22 @@ private :
     // ON_TERMINAL_TYPE
     // ======================================================================
     void on_terminal_type(
-        weak_ptr<odin::net::socket>     weak_socket
-      , weak_ptr<paradice::connection>  weak_connection
-      , string const                   &terminal_type)
+        std::weak_ptr<odin::net::socket>     weak_socket
+      , std::weak_ptr<paradice::connection>  weak_connection
+      , std::string const                   &terminal_type)
     {
         printf("Terminal type is: \"%s\"\n", terminal_type.c_str());
         
-        BOOST_AUTO(socket,     weak_socket.lock());
-        BOOST_AUTO(connection, weak_connection.lock());
+        auto socket =     weak_socket.lock();
+        auto connection = weak_connection.lock();
         
         if (socket != NULL && connection != NULL)
         {
-            BOOST_AUTO(
-                pending_connection
-              , find(
-                  pending_connections_.begin()
-                , pending_connections_.end()
-                , connection));
+            auto pending_connection =
+                std::find(
+                    pending_connections_.begin()
+                  , pending_connections_.end()
+                  , connection);
             
             // There is a possibility that this is a stray terminal type.
             // If so, ignore it.
@@ -133,24 +127,21 @@ private :
             
             pending_connections_.erase(pending_connection);
 
-            BOOST_AUTO(
-                client
-              , make_shared<paradice::client>(ref(io_service_), context_));
+            auto client =
+                std::make_shared<paradice::client>(std::ref(io_service_), context_);
             client->set_connection(connection);
             
             client->on_connection_death(bind(
                 &impl::on_client_death
               , this
-              , weak_ptr<paradice::client>(client)));
+              , std::weak_ptr<paradice::client>(client)));
 
             context_->add_client(client);
             context_->update_names();
             
             // If the window's size has been set by the NAWS process,
             // then update it to that.  Otherwise, use the standard 80,24.
-            BOOST_AUTO(
-                psize
-              , pending_sizes_.find(connection));
+            auto psize = pending_sizes_.find(connection);
             
             if (psize != pending_sizes_.end())
             {
@@ -169,9 +160,9 @@ private :
     // ======================================================================
     // ON_CONNECTION_DEATH
     // ======================================================================
-    void on_connection_death(weak_ptr<paradice::connection> &weak_connection)
+    void on_connection_death(std::weak_ptr<paradice::connection> const &weak_connection)
     {
-        BOOST_AUTO(connection, weak_connection.lock());
+        auto connection = weak_connection.lock();
     
         if (connection != NULL)
         {
@@ -187,20 +178,20 @@ private :
     // ======================================================================
     // ON_CLIENT_DEATH
     // ======================================================================
-    void on_client_death(weak_ptr<paradice::client> &weak_client)
+    void on_client_death(std::weak_ptr<paradice::client> &weak_client)
     {
-        BOOST_AUTO(client, weak_client.lock());
+        auto client = weak_client.lock();
         
         if (client != NULL)
         {
             context_->remove_client(client);
             context_->update_names();
     
-            BOOST_AUTO(character, client->get_character());
+            auto character = client->get_character();
             
             if (character != NULL)
             {
-                BOOST_AUTO(name, character->get_name());
+                auto name = character->get_name();
             
                 if (!name.empty())
                 {
@@ -218,36 +209,38 @@ private :
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
     void on_window_size_changed(
-        weak_ptr<paradice::connection> weak_connection,
-        u16                            width,
-        u16                            height)
+        std::weak_ptr<paradice::connection> weak_connection,
+        odin::u16                           width,
+        odin::u16                           height)
     {
         // This is only called during the negotiation process.  We save
         // the size so that it can be given to the client once the process
         // has completed.
-        BOOST_AUTO(connection, weak_connection.lock());
+        auto connection = weak_connection.lock();
         
         if (connection != NULL)
         {
-            pending_sizes_[connection] = make_pair(width, height);
+            pending_sizes_[connection] = std::make_pair(width, height);
         }
     }
     
-    asio::io_service              &io_service_;
-    shared_ptr<odin::net::server>  server_;
-    shared_ptr<paradice::context>  context_;
+    boost::asio::io_service            &io_service_;
+    std::shared_ptr<odin::net::server>  server_;
+    std::shared_ptr<paradice::context>  context_;
     
     // A vector of clients whose connections are being negotiated.
-    vector< shared_ptr<paradice::connection> > pending_connections_;
-    map< shared_ptr<paradice::connection>, pair<u16, u16> > pending_sizes_; 
+    std::vector<std::shared_ptr<paradice::connection>> pending_connections_;
+    std::map<
+        std::shared_ptr<paradice::connection>, 
+        std::pair<odin::u16, odin::u16> > pending_sizes_; 
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 paradice9::paradice9(
-    asio::io_service                   &io_service
-  , shared_ptr<asio::io_service::work>  work
+    boost::asio::io_service                        &io_service
+  , std::shared_ptr<boost::asio::io_service::work>  work
   , unsigned int                        port)
     : pimpl_(new impl(io_service, work, port))  
 {

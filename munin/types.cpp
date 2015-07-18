@@ -6,34 +6,30 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/types.hpp"
 #include <boost/format.hpp>
 #include <iostream>
 
-using namespace odin;
-using namespace boost;
-using namespace std;
-
 namespace munin {
-    
+
 // ==========================================================================
 // ELEMENT_TYPE DEFAULT CONSTRUCTOR
 // ==========================================================================
@@ -62,29 +58,29 @@ bool operator==(element_type const &lhs, element_type const &rhs)
 // ==========================================================================
 // OSTREAM << ELEMENT_TYPE
 // ==========================================================================
-ostream &operator<<(ostream &out, element_type const &element)
+std::ostream &operator<<(std::ostream &out, element_type const &element)
 {
     out << "element['";
-    
+
     if (isprint(element.glyph_.character_))
     {
         out << element.glyph_.character_;
     }
     else
     {
-        out << format("0x%02X") 
+        out << boost::format("0x%02X")
                    % int((unsigned char)(element.glyph_.character_));
     }
-    
+
     out << "', ";
-    
+
     out << element.attribute_;
-    
+
     out << "]";
-    
+
     return out;
 }
-    
+
 // ==========================================================================
 // POINT CONSTRUCTOR
 // ==========================================================================
@@ -97,7 +93,7 @@ point::point()
 // ==========================================================================
 // POINT CONSTRUCTOR
 // ==========================================================================
-point::point(s32 x_coordinate, s32 y_coordinate)
+point::point(odin::s32 x_coordinate, odin::s32 y_coordinate)
     : x(x_coordinate)
     , y(y_coordinate)
 {
@@ -158,7 +154,7 @@ point operator-(point lhs, point const &rhs)
 // ==========================================================================
 // OSTREAM << POINT
 // ==========================================================================
-ostream &operator<<(ostream &out, point const &pt)
+std::ostream &operator<<(std::ostream &out, point const &pt)
 {
     out << "point(" << pt.x << ", " << pt.y << ")";
     return out;
@@ -176,7 +172,7 @@ extent::extent()
 // ==========================================================================
 // EXTENT CONSTRUCTOR
 // ==========================================================================
-extent::extent(s32 w, s32 h)
+extent::extent(odin::s32 w, odin::s32 h)
     : width(w)
     , height(h)
 {
@@ -237,7 +233,7 @@ extent operator-(extent lhs, extent const &rhs)
 // ==========================================================================
 // OSTREAM << EXTENT
 // ==========================================================================
-ostream &operator<<(ostream &out, extent const &ext)
+std::ostream &operator<<(std::ostream &out, extent const &ext)
 {
     out << "extent(" << ext.width << ", " << ext.height << ")";
     return out;
@@ -286,7 +282,7 @@ bool operator!=(rectangle const &lhs, rectangle const &rhs)
 // ==========================================================================
 // OSTREAM << RECTANGLE
 // ==========================================================================
-ostream &operator<<(ostream &out, rectangle const &rect)
+std::ostream &operator<<(std::ostream &out, rectangle const &rect)
 {
     out << "rectangle[" << rect.origin << ", " << rect.size << "]";
     return out;

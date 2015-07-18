@@ -6,37 +6,32 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/toggle_button.hpp"
+#include "munin/container.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -45,17 +40,17 @@ namespace munin {
 // ==========================================================================
 struct toggle_button::impl
 {
-    shared_ptr<image> image_;
-    bool              state_;
+    std::shared_ptr<image> image_;
+    bool                   state_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 toggle_button::toggle_button(bool default_state)
-    : pimpl_(make_shared<impl>())
+  : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = make_shared<image>(munin::ansi::elements_from_string(
+    pimpl_->image_ = std::make_shared<image>(munin::ansi::elements_from_string(
         default_state ? "X" : " "));
     pimpl_->image_->set_can_focus(true);
 
@@ -63,11 +58,11 @@ toggle_button::toggle_button(bool default_state)
 
 
     get_container()->set_layout(
-        make_shared<grid_layout>(1, 1));
-    
+        std::make_shared<grid_layout>(1, 1));
+
     get_container()->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
+        std::make_shared<framed_component>(
+            std::make_shared<solid_frame>()
           , pimpl_->image_));
 }
 
@@ -103,11 +98,11 @@ bool toggle_button::get_toggle() const
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void toggle_button::do_event(any const &event)
+void toggle_button::do_event(boost::any const &event)
 {
-    BOOST_AUTO(ch, any_cast<char>(&event));
-    
-    if (ch != NULL)
+    auto ch = boost::any_cast<char>(&event);
+
+    if (ch != nullptr)
     {
         if (*ch == ' ' || *ch == '\n')
         {
@@ -116,9 +111,9 @@ void toggle_button::do_event(any const &event)
         }
     }
 
-    BOOST_AUTO(report, any_cast<odin::ansi::mouse_report>(&event));
-        
-    if (report != NULL)
+    auto report = boost::any_cast<odin::ansi::mouse_report>(&event);
+
+    if (report != nullptr)
     {
         if (report->button_ == 0)
         {

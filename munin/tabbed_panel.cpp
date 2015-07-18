@@ -6,35 +6,30 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/tabbed_panel.hpp"
 #include "munin/card.hpp"
+#include "munin/container.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/tabbed_frame.hpp"
-#include <boost/bind.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -43,43 +38,15 @@ namespace munin {
 // ==========================================================================
 struct tabbed_panel::impl
 {
-    shared_ptr<card>         card_;
-    shared_ptr<tabbed_frame> frame_;
-
-    // ======================================================================
-    // TAB_SELECTED_THUNK
-    // ======================================================================
-    static void tab_selected_thunk(
-        weak_ptr<impl> weak_this
-      , string const &text)
-    {
-        BOOST_AUTO(strong_this, weak_this.lock());
-
-        if (strong_this)
-        {
-            strong_this->tab_selected(text);
-        }
-    }
+    std::shared_ptr<card>         card_;
+    std::shared_ptr<tabbed_frame> frame_;
 
     // ======================================================================
     // TAB_SELECTED
     // ======================================================================
-    void tab_selected(string const &text)
+    void tab_selected(std::string const &text)
     {
         card_->select_face(text);
-    }
-
-    // ======================================================================
-    // FOCUS_CHANGE_THUNK
-    // ======================================================================
-    static void focus_change_thunk(weak_ptr<impl> weak_this)
-    {
-        BOOST_AUTO(strong_this, weak_this.lock());
-
-        if (strong_this)
-        {
-            strong_this->focus_change();
-        }
     }
 
     // ======================================================================
@@ -97,24 +64,38 @@ struct tabbed_panel::impl
 tabbed_panel::tabbed_panel()
     : pimpl_(new impl)
 {
-    pimpl_->card_  = make_shared<card>();
-    pimpl_->frame_ = make_shared<tabbed_frame>();
+    pimpl_->card_  = std::make_shared<card>();
+    pimpl_->frame_ = std::make_shared<tabbed_frame>();
 
-    BOOST_AUTO(inner, make_shared<framed_component>(
-        pimpl_->frame_, pimpl_->card_));
+    auto inner = std::make_shared<framed_component>(
+        pimpl_->frame_, pimpl_->card_);
 
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
+    auto content = get_container();
+    content->set_layout(std::make_shared<grid_layout>(1, 1));
     content->add_component(inner);
 
-    pimpl_->frame_->on_tab_selected.connect(bind(
-        &impl::tab_selected_thunk
-      , weak_ptr<impl>(pimpl_)
-      , _1));
+    pimpl_->frame_->on_tab_selected.connect(
+        [wpthis=std::weak_ptr<impl>(pimpl_)]
+        (auto idx)
+        {
+            auto pthis = wpthis.lock();
 
-    BOOST_AUTO(focus_callback, bind(
-        &impl::focus_change_thunk
-      , weak_ptr<impl>(pimpl_)));
+            if (pthis)
+            {
+                pthis->tab_selected(idx);
+            }
+        });
+
+    auto focus_callback =
+        [wpthis=std::weak_ptr<impl>(pimpl_)]
+        {
+            auto pthis = wpthis.lock();
+
+            if (pthis)
+            {
+                pthis->focus_change();
+            }
+        };
 
     pimpl_->frame_->on_focus_set.connect(focus_callback);
     pimpl_->frame_->on_focus_lost.connect(focus_callback);
@@ -133,9 +114,9 @@ tabbed_panel::~tabbed_panel()
 // INSERT_TAB
 // ==========================================================================
 void tabbed_panel::insert_tab(
-    string const          &text, 
-    shared_ptr<component>  comp,
-    optional<u32>          index /*= optional<u32>()*/)
+    std::string const          &text,
+    std::shared_ptr<component>  comp,
+    boost::optional<odin::u32>  index /*= optional<u32>()*/)
 {
     pimpl_->card_->add_face(comp, text);
     pimpl_->frame_->insert_tab(text, index);
@@ -149,7 +130,7 @@ void tabbed_panel::insert_tab(
 // ==========================================================================
 // REMOVE_TAB
 // ==========================================================================
-void tabbed_panel::remove_tab(u32 index)
+void tabbed_panel::remove_tab(odin::u32 index)
 {
     pimpl_->frame_->remove_tab(index);
 }

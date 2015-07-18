@@ -28,9 +28,6 @@
 #define HUGIN_INTRO_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/signal.hpp>
 #include <string>
 
 namespace hugin {
@@ -75,7 +72,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

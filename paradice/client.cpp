@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "client.hpp"
 #include "account.hpp"
@@ -39,69 +39,72 @@
 #include "hugin/user_interface.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
+#include "munin/container.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/window.hpp"
 #include "odin/tokenise.hpp"
 #include <boost/asio/strand.hpp>
-#include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <cstdio>
 #include <deque>
+#include <mutex>
 #include <string>
 #include <vector>
-
-using namespace odin;
-using namespace munin;
-using namespace boost;
-using namespace std;
 
 namespace paradice {
 
 namespace {
     #define PARADICE_CMD_ENTRY_NOP(name) \
         { name,        NULL                                  , 0, 0 }
-        
+
     #define PARADICE_CMD_ENTRY(func) \
-        { #func,       bind(&paradice::do_##func, _1, _2, _3), 0, 0 }
-        
+        { #func,        [](auto ctx, auto args, auto player) \
+                        {do_##func(ctx, args, player);}, \
+                        0, 0 \
+        }
+
     #define PARADICE_CMD_ALIAS(func, alias) \
-        { alias,       bind(&paradice::do_##func, _1, _2, _3), 0, 0 }
-        
+        { alias,        [](auto ctx, auto args, auto player) \
+                        {do_##func(ctx, args, player);}, \
+                        0, 0 \
+        }
+
     #define PARADICE_ADMIN_ENTRY(func, level) \
-        { #func,       bind(&paradice::do_##func, _1, _2, _3), (level), 0 }
+        { #func,        [](auto ctx, auto args, auto player) \
+                        {do_##func(ctx, args, player);}, \
+                        (level), 0 \
+        }
 
     #define PARADICE_GM_ENTRY(func, level) \
-        { #func,       bind(&paradice::do_##func, _1, _2, _3), 0, (level) }
-        
-    typedef function<void (
-        shared_ptr<paradice::context> ctx
-      , string                        args
-      , shared_ptr<paradice::client>  player)> paradice_command;
-    
+        { #func,        [](auto ctx, auto args, auto player) \
+                        {do_##func(ctx, args, player);}, \
+                        0, (level) \
+        }
+
+    typedef std::function<void (
+        std::shared_ptr<paradice::context> ctx,
+        std::string                        args,
+        std::shared_ptr<paradice::client>  player)> paradice_command;
+
     static struct command
     {
-        string           command_;
+        std::string      command_;
         paradice_command function_;
-        u32              admin_level_required_;
-        u32              gm_level_required_;
+        odin::u32        admin_level_required_;
+        odin::u32        gm_level_required_;
     } const command_list[] =
     {
         PARADICE_CMD_ENTRY_NOP("!")
-    
-      , PARADICE_CMD_ENTRY(say)    
+
+      , PARADICE_CMD_ENTRY(say)
       , PARADICE_CMD_ALIAS(say, ".")
-      
+
       , PARADICE_CMD_ENTRY(whisper)
       , PARADICE_CMD_ALIAS(whisper, ">")
-      
+
       , PARADICE_CMD_ENTRY(emote)
       , PARADICE_CMD_ALIAS(emote, ":")
-    
+
       , PARADICE_CMD_ENTRY(set)
       , PARADICE_CMD_ENTRY(title)
       , PARADICE_CMD_ALIAS(title, "surname")
@@ -111,10 +114,10 @@ namespace {
       , PARADICE_CMD_ENTRY(rollprivate)
       , PARADICE_CMD_ENTRY(showrolls)
       , PARADICE_CMD_ENTRY(clearrolls)
-    
+
       , PARADICE_CMD_ENTRY(help)
 
-      , PARADICE_CMD_ENTRY(password)      
+      , PARADICE_CMD_ENTRY(password)
       , PARADICE_CMD_ENTRY(quit)
       , PARADICE_CMD_ENTRY(logout)
 
@@ -131,160 +134,134 @@ namespace {
     // ======================================================================
     // CAPITALISE
     // ======================================================================
-    static void capitalise(string &name)
+    static void capitalise(std::string &name)
     {
         if (!name.empty())
         {
             name[0] = toupper(name[0]);
-            
-            for (string::size_type index = 1; index < name.size(); ++index)
+
+            for (std::string::size_type index = 1; index < name.size(); ++index)
             {
                 name[index] = tolower(name[index]);
             }
         }
     }
 }
-    
+
 // ==========================================================================
 // CLIENT IMPLEMENTATION STRUCTURE
 // ==========================================================================
 class client::impl
-    : public enable_shared_from_this<client::impl>
+    : public std::enable_shared_from_this<client::impl>
 {
 public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        client                  &self
-      , boost::asio::io_service &io_service
-      , shared_ptr<context>      ctx)
-        : self_(self)
-        , strand_(io_service)
-        , context_(ctx)
-        , window_(make_shared<munin::window>(ref(io_service), ref(strand_)))
-        , user_interface_(make_shared<hugin::user_interface>(ref(strand_)))
+        client                  &self,
+        boost::asio::io_service &io_service,
+        std::shared_ptr<context>      ctx)
+      : self_(self),
+        strand_(io_service),
+        context_(ctx),
+        window_(std::make_shared<munin::window>(std::ref(strand_))),
+        user_interface_(std::make_shared<hugin::user_interface>(std::ref(strand_)))
     {
         window_->set_size(munin::extent(80, 24));
     }
-    
+
     // ======================================================================
     // SET_CONNECTION
     // ======================================================================
-    void set_connection(shared_ptr<connection> cnx)
+    void set_connection(std::shared_ptr<connection> cnx)
     {
         connection_ = cnx;
-        
+
         // CONNECTION CALLBACKS
-        connection_->on_text(bind(
-            &impl::on_text
-          , this
-          , _1));
-    
-        connection_->on_mouse_report(bind(
-            &impl::on_mouse_report
-          , this
-          , _1));
-        
-        connection_->on_control_sequence(bind(
-            &impl::on_control_sequence
-          , this
-          , _1));
-    
-        connection_->on_window_size_changed(bind(
-            &impl::on_window_size_changed
-          , this
-          , _1
-          , _2));
-    
+        connection_->on_text(
+            [this](auto const &text){on_text(text);});
+
+        connection_->on_mouse_report(
+            [this](auto const &rpt){on_mouse_report(rpt);});
+
+        connection_->on_control_sequence(
+            [this](auto const &seq){on_control_sequence(seq);});
+
+        connection_->on_window_size_changed(
+            [this](auto const &width, auto const &height)
+            {
+                on_window_size_changed(width, height);
+            });
+
         // WINDOW CALLBACKS
-        window_->on_repaint.connect(bind(
-            &impl::on_repaint
-          , this
-          , _1));
-        
+        window_->on_repaint.connect(
+            [this](auto const &regions){on_repaint(regions);});
+
         // USER INTERFACE CALLBACKS
-        user_interface_->on_input_entered(bind(
-            &impl::on_input_entered
-          , this
-          , _1));
-        
-        user_interface_->on_login(bind(
-            &impl::on_login
-          , this
-          , _1
-          , _2));
-        
-        user_interface_->on_new_account(bind(
-            &impl::on_new_account
-          , this));
+        user_interface_->on_input_entered(
+            [this](auto const &input){on_input_entered(input);});
 
-        user_interface_->on_account_created(bind(
-            &impl::on_account_created
-          , this
-          , _1
-          , _2
-          , _3));
-        
-        user_interface_->on_account_creation_cancelled(bind(
-            &impl::on_account_creation_cancelled
-          , this));
+        user_interface_->on_login(
+            [this](auto const &name, auto const &pwd)
+            {
+                on_login(name, pwd);
+            });
 
-        user_interface_->on_new_character(bind(
-            &impl::on_new_character
-          , this));
+        user_interface_->on_new_account([this]{on_new_account();});
 
-        user_interface_->on_character_selected(bind(
-            &impl::on_character_selected
-          , this
-          , _1));
-        
-        user_interface_->on_character_created(bind(
-            &impl::on_character_created
-          , this
-          , _1
-          , _2));
-        
-        user_interface_->on_character_creation_cancelled(bind(
-            &impl::on_character_creation_cancelled
-          , this));
+        user_interface_->on_account_created(
+            [this](auto const &name, auto const &pwd, auto const &pwd_verify)
+            {
+                on_account_created(name, pwd, pwd_verify);
+            });
 
-        user_interface_->on_gm_tools_back(bind(
-            &impl::on_gm_tools_back
-          , this));
+        user_interface_->on_account_creation_cancelled(
+            [this]{on_account_creation_cancelled();});
 
-        user_interface_->on_gm_fight_beast(bind(
-            &impl::on_gm_fight_beast
-          , this
-          , _1));
+        user_interface_->on_new_character([this]{on_new_character();});
 
-        user_interface_->on_gm_fight_encounter(bind(
-            &impl::on_gm_fight_encounter
-          , this
-          , _1));
+        user_interface_->on_character_selected(
+            [this](auto const &idx){on_character_selected(idx);});
 
-        user_interface_->on_help_closed(bind(
-            &impl::on_help_closed
-          , this));
-        
-        user_interface_->on_password_changed(bind(
-            &impl::on_password_changed
-          , this
-          , _1
-          , _2
-          , _3));
-        
-        user_interface_->on_password_change_cancelled(bind(
-            &impl::on_password_change_cancelled
-          , this));
+        user_interface_->on_character_created(
+            [this](auto const &name, auto const &is_gm)
+            {
+                on_character_created(name, is_gm);
+            });
+
+        user_interface_->on_character_creation_cancelled(
+            [this]{on_character_creation_cancelled();});
+
+        user_interface_->on_gm_tools_back([this]{on_gm_tools_back();});
+
+        user_interface_->on_gm_fight_beast(
+            [this](auto const &beast){on_gm_fight_beast(beast);});
+
+        user_interface_->on_gm_fight_encounter(
+            [this](auto const &encounter){on_gm_fight_encounter(encounter);});
+
+        user_interface_->on_help_closed([this]{on_help_closed();});
+
+        user_interface_->on_password_changed(
+            [this](
+                auto const &old_pwd,
+                auto const &new_pwd,
+                auto const &new_pwd_verify)
+            {
+                on_password_changed(old_pwd, new_pwd, new_pwd_verify);
+            });
+
+        user_interface_->on_password_change_cancelled(
+            [this]{on_password_change_cancelled();});
 
         set_window_title("Paradice9");
 
-        BOOST_AUTO(content, window_->get_content());
-        content->set_layout(make_shared<grid_layout>(1, 1));
+        auto content = window_->get_content();
+        content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
         content->add_component(user_interface_);
         content->set_focus();
-    
+
         window_->enable_mouse_tracking();
         window_->on_repaint(munin::ansi::clear_screen());
         window_->on_repaint(munin::ansi::set_normal_cursor_keys());
@@ -293,15 +270,15 @@ public :
     // ======================================================================
     // SET_ACCOUNT
     // ======================================================================
-    void set_account(shared_ptr<account> acc)
+    void set_account(std::shared_ptr<account> acc)
     {
         account_ = acc;
     }
-    
+
     // ======================================================================
     // GET_ACCOUNT
     // ======================================================================
-    shared_ptr<account> get_account()
+    std::shared_ptr<account> get_account()
     {
         return account_;
     }
@@ -309,31 +286,31 @@ public :
     // ======================================================================
     // SET_CHARACTER
     // ======================================================================
-    void set_character(shared_ptr<character> ch)
+    void set_character(std::shared_ptr<character> ch)
     {
         character_ = ch;
     }
-    
+
     // ======================================================================
     // GET_CHARACTER
     // ======================================================================
-    shared_ptr<character> get_character()
+    std::shared_ptr<character> get_character()
     {
         return character_;
     }
-    
+
     // ======================================================================
     // GET_USER_INTERFACE
     // ======================================================================
-    shared_ptr<hugin::user_interface> get_user_interface()
+    std::shared_ptr<hugin::user_interface> get_user_interface()
     {
         return user_interface_;
     }
-    
+
     // ======================================================================
     // GET_WINDOW
     // ======================================================================
-    shared_ptr<munin::window> get_window()
+    std::shared_ptr<munin::window> get_window()
     {
         return window_;
     }
@@ -341,28 +318,28 @@ public :
     // ======================================================================
     // SET_WINDOW_TITLE
     // ======================================================================
-    void set_window_title(string const &title)
+    void set_window_title(std::string const &title)
     {
         {
-            unique_lock<mutex> lock(dispatch_queue_mutex_);
+            std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
             dispatch_queue_.push_back(bind(
-                &window::set_title, window_, title));
+                &munin::window::set_title, window_, title));
         }
-        
+
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
-    
+
     // ======================================================================
     // SET_WINDOW_SIZE
     // ======================================================================
-    void set_window_size(u16 width, u16 height)
+    void set_window_size(odin::u16 width, odin::u16 height)
     {
         {
-            unique_lock<mutex> lock(dispatch_queue_mutex_);
+            std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
             dispatch_queue_.push_back(bind(
-                &window::set_size, window_, munin::extent(width, height)));
+                &munin::window::set_size, window_, munin::extent(width, height)));
         }
-        
+
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
 
@@ -373,11 +350,11 @@ public :
     {
         connection_->disconnect();
     }
-    
+
     // ======================================================================
     // ON_CONNECTION_DEATH
     // ======================================================================
-    void on_connection_death(function<void ()> callback)
+    void on_connection_death(std::function<void ()> const &callback)
     {
         connection_->on_socket_death(callback);
     }
@@ -388,11 +365,11 @@ private :
     // ======================================================================
     void on_text(char text)
     {
-        unique_lock<mutex> lock(dispatch_queue_mutex_);
-        
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+
         dispatch_queue_.push_back(
-            bind(&window::event, window_, text));
-        
+            bind(&munin::window::event, window_, text));
+
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
 
@@ -401,57 +378,57 @@ private :
     // ======================================================================
     void on_mouse_report(odin::ansi::mouse_report const &report)
     {
-        unique_lock<mutex> lock(dispatch_queue_mutex_);
-        dispatch_queue_.push_back(bind(&window::event, window_, report));
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+        dispatch_queue_.push_back(bind(&munin::window::event, window_, report));
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
-    
+
     // ======================================================================
     // ON_CONTROL_SEQUENCE
     // ======================================================================
     void on_control_sequence(
         odin::ansi::control_sequence const &control_sequence)
     {
-        unique_lock<mutex> lock(dispatch_queue_mutex_);
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
         dispatch_queue_.push_back(
-            bind(&window::event, window_, control_sequence));
+            bind(&munin::window::event, window_, control_sequence));
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
-    
+
     // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
-    void on_window_size_changed(u16 width, u16 height)
+    void on_window_size_changed(odin::u16 width, odin::u16 height)
     {
-        unique_lock<mutex> lock(dispatch_queue_mutex_);
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
         dispatch_queue_.push_back(
-            bind(&window::set_size, window_, munin::extent(width, height)));
+            bind(&munin::window::set_size, window_, munin::extent(width, height)));
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
-    
+
     // ======================================================================
     // ON_REPAINT
     // ======================================================================
-    void on_repaint(string const &paint_data)
+    void on_repaint(std::string const &paint_data)
     {
-        vector<u8> data(paint_data.size());
-        copy(paint_data.begin(), paint_data.end(), data.begin());
+        std::vector<odin::u8> data(paint_data.size());
+        std::copy(paint_data.begin(), paint_data.end(), data.begin());
 
         connection_->write(data);
     }
-    
+
     // ======================================================================
     // REMOVE_DUPLICATE_ACCOUNTS
     // ======================================================================
-    void remove_duplicate_accounts(shared_ptr<account> acc)
+    void remove_duplicate_accounts(std::shared_ptr<account> acc)
     {
-        vector< shared_ptr<client> > clients_to_remove;
-        BOOST_AUTO(clients, context_->get_clients());
-        
-        BOOST_FOREACH(shared_ptr<client> current_client, clients)
+        std::vector<std::shared_ptr<client>> clients_to_remove;
+        auto clients = context_->get_clients();
+
+        for (auto current_client : clients)
         {
-            BOOST_AUTO(current_account, current_client->get_account());
-            
+            auto current_account = current_client->get_account();
+
             if (current_account != NULL && current_account != acc)
             {
                 if (current_account->get_name() == acc->get_name())
@@ -460,8 +437,8 @@ private :
                 }
             }
         }
-        
-        BOOST_FOREACH(shared_ptr<client> current_client, clients_to_remove)
+
+        for (auto current_client : clients_to_remove)
         {
             current_client->disconnect();
             context_->remove_client(current_client);
@@ -473,24 +450,23 @@ private :
     // ======================================================================
     void update_character_names()
     {
-        BOOST_AUTO(
-            number_of_characters
-          , account_->get_number_of_characters());
-        
-        vector< pair<string, string> > characters(number_of_characters);
-        
+        auto number_of_characters = account_->get_number_of_characters();
+
+        std::vector<std::pair<std::string, std::string>> characters(
+            number_of_characters);
+
         for(size_t index = 0; index < number_of_characters; ++index)
         {
-            BOOST_AUTO(name, account_->get_character_name(index));
+            auto name = account_->get_character_name(index);
 
             try
             {
-                BOOST_AUTO(character, context_->load_character(name));                    
-                
+                auto character = context_->load_character(name);
+
                 if (character != NULL)
                 {
-                    characters[index] = 
-                        make_pair(name, context_->get_moniker(character)); 
+                    characters[index] =
+                        make_pair(name, context_->get_moniker(character));
                 }
             }
             catch(std::exception &ex)
@@ -507,13 +483,13 @@ private :
     // ON_LOGIN
     // ======================================================================
     void on_login(
-        string const &username
-      , string const &password)
+        std::string const &username,
+        std::string const &password)
     {
-        string account_name(username);
+        std::string account_name(username);
         capitalise(account_name);
 
-        shared_ptr<account> account;
+        std::shared_ptr<account> account;
 
         try
         {
@@ -523,21 +499,21 @@ private :
         {
             // TODO: Use an actual logging library for this message.
             printf("Error loading account: %s\n", ex.what());
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Invalid username/password combination"));
             return;
         }
 
         if (account == NULL)
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Invalid username/password combination"));
             return;
         }
-        
+
         if (!account->password_match(password))
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Invalid username/password combination"));
             return;
         }
@@ -545,7 +521,7 @@ private :
         // First, ensure that if this account is logged in already,
         // it is booted.
         remove_duplicate_accounts(account);
-        
+
         account_ = account;
         update_character_names();
 
@@ -567,9 +543,9 @@ private :
     // ON_ACCOUNT_CREATED
     // ======================================================================
     void on_account_created(
-        string        account_name
-      , string const &password
-      , string const &password_verify)
+        std::string        account_name,
+        std::string const &password,
+        std::string const &password_verify)
     {
         // Check that the account name is valid.  If not, report an
         // error message and return.  This also removes cases where the
@@ -577,15 +553,15 @@ private :
         // * or ../, which could potentially wreck the system.
         if (!is_acceptible_name(account_name))
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Name must be alphabetic only and at least three "
                 "characters long"));
             return;
         }
-        
+
         // Check to see if the account name exists already.  If so,
         // report an error message and return.
-        shared_ptr<account> test_account;
+        std::shared_ptr<account> test_account;
 
         try
         {
@@ -593,13 +569,13 @@ private :
         }
         catch(std::exception &ex)
         {
-            // Something strange happened.  Perhaps the account file was 
+            // Something strange happened.  Perhaps the account file was
             // corrupted, or it was swept out from under the process.  Either
             // way, best not do anything with it.
             // TODO: Use an actual logging library for this message.
             printf("Error loading account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\1[That account name is unavailable.  Please try with "
                 "a different name"));
             return;
@@ -607,7 +583,7 @@ private :
 
         if (test_account != NULL)
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1An account with that name already exists"));
             return;
         }
@@ -616,16 +592,16 @@ private :
         // message and return.
         if (password != password_verify)
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Passwords do not match"));
             return;
         }
-        
-        shared_ptr<account> acc = make_shared<account>();
+
+        auto acc = std::make_shared<account>();
         capitalise(account_name);
         acc->set_name(account_name);
         acc->set_password(password);
-        
+
         try
         {
             context_->save_account(acc);
@@ -635,14 +611,14 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Unexpected error setting saving your account.  "
                 "Please try again."));
             return;
         }
 
         account_ = acc;
-        
+
         user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
     }
 
@@ -655,7 +631,7 @@ private :
         user_interface_->select_face(hugin::FACE_INTRO);
         user_interface_->set_focus();
     }
-    
+
     // ======================================================================
     // ON_NEW_CHARACTER
     // ======================================================================
@@ -669,9 +645,9 @@ private :
     // ======================================================================
     // ON_CHARACTER_SELECTED
     // ======================================================================
-    void on_character_selected(string const &character_name)
+    void on_character_selected(std::string const &character_name)
     {
-        shared_ptr<character> ch;
+        std::shared_ptr<character> ch;
 
         try
         {
@@ -681,8 +657,8 @@ private :
         {
             printf("Error loading character %s: %s\n",
                 character_name.c_str(), ex.what());
-            
-            user_interface_->set_statusbar_text(string_to_elements(
+
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Error loading character file."));
 
             return;
@@ -692,16 +668,17 @@ private :
         // online, since there can only be one.
         if (ch->get_gm_level() != 0)
         {
-            BOOST_FOREACH(shared_ptr<client> cli, context_->get_clients())
+            for (auto cli : context_->get_clients())
             {
                 if (cli.get() != &self_)
                 {
-                    BOOST_AUTO(other_ch, cli->get_character());
+                    auto other_ch = cli->get_character();
 
                     if (other_ch && other_ch->get_gm_level() != 0)
                     {
-                        user_interface_->set_statusbar_text(string_to_elements(
-                            "\\[1There is already a GM character online."));
+                        user_interface_->set_statusbar_text(
+                            munin::string_to_elements(
+                                "\\[1There is already a GM character online."));
                         return;
                     }
                 }
@@ -718,7 +695,7 @@ private :
 
         character_ = ch;
         context_->update_names();
-        
+
         user_interface_->select_face(hugin::FACE_MAIN);
         set_window_title(character_->get_name() + " - Paradice9");
 
@@ -732,21 +709,21 @@ private :
     // ======================================================================
     // ON_CHARACTER_CREATED
     // ======================================================================
-    void on_character_created(string character_name, bool is_gm)
+    void on_character_created(std::string character_name, bool is_gm)
     {
         capitalise(character_name);
-        
+
         // Check that the name is appropriate.
         if (!is_acceptible_name(character_name))
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Name must be alphabetic only and at least three "
                 "characters long"));
             return;
         }
-        
+
         // Test that the character doesn't already exist.
-        shared_ptr<character> test_character;
+        std::shared_ptr<character> test_character;
 
         try
         {
@@ -756,31 +733,31 @@ private :
         {
             // This is an unexpected case.  load_character() tests for
             // existence with fs::exists().  If after that it fails to read
-            // from the file, then there is a problem and the character 
+            // from the file, then there is a problem and the character
             // probably existed.  Therefore, try again.
             printf("Error reading character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Error testing for that character."));
             return;
         }
-        
+
         if (test_character != NULL)
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1A character with that name already exists"));
             return;
         }
 
-        character_ = make_shared<character>();
+        character_ = std::make_shared<character>();
         character_->set_name(character_name);
-        
+
         if (is_gm)
         {
             character_->set_gm_level(100);
         }
-        
+
         try
         {
             context_->save_character(character_);
@@ -790,11 +767,11 @@ private :
             printf("Error saving character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1There was an error saving the character."));
             return;
         }
-        
+
         account_->add_character(character_name);
 
         try
@@ -806,7 +783,7 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Unexpected error saving your account.  "
                 "Please try again."));
 
@@ -817,7 +794,7 @@ private :
         update_character_names();
         user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
     }
-    
+
     // ======================================================================
     // ON_CHARACTER_CREATION_CANCELLED
     // ======================================================================
@@ -826,7 +803,7 @@ private :
         user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
         user_interface_->set_focus();
     }
-    
+
     // ======================================================================
     // ON_GM_TOOLS_BACK
     // ======================================================================
@@ -843,34 +820,32 @@ private :
     // ======================================================================
     // ON_GM_FIGHT_BEAST
     // ======================================================================
-    void on_gm_fight_beast(shared_ptr<paradice::beast> beast)
+    void on_gm_fight_beast(std::shared_ptr<paradice::beast> beast)
     {
         add_beast(context_->get_active_encounter(), beast);
         context_->update_active_encounter();
-        
-        user_interface_->set_statusbar_text(string_to_elements(
-            str(format("\\[3Added \\x%s\\x\\[3 to active encounter")
+
+        user_interface_->set_statusbar_text(munin::string_to_elements(
+            boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter")
                 % beast->get_name())));
     }
 
     // ======================================================================
     // ON_GM_FIGHT_ENCOUNTER
     // ======================================================================
-    void on_gm_fight_encounter(shared_ptr<paradice::encounter> encounter)
+    void on_gm_fight_encounter(std::shared_ptr<paradice::encounter> encounter)
     {
-        BOOST_AUTO(enc, context_->get_active_encounter());
+        auto enc = context_->get_active_encounter();
 
-        BOOST_FOREACH(
-            shared_ptr<paradice::beast> beast
-          , encounter->get_beasts())
+        for (auto beast : encounter->get_beasts())
         {
             add_beast(enc, beast);
         }
 
         context_->update_active_encounter();
 
-        user_interface_->set_statusbar_text(string_to_elements(
-            str(format("\\[3Added \\x%s\\x\\[3 to active encounter!")
+        user_interface_->set_statusbar_text(munin::string_to_elements(
+            boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter!")
                 % encounter->get_name())));
     }
 
@@ -881,29 +856,29 @@ private :
     {
         user_interface_->hide_help_window();
     }
-    
+
     // ======================================================================
     // ON_PASSWORD_CHANGED
     // ======================================================================
     void on_password_changed(
-        string const &old_password
-      , string const &new_password
-      , string const &new_password_verify)
+        std::string const &old_password,
+        std::string const &new_password,
+        std::string const &new_password_verify)
     {
         if (!account_->password_match(old_password))
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Old password did not match."));
             return;
         }
-        
+
         if (new_password != new_password_verify)
         {
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1New passwords did not match."));
             return;
         }
-        
+
         account_->set_password(new_password);
 
         try
@@ -915,7 +890,7 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(string_to_elements(
+            user_interface_->set_statusbar_text(munin::string_to_elements(
                 "\\[1Unexpected error saving your account.  "
                 "Please try again."));
 
@@ -924,7 +899,7 @@ private :
 
         user_interface_->select_face(hugin::FACE_MAIN);
     }
-    
+
     // ======================================================================
     // ON_PASSWORD_CHANGE_CANCELLED
     // ======================================================================
@@ -932,23 +907,23 @@ private :
     {
         user_interface_->select_face(hugin::FACE_MAIN);
     }
-    
+
     // ======================================================================
     // ON_INPUT_ENTERED
     // ======================================================================
-    void on_input_entered(string const &input)
+    void on_input_entered(std::string const &input)
     {
-        shared_ptr<client> player = self_.shared_from_this();
-        
+        std::shared_ptr<client> player = self_.shared_from_this();
+
         assert(player != NULL);
-        
+
         if (input.empty())
         {
             return;
         }
-        
-        BOOST_AUTO(command_mode, account_->get_command_mode());
-        
+
+        auto command_mode = account_->get_command_mode();
+
         if (command_mode == account::command_mode_mud)
         {
             on_command(input);
@@ -972,38 +947,36 @@ private :
             }
         }
     }
-    
+
     // ======================================================================
     // ON_COMMAND
     // ======================================================================
-    void on_command(string const &input)
+    void on_command(std::string const &input)
     {
-        shared_ptr<client> player = self_.shared_from_this();
+        std::shared_ptr<client> player = self_.shared_from_this();
         assert(player != NULL);
-        
+
         user_interface_->add_command_history(input);
-    
-        BOOST_AUTO(arg, odin::tokenise(input));
-    
+
+        auto arg = odin::tokenise(input);
+
         // Transform the command to lower case.
-        for (string::iterator ch = arg.first.begin();
-             ch != arg.first.end();
-             ++ch)
+        for (auto ch = arg.first.begin(); ch != arg.first.end(); ++ch)
         {
             *ch = tolower(*ch);
         }
-    
+
         if (arg.first == "!")
         {
             on_input_entered(last_command_);
             return;
         }
-    
-        BOOST_AUTO(admin_level, account_->get_admin_level());
-        BOOST_AUTO(gm_level, player->get_character()->get_gm_level());
-        
+
+        auto admin_level = account_->get_admin_level();
+        auto gm_level = player->get_character()->get_gm_level();
+
         // Search through the list for commands
-        BOOST_FOREACH(command const &cur_command, command_list)
+        for (auto const &cur_command : command_list)
         {
             if (cur_command.command_ == arg.first)
             {
@@ -1019,11 +992,11 @@ private :
                 }
             }
         }
-    
-        string text = 
+
+        std::string text =
             "\nDidn't understand that.  Available commands are:\n";
-    
-        BOOST_FOREACH(command const &cur_command, command_list)
+
+        for (auto const &cur_command : command_list)
         {
             if (admin_level >= cur_command.admin_level_required_
              && gm_level >= cur_command.gm_level_required_)
@@ -1031,25 +1004,25 @@ private :
                 text += cur_command.command_ + " ";
             }
         }
-    
+
         text += "\n";
-    
+
         send_to_player(context_, text, player);
     }
 
-    client                            &self_;
-    boost::asio::strand                strand_;
-    shared_ptr<context>                context_;
-    shared_ptr<account>                account_;
-    shared_ptr<character>              character_;
+    client                                 &self_;
+    boost::asio::strand                     strand_;
+    std::shared_ptr<context>                context_;
+    std::shared_ptr<account>                account_;
+    std::shared_ptr<character>              character_;
 
-    shared_ptr<connection>             connection_;
-    shared_ptr<munin::window>          window_;
-    shared_ptr<hugin::user_interface>  user_interface_;
+    std::shared_ptr<connection>             connection_;
+    std::shared_ptr<munin::window>          window_;
+    std::shared_ptr<hugin::user_interface>  user_interface_;
 
-    mutex                              dispatch_queue_mutex_;
-    deque< function<void ()> >         dispatch_queue_;
-    string                             last_command_;
+    std::mutex                              dispatch_queue_mutex_;
+    std::deque<std::function<void ()>>      dispatch_queue_;
+    std::string                             last_command_;
 
 private :
     // ======================================================================
@@ -1057,10 +1030,10 @@ private :
     // ======================================================================
     void dispatch_queue()
     {
-        function<void ()> fn;
+        std::function<void ()> fn;
 
-        unique_lock<mutex> lock(dispatch_queue_mutex_);
-        
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+
         while (!dispatch_queue_.empty())
         {
             fn = dispatch_queue_.front();
@@ -1068,7 +1041,7 @@ private :
             lock.unlock();
 
             fn();
-            
+
             lock.lock();
         }
     }
@@ -1079,11 +1052,12 @@ private :
 // ==========================================================================
 client::client(
     boost::asio::io_service &io_service
-  , shared_ptr<context>      ctx)
+  , std::shared_ptr<context> ctx)
 {
-    pimpl_ = make_shared<impl>(ref(*this), ref(io_service), ctx);
+    pimpl_ = std::make_shared<impl>(
+        std::ref(*this), std::ref(io_service), ctx);
 }
-    
+
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
@@ -1094,7 +1068,7 @@ client::~client()
 // ==========================================================================
 // SET_CONNECTION
 // ==========================================================================
-void client::set_connection(shared_ptr<connection> const &cnx)
+void client::set_connection(std::shared_ptr<connection> const &cnx)
 {
     pimpl_->set_connection(cnx);
 }
@@ -1102,7 +1076,7 @@ void client::set_connection(shared_ptr<connection> const &cnx)
 // ==========================================================================
 // GET_USER_INTERFACE
 // ==========================================================================
-shared_ptr<hugin::user_interface> client::get_user_interface()
+std::shared_ptr<hugin::user_interface> client::get_user_interface()
 {
     return pimpl_->get_user_interface();
 }
@@ -1110,7 +1084,7 @@ shared_ptr<hugin::user_interface> client::get_user_interface()
 // ==========================================================================
 // GET_WINDOW
 // ==========================================================================
-shared_ptr<munin::window> client::get_window()
+std::shared_ptr<munin::window> client::get_window()
 {
     return pimpl_->get_window();
 }
@@ -1118,7 +1092,7 @@ shared_ptr<munin::window> client::get_window()
 // ==========================================================================
 // SET_WINDOW_TITLE
 // ==========================================================================
-void client::set_window_title(string const &title)
+void client::set_window_title(std::string const &title)
 {
     pimpl_->set_window_title(title);
 }
@@ -1126,7 +1100,7 @@ void client::set_window_title(string const &title)
 // ==========================================================================
 // SET_WINDOW_SIZE
 // ==========================================================================
-void client::set_window_size(u16 width, u16 height)
+void client::set_window_size(odin::u16 width, odin::u16 height)
 {
     pimpl_->set_window_size(width, height);
 }
@@ -1134,7 +1108,7 @@ void client::set_window_size(u16 width, u16 height)
 // ==========================================================================
 // SET_ACCOUNT
 // ==========================================================================
-void client::set_account(shared_ptr<account> acc)
+void client::set_account(std::shared_ptr<account> const &acc)
 {
     pimpl_->set_account(acc);
 }
@@ -1142,7 +1116,7 @@ void client::set_account(shared_ptr<account> acc)
 // ==========================================================================
 // GET_ACCOUNT
 // ==========================================================================
-shared_ptr<account> client::get_account() const
+std::shared_ptr<account> client::get_account() const
 {
     return pimpl_->get_account();
 }
@@ -1150,7 +1124,7 @@ shared_ptr<account> client::get_account() const
 // ==========================================================================
 // SET_CHARACTER
 // ==========================================================================
-void client::set_character(shared_ptr<character> ch)
+void client::set_character(std::shared_ptr<character> const &ch)
 {
     pimpl_->set_character(ch);
 }
@@ -1158,7 +1132,7 @@ void client::set_character(shared_ptr<character> ch)
 // ==========================================================================
 // GET_CHARACTER
 // ==========================================================================
-shared_ptr<character> client::get_character() const
+std::shared_ptr<character> client::get_character() const
 {
     return pimpl_->get_character();
 }
@@ -1174,7 +1148,7 @@ void client::disconnect()
 // ==========================================================================
 // ON_CONNECTION_DEATH
 // ==========================================================================
-void client::on_connection_death(function<void ()> callback)
+void client::on_connection_death(std::function<void ()> const &callback)
 {
     pimpl_->on_connection_death(callback);
 }

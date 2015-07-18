@@ -6,32 +6,28 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/character.hpp"
 
-using namespace std;
-using namespace odin;
-using namespace boost;
-
 namespace paradice {
-    
+
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
@@ -50,7 +46,7 @@ character::~character()
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void character::set_name(string const &name)
+void character::set_name(std::string const &name)
 {
     name_ = name;
 }
@@ -58,7 +54,7 @@ void character::set_name(string const &name)
 // ==========================================================================
 // GET_NAME
 // ==========================================================================
-string character::get_name() const
+std::string character::get_name() const
 {
     return name_;
 }
@@ -66,7 +62,7 @@ string character::get_name() const
 // ==========================================================================
 // SET_PREFIX
 // ==========================================================================
-void character::set_prefix(string const &prefix)
+void character::set_prefix(std::string const &prefix)
 {
     prefix_ = prefix;
 }
@@ -74,7 +70,7 @@ void character::set_prefix(string const &prefix)
 // ==========================================================================
 // GET_PREFIX
 // ==========================================================================
-string character::get_prefix() const
+std::string character::get_prefix() const
 {
     return prefix_;
 }
@@ -82,7 +78,7 @@ string character::get_prefix() const
 // ==========================================================================
 // SET_SUFFIX
 // ==========================================================================
-void character::set_suffix(string const &suffix)
+void character::set_suffix(std::string const &suffix)
 {
     suffix_ = suffix;
 }
@@ -90,7 +86,7 @@ void character::set_suffix(string const &suffix)
 // ==========================================================================
 // GET_SUFFIX
 // ==========================================================================
-string character::get_suffix() const
+std::string character::get_suffix() const
 {
     return suffix_;
 }
@@ -98,7 +94,7 @@ string character::get_suffix() const
 // ==========================================================================
 // SET_GM_LEVEL
 // ==========================================================================
-void character::set_gm_level(u32 gm_level)
+void character::set_gm_level(odin::u32 gm_level)
 {
     gm_level_ = gm_level;
 }
@@ -106,7 +102,7 @@ void character::set_gm_level(u32 gm_level)
 // ==========================================================================
 // GET_GM_LEVEL
 // ==========================================================================
-u32 character::get_gm_level() const
+odin::u32 character::get_gm_level() const
 {
     return gm_level_;
 }
@@ -114,15 +110,15 @@ u32 character::get_gm_level() const
 // ==========================================================================
 // SET_BEASTS
 // ==========================================================================
-void character::set_beasts(vector< shared_ptr<beast> > beasts)
+void character::set_beasts(std::vector<std::shared_ptr<beast>> const &beasts)
 {
-    beasts_ = beasts;
+    beasts_ = std::move(beasts);
 }
 
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-vector< shared_ptr<beast> > character::get_beasts() const
+std::vector<std::shared_ptr<beast>> character::get_beasts() const
 {
     return beasts_;
 }
@@ -130,15 +126,15 @@ vector< shared_ptr<beast> > character::get_beasts() const
 // ==========================================================================
 // SET_ENCOUNTERS
 // ==========================================================================
-void character::set_encounters(vector< shared_ptr<encounter> > encounters)
+void character::set_encounters(std::vector<std::shared_ptr<encounter>> const &encounters)
 {
-    encounters_ = encounters;
+    encounters_ = std::move(encounters);
 }
 
 // ==========================================================================
 // GET_ENCOUNTERS
 // ==========================================================================
-vector< shared_ptr<encounter> > character::get_encounters() const
+std::vector<std::shared_ptr<encounter>> character::get_encounters() const
 {
     return encounters_;
 }

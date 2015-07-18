@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/edit.hpp"
 #include "munin/text/default_singleline_document.hpp"
@@ -31,19 +31,9 @@
 #include "munin/context.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/ascii/protocol.hpp"
-#include <boost/assign/list_of.hpp>
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/foreach.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <cctype>
 #include <vector>
-
-using namespace odin;
-using namespace boost;
-using namespace boost::assign;
-using namespace std;
 
 namespace munin {
 
@@ -58,25 +48,31 @@ struct edit::impl
     impl(edit &self)
         : self_(self)
         , document_(
-              make_shared<munin::text::default_singleline_document>())
+              std::make_shared<munin::text::default_singleline_document>())
         , cursor_state_(true)
         , document_base_(0)
     {
         document_->on_redraw.connect(
-            bind(&impl::on_document_changed, this, _1));
-        
+            [this](auto const &region)
+            {
+                on_document_changed(region);
+            });
+
         document_->on_caret_position_changed.connect(
-            bind(&impl::on_caret_position_changed, this));
+            [this]()
+            {
+                on_caret_position_changed();
+            });
     }
 
     //* =====================================================================
     /// \brief Returns the document associated with this component.
     //* =====================================================================
-    shared_ptr<munin::text::document> get_document()
+    std::shared_ptr<munin::text::document> get_document()
     {
         return document_;
     }
-    
+
     //* =====================================================================
     /// \brief Returns the preferred size of this component.
     //* =====================================================================
@@ -84,7 +80,7 @@ struct edit::impl
     {
         return document_->get_size();
     }
-    
+
     //* =====================================================================
     /// \brief Returns the cursor state
     //* =====================================================================
@@ -100,7 +96,7 @@ struct edit::impl
     {
         return cursor_position_;
     }
-    
+
     //* =====================================================================
     /// \brief Draws the component
     //* =====================================================================
@@ -108,20 +104,20 @@ struct edit::impl
         canvas          &cvs
       , rectangle const &region)
     {
-        BOOST_AUTO(document_size, document_->get_size());
-        BOOST_AUTO(characters, document_size.width - document_base_);
-        BOOST_AUTO(text, document_->get_line(0));
-        
-        s32 index = 0;
+        auto document_size = document_->get_size();
+        auto characters = document_size.width - document_base_;
+        auto text = document_->get_line(0);
+
+        odin::s32 index = 0;
 
         // Write whatever characters are required.
         if (password_element_.is_initialized())
         {
-            BOOST_AUTO(element, password_element_.get());
-            
+            auto element = password_element_.get();
+
             for (;
                  (index + 1) < region.size.width
-              && u32(region.origin.x + index) < characters;
+              && odin::u32(region.origin.x + index) < characters;
                  ++index)
             {
                 cvs[index][0] = element;
@@ -131,13 +127,13 @@ struct edit::impl
         {
             for (;
                  (index + 1) < region.size.width
-              && u32(region.origin.x + index) < characters;
+              && odin::u32(region.origin.x + index) < characters;
                  ++index)
             {
                 cvs[index][0] = text[document_base_ + index];
             }
         }
-        
+
         // Pad the rest with blanks.
         static element_type const blank_element(' ');
         for (;
@@ -149,30 +145,30 @@ struct edit::impl
     }
 
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
+    /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     void do_event(boost::any const &event)
     {
         char const *ch = boost::any_cast<char>(&event);
-        
-        if (ch != NULL)
+
+        if (ch != nullptr)
         {
             do_character_event(*ch);
         }
-        
-        odin::ansi::control_sequence const *sequence = 
+
+        odin::ansi::control_sequence const *sequence =
             boost::any_cast<odin::ansi::control_sequence>(&event);
-            
-        if (sequence != NULL)
+
+        if (sequence != nullptr)
         {
             do_ansi_control_sequence_event(*sequence);
         }
-        
+
         odin::ansi::mouse_report const *report =
             boost::any_cast<odin::ansi::mouse_report>(&event);
-        
-        if (report != NULL)
+
+        if (report != nullptr)
         {
             do_ansi_mouse_report_event(*report);
         }
@@ -185,33 +181,33 @@ struct edit::impl
     void set_password_element(element_type const &element)
     {
         password_element_ = element;
-        
+
         // Changing the password element will completely change how this
         // component is drawn.  Therefore, we will need to redraw the
         // entire component.
         redraw();
     }
-    
+
 private :
     //* =====================================================================
     /// \brief Called when the underlying document changes.
     //* =====================================================================
-    void on_document_changed(vector<rectangle> regions)
+    void on_document_changed(std::vector<rectangle> const &regions)
     {
         // Search the regions, looking for regions that overlap with the
         // text that we are displaying.
-        vector<rectangle> overlapping_changes;
-        
+        std::vector<rectangle> overlapping_changes;
+
         // Determine the rectangle of the document that we are displaying.
         rectangle display_rectangle(
             point(document_base_, 0)
           , extent(self_.get_size().width, 1));
-        
-        BOOST_FOREACH(rectangle region, regions)
+
+        for (auto const &region : regions)
         {
-            optional<rectangle> overlap = intersection(
+            boost::optional<rectangle> overlap = intersection(
                 region, display_rectangle);
-            
+
             if (overlap)
             {
                 overlapping_changes.push_back(overlap.get());
@@ -220,7 +216,7 @@ private :
 
         // If we have any overlapping regions, then we need to redraw those
         // portions of the document.
-        
+
         // First naive implementation: redraw the entire component.
         if (!overlapping_changes.empty())
         {
@@ -229,13 +225,13 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called when the position of the caret in the underlying 
+    /// \brief Called when the position of the caret in the underlying
     /// document changes.
     //* =====================================================================
     void on_caret_position_changed()
     {
-        BOOST_AUTO(new_index, document_->get_caret_index());
-        
+        auto new_index = document_->get_caret_index();
+
         if  (new_index < document_base_)
         {
             // The caret has gone to the left of the document base.  Rebase
@@ -269,30 +265,30 @@ private :
     //* =====================================================================
     void redraw()
     {
-        self_.on_redraw(list_of(rectangle(point(), self_.get_size())));
+        self_.on_redraw({rectangle(point(), self_.get_size())});
     }
-    
+
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the <- key
     /// has been pressed.
     //* =====================================================================
-    void do_cursor_backward_key_event(u32 times)
+    void do_cursor_backward_key_event(odin::u32 times)
     {
-        BOOST_AUTO(index, document_->get_caret_index());
-        BOOST_AUTO(new_index, (index < times ? 0 : index - times));
-        
+        auto index = document_->get_caret_index();
+        auto new_index = index < times ? 0 : index - times;
+
         document_->set_caret_index(new_index);
     }
-    
+
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the -> key
     /// has been pressed.
     //* =====================================================================
-    void do_cursor_forward_key_event(u32 times)
+    void do_cursor_forward_key_event(odin::u32 times)
     {
         document_->set_caret_index(document_->get_caret_index() + times);
     }
-    
+
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the HOME key
     /// has been pressed.
@@ -302,7 +298,7 @@ private :
         // The HOME key will move the caret to the beginning of the document.
         // Events called from this action should ensure that the view and
         // the cursor position are correctly placed.
-        document_->set_caret_index(0); 
+        document_->set_caret_index(0);
     }
 
     //* =====================================================================
@@ -314,10 +310,10 @@ private :
         // The END key will move the caret to the end of the document.
         // Events called from this action should ensure that the view and
         // the cursor position are correctly placed.
-        BOOST_AUTO(document_size, document_->get_size());
+        auto document_size = document_->get_size();
         document_->set_caret_index(document_size.width * document_size.height);
     }
-    
+
     //* =====================================================================
     /// \brief Called by do_event when an ANSI control sequence has been
     /// received.
@@ -330,19 +326,19 @@ private :
             // Check for the <- key
             if (sequence.command_ == odin::ansi::CURSOR_BACKWARD)
             {
-                u32 times = sequence.arguments_.empty() 
-                          ? 1 
+                odin::u32 times = sequence.arguments_.empty()
+                          ? 1
                           : atoi(sequence.arguments_.c_str());
-                          
+
                 do_cursor_backward_key_event(times);
             }
             // Check for the -> key
             else if (sequence.command_ == odin::ansi::CURSOR_FORWARD)
             {
-                u32 times = sequence.arguments_.empty() 
-                          ? 1 
+                odin::u32 times = sequence.arguments_.empty()
+                          ? 1
                           : atoi(sequence.arguments_.c_str());
-                          
+
                 do_cursor_forward_key_event(times);
             }
             else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
@@ -367,7 +363,7 @@ private :
                     if (self_.is_enabled())
                     {
                         get_document()->delete_text(
-                            make_pair(0, get_document()->get_text_size()));
+                            std::make_pair(0, get_document()->get_text_size()));
                     }
                 }
             }
@@ -386,7 +382,7 @@ private :
             }
         }
     }
-    
+
     //* =====================================================================
     /// \brief Called by do_event when an ANSI mouse report has been
     /// received.
@@ -401,14 +397,14 @@ private :
                 {
                     self_.set_focus();
                 }
-                
+
                 self_.get_document()->set_caret_position(point(
                     report.x_position_
                   , report.y_position_));
             }
         }
     }
-    
+
     //* =====================================================================
     /// \brief Called by do_event when a character event has occurred.
     //* =====================================================================
@@ -418,12 +414,12 @@ private :
         {
             if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
             {
-                BOOST_AUTO(caret_index, document_->get_caret_index());
-                
+                auto caret_index = document_->get_caret_index();
+
                 if (caret_index != 0)
                 {
                     document_->delete_text(
-                        make_pair(caret_index - 1, caret_index));
+                        std::make_pair(caret_index - 1, caret_index));
                 }
             }
             else
@@ -432,20 +428,20 @@ private :
 
                 if (is_printable(gly))
                 {
-                    document_->insert_text(list_of(element_type(gly)));
+                    document_->insert_text({element_type(gly)});
                 }
             }
         }
     }
-    
-    edit                              &self_;
-    shared_ptr<munin::text::document>  document_;
-    point                              cursor_position_;
-    bool                               cursor_state_;
-    
-    u32                                document_base_;
-    
-    boost::optional<element_type>      password_element_;
+
+    edit                                   &self_;
+    std::shared_ptr<munin::text::document>  document_;
+    point                                   cursor_position_;
+    bool                                    cursor_state_;
+
+    odin::u32                               document_base_;
+
+    boost::optional<element_type>           password_element_;
 };
 
 // ==========================================================================
@@ -453,7 +449,7 @@ private :
 // ==========================================================================
 edit::edit()
 {
-    pimpl_ = make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
 }
 
 // ==========================================================================
@@ -466,7 +462,7 @@ edit::~edit()
 // ==========================================================================
 // GET_DOCUMENT
 // ==========================================================================
-shared_ptr<munin::text::document> edit::get_document()
+std::shared_ptr<munin::text::document> edit::get_document()
 {
     return pimpl_->get_document();
 }
@@ -509,7 +505,7 @@ void edit::do_draw(
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void edit::do_event(any const &event)
+void edit::do_event(boost::any const &event)
 {
     pimpl_->do_event(event);
 }
@@ -517,13 +513,13 @@ void edit::do_event(any const &event)
 // ==========================================================================
 // DO_SET_ATTRIBUTE
 // ==========================================================================
-void edit::do_set_attribute(string const &name, any const &attr)
+void edit::do_set_attribute(std::string const &name, boost::any const &attr)
 {
     if (name == EDIT_PASSWORD_ELEMENT)
     {
-        element_type const *element = any_cast<element_type>(&attr);
-        
-        if (element != NULL)
+        element_type const *element = boost::any_cast<element_type>(&attr);
+
+        if (element != nullptr)
         {
             pimpl_->set_password_element(*element);
         }

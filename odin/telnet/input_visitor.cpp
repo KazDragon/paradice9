@@ -28,10 +28,6 @@
 #include "odin/telnet/command_router.hpp"
 #include "odin/telnet/negotiation_router.hpp"
 #include "odin/telnet/subnegotiation_router.hpp"
-#include <boost/foreach.hpp>
-
-using namespace std;
-using namespace boost;
 
 namespace odin { namespace telnet {
 
@@ -40,26 +36,38 @@ namespace odin { namespace telnet {
 // ==============================================================================
 struct input_visitor::impl
 {
-    shared_ptr<command_router>        command_router_;
-    shared_ptr<negotiation_router>    negotiation_router_;
-    shared_ptr<subnegotiation_router> subnegotiation_router_;
-    function<void (string)>           text_handler_;
+    impl(
+        std::shared_ptr<command_router>           command_router,
+        std::shared_ptr<negotiation_router>       negotiation_router,
+        std::shared_ptr<subnegotiation_router>    subnegotiation_router,
+        std::function<void (std::string const &)> text_handler)
+      : command_router_(std::move(command_router)),
+        negotiation_router_(std::move(negotiation_router)),
+        subnegotiation_router_(std::move(subnegotiation_router)),
+        text_handler_(std::move(text_handler))
+    {
+    }
+    
+    std::shared_ptr<command_router>           command_router_;
+    std::shared_ptr<negotiation_router>       negotiation_router_;
+    std::shared_ptr<subnegotiation_router>    subnegotiation_router_;
+    std::function<void (std::string const &)> text_handler_;
 };
 
 // ==============================================================================
 // CONSTRUCTOR
 // ==============================================================================
 input_visitor::input_visitor(
-    shared_ptr<command_router> const        &command_router
-  , shared_ptr<negotiation_router> const    &negotiation_router
-  , shared_ptr<subnegotiation_router> const &subnegotiation_router
-  , function<void (string)> const           &text_handler)
-  : pimpl_(new impl)
+	std::shared_ptr<command_router>           command_router,
+    std::shared_ptr<negotiation_router>       negotiation_router,
+    std::shared_ptr<subnegotiation_router>    subnegotiation_router,
+    std::function<void (std::string const &)> text_handler)
+  : pimpl_(std::make_shared<impl>(
+        command_router, 
+        negotiation_router, 
+        subnegotiation_router, 
+        text_handler))
 {
-    pimpl_->command_router_        = command_router;
-    pimpl_->negotiation_router_    = negotiation_router;
-    pimpl_->subnegotiation_router_ = subnegotiation_router;
-    pimpl_->text_handler_          = text_handler;
 }
     
 // ==============================================================================
@@ -96,7 +104,7 @@ void input_visitor::operator()(subnegotiation_type const &subnegotiation)
 // ==============================================================================
 // OPERATOR()(STRING)
 // ==============================================================================
-void input_visitor::operator()(string const &text)
+void input_visitor::operator()(std::string const &text)
 {
     pimpl_->text_handler_(text);
 }
@@ -108,7 +116,7 @@ void apply_input_range(
     input_visitor                    &visitor
   , stream::input_storage_type const &values)
 {
-    BOOST_FOREACH(odin::telnet::stream::input_value_type value, values)
+	for (auto const &value : values)
     {
         apply_visitor(visitor, value);
     }

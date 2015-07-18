@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/tabbed_frame.hpp"
 #include "munin/ansi/protocol.hpp"
@@ -34,16 +34,7 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/vertical_strip_layout.hpp"
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/optional.hpp>
 #include <algorithm>
-
-using namespace munin::ansi;
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -59,12 +50,12 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     tabbed_frame_header_rivet()
-      : top_element_(make_shared<filled_box>(element_type(' ')))
-      , middle_element_(make_shared<filled_box>(element_type(' ')))
-      , bottom_element_(make_shared<filled_box>(element_type(' ')))
+      : top_element_(std::make_shared<filled_box>(element_type(' ')))
+      , middle_element_(std::make_shared<filled_box>(element_type(' ')))
+      , bottom_element_(std::make_shared<filled_box>(element_type(' ')))
     {
-        BOOST_AUTO(content, get_container());
-        content->set_layout(make_shared<grid_layout>(3, 1));
+        auto content = get_container();
+        content->set_layout(std::make_shared<grid_layout>(3, 1));
         content->add_component(top_element_);
         content->add_component(middle_element_);
         content->add_component(bottom_element_);
@@ -95,9 +86,9 @@ public :
     }
 
 private :
-    shared_ptr<filled_box> top_element_;
-    shared_ptr<filled_box> middle_element_;
-    shared_ptr<filled_box> bottom_element_;
+    std::shared_ptr<filled_box> top_element_;
+    std::shared_ptr<filled_box> middle_element_;
+    std::shared_ptr<filled_box> bottom_element_;
 };
 
 // ==========================================================================
@@ -109,17 +100,17 @@ public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    tabbed_frame_header_label(vector<element_type> const &label)
-      : top_box_(make_shared<filled_box>(element_type(' ')))
-      , label_(make_shared<image>(label))
-      , bottom_box_(make_shared<filled_box>(element_type(' ')))
+    tabbed_frame_header_label(std::vector<element_type> const &label)
+      : top_box_(std::make_shared<filled_box>(element_type(' '))),
+        label_(std::make_shared<image>(label)),
+        bottom_box_(std::make_shared<filled_box>(element_type(' ')))
     {
-        BOOST_AUTO(content, get_container());
-        content->set_layout(make_shared<compass_layout>());
+        auto content = get_container();
+        content->set_layout(std::make_shared<compass_layout>());
         content->add_component(top_box_, COMPASS_LAYOUT_NORTH);
         content->add_component(label_, COMPASS_LAYOUT_CENTRE);
         content->add_component(bottom_box_, COMPASS_LAYOUT_SOUTH);
-        
+
         label_->set_can_focus(true);
     }
 
@@ -134,7 +125,7 @@ public :
     // ======================================================================
     // SET_LABEL
     // ======================================================================
-    void set_label(vector<element_type> const &text)
+    void set_label(std::vector<element_type> const &text)
     {
         label_->set_image(text);
     }
@@ -147,15 +138,15 @@ public :
         bottom_box_->set_fill(element);
     }
 
-    signal<void ()> on_click;
+    boost::signal<void ()> on_click;
 
 protected :
     // ======================================================================
     // DO_EVENT
     // ======================================================================
-    void do_event(any const &event)
+    void do_event(boost::any const &event)
     {
-        BOOST_AUTO(mouse, any_cast<odin::ansi::mouse_report>(&event));
+        auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
 
         if (mouse)
         {
@@ -164,17 +155,17 @@ protected :
     }
 
 private :
-    shared_ptr<filled_box> top_box_;
-    shared_ptr<image>      label_;
-    shared_ptr<filled_box> bottom_box_;
+    std::shared_ptr<filled_box> top_box_;
+    std::shared_ptr<image>      label_;
+    std::shared_ptr<filled_box> bottom_box_;
 };
 
 // ==========================================================================
 // TABBED_FRAME_HEADER
 // ==========================================================================
 class tabbed_frame_header
-  : public composite_component
-  , public enable_shared_from_this<tabbed_frame_header>
+  : public composite_component,
+    public std::enable_shared_from_this<tabbed_frame_header>
 {
 public :
     // ======================================================================
@@ -184,24 +175,24 @@ public :
       : selected_(0)
       , highlight_(false)
     {
-        get_container()->set_layout(make_shared<grid_layout>(1, 1));
+        get_container()->set_layout(std::make_shared<grid_layout>(1, 1));
         assemble_default();
     }
 
     // ======================================================================
     // INSERT_TAB
     // ======================================================================
-    void insert_tab(string const &text, optional<u32> index)
+    void insert_tab(std::string const &text, boost::optional<odin::u32> index)
     {
         // If index is not initialised, then place the new tab at the end
         // of the current list of tabs.  Otherwise, place it at the index
         // specified.
-        BOOST_AUTO(
-            actual_index
-          , index.is_initialized() ? index.get() : tabs_.size());
+        auto actual_index = index.is_initialized()
+                          ? index.get()
+                          : tabs_.size();
 
         // If this isn't the first tab, and we're inserting before the selected
-        // tab, then we need to increment that value in order to keep the same 
+        // tab, then we need to increment that value in order to keep the same
         // tab selected.
         if (!tabs_.empty() && actual_index <= selected_)
         {
@@ -209,7 +200,7 @@ public :
         }
 
         tabs_.insert(tabs_.begin() + actual_index, text);
-        
+
 
         // Remove any existing content and rebuild.
         if (content_)
@@ -223,7 +214,7 @@ public :
     // ======================================================================
     // REMOVE_TAB
     // ======================================================================
-    void remove_tab(u32 index)
+    void remove_tab(odin::u32 index)
     {
         tabs_.erase(tabs_.begin() + index);
 
@@ -251,7 +242,7 @@ public :
         update_highlights();
     }
 
-    signal<void (string)> on_tab_selected;
+    boost::signal<void (std::string)> on_tab_selected;
 
 protected :
     // ======================================================================
@@ -259,7 +250,7 @@ protected :
     // ======================================================================
     void do_event(boost::any const &event)
     {
-        BOOST_AUTO(sequence, any_cast<odin::ansi::control_sequence>(&event));
+        auto sequence = boost::any_cast<odin::ansi::control_sequence>(&event);
 
         bool handled = false;
 
@@ -295,33 +286,17 @@ protected :
 
 private :
     // ======================================================================
-    // ON_LABEL_CLICK_THUNK
-    // ======================================================================
-    static void on_label_click_thunk(
-        weak_ptr<tabbed_frame_header>       weak_this
-      , weak_ptr<tabbed_frame_header_label> weak_label)
-    {
-        shared_ptr<tabbed_frame_header> strong_this(weak_this.lock());
-        shared_ptr<tabbed_frame_header_label> strong_label(weak_label.lock());
-
-        if (strong_this && strong_label)
-        {
-            strong_this->on_label_click(strong_label);
-        }
-    }
-
-    // ======================================================================
     // ON_LABEL_CLICK
     // ======================================================================
-    void on_label_click(shared_ptr<tabbed_frame_header_label> label)
+    void on_label_click(std::shared_ptr<tabbed_frame_header_label> label)
     {
         // Find the index of this label and then fire the on_tab_selected
         // signal using the string identifier of the tab of that index.
-        BOOST_AUTO(it, find(labels_.begin(), labels_.end(), label));
+        auto it = std::find(labels_.begin(), labels_.end(), label);
 
         if (it != labels_.end())
         {
-            BOOST_AUTO(index, distance(labels_.begin(), it));
+            auto index = std::distance(labels_.begin(), it);
             selected_ = index;
             update_highlights();
             on_tab_selected(tabs_[selected_]);
@@ -345,52 +320,60 @@ private :
         }
 
         // Left and right rivets are always present, along with filler.
-        BOOST_AUTO(left_rivet, make_shared<tabbed_frame_header_rivet>());
+        auto left_rivet = std::make_shared<tabbed_frame_header_rivet>();
         rivets_.push_back(left_rivet);
 
-        BOOST_AUTO(right_rivet, make_shared<tabbed_frame_header_rivet>());
+        auto right_rivet = std::make_shared<tabbed_frame_header_rivet>();
 
-        BOOST_AUTO(filler, make_shared<basic_container>());
-        filler->set_layout(make_shared<compass_layout>());
+        auto filler = std::make_shared<basic_container>();
+        filler->set_layout(std::make_shared<compass_layout>());
         filler->add_component(
-            make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(element_type(' '))
           , COMPASS_LAYOUT_NORTH);
         filler->add_component(
-            make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(element_type(' '))
           , COMPASS_LAYOUT_CENTRE);
-        filler_ = make_shared<filled_box>(element_type(double_lined_horizontal_beam));
+        filler_ = std::make_shared<filled_box>(element_type(double_lined_horizontal_beam));
         filler->add_component(filler_, COMPASS_LAYOUT_SOUTH);
 
         // To create the middle section, use a vertical strip layout and
         // alternate label/rivet until complete.
-        BOOST_AUTO(tab_section, make_shared<basic_container>());
-        tab_section->set_layout(make_shared<vertical_strip_layout>());
+        auto tab_section = std::make_shared<basic_container>();
+        tab_section->set_layout(std::make_shared<vertical_strip_layout>());
         tab_section->add_component(left_rivet);
 
-        for (vector<string>::size_type index = 0;
+        for (std::vector<std::string>::size_type index = 0;
              index < tabs_.size();
              ++index)
         {
-            BOOST_AUTO(label, make_shared<tabbed_frame_header_label>(
-                elements_from_string(tabs_[index])));
+            auto label = std::make_shared<tabbed_frame_header_label>(
+                munin::ansi::elements_from_string(tabs_[index]));
             labels_.push_back(label);
 
-            label->on_click.connect(bind(
-                &tabbed_frame_header::on_label_click_thunk
-              , weak_ptr<tabbed_frame_header>(shared_from_this())
-              , weak_ptr<tabbed_frame_header_label>(label)));
+            label->on_click.connect(
+                [wpthis=std::weak_ptr<tabbed_frame_header>(shared_from_this()),
+                 wplabel=std::weak_ptr<tabbed_frame_header_label>(label)]
+                {
+                    auto pthis = wpthis.lock();
+                    auto plabel = wplabel.lock();
+
+                    if (pthis && plabel)
+                    {
+                        pthis->on_label_click(plabel);
+                    }
+                });
 
             tab_section->add_component(label);
 
-            BOOST_AUTO(rivet, make_shared<tabbed_frame_header_rivet>());
+            auto rivet = std::make_shared<tabbed_frame_header_rivet>();
             tab_section->add_component(rivet);
             rivets_.push_back(rivet);
         }
 
         rivets_.push_back(right_rivet);
 
-        content_ = make_shared<basic_container>();
-        content_->set_layout(make_shared<compass_layout>());
+        content_ = std::make_shared<basic_container>();
+        content_->set_layout(std::make_shared<compass_layout>());
         content_->add_component(tab_section, COMPASS_LAYOUT_WEST);
         content_->add_component(filler, COMPASS_LAYOUT_CENTRE);
         content_->add_component(right_rivet, COMPASS_LAYOUT_EAST);
@@ -406,17 +389,17 @@ private :
     {
         // Updates the rivets and labels to show where the selected tab is
         // and also whether the framed component is focussed (todo).
-        u32 index = 0;
-        
+        odin::u32 index = 0;
+
         attribute selected_item_pen;
-        
+
         if (highlight_)
         {
-            selected_item_pen.foreground_colour_ = 
+            selected_item_pen.foreground_colour_ =
                 attribute::high_colour(1, 4, 5);
         }
 
-        BOOST_FOREACH(shared_ptr<tabbed_frame_header_rivet> rivet, rivets_)
+        for (auto &rivet : rivets_)
         {
             // We want a highlight if this wraps the selected item.
             attribute pen = index == selected_ || index == selected_ + 1
@@ -449,7 +432,7 @@ private :
             if (index == 0)
             {
                 rivet->set_bottom_element(element_type(
-                    selected_ == 0 
+                    selected_ == 0
                       ? double_lined_left_tee
                       : double_lined_top_left_corner
                   , selected_item_pen));
@@ -478,7 +461,7 @@ private :
 
         index = 0;
 
-        BOOST_FOREACH(shared_ptr<tabbed_frame_header_label> label, labels_)
+        for (auto &label : labels_)
         {
             label->set_top_element(element_type(
                 double_lined_horizontal_beam
@@ -501,35 +484,34 @@ private :
     // ======================================================================
     void assemble_default()
     {
-        BOOST_AUTO(left_rivet, make_shared<tabbed_frame_header_rivet>());
-        BOOST_AUTO(
-            label
-          , make_shared<tabbed_frame_header_label>(elements_from_string("")));
+        auto left_rivet = std::make_shared<tabbed_frame_header_rivet>();
+        auto label = std::make_shared<tabbed_frame_header_label>(
+            munin::ansi::elements_from_string(""));
 
-        BOOST_AUTO(right_rivet, make_shared<tabbed_frame_header_rivet>());
+        auto right_rivet = std::make_shared<tabbed_frame_header_rivet>();
 
-        BOOST_AUTO(filler, make_shared<basic_container>());
-        filler->set_layout(make_shared<compass_layout>());
+        auto filler = std::make_shared<basic_container>();
+        filler->set_layout(std::make_shared<compass_layout>());
         filler->add_component(
-            make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(element_type(' '))
           , COMPASS_LAYOUT_NORTH);
         filler->add_component(
-            make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(element_type(' '))
           , COMPASS_LAYOUT_CENTRE);
         filler->add_component(
-            make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+            std::make_shared<filled_box>(element_type(double_lined_horizontal_beam))
           , COMPASS_LAYOUT_SOUTH);
 
-        BOOST_AUTO(rightmost, make_shared<tabbed_frame_header_rivet>());
+        auto rightmost = std::make_shared<tabbed_frame_header_rivet>();
 
-        BOOST_AUTO(tabs, make_shared<basic_container>());
-        tabs->set_layout(make_shared<vertical_strip_layout>());
+        auto tabs = std::make_shared<basic_container>();
+        tabs->set_layout(std::make_shared<vertical_strip_layout>());
         tabs->add_component(left_rivet);
         tabs->add_component(label);
         tabs->add_component(right_rivet);
 
-        content_ = make_shared<basic_container>();
-        content_->set_layout(make_shared<compass_layout>());
+        content_ = std::make_shared<basic_container>();
+        content_->set_layout(std::make_shared<compass_layout>());
         content_->add_component(tabs, COMPASS_LAYOUT_WEST);
         content_->add_component(filler, COMPASS_LAYOUT_CENTRE);
         content_->add_component(right_rivet, COMPASS_LAYOUT_EAST);
@@ -539,13 +521,13 @@ private :
     }
 
 private :
-    vector<string>                                  tabs_;
-    shared_ptr<basic_container>                     content_;
-    shared_ptr<filled_box>                          filler_;
-    vector< shared_ptr<tabbed_frame_header_rivet> > rivets_;
-    vector< shared_ptr<tabbed_frame_header_label> > labels_;
-    u32                                             selected_;
-    bool                                            highlight_;
+    std::vector<std::string>                                tabs_;
+    std::shared_ptr<basic_container>                        content_;
+    std::shared_ptr<filled_box>                             filler_;
+    std::vector<std::shared_ptr<tabbed_frame_header_rivet>> rivets_;
+    std::vector<std::shared_ptr<tabbed_frame_header_label>> labels_;
+    odin::u32                                               selected_;
+    bool                                                    highlight_;
 };
 
 }
@@ -564,24 +546,9 @@ struct tabbed_frame::impl
     }
 
     // ======================================================================
-    // ON_TAB_SELECTED_THUNK
-    // ======================================================================
-    static void on_tab_selected_thunk(
-        weak_ptr<impl>  weak_this
-      , string const   &text)
-    {
-        shared_ptr<impl> strong_this(weak_this.lock());
-
-        if (strong_this)
-        {
-            strong_this->on_tab_selected(text);
-        }
-    }
-
-    // ======================================================================
     // ON_TAB_SELECTED
     // ======================================================================
-    void on_tab_selected(string const &text)
+    void on_tab_selected(std::string const &text)
     {
         self_.on_tab_selected(text);
     }
@@ -611,13 +578,13 @@ struct tabbed_frame::impl
             element_type(right_border_->get_fill().glyph_, pen));
     }
 
-    tabbed_frame                    &self_;
-    shared_ptr<tabbed_frame_header>  header_;
-    shared_ptr<filled_box>           left_border_;
-    shared_ptr<filled_box>           bottom_left_corner_;
-    shared_ptr<filled_box>           bottom_border_;
-    shared_ptr<filled_box>           bottom_right_corner_;
-    shared_ptr<filled_box>           right_border_;
+    tabbed_frame                         &self_;
+    std::shared_ptr<tabbed_frame_header>  header_;
+    std::shared_ptr<filled_box>           left_border_;
+    std::shared_ptr<filled_box>           bottom_left_corner_;
+    std::shared_ptr<filled_box>           bottom_border_;
+    std::shared_ptr<filled_box>           bottom_right_corner_;
+    std::shared_ptr<filled_box>           right_border_;
 };
 
 // ==========================================================================
@@ -625,41 +592,48 @@ struct tabbed_frame::impl
 // ==========================================================================
 tabbed_frame::tabbed_frame()
 {
-    pimpl_ = make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
 
     // North - Header full of tabs.
-    pimpl_->header_ = make_shared<tabbed_frame_header>();
-    pimpl_->header_->on_tab_selected.connect(bind(
-        &impl::on_tab_selected_thunk
-      , weak_ptr<impl>(pimpl_)
-      , _1));
+    pimpl_->header_ = std::make_shared<tabbed_frame_header>();
+    pimpl_->header_->on_tab_selected.connect(
+        [wpthis=std::weak_ptr<impl>(pimpl_)]
+        (std::string const &text)
+        {
+            auto pthis = wpthis.lock();
 
-    BOOST_AUTO(north, make_shared<basic_container>());
-    north->set_layout(make_shared<grid_layout>(1, 1));
+            if (pthis)
+            {
+                pthis->on_tab_selected(text);
+            }
+        });
+
+    auto north = std::make_shared<basic_container>();
+    north->set_layout(std::make_shared<grid_layout>(1, 1));
     north->add_component(pimpl_->header_);
 
     // West Container
-    BOOST_AUTO(west, make_shared<basic_container>());
-    west->set_layout(make_shared<grid_layout>(1, 1));
-    pimpl_->left_border_ = make_shared<filled_box>(
+    auto west = std::make_shared<basic_container>();
+    west->set_layout(std::make_shared<grid_layout>(1, 1));
+    pimpl_->left_border_ = std::make_shared<filled_box>(
         element_type(double_lined_vertical_beam));
     west->add_component(pimpl_->left_border_);
 
     // East Container
-    BOOST_AUTO(east, make_shared<basic_container>());
-    east->set_layout(make_shared<grid_layout>(1, 1));
-    pimpl_->right_border_ = make_shared<filled_box>(
+    auto east = std::make_shared<basic_container>();
+    east->set_layout(std::make_shared<grid_layout>(1, 1));
+    pimpl_->right_border_ = std::make_shared<filled_box>(
         element_type(double_lined_vertical_beam));
     east->add_component(pimpl_->right_border_);
 
     // South Container
-    BOOST_AUTO(south, make_shared<basic_container>());
-    south->set_layout(make_shared<compass_layout>());
-    pimpl_->bottom_left_corner_ = make_shared<filled_box>(
+    auto south = std::make_shared<basic_container>();
+    south->set_layout(std::make_shared<compass_layout>());
+    pimpl_->bottom_left_corner_ = std::make_shared<filled_box>(
         element_type(double_lined_bottom_left_corner));
-    pimpl_->bottom_border_ = make_shared<filled_box>(
+    pimpl_->bottom_border_ = std::make_shared<filled_box>(
         element_type(double_lined_horizontal_beam));
-    pimpl_->bottom_right_corner_ = make_shared<filled_box>(
+    pimpl_->bottom_right_corner_ = std::make_shared<filled_box>(
         element_type(double_lined_bottom_right_corner));
 
     south->add_component(pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST);
@@ -667,8 +641,8 @@ tabbed_frame::tabbed_frame()
     south->add_component(pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST);
 
     // All together.
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<compass_layout>());
+    auto content = get_container();
+    content->set_layout(std::make_shared<compass_layout>());
     content->add_component(north, COMPASS_LAYOUT_NORTH);
     content->add_component(south, COMPASS_LAYOUT_SOUTH);
     content->add_component(west, COMPASS_LAYOUT_WEST);
@@ -679,8 +653,8 @@ tabbed_frame::tabbed_frame()
 // INSERT_TAB
 // ==========================================================================
 void tabbed_frame::insert_tab(
-    string const &text
-  , optional<u32> index /* = optional<u32>() */)
+    std::string const &text,
+    boost::optional<odin::u32> index /* = optional<u32>() */)
 {
     pimpl_->header_->insert_tab(text, index);
 }
@@ -696,7 +670,7 @@ void tabbed_frame::set_highlight(bool highlight)
 // ==========================================================================
 // REMOVE_TAB
 // ==========================================================================
-void tabbed_frame::remove_tab(u32 index)
+void tabbed_frame::remove_tab(odin::u32 index)
 {
     pimpl_->header_->remove_tab(index);
 }
@@ -704,7 +678,7 @@ void tabbed_frame::remove_tab(u32 index)
 // ==========================================================================
 // DO_GET_TOP_BORDER_HEIGHT
 // ==========================================================================
-s32 tabbed_frame::do_get_top_border_height() const
+odin::s32 tabbed_frame::do_get_top_border_height() const
 {
     return 3;
 }
@@ -712,7 +686,7 @@ s32 tabbed_frame::do_get_top_border_height() const
 // ==========================================================================
 // DO_GET_BOTTOM_BORDER_HEIGHT
 // ==========================================================================
-s32 tabbed_frame::do_get_bottom_border_height() const
+odin::s32 tabbed_frame::do_get_bottom_border_height() const
 {
     return 1;
 }
@@ -720,7 +694,7 @@ s32 tabbed_frame::do_get_bottom_border_height() const
 // ==========================================================================
 // DO_GET_LEFT_BORDER_WIDTH
 // ==========================================================================
-s32 tabbed_frame::do_get_left_border_width() const
+odin::s32 tabbed_frame::do_get_left_border_width() const
 {
     return 1;
 }
@@ -728,7 +702,7 @@ s32 tabbed_frame::do_get_left_border_width() const
 // ==========================================================================
 // DO_GET_RIGHT_BORDER_WIDTH
 // ==========================================================================
-s32 tabbed_frame::do_get_right_border_width() const
+odin::s32 tabbed_frame::do_get_right_border_width() const
 {
     return 1;
 }

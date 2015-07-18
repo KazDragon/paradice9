@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_VIEWPORT_HPP_
 #define MUNIN_VIEWPORT_HPP_
@@ -50,7 +50,7 @@ public :
     /// \param underlying_component A component that this component will
     /// wrap.
     //* =====================================================================
-    viewport(boost::shared_ptr<component> underlying_component);
+    viewport(std::shared_ptr<component> underlying_component);
 
     //* =====================================================================
     /// \brief Destructor
@@ -67,7 +67,7 @@ public :
     /// \brief Sets the origin at which the viewport views the underlying
     /// component.
     //* =====================================================================
-    void set_origin(point origin);
+    void set_origin(point const &origin);
 
     //* =====================================================================
     /// \fn on_subcomponent_size_changed
@@ -91,43 +91,43 @@ protected :
     //* =====================================================================
     /// \brief Retrieve the underlying component.
     //* =====================================================================
-    boost::shared_ptr<component> get_component();
+    std::shared_ptr<component> get_component();
 
     //* =====================================================================
-    /// \brief Called by set_size().  Derived classes must override this 
-    /// function in order to set the size of the component in a custom 
+    /// \brief Called by set_size().  Derived classes must override this
+    /// function in order to set the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual void do_set_size(extent const &size);
 
     //* =====================================================================
     /// \brief Called by set_parent().  Derived classes must override this
-    /// function in order to set the parent of the component in a custom 
+    /// function in order to set the parent of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_parent(boost::shared_ptr<component> parent);
-    
+    virtual void do_set_parent(std::shared_ptr<component> const &parent);
+
     //* =====================================================================
     /// \brief Called by get_parent().  Derived classes must override this
-    /// function in order to get the parent of the component in a custom 
+    /// function in order to get the parent of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual boost::shared_ptr<component> do_get_parent() const;
+    virtual std::shared_ptr<component> do_get_parent() const;
 
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
+    /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual extent do_get_preferred_size() const;
-    
+
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
     /// function in order to return whether this component has focus in a
     /// custom manner.
     //* =====================================================================
     virtual bool do_has_focus() const;
-    
+
     //* =====================================================================
     /// \brief Called by set_can_focus().  Derived classes must override this
     /// function in order to set whether this component can be focussed in
@@ -141,52 +141,52 @@ protected :
     /// a custom manner.
     //* =====================================================================
     virtual bool do_can_focus() const;
-    
+
     //* =====================================================================
     /// \brief Called by set_focus().  Derived classes must override this
     /// function in order to set the focus to this component in a custom
     /// manner.
     //* =====================================================================
     virtual void do_set_focus();
-    
+
     //* =====================================================================
     /// \brief Called by lose_focus().  Derived classes must override this
     /// function in order to lose the focus from this component in a
     /// custom manner.
     //* =====================================================================
     virtual void do_lose_focus();
-    
+
     //* =====================================================================
     /// \brief Called by focus_next().  Derived classes must override this
     /// function in order to move the focus in a custom manner.
     //* =====================================================================
     virtual void do_focus_next();
-    
+
     //* =====================================================================
-    /// \brief Called by focus_previous().  Derived classes must override 
+    /// \brief Called by focus_previous().  Derived classes must override
     /// this function in order to move the focus in a custom manner.
     //* =====================================================================
     virtual void do_focus_previous();
-    
+
     //* =====================================================================
     /// \brief Called by get_focussed_component().  Derived classes must
     /// override this function in order to return the focussed component
     /// in a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr<component> do_get_focussed_component();
-    
+    virtual std::shared_ptr<component> do_get_focussed_component();
+
     //* =====================================================================
     /// \brief Called by enable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
     virtual void do_enable();
-    
+
     //* =====================================================================
     /// \brief Called by disable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
     virtual void do_disable();
-    
+
     //* =====================================================================
     /// \brief Called by is_enabled().  Derived classes must override this
     /// function in order to return whether the component is disabled or not
@@ -199,17 +199,17 @@ protected :
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
     virtual bool do_get_cursor_state() const;
-    
+
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
     virtual point do_get_cursor_position() const;
-    
+
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed context.  A component must only draw 
+    /// in order to draw onto the passed context.  A component must only draw
     /// the part of itself specified by the region.
     ///
     /// \param ctx the context in which the component should draw itself.
@@ -221,21 +221,21 @@ protected :
       , rectangle const &region);
 
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
+    /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
-    
+
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.
     //* =====================================================================
     virtual void do_set_attribute(
         std::string const &name, boost::any const &attr);
-    
+
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

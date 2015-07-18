@@ -40,19 +40,8 @@
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include "munin/vertical_strip_layout.hpp"
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <vector>
-
-using namespace paradice;
-using namespace munin;
-using namespace munin::ansi;
-using namespace odin;
-using namespace boost;
-
 
 namespace hugin {
 
@@ -61,24 +50,24 @@ namespace hugin {
 // ==========================================================================
 struct bestiary_page::impl
 {
-    bestiary_page        &self_;
-    shared_ptr<list>      beast_list_;
-    shared_ptr<edit>      name_field_;
-    shared_ptr<text_area> description_area_;
-    shared_ptr<button>    new_button_;
-    shared_ptr<button>    clone_button_;
-    shared_ptr<button>    edit_button_;
-    shared_ptr<button>    fight_button_;
-    shared_ptr<button>    delete_button_;
-    shared_ptr<button>    back_button_;
+    bestiary_page                    &self_;
+    std::shared_ptr<munin::list>      beast_list_;
+    std::shared_ptr<munin::edit>      name_field_;
+    std::shared_ptr<munin::text_area> description_area_;
+    std::shared_ptr<munin::button>    new_button_;
+    std::shared_ptr<munin::button>    clone_button_;
+    std::shared_ptr<munin::button>    edit_button_;
+    std::shared_ptr<munin::button>    fight_button_;
+    std::shared_ptr<munin::button>    delete_button_;
+    std::shared_ptr<munin::button>    back_button_;
 
-    shared_ptr<container> split_container_;
-    shared_ptr<container> details_container_;
+    std::shared_ptr<munin::container> split_container_;
+    std::shared_ptr<munin::container> details_container_;
 
-    std::vector< shared_ptr<beast> >         beasts_;
-    std::vector< std::vector<element_type> > names_;
+    std::vector<std::shared_ptr<paradice::beast>> beasts_;
+    std::vector<std::vector<munin::element_type>> names_;
 
-    std::vector<boost::signals::connection>  connections_;
+    std::vector<boost::signals::connection> connections_;
 
     // ======================================================================
     // CONSTRUCTOR
@@ -91,19 +80,20 @@ struct bestiary_page::impl
     // ======================================================================
     // ON_ITEM_CHANGED
     // ======================================================================
-    void on_item_changed(s32 from)
+    void on_item_changed(odin::s32 from)
     {
         split_container_->remove_component(details_container_);
 
-        BOOST_AUTO(index, beast_list_->get_item_index());
+        auto index = beast_list_->get_item_index();
 
         if (index != -1)
         {
             split_container_->add_component(details_container_);
             name_field_->get_document()->set_text(names_[index]);
 
-            BOOST_AUTO(description, beasts_[index]->get_description());
-            description_area_->get_document()->set_text(string_to_elements(description));
+            auto description = beasts_[index]->get_description();
+            description_area_->get_document()->set_text(
+                munin::string_to_elements(description));
         }
     }
 
@@ -120,7 +110,7 @@ struct bestiary_page::impl
     // ======================================================================
     void on_clone()
     {
-        BOOST_AUTO(index, beast_list_->get_item_index());
+        auto index = beast_list_->get_item_index();
 
         if (index != -1)
         {
@@ -133,7 +123,7 @@ struct bestiary_page::impl
     // ======================================================================
     void on_fight()
     {
-        BOOST_AUTO(index, beast_list_->get_item_index());
+        auto index = beast_list_->get_item_index();
 
         if (index != -1)
         {
@@ -146,7 +136,7 @@ struct bestiary_page::impl
     // ======================================================================
     void on_edit()
     {
-        BOOST_AUTO(index, beast_list_->get_item_index());
+        auto index = beast_list_->get_item_index();
 
         if (index != -1)
         {
@@ -159,7 +149,7 @@ struct bestiary_page::impl
     // ======================================================================
     void on_delete()
     {
-        BOOST_AUTO(index, beast_list_->get_item_index());
+        auto index = beast_list_->get_item_index();
 
         if (index != -1)
         {
@@ -173,104 +163,97 @@ struct bestiary_page::impl
 // ==========================================================================
 bestiary_page::bestiary_page()
 {
-    pimpl_ = make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(boost::ref(*this));
 
-    pimpl_->beast_list_       = make_shared<list>();
-    pimpl_->name_field_       = make_shared<edit>();
-    pimpl_->description_area_ = make_shared<text_area>();
-    pimpl_->new_button_       = make_shared<button>(
-        string_to_elements("New"));
-    pimpl_->clone_button_     = make_shared<button>(
-        string_to_elements("Clone"));
-    pimpl_->edit_button_      = make_shared<button>(
-        string_to_elements("Edit"));
-    pimpl_->fight_button_     = make_shared<button>(
-        string_to_elements("Fight!"));
-    pimpl_->delete_button_    = make_shared<button>(
-        string_to_elements("Delete"));
+    pimpl_->beast_list_       = std::make_shared<munin::list>();
+    pimpl_->name_field_       = std::make_shared<munin::edit>();
+    pimpl_->description_area_ = std::make_shared<munin::text_area>();
+    pimpl_->new_button_       = std::make_shared<munin::button>(
+        munin::string_to_elements("New"));
+    pimpl_->clone_button_     = std::make_shared<munin::button>(
+        munin::string_to_elements("Clone"));
+    pimpl_->edit_button_      = std::make_shared<munin::button>(
+        munin::string_to_elements("Edit"));
+    pimpl_->fight_button_     = std::make_shared<munin::button>(
+        munin::string_to_elements("Fight!"));
+    pimpl_->delete_button_    = std::make_shared<munin::button>(
+        munin::string_to_elements("Delete"));
 
     // Set up event callbacks.
     pimpl_->connections_.push_back(
-        pimpl_->beast_list_->on_item_changed.connect(bind(
-            &impl::on_item_changed
-          , pimpl_
-          , _1)));
+        pimpl_->beast_list_->on_item_changed.connect(
+            [this](auto idx){pimpl_->on_item_changed(idx);}));
 
     pimpl_->connections_.push_back(
-        pimpl_->new_button_->on_click.connect(bind(
-            &impl::on_new
-          , pimpl_)));
+        pimpl_->new_button_->on_click.connect(
+            [this]{pimpl_->on_new();}));
+            
+    pimpl_->connections_.push_back(
+        pimpl_->clone_button_->on_click.connect(
+            [this]{pimpl_->on_clone();}));
 
     pimpl_->connections_.push_back(
-        pimpl_->clone_button_->on_click.connect(bind(
-            &impl::on_clone
-          , pimpl_)));
+        pimpl_->fight_button_->on_click.connect(
+            [this]{pimpl_->on_fight();}));
 
     pimpl_->connections_.push_back(
-        pimpl_->fight_button_->on_click.connect(bind(
-            &impl::on_fight
-          , pimpl_)));
+        pimpl_->edit_button_->on_click.connect(
+            [this]{pimpl_->on_edit();}));
 
     pimpl_->connections_.push_back(
-        pimpl_->edit_button_->on_click.connect(bind(
-            &impl::on_edit
-          , pimpl_)));
-
-    pimpl_->connections_.push_back(
-        pimpl_->delete_button_->on_click.connect(bind(
-            &impl::on_delete
-          , pimpl_)));
+        pimpl_->delete_button_->on_click.connect(
+            [this]{pimpl_->on_delete();}));
 
     // The split container will house both the beast list and the
     // details for the currently selected beast.  However, the details
     // panel will remain hidden until there are items in the list and
     // one is selected.
-    pimpl_->split_container_ = make_shared<basic_container>();
+    pimpl_->split_container_ = std::make_shared<munin::basic_container>();
     pimpl_->split_container_->set_layout(
-        make_shared<vertical_squeeze_layout>());
+        std::make_shared<munin::vertical_squeeze_layout>());
     pimpl_->split_container_->add_component(
-        make_shared<scroll_pane>(pimpl_->beast_list_));
+        std::make_shared<munin::scroll_pane>(pimpl_->beast_list_));
 
     // The details container will be pre-made so that it can be just 
     // added/removed to/from the split container as appropriate.
-    pimpl_->details_container_ = make_shared<basic_container>();
-    pimpl_->details_container_->set_layout(make_shared<compass_layout>());
+    pimpl_->details_container_ = std::make_shared<munin::basic_container>();
+    pimpl_->details_container_->set_layout(std::make_shared<munin::compass_layout>());
     pimpl_->details_container_->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
+        std::make_shared<munin::framed_component>(
+            std::make_shared<munin::solid_frame>()
           , pimpl_->name_field_)
-      , COMPASS_LAYOUT_NORTH);
+      , munin::COMPASS_LAYOUT_NORTH);
     pimpl_->details_container_->add_component(
-        make_shared<scroll_pane>(pimpl_->description_area_)
-      , COMPASS_LAYOUT_CENTRE);
+        std::make_shared<munin::scroll_pane>(pimpl_->description_area_)
+      , munin::COMPASS_LAYOUT_CENTRE);
 
     // The New, Clone, and Edit buttons sit together on the left; a group of
     // "safe" buttons.  At the far right is the dangerous Delete button.
-    BOOST_AUTO(safe_buttons_container, make_shared<basic_container>());
-    safe_buttons_container->set_layout(make_shared<vertical_strip_layout>());
+    auto safe_buttons_container = std::make_shared<munin::basic_container>();
+    safe_buttons_container->set_layout(std::make_shared<munin::vertical_strip_layout>());
     safe_buttons_container->add_component(pimpl_->edit_button_);
     safe_buttons_container->add_component(pimpl_->new_button_);
     safe_buttons_container->add_component(pimpl_->clone_button_);
     safe_buttons_container->add_component(pimpl_->fight_button_);
 
-    BOOST_AUTO(dangerous_buttons_container, make_shared<basic_container>());
-    dangerous_buttons_container->set_layout(make_shared<vertical_strip_layout>());
+    auto dangerous_buttons_container = std::make_shared<munin::basic_container>();
+    dangerous_buttons_container->set_layout(std::make_shared<munin::vertical_strip_layout>());
     dangerous_buttons_container->add_component(pimpl_->delete_button_);
 
-    BOOST_AUTO(buttons_container, make_shared<basic_container>());
-    buttons_container->set_layout(make_shared<compass_layout>());
+    auto buttons_container = std::make_shared<munin::basic_container>();
+    buttons_container->set_layout(std::make_shared<munin::compass_layout>());
     buttons_container->add_component(
-        safe_buttons_container, COMPASS_LAYOUT_WEST);
+        safe_buttons_container, munin::COMPASS_LAYOUT_WEST);
     buttons_container->add_component(
-        make_shared<filled_box>(element_type(' ')), COMPASS_LAYOUT_CENTRE);
+        std::make_shared<munin::filled_box>(munin::element_type(' ')), munin::COMPASS_LAYOUT_CENTRE);
     buttons_container->add_component(
-        dangerous_buttons_container, COMPASS_LAYOUT_EAST);
+        dangerous_buttons_container, munin::COMPASS_LAYOUT_EAST);
 
     // Arrange the upper and lower parts on the screen.
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<compass_layout>());
-    content->add_component(pimpl_->split_container_, COMPASS_LAYOUT_CENTRE);
-    content->add_component(buttons_container, COMPASS_LAYOUT_SOUTH);
+    auto content = get_container();
+    content->set_layout(std::make_shared<munin::compass_layout>());
+    content->add_component(pimpl_->split_container_, munin::COMPASS_LAYOUT_CENTRE);
+    content->add_component(buttons_container, munin::COMPASS_LAYOUT_SOUTH);
 }
     
 // ==========================================================================
@@ -278,7 +261,7 @@ bestiary_page::bestiary_page()
 // ==========================================================================
 bestiary_page::~bestiary_page()
 {
-    BOOST_FOREACH(boost::signals::connection &cnx, pimpl_->connections_)
+    for (auto &cnx : pimpl_->connections_)
     {
         cnx.disconnect();
     }
@@ -287,17 +270,18 @@ bestiary_page::~bestiary_page()
 // ==========================================================================
 // SET_BEASTS
 // ==========================================================================
-void bestiary_page::set_beasts(std::vector< shared_ptr<beast> > const &beasts)
+void bestiary_page::set_beasts(
+    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
 {
     pimpl_->beasts_ = beasts;
 
     // rebuild the vector of ansi strings to match the names of the beasts.
     pimpl_->names_.clear();
 
-    BOOST_FOREACH(shared_ptr<beast> current_beast, beasts)
+    for (auto &current_beast : beasts)
     {
         pimpl_->names_.push_back(
-            string_to_elements(current_beast->get_name()));
+            munin::string_to_elements(current_beast->get_name()));
     }
 
     // Set this as the current list of beasts and ensure it is de-selected.
@@ -308,7 +292,7 @@ void bestiary_page::set_beasts(std::vector< shared_ptr<beast> > const &beasts)
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-std::vector< shared_ptr<beast> > bestiary_page::get_beasts() const
+std::vector<std::shared_ptr<paradice::beast>> bestiary_page::get_beasts() const
 {
     return pimpl_->beasts_;
 }
@@ -316,13 +300,13 @@ std::vector< shared_ptr<beast> > bestiary_page::get_beasts() const
 // ==========================================================================
 // GET_SELECTED_BEAST
 // ==========================================================================
-shared_ptr<beast> bestiary_page::get_selected_beast() const
+std::shared_ptr<paradice::beast> bestiary_page::get_selected_beast() const
 {
-    BOOST_AUTO(selected_index, pimpl_->beast_list_->get_item_index());
+    auto selected_index = pimpl_->beast_list_->get_item_index();
 
     return selected_index == -1
-        ? shared_ptr<beast>()
-        : pimpl_->beasts_[selected_index];
+      ? std::shared_ptr<paradice::beast>()
+      : pimpl_->beasts_[selected_index];
 }
 
 }

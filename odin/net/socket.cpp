@@ -6,53 +6,43 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "socket.hpp"
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/make_shared.hpp>
 #include <deque>
-
-using namespace boost;
-using namespace boost::asio;
-using namespace boost::system;
-using namespace odin;
-using namespace odin::io;
-using namespace std;
 
 namespace odin { namespace net {
 
 // ==========================================================================
 // SOCKET::IMPLEMENTATION STRUCTURE
 // ==========================================================================
-struct socket::impl : enable_shared_from_this<impl>
+struct socket::impl : std::enable_shared_from_this<impl>
 {
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(shared_ptr<asio::ip::tcp::socket> const &socket)
+    impl(std::shared_ptr<boost::asio::ip::tcp::socket> const &socket)
         : socket_(socket)
     {
     }
-    
+
     // ======================================================================
     // CLOSE
     // ======================================================================
@@ -60,34 +50,34 @@ struct socket::impl : enable_shared_from_this<impl>
     {
         boost::system::error_code unused_error_code;
         socket_->close(unused_error_code);
-        
-        // Now we need to inform all readers and writers that the socket has 
+
+        // Now we need to inform all readers and writers that the socket has
         // died by informing them that no bytes have been read or written.
-        
+
         while (!read_requests_.empty())
         {
             read_request &top_read_request = read_requests_[0];
-            
+
             if (top_read_request.callback_ != NULL)
             {
                 top_read_request.callback_(socket::input_storage_type());
             }
-            
+
             read_requests_.pop_front();
         }
-        
+
         while (!write_requests_.empty())
         {
             write_request &top_write_request = write_requests_[0];
-            
+
             if (top_write_request.callback_ != NULL)
             {
                 top_write_request.callback_(socket::input_size_type(0));
             }
-            
+
             write_requests_.pop_front();
         }
-        
+
         if (on_death_ != NULL)
         {
             on_death_();
@@ -97,84 +87,84 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     // AVAILABLE
     // ======================================================================
-    optional<socket::input_size_type> available() const
+    boost::optional<socket::input_size_type> available() const
     {
         if (!is_alive())
         {
-            return optional<input_size_type>(0);
+            return {};
         }
         else if (read_requests_.empty())
         {
-            asio::socket_base::bytes_readable command(true);
+            boost::asio::socket_base::bytes_readable command(true);
             boost::system::error_code ec;
             socket_->io_control(command, ec);
-            
+
             if (!ec)
             {
                 std::size_t bytes_readable = command.get();
-        
+
                 return bytes_readable == 0
-                     ? optional<input_size_type>()
-                     : optional<input_size_type>(bytes_readable);
+                     ? boost::optional<input_size_type>()
+                     : boost::optional<input_size_type>(bytes_readable);
             }
             else
             {
-                return optional<input_size_type>(0);
+                return boost::optional<input_size_type>(0);
             }
         }
         else
         {
-            return optional<input_size_type>();
+            return {};
         }
     }
-    
+
     // ======================================================================
     // READ
     // ======================================================================
     socket::input_storage_type read(input_size_type size)
     {
         socket::input_storage_type data(size);
-    
+
         boost::system::error_code ec;
         socket_->read_some(boost::asio::buffer(&*data.begin(), size), ec);
 
-        /* INPUT DEBUGGING 
+        /* INPUT DEBUGGING
         for(size_t i = 0; i < data.size(); ++i)
         {
             char ch[2] = { data[i], 0 };
-            
-            printf(" IN [0x%02X] %s\n", 
+
+            printf(" IN [0x%02X] %s\n",
                 (int)(unsigned char)ch[0]
               , isprint(ch[0]) ? ch : "(*)");
         }
         //*/
-        
+
         return data;
     }
-    
+
     // ======================================================================
     // ASYNC_READ
     // ======================================================================
     void async_read(
-        socket::input_size_type            amount_requested
-      , socket::input_callback_type const &callback)
+        socket::input_size_type            amount_requested,
+        socket::input_callback_type const &callback)
     {
-        read_request request(amount_requested, callback);
-        read_requests_.push_back(request);
+        read_requests_.emplace_back(amount_requested, callback);
 
         if (!read_requests_[0].scheduled_)
         {
             boost::asio::async_read(
-                *socket_.get()
-              , buffer(
-                    &*read_requests_[0].values_.begin()
-                  , read_requests_[0].values_.size())
-              , bind(
-                    &impl::read_complete
-                  , shared_from_this()
-                  , boost::asio::placeholders::error
-                  , boost::asio::placeholders::bytes_transferred));
-            
+                *socket_.get(),
+                boost::asio::buffer(
+                    &*read_requests_[0].values_.begin(),
+                    read_requests_[0].values_.size()),
+                [this](
+                    boost::system::error_code const &ec,
+                    std::size_t bytes_transferred)
+                {
+                    read_complete(ec, bytes_transferred);
+                });
+
             read_requests_[0].scheduled_ = true;
         }
     }
@@ -184,23 +174,23 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     socket::output_size_type write(output_storage_type const &values)
     {
-        /* OUTPUT DEBUGGING 
+        /* OUTPUT DEBUGGING
         for(size_t i = 0; i < values.size(); ++i)
         {
             char ch[2] = { values[i], 0 };
-            
-            printf("OUT [0x%02X] %s\n", 
+
+            printf("OUT [0x%02X] %s\n",
                 (int)(unsigned char)ch[0]
               , isprint(ch[0]) ? ch : "(*)");
             fflush(stdout);
         }
         //*/
-        
+
         boost::system::error_code ec;
         return socket_->write_some(
-            asio::buffer(&*values.begin(), values.size()), ec);
+            boost::asio::buffer(&*values.begin(), values.size()), ec);
     }
-    
+
     // ======================================================================
     // ASYNC_WRITE
     // ======================================================================
@@ -230,19 +220,19 @@ struct socket::impl : enable_shared_from_this<impl>
     // ======================================================================
     // GET_IO_SERVICE
     // ======================================================================
-    io_service &get_io_service()
+    boost::asio::io_service &get_io_service()
     {
         return socket_->get_io_service();
     }
-    
+
     // ======================================================================
     // ON_DEATH
     // ======================================================================
-    void on_death(boost::function<void ()> callback)
+    void on_death(std::function<void ()> const &callback)
     {
         on_death_ = callback;
     }
-    
+
 private :
     // ======================================================================
     // READ_REQUEST
@@ -291,36 +281,37 @@ private :
     // ======================================================================
     void write_first_request()
     {
-        /* OUTPUT DEBUGGING 
+        /* OUTPUT DEBUGGING
         for(size_t i = 0; i < write_requests_.front().values_.size(); ++i)
         {
             char ch[2] = { write_requests_.front().values_[i], 0 };
-            
-            printf("OUT [0x%02X] %s\n", 
+
+            printf("OUT [0x%02X] %s\n",
                 (int)(unsigned char)ch[0]
               , isprint(ch[0]) ? ch : "(*)");
             fflush(stdout);
         }
         //*/
-        
+
         boost::asio::async_write(
-            *socket_.get()
-          , buffer(
-                &*write_requests_.front().values_.begin()
-              , write_requests_.front().values_.size())
-          , bind(
-                &impl::write_complete
-              , shared_from_this()
-              , boost::asio::placeholders::error
-              , boost::asio::placeholders::bytes_transferred));
+            *socket_.get(),
+            boost::asio::buffer(
+                &*write_requests_.front().values_.begin(),
+                write_requests_.front().values_.size()),
+            [this](
+                boost::system::error_code const &ec,
+                std::size_t bytes_transferred)
+            {
+                write_complete(ec, bytes_transferred);
+            });
     }
 
     // ======================================================================
     // WRITE_COMPLETE
     // ======================================================================
     void write_complete(
-        error_code const &error
-      , size_t            bytes_transferred)
+        boost::system::error_code const &error
+      , size_t                           bytes_transferred)
     {
         if (!is_alive())
         {
@@ -351,8 +342,8 @@ private :
     // READ_COMPLETE
     // ======================================================================
     void read_complete(
-        error_code const &error
-      , size_t            bytes_transferred)
+        boost::system::error_code const &error
+      , size_t                           bytes_transferred)
     {
         if (!is_alive())
         {
@@ -361,12 +352,12 @@ private :
 
         if (!error)
         {
-            /* INPUT DEBUGGING 
+            /* INPUT DEBUGGING
             for(size_t i = 0; i < bytes_transferred; ++i)
             {
                 char ch[2] = { read_requests_.front().values_[i], 0 };
-                
-                printf(" IN [0x%02X] %s\n", 
+
+                printf(" IN [0x%02X] %s\n",
                     (int)(unsigned char)ch[0]
                   , isprint(ch[0]) ? ch : "(*)");
             }
@@ -385,16 +376,17 @@ private :
                 if (!read_requests_.empty())
                 {
                     boost::asio::async_read(
-                        *socket_.get()
-                      , buffer(
-                            &*read_requests_.front().values_.begin()
-                          , read_requests_.front().values_.size())
-                      , bind(
-                            &impl::read_complete
-                          , shared_from_this()
-                          , boost::asio::placeholders::error
-                          , boost::asio::placeholders::bytes_transferred));
-                    
+                        *socket_.get(),
+                        boost::asio::buffer(
+                            &*read_requests_.front().values_.begin(),
+                            read_requests_.front().values_.size()),
+                      [this](
+                          boost::system::error_code const &ec,
+                          std::size_t bytes_transferred)
+                      {
+                          read_complete(ec, bytes_transferred);
+                      });
+
                     read_requests_.front().scheduled_ = true;
                 }
             }
@@ -405,19 +397,19 @@ private :
         }
     }
 
-    shared_ptr<asio::ip::tcp::socket> socket_;
-    function<void ()>                 on_death_;
+    std::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+    std::function<void ()>                        on_death_;
 
-    deque<read_request>  read_requests_;
-    deque<write_request> write_requests_;
+    std::deque<read_request>  read_requests_;
+    std::deque<write_request> write_requests_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 socket::socket(
-    shared_ptr<asio::ip::tcp::socket> const &socket)
-    : pimpl_(make_shared<impl>(socket))
+    std::shared_ptr<boost::asio::ip::tcp::socket> const &socket)
+    : pimpl_(std::make_shared<impl>(socket))
 {
 }
 
@@ -439,7 +431,7 @@ void socket::close()
 // ==========================================================================
 // AVAILABLE
 // ==========================================================================
-optional<socket::input_size_type> socket::available() const
+boost::optional<socket::input_size_type> socket::available() const
 {
     return pimpl_->available();
 }
@@ -491,7 +483,7 @@ bool socket::is_alive() const
 // ==========================================================================
 // GET_IO_SERVICE
 // ==========================================================================
-io_service &socket::get_io_service()
+boost::asio::io_service &socket::get_io_service()
 {
     return pimpl_->get_io_service();
 }
@@ -499,7 +491,7 @@ io_service &socket::get_io_service()
 // ==========================================================================
 // ON_DEATH
 // ==========================================================================
-void socket::on_death(boost::function<void ()> callback)
+void socket::on_death(std::function<void ()> const &callback)
 {
     pimpl_->on_death(callback);
 }

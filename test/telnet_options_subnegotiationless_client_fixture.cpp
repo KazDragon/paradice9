@@ -16,13 +16,13 @@ typedef fake_datastream<odin::u8, odin::u8> fake_byte_stream;
 void telnet_options_subnegotiationless_client_fixture::test_constructor()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::subnegotiationless_client<
@@ -31,7 +31,7 @@ void telnet_options_subnegotiationless_client_fixture::test_constructor()
         telnet_stream
       , telnet_negotiation_router
       , telnet_subnegotiation_router);
-    
+
     odin::telnet::options::subnegotiationless_client<
         odin::telnet::SUPPRESS_GOAHEAD
     > suppress_ga_client(        telnet_stream
@@ -47,13 +47,13 @@ void telnet_options_subnegotiationless_client_fixture::test_constructor()
 void telnet_options_subnegotiationless_client_fixture::test_inheritance()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::subnegotiationless_client<
@@ -62,7 +62,7 @@ void telnet_options_subnegotiationless_client_fixture::test_inheritance()
         telnet_stream
       , telnet_negotiation_router
       , telnet_subnegotiation_router);
-    
+
     odin::telnet::client_option &option = subnegotiationless_client;
     (void)option;
 }

@@ -31,18 +31,11 @@
 #include "munin/edit.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <deque>
 
-using namespace munin;
-using namespace odin;
-using namespace boost;
-using namespace std;
-
-BOOST_STATIC_CONSTANT(u32, MAX_HISTORY = 50);
+BOOST_STATIC_CONSTANT(odin::u32, MAX_HISTORY = 50);
 
 namespace hugin {
 
@@ -51,24 +44,24 @@ namespace hugin {
 // ==========================================================================
 struct command_prompt::impl
 {
-    shared_ptr<edit>            edit_;
+    std::shared_ptr<munin::edit>     edit_;
 
-    u32                         current_history_;
-    deque<string>               history_;
+    odin::u32                        current_history_;
+    std::deque<std::string>          history_;
 
     // Text to remember while running through the history.
-    vector<element_type>        current_text_;
+    std::vector<munin::element_type> current_text_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 command_prompt::command_prompt()
-    : pimpl_(make_shared<impl>())
+  : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->edit_ = make_shared<edit>();
+    pimpl_->edit_ = std::make_shared<munin::edit>();
 
-    get_container()->set_layout(make_shared<compass_layout>());
+    get_container()->set_layout(std::make_shared<munin::compass_layout>());
     get_container()->add_component(
         pimpl_->edit_, munin::COMPASS_LAYOUT_SOUTH);
 }
@@ -76,7 +69,7 @@ command_prompt::command_prompt()
 // ==========================================================================
 // GET_DOCUMENT
 // ==========================================================================
-shared_ptr<munin::text::document> command_prompt::get_document()
+std::shared_ptr<munin::text::document> command_prompt::get_document()
 {
     return pimpl_->edit_->get_document();
 }
@@ -84,7 +77,7 @@ shared_ptr<munin::text::document> command_prompt::get_document()
 // ==========================================================================
 // ADD_HISTORY
 // ==========================================================================
-void command_prompt::add_history(string const &history)
+void command_prompt::add_history(std::string const &history)
 {
     pimpl_->history_.push_front(history);
 
@@ -107,10 +100,10 @@ void command_prompt::clear_history()
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void command_prompt::do_event(any const &ev)
+void command_prompt::do_event(boost::any const &ev)
 {
-    odin::ansi::control_sequence const *sequence = 
-        any_cast<odin::ansi::control_sequence>(&ev);
+    auto const *sequence = 
+        boost::any_cast<odin::ansi::control_sequence>(&ev);
 
     if (sequence != NULL)
     {
@@ -119,17 +112,17 @@ void command_prompt::do_event(any const &ev)
         {
             if (!pimpl_->history_.empty())
             {
-                u32 amount = sequence->arguments_.empty()
+                odin::u32 amount = sequence->arguments_.empty()
                            ? 1
                            : atoi(sequence->arguments_.c_str());
 
-                u32 index = (min)(
+                odin::u32 index = (std::min)(
                     pimpl_->current_history_ + amount
-                  , u32(pimpl_->history_.size()));
+                  , odin::u32(pimpl_->history_.size()));
 
                 if (index != pimpl_->current_history_)
                 {
-                    BOOST_AUTO(document, get_document());
+                    auto document = get_document();
 
                     if (pimpl_->current_history_ == 0)
                     {
@@ -140,7 +133,7 @@ void command_prompt::do_event(any const &ev)
                     pimpl_->current_history_ = index;
                     
                     document->delete_text(
-                        make_pair(0, document->get_text_size()));
+                        {0, document->get_text_size()});
 
                     document->insert_text(munin::ansi::elements_from_string(
                         pimpl_->history_[index - 1]));
@@ -152,20 +145,20 @@ void command_prompt::do_event(any const &ev)
         {
             if (!pimpl_->history_.empty())
             {
-                u32 amount = sequence->arguments_.empty()
+                odin::u32 amount = sequence->arguments_.empty()
                            ? 1
                            : atoi(sequence->arguments_.c_str());
 
-                u32 index = amount > pimpl_->current_history_
+                odin::u32 index = amount > pimpl_->current_history_
                           ? 0
                           : pimpl_->current_history_ - amount;
 
                 if (index != pimpl_->current_history_)
                 {
-                    BOOST_AUTO(document, get_document());
+                    auto document = get_document();
 
                     document->delete_text(
-                        make_pair(0, document->get_text_size()));
+                        {0, document->get_text_size()});
 
                     pimpl_->current_history_ = index;
 

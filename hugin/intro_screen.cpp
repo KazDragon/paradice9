@@ -38,18 +38,7 @@
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/assign/list_of.hpp>
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <vector>
-
-using namespace munin::ansi;
-using namespace munin;
-using namespace odin;
-using namespace boost;
-using namespace boost::assign;
-using namespace std;
 
 namespace hugin {
 
@@ -69,21 +58,21 @@ static vector<string> const main_image = list_of
 */  
 // Attempt at a palm tree with the new colour codes:
 
-static vector<string> const main_image = list_of
- ( "       \\[2__ _.--..--._ _\\x                  _"                                  )
- ( "    \\[2.-' _/   _/\\\\_   \\\\_'-._\\x     |/ _._  | \\\\.__. _  _ ._ /_"               )
- ( "    \\[2|__ /   _/\\[3\\\\__/\\[2\\\\_   \\\\__|\\x    |\\\\(_|/_ |_/|(_|(_|(_)| |_>"             )
- ( "       \\[2|___/\\[3\\\\_\\\\__/\\[2  \\\\___|\\x                      _|"                     )
- ( "              \\[3\\\\__/\\x         ___                   ___           \\i>___"      )
- ( "              \\[3\\\\__/\\x        / _ \\\\___ ________ ____/ (_)______   \\i>/ _ \\\\"   ) 
- ( "               \\[3\\\\__/\\x      / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\i>\\\\_, /"    )   
- ( "                \\[3\\\\__/\\x    /_/   \\\\_,_/_/  \\\\_,_/\\\\_,_/_/\\\\__/\\\\__/  \\i>/___/" ) 
- ( "             \\[3____\\\\__/___\\x                              v1.1"           )
- ( "       \\[3. - '             ' -."                                                      ) 
- ( "      \\[3/                      \\\\"                                                  )
- ( "\\[4~~~~~~~  ~~~~~ ~~~~~  ~~~ ~~~  ~~~~~"                                               )
- ( "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~"                                   )
- ;
+static std::vector<std::string> const main_image = {
+ "       \\[2__ _.--..--._ _\\x                  _",
+ "    \\[2.-' _/   _/\\\\_   \\\\_'-._\\x     |/ _._  | \\\\.__. _  _ ._ /_",
+ "    \\[2|__ /   _/\\[3\\\\__/\\[2\\\\_   \\\\__|\\x    |\\\\(_|/_ |_/|(_|(_|(_)| |_>",
+ "       \\[2|___/\\[3\\\\_\\\\__/\\[2  \\\\___|\\x                      _|",
+ "              \\[3\\\\__/\\x         ___                   ___           \\i>___",
+ "              \\[3\\\\__/\\x        / _ \\\\___ ________ ____/ (_)______   \\i>/ _ \\\\",
+ "               \\[3\\\\__/\\x      / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\i>\\\\_, /",
+ "                \\[3\\\\__/\\x    /_/   \\\\_,_/_/  \\\\_,_/\\\\_,_/_/\\\\__/\\\\__/  \\i>/___/",
+ "             \\[3____\\\\__/___\\x                              v1.1",
+ "       \\[3. - '             ' -.",
+ "      \\[3/                      \\\\",
+ "\\[4~~~~~~~  ~~~~~ ~~~~~  ~~~ ~~~  ~~~~~",
+ "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~",
+};
 
 // ==========================================================================
 // INTRO_SCREEN::IMPLEMENTATION STRUCTURE
@@ -103,23 +92,23 @@ struct intro_screen::impl
     // ======================================================================
     void on_login_clicked()
     {
-        BOOST_AUTO(document, intro_name_field_->get_document());
-        BOOST_AUTO(elements, document->get_line(0));
-        BOOST_AUTO(username, string_from_elements(elements));
+        auto document = intro_name_field_->get_document();
+        auto elements = document->get_line(0);
+        auto username = munin::ansi::string_from_elements(elements);
 
         document = intro_password_field_->get_document();
         elements = document->get_line(0);
         
-        BOOST_AUTO(password, string_from_elements(elements));
+        auto password = munin::ansi::string_from_elements(elements);
             
         self_.on_login(username, password);
     }
 
-    intro_screen                    &self_;
-    shared_ptr<edit>                 intro_name_field_;
-    shared_ptr<edit>                 intro_password_field_;
-    shared_ptr<button>               login_button_;
-    shared_ptr<button>               new_account_button_;
+    intro_screen                   &self_;
+    std::shared_ptr<munin::edit>    intro_name_field_;
+    std::shared_ptr<munin::edit>    intro_password_field_;
+    std::shared_ptr<munin::button>  login_button_;
+    std::shared_ptr<munin::button>  new_account_button_;
 };
 
 // ==========================================================================
@@ -127,106 +116,106 @@ struct intro_screen::impl
 // ==========================================================================
 intro_screen::intro_screen()
 {
-    pimpl_ = make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(boost::ref(*this));
 
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<compass_layout>());
+    auto content = get_container();
+    content->set_layout(std::make_shared<munin::compass_layout>());
 
-    BOOST_AUTO(image_container, make_shared<basic_container>());
-    image_container->set_layout(make_shared<aligned_layout>());
+    auto image_container = std::make_shared<munin::basic_container>();
+    image_container->set_layout(std::make_shared<munin::aligned_layout>());
 
-    BOOST_AUTO(
-        greetings_image
-      , make_shared<image>(strings_to_elements(main_image)));
+    auto greetings_image = std::make_shared<munin::image>(
+        munin::strings_to_elements(main_image));
     image_container->add_component(greetings_image);
 
-    content->add_component(image_container, COMPASS_LAYOUT_CENTRE);
+    content->add_component(image_container, munin::COMPASS_LAYOUT_CENTRE);
 
-    alignment_data alignment;
-    alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
-    alignment.vertical_alignment   = VERTICAL_ALIGNMENT_CENTRE;
+    munin::alignment_data alignment;
+    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
+    alignment.vertical_alignment   = munin::VERTICAL_ALIGNMENT_CENTRE;
 
-    BOOST_AUTO(name_container, make_shared<basic_container>());
-    name_container->set_layout(make_shared<aligned_layout>());
+    auto name_container = std::make_shared<munin::basic_container>();
+    name_container->set_layout(std::make_shared<munin::aligned_layout>());
     name_container->add_component(
-        make_shared<image>(string_to_elements("Name: "))
+        std::make_shared<munin::image>(munin::string_to_elements("Name: "))
       , alignment);
 
-    BOOST_AUTO(password_container, make_shared<basic_container>());
-    password_container->set_layout(make_shared<aligned_layout>());
+    auto password_container = std::make_shared<munin::basic_container>();
+    password_container->set_layout(std::make_shared<munin::aligned_layout>());
     password_container->add_component(
-        make_shared<image>(string_to_elements("Password: "))
+        std::make_shared<munin::image>(munin::string_to_elements("Password: "))
       , alignment);
     
-    BOOST_AUTO(labels_container, make_shared<basic_container>());
-    labels_container->set_layout(make_shared<grid_layout>(2, 1));
+    auto labels_container = std::make_shared<munin::basic_container>();
+    labels_container->set_layout(std::make_shared<munin::grid_layout>(2, 1));
     
     labels_container->add_component(name_container);
     labels_container->add_component(password_container);
     
-    pimpl_->intro_name_field_     = make_shared<edit>();
-    pimpl_->intro_password_field_ = make_shared<edit>();
+    pimpl_->intro_name_field_     = std::make_shared<munin::edit>();
+    pimpl_->intro_password_field_ = std::make_shared<munin::edit>();
     
-    element_type password_element;
+    munin::element_type password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        odin::ansi::graphics::COLOUR_RED;
+        odin::ansi::graphics::colour::red;
     pimpl_->intro_password_field_->set_attribute(
-        EDIT_PASSWORD_ELEMENT
+        munin::EDIT_PASSWORD_ELEMENT
       , password_element);
     
-    pimpl_->login_button_ = make_shared<button>(
-        string_to_elements(" Login "));
+    pimpl_->login_button_ = std::make_shared<munin::button>(
+        munin::string_to_elements(" Login "));
     pimpl_->login_button_->on_click.connect(
-        bind(&impl::on_login_clicked, pimpl_.get()));
+        [this]{pimpl_->on_login_clicked();});
 
-    pimpl_->new_account_button_ = make_shared<button>(
-        string_to_elements(" New "));
+    pimpl_->new_account_button_ = std::make_shared<munin::button>(
+        munin::string_to_elements(" New "));
     pimpl_->new_account_button_->on_click.connect(on_new_account);
 
-    BOOST_AUTO(buttons_container, make_shared<basic_container>());
-    buttons_container->set_layout(make_shared<compass_layout>());
+    auto buttons_container = std::make_shared<munin::basic_container>();
+    buttons_container->set_layout(std::make_shared<munin::compass_layout>());
     buttons_container->add_component(
-        pimpl_->login_button_, COMPASS_LAYOUT_WEST);
+        pimpl_->login_button_, munin::COMPASS_LAYOUT_WEST);
     buttons_container->add_component(
-        pimpl_->new_account_button_, COMPASS_LAYOUT_EAST);
+        pimpl_->new_account_button_, munin::COMPASS_LAYOUT_EAST);
 
-    BOOST_AUTO(outer_buttons_container, make_shared<basic_container>());
-    outer_buttons_container->set_layout(make_shared<compass_layout>());
+    auto outer_buttons_container = std::make_shared<munin::basic_container>();
+    outer_buttons_container->set_layout(std::make_shared<munin::compass_layout>());
     outer_buttons_container->add_component(
-        make_shared<filled_box>(element_type(' ')), COMPASS_LAYOUT_CENTRE);
+        std::make_shared<munin::filled_box>(munin::element_type(' ')), 
+        munin::COMPASS_LAYOUT_CENTRE);
     outer_buttons_container->add_component(
-        buttons_container, COMPASS_LAYOUT_EAST);
+        buttons_container, munin::COMPASS_LAYOUT_EAST);
 
-    BOOST_AUTO(fields_container, make_shared<basic_container>());
-    fields_container->set_layout(make_shared<grid_layout>(2, 1));
+    auto fields_container = std::make_shared<munin::basic_container>();
+    fields_container->set_layout(std::make_shared<munin::grid_layout>(2, 1));
     
-    fields_container->add_component(make_shared<framed_component>(
-        make_shared<solid_frame>()
+    fields_container->add_component(std::make_shared<munin::framed_component>(
+        std::make_shared<munin::solid_frame>()
       , pimpl_->intro_name_field_));
-    fields_container->add_component(make_shared<framed_component>(
-        make_shared<solid_frame>()
+    fields_container->add_component(std::make_shared<munin::framed_component>(
+        std::make_shared<munin::solid_frame>()
       , pimpl_->intro_password_field_));
 
-    BOOST_AUTO(bottom_container, make_shared<basic_container>());
-    bottom_container->set_layout(make_shared<compass_layout>());
-    bottom_container->add_component(labels_container, COMPASS_LAYOUT_WEST);
-    bottom_container->add_component(fields_container, COMPASS_LAYOUT_CENTRE);
+    auto bottom_container = std::make_shared<munin::basic_container>();
+    bottom_container->set_layout(std::make_shared<munin::compass_layout>());
+    bottom_container->add_component(labels_container, munin::COMPASS_LAYOUT_WEST);
+    bottom_container->add_component(fields_container, munin::COMPASS_LAYOUT_CENTRE);
 
-    BOOST_AUTO(outer_container, make_shared<basic_container>());
-    outer_container->set_layout(make_shared<compass_layout>());
-    outer_container->add_component(bottom_container, COMPASS_LAYOUT_NORTH);
-    outer_container->add_component(outer_buttons_container, COMPASS_LAYOUT_SOUTH);
+    auto outer_container = std::make_shared<munin::basic_container>();
+    outer_container->set_layout(std::make_shared<munin::compass_layout>());
+    outer_container->add_component(bottom_container, munin::COMPASS_LAYOUT_NORTH);
+    outer_container->add_component(outer_buttons_container, munin::COMPASS_LAYOUT_SOUTH);
 
-    content->add_component(outer_container, COMPASS_LAYOUT_SOUTH);
+    content->add_component(outer_container, munin::COMPASS_LAYOUT_SOUTH);
 
     // Add a filler to ensure that the background is opaque.
     content->set_layout(
-        make_shared<grid_layout>(1, 1)
+        std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        make_shared<filled_box>(element_type(' '))
-      , any()
+        std::make_shared<munin::filled_box>(munin::element_type(' '))
+      , {}
       , munin::LOWEST_LAYER);
 }
 
@@ -236,24 +225,24 @@ intro_screen::intro_screen()
 void intro_screen::clear()
 {
     // Erase the text in the name field.    
-    BOOST_AUTO(document, pimpl_->intro_name_field_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    auto document = pimpl_->intro_name_field_->get_document();
+    document->delete_text({odin::u32(0), document->get_text_size()});
     
     // Erase the text in the password field.
     document = pimpl_->intro_password_field_->get_document();
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    document->delete_text({odin::u32(0), document->get_text_size()});
 }
 
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void intro_screen::do_event(any const &ev)
+void intro_screen::do_event(boost::any const &ev)
 {
     bool handled = false;
     
-    char const *ch = any_cast<char>(&ev);
-    odin::ansi::control_sequence const *control_sequence = 
-        any_cast<odin::ansi::control_sequence>(&ev);
+    auto const *ch = boost::any_cast<char>(&ev);
+    auto const *control_sequence = 
+        boost::any_cast<odin::ansi::control_sequence>(&ev);
 
     if (ch)
     {

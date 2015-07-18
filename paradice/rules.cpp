@@ -34,30 +34,23 @@
 #include "odin/tokenise.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/thread.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <map>
+#include <mutex>
 #include <numeric>
+#include <thread>
 #include <vector>
-
-using namespace munin::ansi;
-using namespace munin;
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace paradice {
 
 namespace {
-    BOOST_STATIC_CONSTANT(u32, max_encounter_rolls = 10);
+    BOOST_STATIC_CONSTANT(odin::u32, max_encounter_rolls = 10);
     
-    static map<
-        string            // category.
-      , vector<roll_data> // list of rolls in that category.
+    static std::map<
+        std::string,           // category.
+        std::vector<roll_data> // list of rolls in that category.
     > roll_category;
-    mutex roll_category_mutex;
+    std::mutex roll_category_mutex;
     
     static bool sort_roll_data_by_score_ascending(
         roll_data const &lhs
@@ -73,17 +66,17 @@ namespace {
         return lhs.score > rhs.score;
     }
 
-    static string const DEFAULT_ATTRIBUTE   = "\\x";      // Default
-    static string const MAXIMUM_HIT         = "\\i>\\[2!\\x"; // Bold, Green "!"
-    static string const TOTAL_ATTRIBUTE     = "\\i>";     // Bold
+    static std::string const DEFAULT_ATTRIBUTE   = "\\x";      // Default
+    static std::string const MAXIMUM_HIT         = "\\i>\\[2!\\x"; // Bold, Green "!"
+    static std::string const TOTAL_ATTRIBUTE     = "\\i>";     // Bold
 }
 
 // ==========================================================================
 // CONCAT_TEXT
 // ==========================================================================
 void concat_text(
-    vector<element_type>       &dest
-  , vector<element_type> const &source)
+    std::vector<munin::element_type>       &dest,
+    std::vector<munin::element_type> const &source)
 {
     dest.insert(dest.end(), source.begin(), source.end());
 }
@@ -92,26 +85,26 @@ void concat_text(
 // CONCAT_TEXT
 // ==========================================================================
 void concat_text(
-    vector<element_type> &dest
-  , string const         &source
-  , attribute const      &attr = attribute())
+    std::vector<munin::element_type> &dest,
+    std::string const                &source,
+    munin::attribute const           &attr = {})
 {
-    concat_text(dest, elements_from_string(source, attr));
+    concat_text(dest, munin::ansi::elements_from_string(source, attr));
 }
 
 // ==========================================================================
 // DESCRIBE_DICE
 // ==========================================================================
-string describe_dice(dice_roll const &roll)
+std::string describe_dice(dice_roll const &roll)
 {
-    string description;
+    std::string description;
 
     if (roll.repetitions_ != 1)
     {
-        description += str(format("%d*") % roll.repetitions_);
+        description += boost::str(boost::format("%d*") % roll.repetitions_);
     }
 
-    description += str(format("%dd%d") 
+    description += boost::str(boost::format("%dd%d") 
         % roll.amount_
         % roll.sides_);
 
@@ -122,7 +115,7 @@ string describe_dice(dice_roll const &roll)
 
     if (roll.bonus_ != 0)
     {
-        description += str(format("%d") % roll.bonus_);
+        description += boost::str(boost::format("%d") % roll.bonus_);
     }
 
     return description;
@@ -137,11 +130,11 @@ static dice_result throw_dice(roller const &rlr, dice_roll const &roll)
     result.roller_ = rlr;
     result.roll_ = roll;
 
-    for (u32 repetition = 0; repetition < roll.repetitions_; ++repetition)
+    for (odin::u32 repetition = 0; repetition < roll.repetitions_; ++repetition)
     {
-        vector<s32> raw_dice;
+        std::vector<odin::s32> raw_dice;
 
-        for (u32 die = 0; die < roll.amount_; ++die)
+        for (odin::u32 die = 0; die < roll.amount_; ++die)
         {
             raw_dice.push_back(random_number(1, roll.sides_));
         }
@@ -156,11 +149,11 @@ static dice_result throw_dice(roller const &rlr, dice_roll const &roll)
 // EXECUTE_ROLL
 // ==========================================================================
 static void execute_roll(
-    boost::shared_ptr<context> &ctx
-  , std::string const          &category
-  , dice_roll const            &roll
-  , boost::shared_ptr<client>  &player
-  , bool                        is_rolling_privately)
+    std::shared_ptr<context> &ctx
+  , std::string const        &category
+  , dice_roll const          &roll
+  , std::shared_ptr<client>  &player
+  , bool                      is_rolling_privately)
 {
     if (roll.repetitions_ == 0
      || roll.amount_      == 0)
@@ -174,7 +167,7 @@ static void execute_roll(
         {
             send_to_room(
                 ctx
-              , str(format(
+              , boost::str(boost::format(
                     "%s rolls no dice and scores nothing.\n")
                   % player->get_character()->get_name())
               , player);
@@ -195,7 +188,7 @@ static void execute_roll(
         {
             send_to_room(
                 ctx
-              , str(format(
+              , boost::str(boost::format(
                     "%s fumbles their roll and spills a pile of zero-"
                     "sided dice on the floor.\n")
                   % player->get_character()->get_name())
@@ -216,18 +209,18 @@ static void execute_roll(
     }
 
     dice_result result = throw_dice(player, roll);
-    string dice_description = describe_dice(roll);
+    auto dice_description = describe_dice(roll);
 
-    s32 total_score = 0;
+    odin::s32 total_score = 0;
 
-    string dice_text;
+    std::string dice_text;
 
-    s32 const theoretical_max_roll = 
+    auto const theoretical_max_roll = 
         (roll.sides_ * roll.amount_) + roll.bonus_;
-    s32 const theoretical_max_total =
+    auto const theoretical_max_total =
         theoretical_max_roll * roll.repetitions_;
 
-    for (vector< vector<s32> >::const_iterator repetition = result.results_.begin();
+    for (auto repetition = result.results_.begin();
          repetition != result.results_.end();
          ++repetition)
     {
@@ -236,16 +229,16 @@ static void execute_roll(
             dice_text += ", ";
         }
 
-        s32 const subtotal = std::accumulate(
+        auto const subtotal = std::accumulate(
             repetition->begin(),
             repetition->end(), 
             0);
-        s32 const total = subtotal + roll.bonus_;
+        auto const total = subtotal + roll.bonus_;
 
         total_score += total;
 
         dice_text += TOTAL_ATTRIBUTE;
-        dice_text += str(format("%d") % total);
+        dice_text += boost::str(boost::format("%d") % total);
         dice_text += DEFAULT_ATTRIBUTE;
 
         if (total == theoretical_max_roll)
@@ -257,7 +250,7 @@ static void execute_roll(
         {
             dice_text += " [";
 
-            for (vector<s32>::const_iterator current_roll = repetition->begin();
+            for (auto current_roll = repetition->begin();
                  current_roll != repetition->end();
                  ++current_roll)
             {
@@ -266,7 +259,7 @@ static void execute_roll(
                     dice_text += ", ";
                 }
 
-                dice_text += str(format("%d") % *current_roll);
+                dice_text += boost::str(boost::format("%d") % *current_roll);
 
                 if (*current_roll == roll.sides_)
                 {
@@ -297,7 +290,7 @@ static void execute_roll(
     {
         dice_text += " for a grand total of ";
         dice_text += TOTAL_ATTRIBUTE;
-        dice_text += str(format("%d") % total_score);
+        dice_text += boost::str(boost::format("%d") % total_score);
         dice_text += DEFAULT_ATTRIBUTE;
 
         if (total_score == theoretical_max_total)
@@ -313,7 +306,7 @@ static void execute_roll(
 
     dice_text += "\n";
 
-    string second_person_lead = 
+    std::string second_person_lead = 
         "You roll " 
       + dice_description
       + (category.empty() ? "" : ("(category: " + category + ")"))
@@ -323,7 +316,7 @@ static void execute_roll(
 
     if (!is_rolling_privately)
     {
-        string third_person_lead = 
+        std::string third_person_lead = 
             player->get_character()->get_name() 
           + " rolls " 
           + dice_description 
@@ -331,14 +324,14 @@ static void execute_roll(
           + " and scores ";
             send_to_room(ctx, third_person_lead + dice_text, player);
 
-        BOOST_AUTO(enc, ctx->get_active_encounter());
-        BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
+        auto enc = ctx->get_active_encounter();
+        for (auto &entry : enc->entries_)
         {
-            BOOST_AUTO(ply, get<active_encounter::player>(&entry.participant_));
+            auto ply = boost::get<active_encounter::player>(&entry.participant_);
      
             if (ply != NULL)
             {
-                BOOST_AUTO(ch, ply->character_.lock());
+                auto ch = ply->character_.lock();
 
                 if (ch != NULL)
                 {
@@ -364,17 +357,17 @@ static void execute_roll(
 // ==========================================================================
 PARADICE_COMMAND_IMPL(roll)
 {
-    static string const usage_message =
+    static std::string const usage_message =
         "\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
         "\n Example: roll 2d6+3-20"
         "\n Example: roll 20*2d6"
         "\n Example: roll 1d10+4 initiative"
         "\n";
 
-    string::const_iterator begin = arguments.begin();
-    string::const_iterator end   = arguments.end();
+    auto begin = arguments.begin();
+    auto end   = arguments.end();
     
-    BOOST_AUTO(rolls, parse_dice_roll(begin, end));
+    auto rolls = parse_dice_roll(begin, end);
 
     if (!rolls)
     {
@@ -383,7 +376,7 @@ PARADICE_COMMAND_IMPL(roll)
     }
 
     // Store a category if the user entered one.
-    string category = tokenise(string(begin, end)).first;
+    auto category = odin::tokenise(std::string(begin, end)).first;
 
     execute_roll(ctx, category, rolls.get(), player, false);
 }
@@ -393,16 +386,16 @@ PARADICE_COMMAND_IMPL(roll)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(rollprivate)
 {
-    static string const usage_message =
+    static std::string const usage_message =
         "\n Usage:   rollprivate [n*]<dice>d<sides>[<bonuses...>] [<category>]"
         "\n Example: rollprivate 2d6+3-20"
         "\n Example: rollprivate 20*2d6"
         "\n";
 
-    string::const_iterator begin = arguments.begin();
-    string::const_iterator end   = arguments.end();
+    auto begin = arguments.begin();
+    auto end   = arguments.end();
     
-    BOOST_AUTO(rolls, parse_dice_roll(begin, end));
+    auto rolls = parse_dice_roll(begin, end);
 
     if (!rolls)
     {
@@ -418,15 +411,15 @@ PARADICE_COMMAND_IMPL(rollprivate)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(showrolls)
 {
-    pair<string, string> tokens = tokenise(arguments);
-    string category             = tokens.first;
+    auto tokens   = odin::tokenise(arguments);
+    auto category = tokens.first;
     
-    tokens                      = tokenise(tokens.second);
-    string order                = tokens.first;
+    tokens        = odin::tokenise(tokens.second);
+    auto order    = tokens.first;
     
     if (category == "")
     {
-        static string const usage_message = 
+        static std::string const usage_message = 
             "\n USAGE:   showrolls <category> [desc|asc]"
             "\n EXAMPLE: showrolls initiative"
             "\n EXAMPLE: showrolls combat desc"
@@ -436,10 +429,10 @@ PARADICE_COMMAND_IMPL(showrolls)
         return;
     }
     
-    vector<roll_data> rolls;
+    std::vector<roll_data> rolls;
     
     {
-        unique_lock<mutex> lock(roll_category_mutex);
+        std::unique_lock<std::mutex> lock(roll_category_mutex);
         rolls = roll_category[category];
     }
     
@@ -447,7 +440,7 @@ PARADICE_COMMAND_IMPL(showrolls)
     {
         send_to_player(
             ctx
-          , str(format("There are no rolls in the %s category\n")
+          , boost::str(boost::format("There are no rolls in the %s category\n")
                 % category)
           , player);
         return;
@@ -455,34 +448,34 @@ PARADICE_COMMAND_IMPL(showrolls)
 
     if (order == "desc")
     {
-        sort(
+        std::sort(
             rolls.begin()
           , rolls.end()
-          , ptr_fun(&sort_roll_data_by_score_descending));
+          , sort_roll_data_by_score_descending);
     }
     else if (order == "asc")
     {
         sort(
             rolls.begin()
           , rolls.end()
-          , ptr_fun(&sort_roll_data_by_score_ascending));
+          , sort_roll_data_by_score_ascending);
     }
     
-    string output = str(format(
+    auto output = boost::str(boost::format(
         "\n===== Rolls in the %s category =====")
         % category);
     
-    for (u32 index = 0; index < rolls.size(); ++index)
+    for (odin::u32 index = 0; index < rolls.size(); ++index)
     {
         roll_data &data = rolls[index];
-        shared_ptr<client> roller = data.roller.lock();
+        auto roller = data.roller.lock();
         
-        string name = (
+        std::string name = (
             roller == NULL 
           ? data.name 
           : roller->get_character()->get_name());
         
-        output += str(format(
+        output += boost::str(boost::format(
             "\n%s rolled %s and scored %d [%d%s]")
             % name
             % data.roll_text
@@ -501,11 +494,11 @@ PARADICE_COMMAND_IMPL(showrolls)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(clearrolls)
 {
-    string category = tokenise(arguments).first;
+    auto category = odin::tokenise(arguments).first;
     
     if (category == "")
     {
-        static string const usage_message = 
+        static std::string const usage_message = 
             "\n USAGE:   clearrolls <category>"
             "\n EXAMPLE: clearrolls initiative"
             "\n";
@@ -515,18 +508,19 @@ PARADICE_COMMAND_IMPL(clearrolls)
     }
     
     {
-        unique_lock<mutex> lock(roll_category_mutex);
+        std::unique_lock<std::mutex> lock(roll_category_mutex);
         roll_category[category].clear();
     }
 
     send_to_player(
         ctx
-      , str(format("You clear the rolls for the %s category\n") % category)
+      , boost::str(boost::format("You clear the rolls for the %s category\n") 
+          % category)
       , player);
     
     send_to_room(
         ctx
-      , str(format("%s clears the rolls for the %s category\n")
+      , boost::str(boost::format("%s clears the rolls for the %s category\n")
           % player->get_character()->get_name()
           % category)
       , player);

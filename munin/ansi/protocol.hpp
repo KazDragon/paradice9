@@ -30,14 +30,15 @@
 #include "munin/types.hpp"
 #include <string>
 #include <vector>
+
 namespace munin { namespace ansi {
 
 //* =========================================================================
 /// \brief Creates an array of array of elements from an array of strings.
 //* =========================================================================
-std::vector< std::vector<munin::element_type> >
-    elements_from_strings(std::vector<std::string> const &strings
-  , attribute const &attr = attribute());
+std::vector<std::vector<munin::element_type>>
+    elements_from_strings(std::vector<std::string> const &strings,
+    attribute const &attr = {});
 
 //* =========================================================================
 /// \brief Converts a string into a line of vector<>s of ANSI elements.
@@ -46,7 +47,7 @@ std::vector< std::vector<munin::element_type> >
 //* =========================================================================
 std::vector<munin::element_type> elements_from_string(
     std::string const &source_line
-  , attribute const &attr = attribute());
+  , attribute const &attr = {});
 
 //* =========================================================================
 /// \brief Converts a vector<> of ANSI elements into a string.

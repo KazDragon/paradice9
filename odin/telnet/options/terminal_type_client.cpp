@@ -6,33 +6,25 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
-//                      
+//
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "odin/telnet/options/terminal_type_client.hpp"
-#include <algorithm>
-#include <iterator>
-#include <string>
-#include <vector>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace odin { namespace telnet { namespace options {
 
@@ -41,22 +33,22 @@ namespace odin { namespace telnet { namespace options {
 // ==========================================================================
 struct terminal_type_client::impl
 {
-    function<void (string)> on_terminal_type_detected_;
+    std::function<void (std::string const &)> on_terminal_type_detected_;
 };
-    
+
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 terminal_type_client::terminal_type_client(
-    shared_ptr<odin::telnet::stream> const                &stream
-  , shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
-  , shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
-    : client_option(
-          stream
-        , negotiation_router
-        , subnegotiation_router
-        , odin::telnet::TERMINAL_TYPE)
-    , pimpl_(new impl)
+    std::shared_ptr<odin::telnet::stream>                stream,
+    std::shared_ptr<odin::telnet::negotiation_router>    negotiation_router,
+    std::shared_ptr<odin::telnet::subnegotiation_router> subnegotiation_router)
+  : client_option(
+        stream,
+        negotiation_router,
+        subnegotiation_router,
+        odin::telnet::TERMINAL_TYPE),
+    pimpl_(new impl)
 {
 }
 
@@ -87,13 +79,13 @@ void terminal_type_client::on_subnegotiation(
      && subnegotiation.content_.size() > 1
      && subnegotiation.content_[0] == odin::telnet::TERMINAL_TYPE_IS)
     {
-        string response;
-        
+        std::string response;
+
         response.insert(
             response.end()
           , subnegotiation.content_.begin() + 1
           , subnegotiation.content_.end());
-        
+
         pimpl_->on_terminal_type_detected_(response);
     }
 }
@@ -102,7 +94,7 @@ void terminal_type_client::on_subnegotiation(
 // ON_TERMINAL_TYPE_DETECTED
 // ==========================================================================
 void terminal_type_client::on_terminal_type_detected(
-    function<void (string)> callback)
+    std::function<void (std::string const &)> const &callback)
 {
     pimpl_->on_terminal_type_detected_ = callback;
 }

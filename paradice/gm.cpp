@@ -29,17 +29,8 @@
 #include "paradice/context.hpp"
 #include "hugin/user_interface.hpp"
 #include "odin/tokenise.hpp"
-#include <boost/lambda/bind.hpp>
-#include <boost/lambda/lambda.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace paradice {
 
@@ -47,7 +38,7 @@ namespace {
 
 PARADICE_COMMAND_IMPL(gm_tools)
 {
-    BOOST_AUTO(user_interface, player->get_user_interface());
+    auto user_interface = player->get_user_interface();
     user_interface->select_face(hugin::FACE_GM_TOOLS);
     user_interface->set_focus();
 }
@@ -63,8 +54,8 @@ PARADICE_COMMAND_IMPL(gm_encounter_hide)
 }
 
 static void add_encounter_player(
-    shared_ptr<character> ch
-  , shared_ptr<context> ctx)
+    std::shared_ptr<character> ch,
+    std::shared_ptr<context> ctx)
 {
     // Don't add the GM.
     if (ch->get_gm_level() != 0)
@@ -74,12 +65,11 @@ static void add_encounter_player(
 
     bool found = false;
 
-    BOOST_AUTO(enc, ctx->get_active_encounter());
-    BOOST_FOREACH(active_encounter::entry &entry, enc->entries_)
+    auto enc = ctx->get_active_encounter();
+    for (auto &entry : enc->entries_)
     {
-        BOOST_AUTO(
-            participant_player
-          , get<active_encounter::player>(&entry.participant_));
+        auto participant_player = 
+            boost::get<active_encounter::player>(&entry.participant_);
 
         // If this entry is not a character, then move to the next entry.
         if (!participant_player)
@@ -87,9 +77,8 @@ static void add_encounter_player(
             continue;
         }
 
-        BOOST_AUTO(
-            participant_character
-          , participant_player->character_.lock());
+        auto participant_character =
+            participant_player->character_.lock();
 
         // If this entry is the same as the character, then it has already 
         // been added, so we can skip to the next player.
@@ -108,31 +97,32 @@ static void add_encounter_player(
 }
 
 static void remove_encounter_participant(
-    u32 id
-  , shared_ptr<context> ctx)
+    odin::u32 id,
+    std::shared_ptr<context> ctx)
 {
-    namespace bll = boost::lambda;
-
-    BOOST_AUTO(enc, ctx->get_active_encounter());
+    auto enc = ctx->get_active_encounter();
 
     enc->entries_.erase(
-        remove_if(
-            enc->entries_.begin()
-          , enc->entries_.end()
-          , bll::bind(&active_encounter::entry::id_, bll::_1) == id)
-      , enc->entries_.end());
+        std::remove_if(
+            enc->entries_.begin(),
+            enc->entries_.end(),
+            [id](auto const &entry)
+            {
+                return entry.id_ == id;
+            }),
+        enc->entries_.end());
 
     ctx->update_active_encounter();
 }
 
 PARADICE_COMMAND_IMPL(gm_encounter_add_player)
 {
-    BOOST_AUTO(arg0, tokenise(arguments));
-    string argument = arg0.first;
+    auto arg0 = odin::tokenise(arguments);
+    auto argument = arg0.first;
 
-    BOOST_FOREACH(shared_ptr<client> cli, ctx->get_clients())
+    for (auto cli : ctx->get_clients())
     {
-        BOOST_AUTO(ch, cli->get_character());
+        auto ch = cli->get_character();
 
         if (ch->get_name() == argument)
         {
@@ -146,7 +136,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_add_player)
 
 PARADICE_COMMAND_IMPL(gm_encounter_add_players)
 {
-    BOOST_FOREACH(shared_ptr<client> cli, ctx->get_clients())
+    for (auto cli : ctx->get_clients())
     {
         add_encounter_player(cli->get_character(), ctx);
     }
@@ -156,8 +146,8 @@ PARADICE_COMMAND_IMPL(gm_encounter_add_players)
 
 PARADICE_COMMAND_IMPL(gm_encounter_add)
 {
-    BOOST_AUTO(arg0, tokenise(arguments));
-    string argument = arg0.first;
+    auto arg0 = odin::tokenise(arguments);
+    auto argument = arg0.first;
 
 #define DISPATCH_GM_ENCOUNTER_ADD_COMMAND(cmd) \
     if (argument == #cmd) \
@@ -179,24 +169,24 @@ PARADICE_COMMAND_IMPL(gm_encounter_add)
 
 PARADICE_COMMAND_IMPL(gm_encounter_remove)
 {
-    BOOST_AUTO(arg0, tokenise(arguments));
-    string argument = arg0.first;
+    auto arg0 = odin::tokenise(arguments);
+    auto argument = arg0.first;
 
     if (argument == "all")
     {
-        BOOST_AUTO(enc, ctx->get_active_encounter());
+        auto enc = ctx->get_active_encounter();
         enc->entries_.clear();
         ctx->update_active_encounter();
     }
     else
     {
-        u32 id = 0;
+        odin::u32 id = 0;
  
         try
         {
-            id = lexical_cast<u32>(argument);
+            id = boost::lexical_cast<odin::u32>(argument);
         }
-        catch(bad_lexical_cast const &)
+        catch(boost::bad_lexical_cast const &)
         {
             send_to_player(
                 ctx
@@ -218,16 +208,16 @@ PARADICE_COMMAND_IMPL(gm_encounter_remove)
 
 PARADICE_COMMAND_IMPL(gm_encounter_move)
 {
-    BOOST_AUTO(arg0, tokenise(arguments));
-    string id_arg = arg0.first;
+    auto arg0 = odin::tokenise(arguments);
+    auto id_arg = arg0.first;
 
-    u32 id = 0;
+    odin::u32 id = 0;
 
     try
     {
-        id = lexical_cast<u32>(id_arg);
+        id = boost::lexical_cast<odin::u32>(id_arg);
     }
-    catch(bad_lexical_cast const &)
+    catch(boost::bad_lexical_cast const &)
     {
         send_to_player(
             ctx
@@ -236,8 +226,8 @@ PARADICE_COMMAND_IMPL(gm_encounter_move)
         return;
     }
 
-    BOOST_AUTO(enc, ctx->get_active_encounter());
-    BOOST_AUTO(entry_it, enc->entries_.begin());
+    auto enc = ctx->get_active_encounter();
+    auto entry_it = enc->entries_.begin();
 
     for (; entry_it != enc->entries_.end(); ++entry_it)
     {
@@ -251,21 +241,21 @@ PARADICE_COMMAND_IMPL(gm_encounter_move)
     {
         send_to_player(
             ctx
-          , str(format(
+          , boost::str(boost::format(
                 "Error: No entry in the active encounter with id %d\n")
                 % id)
           , player);
         return;
     }
 
-    BOOST_AUTO(arg1, tokenise(arg0.second));
-    string dir_arg = arg1.first;
+    auto arg1 = odin::tokenise(arg0.second);
+    auto dir_arg = arg1.first;
 
     if (dir_arg == "up")
     {
         if (entry_it != enc->entries_.begin())
         {
-            iter_swap(entry_it, entry_it - 1);
+            std::iter_swap(entry_it, entry_it - 1);
             ctx->update_active_encounter();
         }
     }
@@ -273,7 +263,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_move)
     {
         if (entry_it + 1 != enc->entries_.end())
         {
-            iter_swap(entry_it, entry_it + 1);
+            std::iter_swap(entry_it, entry_it + 1);
             ctx->update_active_encounter();
         }
     }
@@ -302,8 +292,8 @@ PARADICE_COMMAND_IMPL(gm_encounter_move)
 
 PARADICE_COMMAND_IMPL(gm_encounter)
 {
-    BOOST_AUTO(arg0, tokenise(arguments));
-    string argument = arg0.first;
+    auto arg0 = odin::tokenise(arguments);
+    auto argument = arg0.first;
 
 #define DISPATCH_GM_ENCOUNTER_COMMAND(cmd) \
     if (argument == #cmd) \
@@ -333,8 +323,8 @@ PARADICE_COMMAND_IMPL(gm_encounter)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(gm)
 {
-    BOOST_AUTO(arg0, tokenise(arguments));
-    string argument = arg0.first;
+    auto arg0 = odin::tokenise(arguments);
+    auto argument = arg0.first;
 
 #define DISPATCH_GM_COMMAND(cmd) \
     if (argument == #cmd) \

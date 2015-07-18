@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/algorithm.hpp"
 #include "munin/canvas.hpp"
@@ -37,35 +37,35 @@ using namespace boost;
 using namespace std;
 
 namespace munin {
-    
+
 // ==========================================================================
 // INTERSECTION
 // ==========================================================================
 optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
 {
     // Check to see if the rectangles overlap.
-    
+
     // Calculate the rectangle with the leftmost origin, and its counterpart.
     // Note: the rectangle that is not the leftmost is not necessarily the
     // rightmost, since the leftmost rectangle may extend further than its
     // counterpart.
-    rectangle const &leftmost     = lhs.origin.x < rhs.origin.x ? lhs : rhs;
-    rectangle const &not_leftmost = lhs.origin.x < rhs.origin.x ? rhs : lhs;
-    
+    auto const &leftmost     = lhs.origin.x < rhs.origin.x ? lhs : rhs;
+    auto const &not_leftmost = lhs.origin.x < rhs.origin.x ? rhs : lhs;
+
     // Calculate the rectangle with the topmost origin.
-    rectangle const &topmost        = lhs.origin.y < rhs.origin.y ? lhs : rhs;
-    rectangle const &not_topmost    = lhs.origin.y < rhs.origin.y ? rhs : lhs;
-    
-    bool overlaps = 
+    auto const &topmost        = lhs.origin.y < rhs.origin.y ? lhs : rhs;
+    auto const &not_topmost    = lhs.origin.y < rhs.origin.y ? rhs : lhs;
+
+    bool overlaps =
         not_leftmost.origin.x >= leftmost.origin.x
      && not_leftmost.origin.x <  leftmost.origin.x + leftmost.size.width
      && not_topmost.origin.y  >= topmost.origin.y
      && not_topmost.origin.y  <  topmost.origin.y + topmost.size.height;
-     
+
     if (!overlaps)
     {
         // There is no overlapping rectangle.
-        return optional<rectangle>();
+        return {};
     }
 
     // The overlapping rectangle has an origin that starts at the same x-
@@ -74,7 +74,7 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
     rectangle overlap;
     overlap.origin.x = not_leftmost.origin.x;
     overlap.origin.y = not_topmost.origin.y;
-    
+
     // If the leftmost rectangle completely contains the other rectangle,
     // then the width is simply that of the enclosed rectangle.
     if (leftmost.origin.x + leftmost.size.width
@@ -87,9 +87,9 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
     else
     {
         overlap.size.width =
-            leftmost.size.width - (not_leftmost.origin.x - leftmost.origin.x); 
+            leftmost.size.width - (not_leftmost.origin.x - leftmost.origin.x);
     }
-    
+
     // Same as above, but with height instead of width.
     if (topmost.origin.y + topmost.size.height
       > not_topmost.origin.y + not_topmost.size.height)
@@ -101,7 +101,7 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
         overlap.size.height =
             topmost.size.height - (not_topmost.origin.y - topmost.origin.y);
     }
-    
+
     return overlap;
 }
 
@@ -111,7 +111,7 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
 static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
 {
     vector<rectangle> slices;
-    
+
     BOOST_FOREACH(rectangle const &current_rectangle, rectangles)
     {
         for (odin::s32 row = 0; row < current_rectangle.size.height; ++row)
@@ -120,10 +120,10 @@ static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
                 rectangle(point(current_rectangle.origin.x
                               , current_rectangle.origin.y + row)
                         , extent(current_rectangle.size.width
-                               , 1))); 
+                               , 1)));
         }
     }
-    
+
     return slices;
 }
 
@@ -158,7 +158,7 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
     sort(rectangles.begin(), rectangles.end(), compare_slices);
 
     BOOST_AUTO(first_slice, rectangles.begin());
-    
+
     // Iterate through adjacent slices, merging any that overlap.
     for (; first_slice != rectangles.end(); ++first_slice)
     {
@@ -172,7 +172,7 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
 
         // Iterate through all adjacent slices that share a y-coordinate
         // until we either run out of slices, or cannot merge a slice.
-        for (; 
+        for (;
              second_slice != rectangles.end()
           && first_slice->origin.y == second_slice->origin.y
           && first_slice->origin.x + first_slice->size.width >= second_slice->origin.x;
@@ -196,7 +196,7 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
           , rectangles.end()
           , has_empty_height)
       , rectangles.end());
-    
+
     return rectangles;
 }
 
@@ -225,12 +225,12 @@ static munin::rectangle clip_region(
         size.height += region.origin.y;
         region.origin.y = 0;
     }
-   
+
     if (region.origin.x >= size.width)
     {
         region.size.width = 0;
     }
-    
+
     if (region.origin.y >= size.height)
     {
         region.size.height = 0;
@@ -289,7 +289,7 @@ vector<rectangle> prune_regions(vector<rectangle> regions)
           , regions.end()
           , bind(has_zero_dimension, _1))
       , regions.end());
-    
+
     return regions;
 }
 
@@ -301,7 +301,7 @@ void copy_region(
   , canvas const    &source
   , canvas          &destination)
 {
-    for (s32 y_coord = region.origin.y; 
+    for (s32 y_coord = region.origin.y;
          y_coord < region.origin.y + region.size.height;
          ++y_coord)
     {
@@ -328,7 +328,7 @@ public :
     {
         return elements_;
     }
-    
+
     // ======================================================================
     // OPERATOR()
     // ======================================================================
@@ -369,7 +369,8 @@ public :
     // ======================================================================
     void operator()(munin::detail::intensity_directive const &directive)
     {
-        current_attribute_.intensity_ = directive.intensity_;
+        current_attribute_.intensity_ = odin::ansi::graphics::intensity(
+            directive.intensity_);
     }
 
     // ======================================================================
@@ -377,7 +378,8 @@ public :
     // ======================================================================
     void operator()(munin::detail::polarity_directive const &directive)
     {
-        current_attribute_.polarity_ = directive.polarity_;
+        current_attribute_.polarity_ = odin::ansi::graphics::polarity(
+            directive.polarity_);
     }
 
     // ======================================================================
@@ -385,7 +387,8 @@ public :
     // ======================================================================
     void operator()(munin::detail::underlining_directive const &directive)
     {
-        current_attribute_.underlining_ = directive.underlining_;
+        current_attribute_.underlining_ = odin::ansi::graphics::underlining(
+            directive.underlining_);
     }
 
     // ======================================================================
@@ -432,7 +435,7 @@ vector<element_type> string_to_elements(string const &str)
     {
         apply_visitor(visitor, directive);
     }
-    
+
     return visitor.get_elements();
 }
 
@@ -448,7 +451,7 @@ vector< vector<element_type> > strings_to_elements(
       , strings.end()
       , result.begin()
       , string_to_elements);
-    
+
     return result;
 }
 

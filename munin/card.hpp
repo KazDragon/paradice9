@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_CARD_HPP_
 #define MUNIN_CARD_HPP_
@@ -38,7 +38,7 @@ namespace munin {
 /// other components, known as "faces".  The card displays only one face at
 /// a time, and can be commanded to show any of them.
 //* =========================================================================
-class card 
+class card
     : public basic_component
 {
 public :
@@ -46,18 +46,18 @@ public :
     /// \brief Constructor
     //* =====================================================================
     card();
-    
+
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
     virtual ~card();
-    
+
     //* =====================================================================
     /// \brief Adds a named face to the card.
     //* =====================================================================
     void add_face(
-        boost::shared_ptr<component> const &comp
-      , std::string                  const &name);
+        std::shared_ptr<component> const &comp
+      , std::string                const &name);
 
     //* =====================================================================
     /// \brief Returns the number of faces that this component contains.
@@ -68,7 +68,7 @@ public :
     /// \brief Selects a face for drawing.
     //* =====================================================================
     void select_face(std::string const &name);
-    
+
 protected :
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
@@ -76,7 +76,7 @@ protected :
     /// custom manner.
     //* =====================================================================
     virtual bool do_has_focus() const;
-    
+
     //* =====================================================================
     /// \brief Called by can_focus().  Derived classes must override this
     /// function in order to return whether this component can be focused in
@@ -93,21 +93,21 @@ protected :
 
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
+    /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual extent do_get_preferred_size() const;
 
     //* =====================================================================
-    /// \brief Called by layout().  Derived classes must override this 
-    /// function in order to lay the component out.  If the component 
+    /// \brief Called by layout().  Derived classes must override this
+    /// function in order to lay the component out.  If the component
     /// contains subcomponents, these must also be laid out.
     //* =====================================================================
     virtual void do_layout();
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed context.  A component must only draw 
+    /// in order to draw onto the passed context.  A component must only draw
     /// the part of itself specified by the region.
     ///
     /// \param ctx the context in which the component should draw itself.
@@ -119,14 +119,14 @@ protected :
       , rectangle const &region);
 
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
+    /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
 
     //* =====================================================================
-    /// \brief Called by set_size().  Derived classes must override this 
-    /// function in order to set the size of the component in a custom 
+    /// \brief Called by set_size().  Derived classes must override this
+    /// function in order to set the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual void do_set_size(extent const &size);
@@ -136,32 +136,32 @@ protected :
     /// function in order to move the focus in a custom manner.
     //* =====================================================================
     virtual void do_focus_next();
-    
+
     //* =====================================================================
-    /// \brief Called by focus_previous().  Derived classes must override 
+    /// \brief Called by focus_previous().  Derived classes must override
     /// this function in order to move the focus in a custom manner.
     //* =====================================================================
     virtual void do_focus_previous();
-    
+
     //* =====================================================================
     /// \brief Called by get_focussed_component().  Derived classes must
     /// override this function in order to return the focussed component
     /// in a custom manner.
     //* =====================================================================
-    virtual boost::shared_ptr<component> do_get_focussed_component();
-    
+    virtual std::shared_ptr<component> do_get_focussed_component();
+
     //* =====================================================================
     /// \brief Called by enable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
     virtual void do_enable();
-    
+
     //* =====================================================================
     /// \brief Called by disable().  Derived classes must override this
     /// function in order to disable the component in a custom manner.
     //* =====================================================================
     virtual void do_disable();
-    
+
     //* =====================================================================
     /// \brief Called by is_enabled().  Derived classes must override this
     /// function in order to return whether the component is disabled or not
@@ -174,7 +174,7 @@ protected :
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
     virtual bool do_get_cursor_state() const;
-    
+
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
@@ -195,10 +195,10 @@ protected :
     //* =====================================================================
     virtual void do_set_attribute(
         std::string const &name, boost::any const &attr);
-    
+
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

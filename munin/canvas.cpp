@@ -6,34 +6,28 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/canvas.hpp"
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 #include <stdexcept>
 #include <vector>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -44,36 +38,6 @@ class canvas::impl
 {
 public :
     // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    impl()
-        : offset_columns_(0)
-        , offset_rows_(0)
-    {
-    }
-    
-    // ======================================================================
-    // COPY CONSTRUCTOR
-    // ======================================================================
-    impl(impl const &other)
-        : offset_columns_(other.offset_columns_)
-        , offset_rows_(other.offset_rows_)
-        , size_(other.size_)
-        , elements_(other.elements_)
-    {
-    }
-    
-    // ======================================================================
-    // OPERATOR=
-    // ======================================================================
-    impl &operator=(impl const &other)
-    {
-        size_     = other.size_;
-        elements_ = other.elements_;
-        return *this;
-    }
-    
-    // ======================================================================
     // SET_SIZE
     // ======================================================================
     void set_size(extent const &size)
@@ -83,17 +47,17 @@ public :
             // No change; no actions are necessary.
             return;
         }
-        
+
         static element_type const default_element(' ');
 
         // Create a new elements array and fill it with data from the old
         // array if necessary or with default spaces.
-        vector<element_type> new_elements;
+        std::vector<element_type> new_elements;
         new_elements.resize(size.height * size.width);
-        
-        for (s32 row = 0; row < size.height; ++row)
+
+        for (odin::s32 row = 0; row < size.height; ++row)
         {
-            for (s32 column = 0; column < size.width; ++column)
+            for (odin::s32 column = 0; column < size.width; ++column)
             {
                 if (row < size_.height && column < size_.width)
                 {
@@ -111,7 +75,7 @@ public :
                 }
             }
         }
-        
+
         // Set the new array as our array and the new size as our size.
         swap(elements_, new_elements);
         size_ = size;
@@ -124,27 +88,29 @@ public :
     {
         return size_;
     }
-    
+
     // ======================================================================
     // OPERATOR==
     // ======================================================================
     bool operator==(impl const &other) const
     {
-        return size_     == other.size_
-            && elements_ == other.elements_;
+        return size_           == other.size_
+            && offset_columns_ == other.offset_columns_
+            && offset_rows_    == other.offset_rows_
+            && elements_       == other.elements_;
     }
-    
+
     // ======================================================================
     // SET_VALUE
     // ======================================================================
-    void set_value(s32 column, s32 row, element_type const &element)
+    void set_value(odin::s32 column, odin::s32 row, element_type const &element)
     {
         column += offset_columns_;
         row    += offset_rows_;
-        
+
         if (column >= size_.width || row >= size_.height)
         {
-            throw std::out_of_range(str(format(
+            throw std::out_of_range(boost::str(boost::format(
                 "Access (write) of element (%d, %d) in canvas with extents "
                 "[%d, %d]")
                     % column
@@ -152,21 +118,21 @@ public :
                     % size_.width
                     % size_.height));
         }
-        
+
         elements_[(row * size_.width) + column] = element;
     }
-    
+
     // ======================================================================
     // GET_VALUE
     // ======================================================================
-    element_type const &get_value(s32 column, s32 row) const
+    element_type const &get_value(odin::s32 column, odin::s32 row) const
     {
         column += offset_columns_;
         row    += offset_rows_;
-        
+
         if (column >= size_.width || row >= size_.height)
         {
-            throw std::out_of_range(str(format(
+            throw std::out_of_range(boost::str(boost::format(
                 "Access (read) of element (%d, %d) in canvas with extents "
                 "[%d, %d]")
                     % column
@@ -174,21 +140,21 @@ public :
                     % size_.width
                     % size_.height));
         }
-        
+
         return elements_[(row * size_.width) + column];
     }
-    
+
     // ======================================================================
     // GET_VALUE
     // ======================================================================
-    element_type &get_value(s32 column, s32 row)
+    element_type &get_value(odin::s32 column, odin::s32 row)
     {
         column += offset_columns_;
         row    += offset_rows_;
-        
+
         if (column >= size_.width || row >= size_.height)
         {
-            throw std::out_of_range(str(format(
+            throw std::out_of_range(boost::str(boost::format(
                 "Access (read) of element (%d, %d) in canvas with extents "
                 "[%d, %d]")
                     % column
@@ -196,30 +162,30 @@ public :
                     % size_.width
                     % size_.height));
         }
-        
+
         return elements_[(row * size_.width) + column];
     }
 
     // ======================================================================
     // APPLY_OFFSET
     // ======================================================================
-    void apply_offset(s32 columns, s32 rows)
+    void apply_offset(odin::s32 columns, odin::s32 rows)
     {
         offset_columns_ += columns;
         offset_rows_    += rows;
     }
-    
+
 private :
-    s32                  offset_columns_;
-    s32                  offset_rows_;
-    extent               size_;
-    vector<element_type> elements_;
+    odin::s32                 offset_columns_ = 0;
+    odin::s32                 offset_rows_ = 0;
+    extent                    size_;
+    std::vector<element_type> elements_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-canvas::row_proxy::row_proxy(canvas &canvas, s32 column, s32 row)
+canvas::row_proxy::row_proxy(canvas &canvas, odin::s32 column, odin::s32 row)
     : canvas_(canvas)
     , column_(column)
     , row_(row)
@@ -245,7 +211,7 @@ canvas::row_proxy::operator element_type &()
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-canvas::column_proxy::column_proxy(canvas &canvas, s32 column)
+canvas::column_proxy::column_proxy(canvas &canvas, odin::s32 column)
     : canvas_(canvas)
     , column_(column)
 {
@@ -254,7 +220,7 @@ canvas::column_proxy::column_proxy(canvas &canvas, s32 column)
 // ==========================================================================
 // OPERATOR[]
 // ==========================================================================
-canvas::row_proxy canvas::column_proxy::operator[](s32 row)
+canvas::row_proxy canvas::column_proxy::operator[](odin::s32 row)
 {
     return row_proxy(canvas_, column_, row);
 }
@@ -264,16 +230,16 @@ canvas::row_proxy canvas::column_proxy::operator[](s32 row)
 // ==========================================================================
 canvas::const_column_proxy::const_column_proxy(
     canvas const &canvas
-  , s32           column)
+  , odin::s32     column)
   : canvas_(canvas)
   , column_(column)
 {
 }
-    
+
 // ==========================================================================
 // OPERATOR[]
 // ==========================================================================
-element_type const &canvas::const_column_proxy::operator[](s32 row) const
+element_type const &canvas::const_column_proxy::operator[](odin::s32 row) const
 {
     return canvas_.pimpl_->get_value(column_, row);
 }
@@ -282,7 +248,7 @@ element_type const &canvas::const_column_proxy::operator[](s32 row) const
 // CONSTRUCTOR
 // ==========================================================================
 canvas::canvas()
-    : pimpl_(make_shared<impl>())
+  : pimpl_(std::make_shared<impl>())
 {
 }
 
@@ -291,7 +257,7 @@ canvas::canvas()
 // ==========================================================================
 canvas::canvas(canvas const &other)
 {
-    pimpl_ = make_shared<impl>(ref(*other.pimpl_));
+    pimpl_ = std::make_shared<impl>(std::ref(*other.pimpl_));
 }
 
 // ==========================================================================
@@ -321,7 +287,7 @@ canvas::~canvas()
 // ==========================================================================
 // OPERATOR[]
 // ==========================================================================
-canvas::column_proxy canvas::operator[](s32 column)
+canvas::column_proxy canvas::operator[](odin::s32 column)
 {
     return column_proxy(*this, column);
 }
@@ -329,7 +295,7 @@ canvas::column_proxy canvas::operator[](s32 column)
 // ==========================================================================
 // OPERATOR[]
 // ==========================================================================
-canvas::const_column_proxy canvas::operator[](s32 column) const
+canvas::const_column_proxy canvas::operator[](odin::s32 column) const
 {
     return const_column_proxy(*this, column);
 }
@@ -353,7 +319,7 @@ extent canvas::get_size() const
 // ==========================================================================
 // APPLY_OFFSET
 // ==========================================================================
-void canvas::apply_offset(s32 columns, s32 rows)
+void canvas::apply_offset(odin::s32 columns, odin::s32 rows)
 {
     pimpl_->apply_offset(columns, rows);
 }

@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef HUGIN_USER_INTERFACE_HPP_
 #define HUGIN_USER_INTERFACE_HPP_
@@ -30,9 +30,6 @@
 #include "munin/composite_component.hpp"
 #include "paradice/active_encounter.hpp"
 #include <boost/asio/strand.hpp>
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <string>
 
 namespace paradice {
     class beast;
@@ -61,17 +58,17 @@ public :
     /// \brief Constructor
     //* =====================================================================
     user_interface(boost::asio::strand &strand);
-    
+
     //* =====================================================================
     /// \brief Clears the intro screen.
     //* =====================================================================
     void clear_intro_screen();
-    
+
     //* =====================================================================
     /// \brief Clears the account creation screen.
     //* =====================================================================
     void clear_account_creation_screen();
-    
+
     //* =====================================================================
     /// \brief Clears the character selection screen.
     //* =====================================================================
@@ -81,120 +78,121 @@ public :
     /// \brief Clears the character creation screen.
     //* =====================================================================
     void clear_character_creation_screen();
-    
+
     //* =====================================================================
     /// \brief Clears the main screen.
     //* =====================================================================
     void clear_main_screen();
-    
+
     //* =====================================================================
     /// \brief Clears the password change screen.
     //* =====================================================================
     void clear_password_change_screen();
-    
+
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs the details
     /// for the change of a password.
     //* =====================================================================
     void on_password_changed(
-        boost::function<
-            void (std::string old_password
-                , std::string new_password
-                , std::string new_password_verify)> callback);
-    
+        std::function<
+            void (std::string const &old_password
+                , std::string const &new_password
+                , std::string const &new_password_verify)> const &callback);
+
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the change
     /// of a password.
     //* =====================================================================
-    void on_password_change_cancelled(boost::function<void ()> callback);
+    void on_password_change_cancelled(std::function<void ()> const &callback);
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a name
     /// and password on the intro screen.
     //* =====================================================================
     void on_login(
-        boost::function<void (std::string, std::string)> callback);
+        std::function<
+            void (std::string const &, std::string const &)> const &callback);
 
     //* =====================================================================
     /// \brief Set a function to be called when the user wants to create
     /// a new account.
     //* =====================================================================
-    void on_new_account(boost::function<void ()> callback);
+    void on_new_account(std::function<void ()> const &callback);
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs the details
     /// for the creation of an account.
     //* =====================================================================
     void on_account_created(
-        boost::function<
-            void (std::string account_name
-                , std::string password
-                , std::string password_verify)> callback);
-    
+        std::function<
+            void (std::string const &account_name
+                , std::string const &password
+                , std::string const &password_verify)> const &callback);
+
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation
     /// of an account.
     //* =====================================================================
-    void on_account_creation_cancelled(boost::function<void ()> callback);
-    
+    void on_account_creation_cancelled(std::function<void ()> const &callback);
+
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a command
     /// on the main screen.
     //* =====================================================================
     void on_input_entered(
-        boost::function<void (std::string)> callback);
-    
+        std::function<void (std::string const &)> const &callback);
+
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to create
     /// a new character.
     //* =====================================================================
     void on_new_character(
-        boost::function<void ()> callback);
-    
+        std::function<void ()> const &callback);
+
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to use an
     /// existing character.
     //* =====================================================================
     void on_character_selected(
-        boost::function<void (std::string)> callback);
-    
+        std::function<void (std::string const &)> const &callback);
+
     //* =====================================================================
     /// \brief Provide a function to be called if the user creates a new
     /// character.
     //* =====================================================================
     void on_character_created(
-        boost::function<void (std::string, bool)> callback);
+        std::function<void (std::string const &, bool)> const &callback);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user decides to cancel
     /// the creation of a character.
     //* =====================================================================
     void on_character_creation_cancelled(
-        boost::function<void ()> callback);
+        std::function<void ()> const &callback);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user hits the 'back'
     /// button on the GM Tools screen
     //* =====================================================================
-    void on_gm_tools_back(boost::function<void ()> callback);
+    void on_gm_tools_back(std::function<void ()> const &callback);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts a
     /// beast into the current encounter.
     //* =====================================================================
     void on_gm_fight_beast(
-        boost::function<
-            void (boost::shared_ptr<paradice::beast>)
-        > callback);
+        std::function<
+            void (std::shared_ptr<paradice::beast> const &)
+        > const &callback);
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts an
     /// encounter into the current encounter.
     //* =====================================================================
     void on_gm_fight_encounter(
-        boost::function<
-            void (boost::shared_ptr<paradice::encounter>)
-        > callback);
+        std::function<
+            void (std::shared_ptr<paradice::encounter> const &)
+        > const &callback);
 
     //* =====================================================================
     /// \brief Shows the active encounter window.
@@ -210,7 +208,7 @@ public :
     /// \brief Sets the Active Encounter.
     //* =====================================================================
     void set_active_encounter(
-        boost::shared_ptr<paradice::active_encounter> active_encounter);
+        std::shared_ptr<paradice::active_encounter> const &active_encounter);
 
     //* =====================================================================
     /// \brief Sets the character names belonging to this account.
@@ -224,45 +222,44 @@ public :
     /// \brief Sets the beasts to be used by the user interface
     //* =====================================================================
     void set_beasts(
-        std::vector< boost::shared_ptr<paradice::beast> > beasts);
+        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
 
     //* =====================================================================
     /// \brief Returns the beasts used by the user interface
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+    std::vector<std::shared_ptr<paradice::beast>> get_beasts() const;
 
     //* =====================================================================
     /// \brief Sets the encounters to be used by the user interface
     //* =====================================================================
     void set_encounters(
-        std::vector< boost::shared_ptr<paradice::encounter> > encounters);
+        std::vector<std::shared_ptr<paradice::encounter>> const &encounters);
 
     //* =====================================================================
     /// \brief Returns the encounters used by the user interface
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::encounter> > 
-        get_encounters() const;
+    std::vector<std::shared_ptr<paradice::encounter>> get_encounters() const;
 
     //* =====================================================================
     /// \brief Select a user interface screen to be shown.
     //* =====================================================================
     void select_face(std::string const &face_name);
-    
+
     //* =====================================================================
     /// \brief Adds output to the output text area on the main screen.
     //* =====================================================================
     void add_output_text(std::vector<munin::element_type> const &text);
-    
+
     //* =====================================================================
     /// \brief Sets the content of the status bar on the intro screen.
     //* =====================================================================
     void set_statusbar_text(std::vector<munin::element_type> const &text);
-    
+
     //* =====================================================================
     /// \brief Updates the who list on the main screen.
     //* =====================================================================
     void update_wholist(std::vector<std::string> const &names);
-    
+
     //* =====================================================================
     /// \brief Adds a line of command history to the input pane.
     //* =====================================================================
@@ -272,18 +269,18 @@ public :
     /// \brief Shows the Help window.
     //* =====================================================================
     void show_help_window();
-    
+
     //* =====================================================================
     /// \brief Hides the Help window.
     //* =====================================================================
     void hide_help_window();
-    
+
     //* =====================================================================
     /// \brief Set up a callback for when the close icon on the help
     /// window is clicked.
     //* =====================================================================
-    void on_help_closed(boost::function<void ()> callback);
-    
+    void on_help_closed(std::function<void ()> const &callback);
+
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.
     //* =====================================================================
@@ -291,7 +288,7 @@ public :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

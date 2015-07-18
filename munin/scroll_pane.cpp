@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/scroll_pane.hpp"
 #include "munin/basic_frame.hpp"
@@ -33,14 +33,7 @@
 #include "munin/grid_layout.hpp"
 #include "munin/vertical_scroll_bar.hpp"
 #include "munin/viewport.hpp"
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <algorithm>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -53,24 +46,24 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     scroll_frame(
-        shared_ptr<horizontal_scroll_bar> hscroll_bar
-      , shared_ptr<vertical_scroll_bar>   vscroll_bar
-      , bool                              top_border)
-        : basic_frame(
-              top_border 
-            ? make_shared<filled_box>(element_type(double_lined_top_left_corner))
-            : shared_ptr<filled_box>()
-            , top_border
-            ? make_shared<filled_box>(element_type(double_lined_horizontal_beam))
-            : shared_ptr<filled_box>()
-            , top_border
-            ? make_shared<filled_box>(element_type(double_lined_top_right_corner))
-            : shared_ptr<filled_box>()
-            , make_shared<filled_box>(element_type(double_lined_vertical_beam))
-            , vscroll_bar
-            , make_shared<filled_box>(element_type(double_lined_bottom_left_corner))
-            , hscroll_bar
-            , make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
+        std::shared_ptr<horizontal_scroll_bar> hscroll_bar,
+        std::shared_ptr<vertical_scroll_bar>   vscroll_bar,
+        bool                                   top_border)
+      : basic_frame(
+            top_border
+          ? std::make_shared<filled_box>(element_type(double_lined_top_left_corner))
+          : std::shared_ptr<filled_box>(),
+            top_border
+          ? std::make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+          : std::shared_ptr<filled_box>(),
+            top_border
+          ? std::make_shared<filled_box>(element_type(double_lined_top_right_corner))
+          : std::shared_ptr<filled_box>(),
+            std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
+            vscroll_bar,
+            std::make_shared<filled_box>(element_type(double_lined_bottom_left_corner)),
+            hscroll_bar,
+            std::make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
     {
     }
 
@@ -97,12 +90,12 @@ struct scroll_pane::impl
     {
     }
 
-    scroll_pane                       &self_;
-    shared_ptr<component>              underlying_component_;
-    shared_ptr<viewport>               viewport_;
-    shared_ptr<horizontal_scroll_bar>  horizontal_scroll_bar_;
-    shared_ptr<vertical_scroll_bar>    vertical_scroll_bar_;
-    shared_ptr<scroll_frame>           scroll_frame_;
+    scroll_pane                            &self_;
+    std::shared_ptr<component>              underlying_component_;
+    std::shared_ptr<viewport>               viewport_;
+    std::shared_ptr<horizontal_scroll_bar>  horizontal_scroll_bar_;
+    std::shared_ptr<vertical_scroll_bar>    vertical_scroll_bar_;
+    std::shared_ptr<scroll_frame>           scroll_frame_;
 
     // ======================================================================
     // ON_PAGE_LEFT
@@ -110,12 +103,10 @@ struct scroll_pane::impl
     void on_page_left()
     {
         point new_origin;
-        BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
+        auto origin = viewport_->get_origin();
 
         new_origin = origin;
-        
+
         // TODO: Tab a page, not a line.
         if (new_origin.x != 0)
         {
@@ -132,31 +123,31 @@ struct scroll_pane::impl
     void on_page_right()
     {
         point new_origin;
-        BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
+        auto origin = viewport_->get_origin();
+        auto size = self_.get_size();
+        auto underlying_component_size = underlying_component_->get_size();
 
         // Find out how far over to the right the maximum origin should be.
         // If the underlying component has a width smaller than this, then
         // the max is 0, because we can't scroll to the right.  Otherwise,
         // it is the width of the underlying component - the width of the
         // viewport.
-        BOOST_AUTO(max_right,
+        auto max_right =
             (underlying_component_size.width < size.width
           ? 0
-          : underlying_component_size.width - size.width));
+          : underlying_component_size.width - size.width);
 
         // Same for the bottom, with height.
-        BOOST_AUTO(max_bottom,
+        auto max_bottom =
             (underlying_component_size.height < size.height
           ? 0
-          : underlying_component_size.height - size.height));
+          : underlying_component_size.height - size.height);
 
         // Now, move the origin over to the right by one page, up to the
         // maximum to the right.
         // new_origin.x = (min)(origin.x + size.width, max_right);
-        new_origin.x = (min)(origin.x + 1, max_right);
-        new_origin.y = (min)(origin.y, max_bottom);
+        new_origin.x = (std::min)(origin.x + 1, max_right);
+        new_origin.y = (std::min)(origin.y, max_bottom);
 
         viewport_->set_origin(new_origin);
         calculate_scrollbars();
@@ -167,8 +158,8 @@ struct scroll_pane::impl
     // ======================================================================
     void on_page_up()
     {
-        BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, viewport_->get_size());
+        auto origin = viewport_->get_origin();
+        auto size = viewport_->get_size();
 
         // If we would tab over the top of the viewport, then move to the
         // top instead.
@@ -181,7 +172,7 @@ struct scroll_pane::impl
         {
             origin.y -= size.height;
         }
-        
+
         viewport_->set_origin(origin);
     }
 
@@ -191,30 +182,30 @@ struct scroll_pane::impl
     void on_page_down()
     {
         point new_origin;
-        BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, viewport_->get_size());
-        BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
+        auto origin = viewport_->get_origin();
+        auto size = viewport_->get_size();
+        auto underlying_component_size = underlying_component_->get_size();
 
         // Find out how far over to the right the maximum origin should be.
         // If the underlying component has a width smaller than this, then
         // the max is 0, because we can't scroll to the right.  Otherwise,
         // it is the width of the underlying component - the width of the
         // viewport.
-        BOOST_AUTO(max_right,
+        auto max_right =
             (underlying_component_size.width < size.width
           ? 0
-          : underlying_component_size.width - size.width));
+          : underlying_component_size.width - size.width);
 
         // Same for the bottom, with height.
-        BOOST_AUTO(max_bottom,
+        auto max_bottom =
             (underlying_component_size.height < size.height
           ? 0
-          : underlying_component_size.height - size.height));
+          : underlying_component_size.height - size.height);
 
         // Now, move the origin over to the right by one page, up to the
         // maximum to the right.
-        new_origin.x = (min)(origin.x, max_right);
-        new_origin.y = (min)(origin.y + size.height, max_bottom);
+        new_origin.x = (std::min)(origin.x, max_right);
+        new_origin.y = (std::min)(origin.y + size.height, max_bottom);
 
         viewport_->set_origin(new_origin);
     }
@@ -222,24 +213,22 @@ struct scroll_pane::impl
     // ======================================================================
     // CALCULATE_HORIZONTAL_SCROLLBAR
     // ======================================================================
-    optional<u8> calculate_horizontal_scrollbar()
+    boost::optional<odin::u8> calculate_horizontal_scrollbar()
     {
-        BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, viewport_->get_size());
-        BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
+        auto origin = viewport_->get_origin();
+        auto size = viewport_->get_size();
+        auto underlying_component_size = underlying_component_->get_size();
 
-        u8 slider_position = 0;
+        odin::u8 slider_position = 0;
 
         if (underlying_component_size.width <= size.width)
         {
-            return optional<u8>();
+            return {};
         }
 
         if (origin.x != 0)
         {
-            BOOST_AUTO(
-                max_right
-              , underlying_component_size.width - size.width);
+            auto max_right = underlying_component_size.width - size.width;
 
             if (origin.x == max_right)
             {
@@ -247,7 +236,7 @@ struct scroll_pane::impl
             }
             else
             {
-                slider_position = u8((origin.x * 100) / max_right);
+                slider_position = odin::u8((origin.x * 100) / max_right);
 
                 if (slider_position == 0)
                 {
@@ -267,24 +256,22 @@ struct scroll_pane::impl
     // ======================================================================
     // CALCULATE_VERTICAL_SCROLLBAR
     // ======================================================================
-    optional<u8> calculate_vertical_scrollbar()
+    boost::optional<odin::u8> calculate_vertical_scrollbar()
     {
-        BOOST_AUTO(origin, viewport_->get_origin());
-        BOOST_AUTO(size, viewport_->get_size());
-        BOOST_AUTO(underlying_component_size, underlying_component_->get_size());
+        auto origin = viewport_->get_origin();
+        auto size = viewport_->get_size();
+        auto underlying_component_size = underlying_component_->get_size();
 
-        u8 slider_position = 0;
+        odin::u8 slider_position = 0;
 
         if (underlying_component_size.height <= size.height)
         {
-            return optional<u8>();
+            return {};
         }
 
         if (origin.y != 0)
         {
-            BOOST_AUTO(
-                max_bottom
-              , underlying_component_size.height - size.height);
+            auto max_bottom = underlying_component_size.height - size.height;
 
             if (origin.y == max_bottom)
             {
@@ -292,7 +279,7 @@ struct scroll_pane::impl
             }
             else
             {
-                slider_position = u8((origin.y * 100) / max_bottom);
+                slider_position = odin::u8((origin.y * 100) / max_bottom);
 
                 if (slider_position == 0)
                 {
@@ -315,13 +302,8 @@ struct scroll_pane::impl
     void calculate_scrollbars()
     {
         // Fix the scrollbars to be at the correct percentages.
-        BOOST_AUTO(
-            horizontal_slider_position
-          , calculate_horizontal_scrollbar());
-
-        BOOST_AUTO(
-            vertical_slider_position
-          , calculate_vertical_scrollbar());
+        auto horizontal_slider_position = calculate_horizontal_scrollbar();
+        auto vertical_slider_position = calculate_vertical_scrollbar();
 
         horizontal_scroll_bar_->set_slider_position(horizontal_slider_position);
         vertical_scroll_bar_->set_slider_position(vertical_slider_position);
@@ -332,42 +314,42 @@ struct scroll_pane::impl
 // CONSTRUCTOR
 // ==========================================================================
 scroll_pane::scroll_pane(
-    shared_ptr<component> underlying_component
-  , bool                  top_border)
+    std::shared_ptr<component> underlying_component
+  , bool                       top_border)
 {
-    pimpl_ = make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
 
     pimpl_->underlying_component_ = underlying_component;
 
-    pimpl_->viewport_ = make_shared<viewport>(pimpl_->underlying_component_);
+    pimpl_->viewport_ = std::make_shared<viewport>(pimpl_->underlying_component_);
     pimpl_->viewport_->on_size_changed.connect(
-        bind(&impl::calculate_scrollbars, pimpl_.get()));
+        [this]{pimpl_->calculate_scrollbars();});
     pimpl_->viewport_->on_subcomponent_size_changed.connect(
-        bind(&impl::calculate_scrollbars, pimpl_.get()));
+        [this]{pimpl_->calculate_scrollbars();});
     pimpl_->viewport_->on_origin_changed.connect(
-        bind(&impl::calculate_scrollbars, pimpl_.get()));
+        [this]{pimpl_->calculate_scrollbars();});
 
-    pimpl_->horizontal_scroll_bar_ = make_shared<horizontal_scroll_bar>();
+    pimpl_->horizontal_scroll_bar_ = std::make_shared<horizontal_scroll_bar>();
     pimpl_->horizontal_scroll_bar_->on_page_left.connect(
-        bind(&impl::on_page_left, pimpl_.get()));
+        [this]{pimpl_->on_page_left();});
     pimpl_->horizontal_scroll_bar_->on_page_right.connect(
-        bind(&impl::on_page_right, pimpl_.get()));
+        [this]{pimpl_->on_page_right();});
 
-    pimpl_->vertical_scroll_bar_ = make_shared<vertical_scroll_bar>();
+    pimpl_->vertical_scroll_bar_ = std::make_shared<vertical_scroll_bar>();
     pimpl_->vertical_scroll_bar_->on_page_up.connect(
-        bind(&impl::on_page_up, pimpl_.get()));
+        [this]{pimpl_->on_page_up();});
     pimpl_->vertical_scroll_bar_->on_page_down.connect(
-        bind(&impl::on_page_down, pimpl_.get()));
-        
-    pimpl_->scroll_frame_ = make_shared<scroll_frame>(
+        [this]{pimpl_->on_page_down();});
+
+    pimpl_->scroll_frame_ = std::make_shared<scroll_frame>(
         pimpl_->horizontal_scroll_bar_
       , pimpl_->vertical_scroll_bar_
       , top_border);
 
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
+    auto content = get_container();
+    content->set_layout(std::make_shared<grid_layout>(1, 1));
 
-    content->add_component(make_shared<framed_component>(
+    content->add_component(std::make_shared<framed_component>(
         pimpl_->scroll_frame_
       , pimpl_->viewport_));
 }

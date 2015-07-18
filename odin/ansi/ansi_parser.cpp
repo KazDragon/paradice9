@@ -6,33 +6,27 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "odin/ansi/ansi_parser.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "odin/state_machine.hpp"
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-
-using namespace boost;
-using namespace odin;
-using namespace std;
 
 namespace odin { namespace ansi {
 
@@ -56,18 +50,18 @@ struct parser::impl
         : state_machine(state_normal)
         , ready_(false)
     {
-        state[state_normal].undefined_transition           = bind(&impl::normal_undefined, this, _1);
-        state[state_normal].transition[odin::ansi::ESCAPE] = bind(&impl::normal_escape, this);
+        state[state_normal].undefined_transition           = [this](char ch){normal_undefined(ch);};
+        state[state_normal].transition[odin::ansi::ESCAPE] = [this]{normal_escape();};
 
-        state[state_escape].undefined_transition           = bind(&impl::escape_undefined, this, _1);
-        state[state_escape].transition[odin::ansi::ESCAPE] = bind(&impl::escape_escape, this);
+        state[state_escape].undefined_transition           = [this](char ch){escape_undefined(ch);};
+        state[state_escape].transition[odin::ansi::ESCAPE] = [this]{escape_escape();};
 
-        state[state_initiator].undefined_transition        = bind(&impl::initiator_undefined, this, _1);
-        state[state_initiator].transition['M']             = bind(&impl::initiator_m, this);
+        state[state_initiator].undefined_transition        = [this](char ch){initiator_undefined(ch);};
+        state[state_initiator].transition['M']             = [this]{initiator_m();};
 
-        state[state_mouse_button].undefined_transition     = bind(&impl::mouse_button, this, _1);
-        state[state_mouse_x].undefined_transition          = bind(&impl::mouse_x, this, _1);
-        state[state_mouse_y].undefined_transition          = bind(&impl::mouse_y, this, _1);
+        state[state_mouse_button].undefined_transition     = [this](char ch){mouse_button(ch);};
+        state[state_mouse_x].undefined_transition          = [this](char ch){mouse_x(ch);};
+        state[state_mouse_y].undefined_transition          = [this](char ch){mouse_y(ch);};
     }
 
     void normal_undefined(char ch)
@@ -144,7 +138,7 @@ struct parser::impl
 // CONSTRUCTOR
 // ==========================================================================
 parser::parser()
-    : pimpl_(make_shared<impl>())
+    : pimpl_(std::make_shared<impl>())
 {
 }
 
@@ -163,15 +157,15 @@ void parser::clear_token()
 {
     pimpl_->ready_ = false;
 }
-    
+
 // ==========================================================================
 // STORE_ELEMENT
 // ==========================================================================
-void parser::store_element(element_type const &element)
+void parser::store_element(char const &element)
 {
     (*pimpl_)(element);
 }
-    
+
 // ==========================================================================
 // STORED_TOKEN
 // ==========================================================================

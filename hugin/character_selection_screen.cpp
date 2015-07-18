@@ -34,14 +34,6 @@
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace munin;
-using namespace munin::ansi;
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace hugin {
 
@@ -51,37 +43,38 @@ namespace hugin {
 // ==========================================================================
 struct character_selection_screen::impl
 {
-    function<void ()>                     on_new_character_;
-    function<void (string)>               on_character_selected_;
+    std::function<void ()>                           on_new_character_;
+    std::function<void (std::string const &)>        on_character_selected_;
     
-    vector< pair<string, string> >        characters_;
+    std::vector<std::pair<std::string, std::string>> characters_;
     
-    shared_ptr<image>                     character_list_;
-    shared_ptr<container>                 inner_content_;
+    std::shared_ptr<munin::image>                    character_list_;
+    std::shared_ptr<munin::container>                inner_content_;
     
-    shared_ptr<container> create_inner_content()
+    std::shared_ptr<munin::container> create_inner_content()
     {
-        return make_shared<basic_container>();
+        return std::make_shared<munin::basic_container>();
     }
 
-    shared_ptr<image> create_character_list()
+    std::shared_ptr<munin::image> create_character_list()
     {
         // Create an array of element 'strings' big enough to hold all the
         // character names, and also the "create new character" option.
-        vector< vector<element_type> > text(characters_.size() + 1);
+        std::vector<std::vector<munin::element_type>> text(characters_.size() + 1);
         
         // Fill the first element with the "create new character" text.
-        text[0] = string_to_elements("+. <Create new character>");
+        text[0] = munin::string_to_elements("+. <Create new character>");
         
         // Fill the remainder with the names of the characters.
         for (size_t index = 0; index < characters_.size(); ++index)
         {
-            text[index + 1] = string_to_elements(str(format("%d. %s")
+            text[index + 1] = munin::string_to_elements(
+                boost::str(boost::format("%d. %s")
                 % index
                 % characters_[index].second));
         }
         
-        BOOST_AUTO(img, make_shared<image>(text));
+        auto img = std::make_shared<munin::image>(text);
         img->set_can_focus(true);
         return img;
     }
@@ -91,30 +84,30 @@ struct character_selection_screen::impl
 // CONSTRUCTOR
 // ==========================================================================
 character_selection_screen::character_selection_screen()
-    : pimpl_(make_shared<impl>())
+  : pimpl_(std::make_shared<impl>())
 {
     pimpl_->character_list_ = pimpl_->create_character_list();
     pimpl_->inner_content_  = pimpl_->create_inner_content();
     
-    pimpl_->inner_content_->set_layout(make_shared<grid_layout>(1, 1));
+    pimpl_->inner_content_->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     pimpl_->inner_content_->add_component(pimpl_->character_list_);
     
-    BOOST_AUTO(border, make_shared<named_frame>());
+    auto border = std::make_shared<munin::named_frame>();
     border->set_name("CHARACTER SELECTION");
 
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
-    content->add_component(make_shared<framed_component>(
+    auto content = get_container();
+    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
+    content->add_component(std::make_shared<munin::framed_component>(
         border
       , pimpl_->inner_content_));
 
     // Add a filler to ensure that the background is opaque.
     content->set_layout(
-        make_shared<grid_layout>(1, 1)
+        std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        make_shared<filled_box>(element_type(' '))
-      , any()
+        std::make_shared<munin::filled_box>(munin::element_type(' '))
+      , {}
       , munin::LOWEST_LAYER);
 }
 
@@ -136,7 +129,7 @@ void character_selection_screen::clear()
 // SET_CHARACTER_NAMES
 // ==========================================================================
 void character_selection_screen::set_character_names(
-    vector< pair<string, string> > const &names)
+    std::vector<std::pair<std::string, std::string>> const &names)
 {
     pimpl_->inner_content_->remove_component(pimpl_->character_list_);
     pimpl_->characters_ = names;
@@ -147,7 +140,8 @@ void character_selection_screen::set_character_names(
 // ==========================================================================
 // ON_NEW_CHARACTER
 // ==========================================================================
-void character_selection_screen::on_new_character(function<void ()> callback)
+void character_selection_screen::on_new_character(
+    std::function<void ()> const &callback)
 {
     pimpl_->on_new_character_ = callback;
 }
@@ -156,7 +150,7 @@ void character_selection_screen::on_new_character(function<void ()> callback)
 // ON_CHARACTER_SELECTED
 // ==========================================================================
 void character_selection_screen::on_character_selected(
-    function<void (string)> callback)
+    std::function<void (std::string const &)> const &callback)
 {
     pimpl_->on_character_selected_ = callback;
 }
@@ -164,9 +158,9 @@ void character_selection_screen::on_character_selected(
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void character_selection_screen::do_event(any const &event)
+void character_selection_screen::do_event(boost::any const &event)
 {
-    char const *ch = any_cast<char>(&event);
+    char const *ch = boost::any_cast<char>(&event);
     
     if (ch != NULL)
     {

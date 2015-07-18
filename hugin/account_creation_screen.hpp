@@ -28,8 +28,6 @@
 #define HUGIN_ACCOUNT_CREATION_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace hugin {
@@ -62,16 +60,16 @@ public :
     /// for the creation of an account.
     //* =====================================================================
     void on_account_created(
-        boost::function<
-            void (std::string account_name
-                , std::string password
-                , std::string password_verify)> callback);
+        std::function<
+            void (std::string const &account_name,
+                  std::string const &password,
+                  std::string const &password_verify)> const &callback);
     
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation
     /// of an account.
     //* =====================================================================
-    void on_account_creation_cancelled(boost::function<void ()> callback);
+    void on_account_creation_cancelled(std::function<void ()> const &callback);
     
 protected :
     //* =====================================================================
@@ -82,7 +80,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

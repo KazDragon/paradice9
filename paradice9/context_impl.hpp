@@ -41,9 +41,9 @@ public :
     /// \brief Constructor
     //* =====================================================================
     context_impl(
-        boost::asio::io_service                         &io_service
-      , boost::shared_ptr<odin::net::server>             server
-      , boost::shared_ptr<boost::asio::io_service::work> work);
+        boost::asio::io_service                       &io_service
+      , std::shared_ptr<odin::net::server>             server
+      , std::shared_ptr<boost::asio::io_service::work> work);
     
     //* =====================================================================
     /// \brief Denstructor
@@ -54,20 +54,20 @@ public :
     /// \brief Retrieves a list of clients currently connected to Paradice.
     //* =====================================================================
     virtual std::vector< 
-        boost::shared_ptr<paradice::client> 
+        std::shared_ptr<paradice::client> 
     > get_clients();
 
     //* =====================================================================
     /// \brief Adds a client to the list of clients currently connected
     /// to Paradice.
     //* =====================================================================
-    virtual void add_client(boost::shared_ptr<paradice::client> const &cli);
+    virtual void add_client(std::shared_ptr<paradice::client> const &cli);
 
     //* =====================================================================
     /// \brief Removes a client from the list of clients currently
     /// connected to Paradice.
     //* =====================================================================
-    virtual void remove_client(boost::shared_ptr<paradice::client> const &cli);
+    virtual void remove_client(std::shared_ptr<paradice::client> const &cli);
     
     //* =====================================================================
     /// \brief For all clients, updates their lists of names.
@@ -79,33 +79,33 @@ public :
     /// and suffix.
     //* =====================================================================
     virtual std::string get_moniker(
-        boost::shared_ptr<paradice::character> &ch);
+        std::shared_ptr<paradice::character> const &ch);
 
     //* =====================================================================
     /// \brief Loads an account from a specific account name and returns it.
     /// Returns an empty shared_ptr<> if there was no account with that name
     /// found.
     //* =====================================================================
-    virtual boost::shared_ptr<paradice::account> load_account(
+    virtual std::shared_ptr<paradice::account> load_account(
         std::string const &name);
 
     //* =====================================================================
     /// \brief Saves an account.
     //* =====================================================================
-    virtual void save_account(boost::shared_ptr<paradice::account> acct);
+    virtual void save_account(std::shared_ptr<paradice::account> const &acct);
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and
     /// returns it.  Returns an empty shared_ptr<> if there was no character
     /// with that name found.
     //* =====================================================================
-    virtual boost::shared_ptr<paradice::character> load_character(
+    virtual std::shared_ptr<paradice::character> load_character(
         std::string const &name);
 
     //* =====================================================================
     /// \brief Saves a character.
     //* =====================================================================
-    virtual void save_character(boost::shared_ptr<paradice::character> ch);
+    virtual void save_character(std::shared_ptr<paradice::character> const &ch);
     
     //* =====================================================================
     /// \brief Enacts a server shutdown.
@@ -115,13 +115,13 @@ public :
     //* =====================================================================
     /// \brief Gets the currently active encounter
     //* =====================================================================
-    virtual boost::shared_ptr<paradice::active_encounter> get_active_encounter();
+    virtual std::shared_ptr<paradice::active_encounter> get_active_encounter();
 
     //* =====================================================================
     /// \brief Sets the currently active encounter
     //* =====================================================================
     virtual void set_active_encounter(
-        boost::shared_ptr<paradice::active_encounter> enc);
+        std::shared_ptr<paradice::active_encounter> const &enc);
 
     //* =====================================================================
     /// \brief Gets the visibility of the encounter.
@@ -141,7 +141,7 @@ public :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 #endif

@@ -28,7 +28,7 @@
 #define PARADICE9_HPP_
 
 #include <boost/asio/io_service.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 //* =========================================================================
 /// \brief A class that implements the main engine for the Paradice9 server.
@@ -43,13 +43,13 @@ class paradice9
 {
 public :
     paradice9(
-        boost::asio::io_service                          &io_service
-      , boost::shared_ptr<boost::asio::io_service::work>  work
-      , unsigned int                                      port);
+        boost::asio::io_service                        &io_service
+      , std::shared_ptr<boost::asio::io_service::work>  work
+      , unsigned int                                    port);
     
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 #endif

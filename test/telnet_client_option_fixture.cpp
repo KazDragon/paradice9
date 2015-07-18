@@ -6,21 +6,11 @@
 #include "odin/telnet/negotiation_router.hpp"
 #include "odin/telnet/subnegotiation_router.hpp"
 #include "fake_datastream.hpp"
-#include <boost/assign/list_of.hpp>
-#include <boost/foreach.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/lambda/algorithm.hpp>
-#include <boost/lambda/bind.hpp>
-#include <boost/typeof/typeof.hpp>
+#include <functional>
+#include <memory>
 #include <vector>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(telnet_client_option_fixture);
-
-using namespace std;
-using namespace boost;
-using namespace boost::assign;
-
-namespace bll = boost::lambda;
 
 typedef fake_datastream<odin::u8, odin::u8> fake_byte_stream;
 
@@ -28,14 +18,14 @@ class fake_client_option : public odin::telnet::client_option
 {
 public :
     fake_client_option(
-        shared_ptr<odin::telnet::stream> const                &stream
-      , shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
-      , shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
-        : odin::telnet::client_option(
-            stream
-          , negotiation_router
-          , subnegotiation_router
-          , odin::telnet::KERMIT)
+        std::shared_ptr<odin::telnet::stream> const                &stream,
+        std::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router,
+        std::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
+      : odin::telnet::client_option(
+            stream,
+            negotiation_router,
+            subnegotiation_router,
+            odin::telnet::KERMIT)
     {
     }
 
@@ -58,13 +48,13 @@ private :
 void telnet_client_option_fixture::test_constructor()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
         
     fake_client_option option(
@@ -79,13 +69,13 @@ void telnet_client_option_fixture::test_constructor()
 void telnet_client_option_fixture::test_inactive_activate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
         
     fake_client_option option(
@@ -96,9 +86,7 @@ void telnet_client_option_fixture::test_inactive_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -108,7 +96,9 @@ void telnet_client_option_fixture::test_inactive_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     fake_byte_stream::output_storage_type expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -118,17 +108,17 @@ void telnet_client_option_fixture::test_inactive_activate()
 void telnet_client_option_fixture::test_inactive_activate_deny()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
     
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -141,9 +131,7 @@ void telnet_client_option_fixture::test_inactive_activate_deny()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -153,17 +141,19 @@ void telnet_client_option_fixture::test_inactive_activate_deny()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
         
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+        { odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT });
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -179,17 +169,17 @@ void telnet_client_option_fixture::test_inactive_activate_deny()
 void telnet_client_option_fixture::test_inactive_activate_allow()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -202,9 +192,7 @@ void telnet_client_option_fixture::test_inactive_activate_allow()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -214,17 +202,21 @@ void telnet_client_option_fixture::test_inactive_activate_allow()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     fake_byte_stream::output_storage_type expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
         
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -240,17 +232,17 @@ void telnet_client_option_fixture::test_inactive_activate_allow()
 void telnet_client_option_fixture::test_inactive_deactivate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
     
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -263,15 +255,15 @@ void telnet_client_option_fixture::test_inactive_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (++bll::var(request_completed));
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.deactivate();
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -290,17 +282,17 @@ void telnet_client_option_fixture::test_inactive_deactivate()
 void telnet_client_option_fixture::test_active_deactivate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
     
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -313,9 +305,7 @@ void telnet_client_option_fixture::test_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -325,17 +315,21 @@ void telnet_client_option_fixture::test_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -352,7 +346,9 @@ void telnet_client_option_fixture::test_active_deactivate()
     option.deactivate();
     
     expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+    };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -365,17 +361,17 @@ void telnet_client_option_fixture::test_active_deactivate()
 void telnet_client_option_fixture::test_active_deactivate_deny()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -388,9 +384,7 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -400,17 +394,21 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     fake_byte_stream::output_storage_type expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
         
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -427,7 +425,9 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
     option.deactivate();
     
     expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+    };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -437,7 +437,9 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -453,17 +455,17 @@ void telnet_client_option_fixture::test_active_deactivate_deny()
 void telnet_client_option_fixture::test_active_deactivate_allow()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -476,9 +478,7 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
 
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -488,17 +488,21 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     fake_byte_stream::output_storage_type expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -515,7 +519,9 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
     option.deactivate();
     
     expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+    };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
 
@@ -525,7 +531,9 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -541,17 +549,17 @@ void telnet_client_option_fixture::test_active_deactivate_allow()
 void telnet_client_option_fixture::test_non_activatable_inactive_activate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -565,19 +573,19 @@ void telnet_client_option_fixture::test_non_activatable_inactive_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
 
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -585,7 +593,9 @@ void telnet_client_option_fixture::test_non_activatable_inactive_activate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -600,17 +610,17 @@ void telnet_client_option_fixture::test_non_activatable_inactive_activate()
 void telnet_client_option_fixture::test_non_activatable_active_activate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -624,17 +634,15 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -642,7 +650,9 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data = 
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -653,7 +663,9 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
 
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -667,7 +679,9 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -675,7 +689,9 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
     io_service.run();
     
     expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
         
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -689,17 +705,17 @@ void telnet_client_option_fixture::test_non_activatable_active_activate()
 void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -713,19 +729,19 @@ void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -733,7 +749,9 @@ void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -748,17 +766,17 @@ void telnet_client_option_fixture::test_non_activatable_inactive_deactivate()
 void telnet_client_option_fixture::test_non_activatable_active_deactivate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -772,17 +790,15 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -790,7 +806,9 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -801,7 +819,9 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(odin::u32(0), request_completed);
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -815,7 +835,9 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
 
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -823,7 +845,9 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
     io_service.run();
     
     expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+        };
 
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -837,17 +861,17 @@ void telnet_client_option_fixture::test_non_activatable_active_deactivate()
 void telnet_client_option_fixture::test_activatable_inactive_activate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -861,9 +885,7 @@ void telnet_client_option_fixture::test_activatable_inactive_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.set_activatable(true);
@@ -871,12 +893,14 @@ void telnet_client_option_fixture::test_activatable_inactive_activate()
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
 
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -884,7 +908,9 @@ void telnet_client_option_fixture::test_activatable_inactive_activate()
     io_service.run();
 
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);    
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -899,17 +925,17 @@ void telnet_client_option_fixture::test_activatable_inactive_activate()
 void telnet_client_option_fixture::test_activatable_active_activate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -923,19 +949,17 @@ void telnet_client_option_fixture::test_activatable_active_activate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.set_activatable(true);
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -945,7 +969,9 @@ void telnet_client_option_fixture::test_activatable_active_activate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+    {
+        odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+    };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -957,7 +983,9 @@ void telnet_client_option_fixture::test_activatable_active_activate()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -972,7 +1000,9 @@ void telnet_client_option_fixture::test_activatable_active_activate()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -980,7 +1010,9 @@ void telnet_client_option_fixture::test_activatable_active_activate()
     io_service.run();
     
     expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -995,17 +1027,17 @@ void telnet_client_option_fixture::test_activatable_active_activate()
 void telnet_client_option_fixture::test_activatable_inactive_deactivate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -1019,9 +1051,7 @@ void telnet_client_option_fixture::test_activatable_inactive_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.set_activatable(true);
@@ -1029,12 +1059,14 @@ void telnet_client_option_fixture::test_activatable_inactive_deactivate()
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
+        });
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -1042,7 +1074,9 @@ void telnet_client_option_fixture::test_activatable_inactive_deactivate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -1057,17 +1091,17 @@ void telnet_client_option_fixture::test_activatable_inactive_deactivate()
 void telnet_client_option_fixture::test_activatable_active_deactivate()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -1081,19 +1115,17 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(false, option.is_activatable());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.set_activatable(true);
     
     CPPUNIT_ASSERT_EQUAL(true, option.is_activatable());
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -1103,7 +1135,9 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
     io_service.run();
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -1115,7 +1149,9 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -1130,7 +1166,9 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
     CPPUNIT_ASSERT_EQUAL(true,  option.is_activatable());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WONT)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WONT, odin::telnet::KERMIT
+        });
     
     telnet_stream->async_read(1, callback);
 
@@ -1138,7 +1176,9 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
     io_service.run();
     
     expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DONT)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DONT, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
@@ -1153,17 +1193,17 @@ void telnet_client_option_fixture::test_activatable_active_deactivate()
 void telnet_client_option_fixture::test_inactive_subnegotiation()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -1172,16 +1212,18 @@ void telnet_client_option_fixture::test_inactive_subnegotiation()
         telnet_stream, telnet_negotiation_router, telnet_subnegotiation_router);
     
     fake_byte_stream::input_storage_type subnegotiation =
-        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::KERMIT)
-               ('a')('b')
-               (odin::telnet::IAC)(odin::telnet::SE);
+    {
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT,
+        'a', 'b',
+        odin::telnet::IAC, odin::telnet::SE
+    };
     
     fake_stream->write_data_to_read(subnegotiation);
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -1194,17 +1236,17 @@ void telnet_client_option_fixture::test_inactive_subnegotiation()
 void telnet_client_option_fixture::test_active_subnegotiation()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -1217,9 +1259,7 @@ void telnet_client_option_fixture::test_active_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -1229,17 +1269,21 @@ void telnet_client_option_fixture::test_active_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -1252,9 +1296,11 @@ void telnet_client_option_fixture::test_active_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
     fake_byte_stream::input_storage_type subnegotiation =
-        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::KERMIT)
-               ('a')('b')
-               (odin::telnet::IAC)(odin::telnet::SE);
+    {
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT,
+        'a', 'b',
+        odin::telnet::IAC, odin::telnet::SE
+    };
     
     fake_stream->write_data_to_read(subnegotiation);
     
@@ -1265,7 +1311,7 @@ void telnet_client_option_fixture::test_active_subnegotiation()
 
     odin::telnet::subnegotiation_type expected_subnegotiation;
     expected_subnegotiation.option_id_ = odin::telnet::KERMIT;
-    expected_subnegotiation.content_   = list_of('a')('b');
+    expected_subnegotiation.content_   = {'a', 'b'};
     
     CPPUNIT_ASSERT_EQUAL(std::size_t(1), option.subnegotiations_.size());
     CPPUNIT_ASSERT_EQUAL(
@@ -1279,17 +1325,17 @@ void telnet_client_option_fixture::test_active_subnegotiation()
 void telnet_client_option_fixture::test_send_subnegotiation()
 {
     boost::asio::io_service          io_service;
-    shared_ptr<fake_byte_stream>     fake_stream(
+    std::shared_ptr<fake_byte_stream>     fake_stream(
         new fake_datastream<odin::u8, odin::u8>(io_service));
-    shared_ptr<odin::telnet::stream> telnet_stream(
+    std::shared_ptr<odin::telnet::stream> telnet_stream(
         new odin::telnet::stream(fake_stream, io_service));
-    shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
+    std::shared_ptr<odin::telnet::negotiation_router> telnet_negotiation_router(
         new odin::telnet::negotiation_router);
-    shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
+    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router(
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::input_visitor visitor(
-        shared_ptr<odin::telnet::command_router>()
+        std::shared_ptr<odin::telnet::command_router>()
       , telnet_negotiation_router
       , telnet_subnegotiation_router
       , NULL);
@@ -1302,9 +1348,7 @@ void telnet_client_option_fixture::test_send_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     odin::u32 request_completed = 0;
-    function<void ()> request_complete_handler = (
-        ++bll::var(request_completed)
-    );
+    auto request_complete_handler = [&]{++request_completed;};
     
     option.on_request_complete(request_complete_handler);
     option.activate();
@@ -1314,17 +1358,21 @@ void telnet_client_option_fixture::test_send_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(false, option.is_negotiating_deactivation());
     
     fake_byte_stream::output_storage_type expected_data =
-        list_of(odin::telnet::IAC)(odin::telnet::DO)(odin::telnet::KERMIT);
+        {
+            odin::telnet::IAC, odin::telnet::DO, odin::telnet::KERMIT
+        };
     
     CPPUNIT_ASSERT(expected_data == fake_stream->read_data_written());
     
     fake_stream->write_data_to_read(
-        list_of(odin::telnet::IAC)(odin::telnet::WILL)(odin::telnet::KERMIT));
+        {
+            odin::telnet::IAC, odin::telnet::WILL, odin::telnet::KERMIT
+        });
     
-    odin::telnet::stream::input_callback_type callback =
-    (
-        bll::bind(&odin::telnet::apply_input_range, ref(visitor), bll::_1)
-    );
+    auto callback = [&visitor](auto const &storage)
+    {
+        odin::telnet::apply_input_range(visitor, storage);
+    };
     
     telnet_stream->async_read(1, callback);
     
@@ -1337,7 +1385,7 @@ void telnet_client_option_fixture::test_send_subnegotiation()
     CPPUNIT_ASSERT_EQUAL(odin::u32(1), request_completed);
     
     // Now test that sending the subnegotiation actually works.
-    odin::telnet::subnegotiation_content_type content = list_of('a')('b')('c');
+    odin::telnet::subnegotiation_content_type content = {'a', 'b', 'c'};
     
     option.send_subnegotiation(content);
     
@@ -1345,9 +1393,11 @@ void telnet_client_option_fixture::test_send_subnegotiation()
     io_service.run();
 
     fake_byte_stream::output_storage_type expected_subnegotiation_data =
-        list_of(odin::telnet::IAC)(odin::telnet::SB)(odin::telnet::KERMIT)
-               ('a')('b')('c')
-               (odin::telnet::IAC)(odin::telnet::SE);
+    {
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::KERMIT,
+        'a', 'b', 'c',
+        odin::telnet::IAC, odin::telnet::SE
+    };
 
     CPPUNIT_ASSERT(
         expected_subnegotiation_data == fake_stream->read_data_written());

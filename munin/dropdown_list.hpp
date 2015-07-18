@@ -6,29 +6,28 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_DROPDOWN_LIST_HPP_
 #define MUNIN_DROPDOWN_LIST_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/shared_ptr.hpp>
 
 namespace munin {
 
@@ -51,7 +50,7 @@ public :
     //* =====================================================================
     /// \brief Sets the items in the drop-down list.
     //* =====================================================================
-    void set_items(std::vector< std::vector<element_type> > const &items);
+    void set_items(std::vector<std::vector<element_type>> const &items);
 
     //* =====================================================================
     /// \brief Selects an item with the given index.
@@ -60,7 +59,7 @@ public :
     void set_item_index(odin::s32 index);
 
     //* =====================================================================
-    /// \brief Gets the index of the currently selected item, or -1 if no 
+    /// \brief Gets the index of the currently selected item, or -1 if no
     /// item is selected.
     //* =====================================================================
     odin::s32 get_item_index() const;
@@ -78,17 +77,17 @@ public :
     boost::signal<
         void (odin::s32)
     > on_item_changed;
-    
+
 protected :
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
+    /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
-    
+
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

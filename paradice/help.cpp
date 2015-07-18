@@ -26,33 +26,23 @@
 #include "client.hpp"
 #include "communication.hpp"
 #include "connection.hpp"
-#include "dice_roll_parser.hpp"
-#include "paradice/random.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/ansi/protocol.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "hugin/user_interface.hpp"
 #include <boost/format.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/weak_ptr.hpp>
-#include <map>
-#include <vector>
-
-using namespace std;
-using namespace boost;
-using namespace odin;
 
 namespace {
-    static string const help_header =
+    static std::string const help_header =
         "Type HELP CLOSE to close this window.\n"
         "\n";
         
-    static string const help_repeat =
+        static std::string const help_repeat =
         "COMMAND: !\n"
         "\n"
         "Repeats the previous command.\n";
         
-    static string const help_say =
+    static std::string const help_say =
         "COMMAND: SAY, .\n"
         "\n"
         " USAGE:    [say|.] <text>\n"
@@ -61,7 +51,7 @@ namespace {
         "\n"
         "Sends a message to the room.\n";
         
-    static string const help_whisper =
+    static std::string const help_whisper =
         "COMMAND: WHISPER, >\n"
         "\n"
         " USAGE:    [whisper|>] <player> <text>\n"
@@ -70,7 +60,7 @@ namespace {
         "\n"
         "Sends a message to a specific player.\n";
         
-    static string const help_emote =
+    static std::string const help_emote =
         "COMMAND: EMOTE, :\n"
         "\n"
         " USAGE:    [emote|:] <message>\n"
@@ -79,7 +69,7 @@ namespace {
         "\n"
         "Sends a message to the room in the form of an action.\n";
         
-    static string const help_set =
+    static std::string const help_set =
         "COMMAND: SET\n"
         "\n"
         " USAGE:    set <option> <value>\n"
@@ -91,7 +81,7 @@ namespace {
         "means that text entered into the command field will use the 'say' "
         "command by default, unless prefixed with a / character (e.g. /quit)";
         
-    static string const help_title =
+    static std::string const help_title =
         "COMMAND: TITLE, SURNAME\n"
         "\n"
         " USAGE:   [title|surname] <text>\n"
@@ -101,7 +91,7 @@ namespace {
         "Sets the text that comes after your name in the list of currently "
         "active players.\n";
         
-    static string const help_prefix =
+    static std::string const help_prefix =
         "COMMAND: PREFIX, HONORIFIC\n"
         "\n"
         " USAGE:   [prefix|honorific] <text>\n"
@@ -111,7 +101,7 @@ namespace {
         "Sets the text that comes before your name in the list of currently "
         "active players.\n";
 
-    static string const help_roll =
+    static std::string const help_roll =
         "COMMAND: ROLL\n"
         "\n"
         " USAGE:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]\n"
@@ -127,7 +117,7 @@ namespace {
         "category for later retrieval.\n"
         "These rolls are visible to all.";
 
-    static string const help_rollprivate =
+    static std::string const help_rollprivate =
         "COMMAND: ROLLPRIVATE\n"
         "\n"
         " USAGE:   rollprivate [n*]<dice>d<sides>[<bonuses...>] [<category>]\n"
@@ -140,7 +130,7 @@ namespace {
         "second time.\n"
         "These rolls are visible only to the roller.";
         
-    static string const help_showrolls =
+    static std::string const help_showrolls =
         "COMMAND: SHOWROLLS\n"
         "\n"
         " USAGE:   showrolls <category> [asc|desc]\n"
@@ -152,7 +142,7 @@ namespace {
         "If an ordering is chosen, then the rolls are listed in either "
         "ascending or descending order, as appropriate.";
         
-    static string const help_clearrolls =
+    static std::string const help_clearrolls =
         "COMMAND: CLEARROLLS\n"
         "\n"
         " USAGE:   clearrolls <category>\n"
@@ -160,7 +150,7 @@ namespace {
         "\n"
         "Clears all rolls from the specified category.\n";
         
-    static string const help_password =
+    static std::string const help_password =
         "COMMAND: PASSWORD\n"
         "\n"
         " USAGE: password\n"
@@ -168,7 +158,7 @@ namespace {
         "Switches to the password change screen.  Fill in the details "
         "requested on that screen to change your password.\n";
         
-    static string const help_help = 
+    static std::string const help_help = 
         "COMMAND: HELP\n" 
         "  USAGE:   help <subject>\n"
         "  EXAMPLE: help say\n"
@@ -179,7 +169,7 @@ namespace {
         "\n"
         "Closes the help window.\n";
         
-    static string const help_gm =
+    static std::string const help_gm =
         "COMMAND: GM\n"
         "  USAGE:   gm <command>\n"
         "  EXAMPLE: gm tools\n"
@@ -190,8 +180,8 @@ namespace {
 
     static struct help_item 
     {
-        string command;
-        string text;
+        std::string command;
+        std::string text;
     } const help_table[] =
     {
         { "!",           help_repeat      }
@@ -223,9 +213,8 @@ namespace paradice {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(help)
 {
-    string argument = tokenise(arguments).first;
-    
-    BOOST_AUTO(user_interface, player->get_user_interface());
+    auto argument = odin::tokenise(arguments).first;
+    auto user_interface = player->get_user_interface();
     
     if (argument == "close")
     {
@@ -248,7 +237,7 @@ PARADICE_COMMAND_IMPL(help)
             }
         }
         
-        string text = 
+        auto text = 
             help_header
           + "No help on that subject was found.  Available subjects are:\n";
             

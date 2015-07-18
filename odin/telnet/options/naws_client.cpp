@@ -27,8 +27,6 @@
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/protocol.hpp"
 
-using namespace boost;
-
 namespace odin { namespace telnet { namespace options {
 
 // ==========================================================================
@@ -43,15 +41,15 @@ struct naws_client::impl
 // CONSTRUCTOR
 // ==========================================================================
 naws_client::naws_client(
-      boost::shared_ptr<odin::telnet::stream> const                &stream
-    , boost::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
-    , boost::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router)
-    : odin::telnet::client_option(
-        stream
-      , negotiation_router
-      , subnegotiation_router
-      , odin::telnet::NAWS)
-    , pimpl_(new impl) 
+    std::shared_ptr<odin::telnet::stream>                stream,
+    std::shared_ptr<odin::telnet::negotiation_router>    negotiation_router,
+    std::shared_ptr<odin::telnet::subnegotiation_router> subnegotiation_router)
+  : odin::telnet::client_option(
+        stream,
+        negotiation_router,
+        subnegotiation_router,
+        odin::telnet::NAWS),
+    pimpl_(std::make_shared<impl>())
 {
 }
 

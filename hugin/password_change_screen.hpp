@@ -28,9 +28,6 @@
 #define HUGIN_PASSWORD_CHANGE_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <string>
 
 namespace hugin {
 
@@ -62,16 +59,16 @@ public :
     /// for the change of a password.
     //* =====================================================================
     void on_password_changed(
-        boost::function<
-            void (std::string old_password
-                , std::string new_password
-                , std::string new_password_verify)> callback);
+        std::function<
+            void (std::string const &old_password
+                , std::string const &new_password
+                , std::string const &new_password_verify)> const &callback);
     
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the change
     /// of a password.
     //* =====================================================================
-    void on_password_change_cancelled(boost::function<void ()> callback);
+    void on_password_change_cancelled(std::function<void ()> const &callback);
     
 protected :
     //* =====================================================================
@@ -82,7 +79,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

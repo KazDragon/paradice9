@@ -26,12 +26,6 @@
 // ==========================================================================
 #include "munin/vertical_strip_layout.hpp"
 #include "munin/container.hpp"
-#include <boost/foreach.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
     
@@ -39,14 +33,14 @@ namespace munin {
 // DO_GET_PREFERRED_SIZE 
 // ==========================================================================
 extent vertical_strip_layout::do_get_preferred_size(
-    vector< shared_ptr<component> > const &components
-  , vector< any >                   const &hints) const
+    std::vector<std::shared_ptr<component>> const &components
+  , std::vector<boost::any>                 const &hints) const
 {
     // The preferred size of the whole component is the maximum height of
     // the components and the sum of the preferred widths of the components.
     extent maximum_preferred_size(0, 0);
 
-    BOOST_FOREACH(shared_ptr<component> comp, components)
+    for (auto &comp : components)
     {
         extent preferred_size = comp->get_preferred_size();
 
@@ -64,15 +58,15 @@ extent vertical_strip_layout::do_get_preferred_size(
 // DO_LAYOUT
 // ==========================================================================
 void vertical_strip_layout::do_layout(
-    vector< shared_ptr<component> > const &components
-  , vector< any >                   const &hints
-  , extent                                 size)
+    std::vector<std::shared_ptr<component>> const &components
+  , std::vector<boost::any>                 const &hints
+  , extent                                         size)
 {
-    BOOST_AUTO(x_coord, u32(0));
-
-    BOOST_FOREACH(shared_ptr<component> comp, components)
+    auto x_coord = odin::u32(0);
+    
+    for (auto &comp : components)
     {    
-        BOOST_AUTO(preferred_size, comp->get_preferred_size());
+        auto preferred_size = comp->get_preferred_size();
         
         comp->set_position(point(x_coord, 0));
         comp->set_size(extent(preferred_size.width, size.height));

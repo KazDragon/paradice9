@@ -31,39 +31,30 @@
 #include "hugin/user_interface.hpp"
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
-#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 #include <fstream>
 #include <string>
 #include <vector>
 
-using namespace std;
-using namespace boost;
-using namespace boost::archive;
-using namespace boost::filesystem;
-using namespace odin;
-using namespace paradice;
+namespace fs = boost::filesystem;
 
 namespace {
-    static boost::shared_ptr<active_encounter> gm_encounter;
+    static std::shared_ptr<paradice::active_encounter> gm_encounter;
     static bool gm_encounter_visible = false;
 }
 
 // ==========================================================================
 // GET_ACCOUNTS_PATH
 // ==========================================================================
-static path get_accounts_path()
+static fs::path get_accounts_path()
 {
-    BOOST_AUTO(cwd, current_path());
-    BOOST_AUTO(accounts_path, cwd / "accounts");
+    auto cwd = fs::current_path();
+    auto accounts_path = cwd / "accounts";
     
-    if (!exists(accounts_path))
+    if (!fs::exists(accounts_path))
     {
-        create_directory(accounts_path);
+        fs::create_directory(accounts_path);
     }
     
     return accounts_path;
@@ -72,14 +63,14 @@ static path get_accounts_path()
 // ==========================================================================
 // GET_CHARACTERS_PATH
 // ==========================================================================
-static path get_characters_path()
+static fs::path get_characters_path()
 {
-    BOOST_AUTO(cwd, current_path());
-    BOOST_AUTO(characters_path, cwd / "characters");
+    auto cwd = fs::current_path();
+    auto characters_path = cwd / "characters";
     
-    if (!exists(characters_path))
+    if (!fs::exists(characters_path))
     {
-        create_directory(characters_path);
+        fs::create_directory(characters_path);
     }
     
     return characters_path;
@@ -88,13 +79,14 @@ static path get_characters_path()
 // ==========================================================================
 // GET_CHARACTER_ADDRESS
 // ==========================================================================
-static string get_character_address(shared_ptr<paradice::character> &ch)
+static std::string get_character_address(
+    std::shared_ptr<paradice::character> const &ch)
 {
-    string prefix = ch->get_prefix();
-    string name   = ch->get_name();
-    string title  = ch->get_suffix();
+    auto prefix = ch->get_prefix();
+    auto name   = ch->get_name();
+    auto title  = ch->get_suffix();
     
-    string address;
+    std::string address;
     
     if (!prefix.empty())
     {
@@ -117,9 +109,9 @@ static string get_character_address(shared_ptr<paradice::character> &ch)
 struct context_impl::impl
 {
     impl(
-        asio::io_service                   &io_service
-      , shared_ptr<odin::net::server>       server
-      , shared_ptr<asio::io_service::work>  work)
+        boost::asio::io_service                       &io_service
+      , std::shared_ptr<odin::net::server>             server
+      , std::shared_ptr<boost::asio::io_service::work> work)
       : strand_(io_service)
       , server_(server)
       , work_(work)
@@ -129,7 +121,7 @@ struct context_impl::impl
     // ======================================================================
     // ADD_CLIENT
     // ======================================================================
-    void add_client(shared_ptr<paradice::client> const &cli)
+    void add_client(std::shared_ptr<paradice::client> const &cli)
     {
         clients_.push_back(cli);
     }
@@ -137,7 +129,7 @@ struct context_impl::impl
     // ======================================================================
     // REMOVE_CLIENT
     // ======================================================================
-    void remove_client(shared_ptr<paradice::client> const &cli)
+    void remove_client(std::shared_ptr<paradice::client> const &cli)
     {
         clients_.erase(
             std::remove(
@@ -152,15 +144,15 @@ struct context_impl::impl
     // ======================================================================
     void update_names()
     {
-        vector<string> names;
+        std::vector<std::string> names;
         
-        BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients_)
+        for (auto &cur_client : clients_)
         {
-            BOOST_AUTO(character, cur_client->get_character());
+            auto character = cur_client->get_character();
             
             if (character != NULL)
             {
-                BOOST_AUTO(name, get_character_address(character));
+                auto name = get_character_address(character);
                 
                 if (!name.empty())
                 {
@@ -169,9 +161,9 @@ struct context_impl::impl
             }
         }
         
-        BOOST_FOREACH(shared_ptr<paradice::client> cur_client, clients_)
+        for (auto &cur_client : clients_)
         {
-            BOOST_AUTO(user_interface, cur_client->get_user_interface());
+            auto user_interface = cur_client->get_user_interface();
             
             if (user_interface != NULL)
             {
@@ -183,16 +175,17 @@ struct context_impl::impl
     // ======================================================================
     // LOAD_ACCOUNT
     // ======================================================================
-    void load_account(string const &name, shared_ptr<paradice::account> &acct)
+    void load_account(
+        std::string const &name, std::shared_ptr<paradice::account> &acct)
     {
-        BOOST_AUTO(account_path, get_accounts_path() / name);
+        auto account_path = get_accounts_path() / name;
         
-        if (exists(account_path))
+        if (fs::exists(account_path))
         {
-            ifstream in(account_path.string().c_str());
-            xml_iarchive ia(in);
+            std::ifstream in(account_path.string().c_str());
+            boost::archive::xml_iarchive ia(in);
             
-            acct = make_shared<paradice::account>();
+            acct = std::make_shared<paradice::account>();
             ia >> boost::serialization::make_nvp("account", *acct);
         }
     }
@@ -200,14 +193,12 @@ struct context_impl::impl
     // ======================================================================
     // SAVE_ACCOUNT
     // ======================================================================
-    void save_account(shared_ptr<paradice::account> acct)
+    void save_account(std::shared_ptr<paradice::account> const &acct)
     {
-        BOOST_AUTO(
-            account_path
-          , get_accounts_path() / acct->get_name());
+        auto account_path = get_accounts_path() / acct->get_name();
         
-        ofstream out(account_path.string().c_str());
-        xml_oarchive oa(out);
+        std::ofstream out(account_path.string().c_str());
+        boost::archive::xml_oarchive oa(out);
         oa << boost::serialization::make_nvp("account", *acct);
     }
 
@@ -215,19 +206,17 @@ struct context_impl::impl
     // LOAD_CHARACTER
     // ======================================================================
     void load_character(
-        string const                    &name
-      , shared_ptr<paradice::character> &ch)
+        std::string const                    &name,
+        std::shared_ptr<paradice::character> &ch)
     {
-        BOOST_AUTO(
-            character_path
-          , get_characters_path() / name);
+        auto character_path = get_characters_path() / name;
         
-        if (exists(character_path))
+        if (fs::exists(character_path))
         {
-            ifstream in(character_path.string().c_str());
-            xml_iarchive ia(in);
+            std::ifstream in(character_path.string().c_str());
+            boost::archive::xml_iarchive ia(in);
             
-            ch = make_shared<paradice::character>();
+            ch = std::make_shared<paradice::character>();
             ia >> boost::serialization::make_nvp("character", *ch);
         }
     }
@@ -235,30 +224,28 @@ struct context_impl::impl
     // ======================================================================
     // SAVE_CHARACTER
     // ======================================================================
-    void save_character(shared_ptr<paradice::character> &ch)
+    void save_character(std::shared_ptr<paradice::character> const &ch)
     {
-        BOOST_AUTO(
-            character_path
-          , get_characters_path() / ch->get_name());
+        auto character_path = get_characters_path() / ch->get_name();
         
-        ofstream out(character_path.string().c_str());
-        xml_oarchive oa(out);
+        std::ofstream out(character_path.string().c_str());
+        boost::archive::xml_oarchive oa(out);
         oa << boost::serialization::make_nvp("character", *ch);
     }
 
-    asio::strand                           strand_;
-    shared_ptr<odin::net::server>          server_;
-    shared_ptr<asio::io_service::work>     work_;
-    vector< shared_ptr<paradice::client> > clients_;
+    boost::asio::strand                            strand_;
+    std::shared_ptr<odin::net::server>             server_;
+    std::shared_ptr<boost::asio::io_service::work> work_;
+    std::vector<std::shared_ptr<paradice::client>> clients_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 context_impl::context_impl(
-    asio::io_service                   &io_service
-  , shared_ptr<odin::net::server>       server
-  , shared_ptr<asio::io_service::work>  work)
+    boost::asio::io_service                        &io_service
+  , std::shared_ptr<odin::net::server>              server
+  , std::shared_ptr<boost::asio::io_service::work>  work)
     : pimpl_(new impl(io_service, server, work))
 {
 }
@@ -273,7 +260,7 @@ context_impl::~context_impl()
 // ==========================================================================
 // GET_CLIENTS
 // ==========================================================================
-vector< shared_ptr<paradice::client> > context_impl::get_clients()
+std::vector<std::shared_ptr<paradice::client>> context_impl::get_clients()
 {
     return pimpl_->clients_;
 }
@@ -281,17 +268,17 @@ vector< shared_ptr<paradice::client> > context_impl::get_clients()
 // ==========================================================================
 // ADD_CLIENT
 // ==========================================================================
-void context_impl::add_client(shared_ptr<paradice::client> const &cli)
+void context_impl::add_client(std::shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->strand_.dispatch(bind(&impl::add_client, pimpl_, ref(cli)));
+    pimpl_->strand_.dispatch([this, cli]{pimpl_->add_client(cli);});
 }
 
 // ==========================================================================
 // REMOVE_CLIENT
 // ==========================================================================
-void context_impl::remove_client(shared_ptr<paradice::client> const &cli)
+void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->strand_.dispatch(bind(&impl::remove_client, pimpl_, ref(cli)));
+    pimpl_->strand_.dispatch([this, cli]{pimpl_->remove_client(cli);});
 }
 
 // ==========================================================================
@@ -299,19 +286,19 @@ void context_impl::remove_client(shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::update_names()
 {
-    pimpl_->strand_.dispatch(bind(&impl::update_names, pimpl_));
+    pimpl_->strand_.dispatch([this]{pimpl_->update_names();});
 }
 
 // ==========================================================================
 // GET_MONIKER
 // ==========================================================================
-string context_impl::get_moniker(shared_ptr<paradice::character> &ch)
+std::string context_impl::get_moniker(std::shared_ptr<paradice::character> const &ch)
 {
-    string prefix = ch->get_prefix();
-    string name   = ch->get_name();
-    string title  = ch->get_suffix();
+    std::string prefix = ch->get_prefix();
+    std::string name   = ch->get_name();
+    std::string title  = ch->get_suffix();
     
-    string address;
+    std::string address;
     
     if (!prefix.empty())
     {
@@ -331,11 +318,13 @@ string context_impl::get_moniker(shared_ptr<paradice::character> &ch)
 // ==========================================================================
 // LOAD_ACCOUNT
 // ==========================================================================
-shared_ptr<paradice::account> context_impl::load_account(string const &name)
+std::shared_ptr<paradice::account> context_impl::load_account(std::string const &name)
 {
-    shared_ptr<paradice::account> acct;
-    pimpl_->strand_.dispatch(bind(
-        &impl::load_account, pimpl_, name, ref(acct)));
+    std::shared_ptr<paradice::account> acct;
+
+    pimpl_->strand_.dispatch([this, &name, &acct]{
+        pimpl_->load_account(name, acct);
+    });
 
     return acct;
 }
@@ -343,29 +332,31 @@ shared_ptr<paradice::account> context_impl::load_account(string const &name)
 // ==========================================================================
 // SAVE_ACCOUNT
 // ==========================================================================
-void context_impl::save_account(shared_ptr<paradice::account> acct)
+void context_impl::save_account(std::shared_ptr<paradice::account> const &acct)
 {
-    pimpl_->strand_.dispatch(bind(&impl::save_account, pimpl_, acct));
+    pimpl_->strand_.dispatch([this, acct]{pimpl_->save_account(acct);});
 }
 
 // ==========================================================================
 // LOAD_CHARACTER
 // ==========================================================================
-shared_ptr<paradice::character> context_impl::load_character(
-    string const &name)
+std::shared_ptr<paradice::character> context_impl::load_character(
+    std::string const &name)
 {
-    shared_ptr<paradice::character> ch;
-    pimpl_->strand_.dispatch(bind(
-        &impl::load_character, pimpl_, name, ref(ch)));
+    std::shared_ptr<paradice::character> ch;
+    pimpl_->strand_.dispatch([this, &name, &ch]{
+        pimpl_->load_character(name, ch);
+    });
+    
     return ch;
 }
 
 // ==========================================================================
 // SAVE_CHARACTER
 // ==========================================================================
-void context_impl::save_character(shared_ptr<paradice::character> ch)
+void context_impl::save_character(std::shared_ptr<paradice::character> const &ch)
 {
-    pimpl_->strand_.dispatch(bind(&impl::save_character, pimpl_, ch));
+    pimpl_->strand_.dispatch([this, ch]{pimpl_->save_character(ch);});
 }
 
 // ==========================================================================
@@ -380,10 +371,10 @@ void context_impl::shutdown()
 // ==========================================================================
 // GET_ACTIVE_ENCOUNTER
 // ==========================================================================
-shared_ptr<active_encounter> context_impl::get_active_encounter()
+std::shared_ptr<paradice::active_encounter> context_impl::get_active_encounter()
 {
     if (!gm_encounter) {
-        gm_encounter = make_shared<active_encounter>();
+        gm_encounter = std::make_shared<paradice::active_encounter>();
     }
 
     return gm_encounter;
@@ -392,7 +383,8 @@ shared_ptr<active_encounter> context_impl::get_active_encounter()
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER
 // ==========================================================================
-void context_impl::set_active_encounter(shared_ptr<active_encounter> enc)
+void context_impl::set_active_encounter(
+    std::shared_ptr<paradice::active_encounter> const &enc)
 {
     gm_encounter = enc;
 }
@@ -412,7 +404,7 @@ void context_impl::set_active_encounter_visible(bool visibility)
 {
     gm_encounter_visible = visibility;
 
-    BOOST_FOREACH(shared_ptr<client> cli, pimpl_->clients_)
+    for (auto &cli : pimpl_->clients_)
     {
         if (cli)
         {
@@ -433,7 +425,7 @@ void context_impl::set_active_encounter_visible(bool visibility)
 // ==========================================================================
 void context_impl::update_active_encounter()
 {
-    BOOST_FOREACH(shared_ptr<client> cli, pimpl_->clients_)
+    for (auto &cli : pimpl_->clients_)
     {
         if (cli)
         {

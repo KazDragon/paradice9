@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_ANSI_ATTRIBUTE_HPP_
 #define MUNIN_ANSI_ATTRIBUTE_HPP_
@@ -44,18 +44,23 @@ struct attribute
     struct low_colour
     {
         low_colour()
-            : value_(odin::ansi::graphics::COLOUR_WHITE)
+            : low_colour(odin::ansi::graphics::colour::white)
         {
         }
-            
+
         low_colour(char value)
-            : value_(value)
+          : low_colour(odin::ansi::graphics::colour(value))
         {
         }
-        
-        char value_;
+
+        low_colour(odin::ansi::graphics::colour colour)
+          : value_(colour)
+        {
+        };
+
+        odin::ansi::graphics::colour value_;
     };
-    
+
     // Structure representing the central 216 colours of a 256-colour palette
     struct high_colour
     {
@@ -72,12 +77,12 @@ struct attribute
             , blue_(blue)
         {
         }
-            
+
         odin::u8 red_;
         odin::u8 green_;
         odin::u8 blue_;
     };
-    
+
     // Structure representing the 24 greyscale tones of a 256-colour palette
     struct greyscale_colour
     {
@@ -85,15 +90,15 @@ struct attribute
             : shade_(23)
         {
         }
-        
+
         explicit greyscale_colour(odin::u8 shade)
             : shade_(shade)
         {
         }
-        
+
         odin::u8 shade_;
     };
-    
+
     // A holder for the colours with a default initialisation.
     struct colour
     {
@@ -101,13 +106,13 @@ struct attribute
         <
             low_colour, high_colour, greyscale_colour
         > colour_variant;
-        
+
         colour()
-            : value_(low_colour(odin::ansi::graphics::COLOUR_WHITE))
+            : value_(low_colour(odin::ansi::graphics::colour::white))
         {
         }
 
-        colour(char value)
+        colour(odin::ansi::graphics::colour const &value)
             : value_(low_colour(value))
         {
         }
@@ -116,38 +121,38 @@ struct attribute
             : value_(other.value_)
         {
         }
-            
+
         colour(colour_variant const &value)
             : value_(value)
         {
         }
-        
+
         colour(high_colour const &col)
             : value_(colour_variant(col))
         {
         }
-            
+
         colour(greyscale_colour const &col)
-            : value_(colour_variant(col)) 
+            : value_(colour_variant(col))
         {
         }
-        
+
         colour_variant value_;
     };
-    
+
     //* =====================================================================
     /// \brief Initialises the attribute to having the default colour,
     /// no intensity, no underlining, and normal polarity.
     //* =====================================================================
     attribute();
-    
+
     // Graphics Attributes
-    colour foreground_colour_;
-    colour background_colour_;
-    char   intensity_;
-    char   underlining_;
-    char   polarity_;
-    char   blinking_;
+    colour                            foreground_colour_;
+    colour                            background_colour_;
+    odin::ansi::graphics::intensity   intensity_;
+    odin::ansi::graphics::underlining underlining_;
+    odin::ansi::graphics::polarity    polarity_;
+    odin::ansi::graphics::blinking    blinking_;
 };
 
 bool operator==(attribute const &lhs, attribute const &rhs);

@@ -40,16 +40,6 @@
 #include "munin/solid_frame.hpp"
 #include "munin/toggle_button.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace munin::ansi;
-using namespace munin;
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace hugin {
 
@@ -65,9 +55,9 @@ struct character_creation_screen::impl
     {
         if (on_character_created_)
         {
-            BOOST_AUTO(document, name_field_->get_document());
-            BOOST_AUTO(elements, document->get_line(0));
-            BOOST_AUTO(name, string_from_elements(elements));
+            auto document = name_field_->get_document();
+            auto elements = document->get_line(0);
+            auto name = munin::ansi::string_from_elements(elements);
             
             on_character_created_(name, gm_toggle_->get_toggle());
         }
@@ -85,126 +75,126 @@ struct character_creation_screen::impl
     }
     
     // Character Creation components
-    shared_ptr<edit>                   name_field_;
-    shared_ptr<toggle_button>          gm_toggle_;
-    shared_ptr<button>                 ok_button_;
-    shared_ptr<button>                 cancel_button_;
-    function<void (string, bool)>      on_character_created_;
-    function<void ()>                  on_character_creation_cancelled_;
-    vector<boost::signals::connection> connections_;
+    std::shared_ptr<munin::edit>                    name_field_;
+    std::shared_ptr<munin::toggle_button>           gm_toggle_;
+    std::shared_ptr<munin::button>                  ok_button_;
+    std::shared_ptr<munin::button>                  cancel_button_;
+    std::function<void (std::string const &, bool)> on_character_created_;
+    std::function<void ()>                          on_character_creation_cancelled_;
+    std::vector<boost::signals::connection>         connections_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 character_creation_screen::character_creation_screen()
-    : pimpl_(make_shared<impl>())
+    : pimpl_(std::make_shared<impl>())
 {
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<grid_layout>(1, 1));
+    auto content = get_container();
+    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     
-    BOOST_AUTO(screen_frame, make_shared<named_frame>());
+    auto screen_frame = std::make_shared<munin::named_frame>();
     screen_frame->set_name("CHARACTER CREATION");
     
     // Create the Name, Password and Password (verify) labels.
-    alignment_data alignment;
-    alignment.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT;
-    alignment.vertical_alignment   = VERTICAL_ALIGNMENT_CENTRE;
+    munin::alignment_data alignment;
+    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
+    alignment.vertical_alignment   = munin::VERTICAL_ALIGNMENT_CENTRE;
     
-    BOOST_AUTO(name_container, make_shared<basic_container>());
-    name_container->set_layout(make_shared<aligned_layout>());
+    auto name_container = std::make_shared<munin::basic_container>();
+    name_container->set_layout(std::make_shared<munin::aligned_layout>());
     name_container->add_component(
-        make_shared<image>(string_to_elements("Name: "))
+        std::make_shared<munin::image>(munin::string_to_elements("Name: "))
       , alignment);
 
-    BOOST_AUTO(gm_container, make_shared<basic_container>());
-    gm_container->set_layout(make_shared<aligned_layout>());
+    auto gm_container = std::make_shared<munin::basic_container>();
+    gm_container->set_layout(std::make_shared<munin::aligned_layout>());
     gm_container->add_component(
-        make_shared<image>(string_to_elements("GM: "))
+        std::make_shared<munin::image>(munin::string_to_elements("GM: "))
       , alignment);
     
-    BOOST_AUTO(labels_container, make_shared<basic_container>());
-    labels_container->set_layout(make_shared<grid_layout>(2, 1));
+    auto labels_container = std::make_shared<munin::basic_container>();
+    labels_container->set_layout(std::make_shared<munin::grid_layout>(2, 1));
     labels_container->add_component(name_container);
     labels_container->add_component(gm_container);
     
     // Create the Name field and GM toggle button.
-    pimpl_->name_field_ = make_shared<edit>();
-    pimpl_->gm_toggle_  = make_shared<toggle_button>(false);
+    pimpl_->name_field_ = std::make_shared<munin::edit>();
+    pimpl_->gm_toggle_  = std::make_shared<munin::toggle_button>(false);
     
-    BOOST_AUTO(gm_toggle_container, make_shared<basic_container>());
-    gm_toggle_container->set_layout(make_shared<compass_layout>());
-    gm_toggle_container->add_component(pimpl_->gm_toggle_, COMPASS_LAYOUT_WEST);
+    auto gm_toggle_container = std::make_shared<munin::basic_container>();
+    gm_toggle_container->set_layout(std::make_shared<munin::compass_layout>());
+    gm_toggle_container->add_component(pimpl_->gm_toggle_, munin::COMPASS_LAYOUT_WEST);
 
-    BOOST_AUTO(fields_container, make_shared<basic_container>());
-    fields_container->set_layout(make_shared<grid_layout>(2, 1));
+    auto fields_container = std::make_shared<munin::basic_container>();
+    fields_container->set_layout(std::make_shared<munin::grid_layout>(2, 1));
     fields_container->add_component(
-        make_shared<framed_component>(
-            make_shared<solid_frame>()
+        std::make_shared<munin::framed_component>(
+            std::make_shared<munin::solid_frame>()
           , pimpl_->name_field_));
     fields_container->add_component(gm_toggle_container);
     
-    BOOST_AUTO(labels_fields_container, make_shared<basic_container>());
-    labels_fields_container->set_layout(make_shared<compass_layout>());
+    auto labels_fields_container = std::make_shared<munin::basic_container>();
+    labels_fields_container->set_layout(std::make_shared<munin::compass_layout>());
     labels_fields_container->add_component(
-        labels_container
-      , COMPASS_LAYOUT_WEST);
+        labels_container,
+        munin::COMPASS_LAYOUT_WEST);
     labels_fields_container->add_component(
-        fields_container
-      , COMPASS_LAYOUT_CENTRE);
+        fields_container,
+        munin::COMPASS_LAYOUT_CENTRE);
     
-    BOOST_AUTO(inner_container, make_shared<basic_container>());
-    inner_container->set_layout(make_shared<compass_layout>());
+    auto inner_container = std::make_shared<munin::basic_container>();
+    inner_container->set_layout(std::make_shared<munin::compass_layout>());
     inner_container->add_component(
-        labels_fields_container
-      , COMPASS_LAYOUT_NORTH);
+        labels_fields_container,
+        munin::COMPASS_LAYOUT_NORTH);
 
     // Create the OK and Cancel buttons.
-    pimpl_->ok_button_     = make_shared<button>(
-        string_to_elements("  OK  "));
+    pimpl_->ok_button_     = std::make_shared<munin::button>(
+        munin::string_to_elements("  OK  "));
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
-        bind(&impl::on_character_creation_ok, pimpl_)));
+        [this]{pimpl_->on_character_creation_ok();}));
     
-    pimpl_->cancel_button_ = make_shared<button>(
-        string_to_elements("Cancel"));
+    pimpl_->cancel_button_ = std::make_shared<munin::button>(
+        munin::string_to_elements("Cancel"));
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
-        bind(&impl::on_character_creation_cancelled, pimpl_)));
+        [this]{pimpl_->on_character_creation_cancelled();}));
     
-    BOOST_AUTO(buttons_inner_container, make_shared<basic_container>());
-    buttons_inner_container->set_layout(make_shared<grid_layout>(1, 2));
+    auto buttons_inner_container = std::make_shared<munin::basic_container>();
+    buttons_inner_container->set_layout(std::make_shared<munin::grid_layout>(1, 2));
     buttons_inner_container->add_component(pimpl_->ok_button_);
     buttons_inner_container->add_component(pimpl_->cancel_button_);
     
-    BOOST_AUTO(buttons_outer_container, make_shared<basic_container>());
-    buttons_outer_container->set_layout(make_shared<compass_layout>());
+    auto buttons_outer_container = std::make_shared<munin::basic_container>();
+    buttons_outer_container->set_layout(std::make_shared<munin::compass_layout>());
     buttons_outer_container->add_component(
-        buttons_inner_container
-      , COMPASS_LAYOUT_EAST);
+        buttons_inner_container,
+        munin::COMPASS_LAYOUT_EAST);
     
-    BOOST_AUTO(inner_container2, make_shared<basic_container>());
-    inner_container2->set_layout(make_shared<compass_layout>());
+    auto inner_container2 = std::make_shared<munin::basic_container>();
+    inner_container2->set_layout(std::make_shared<munin::compass_layout>());
     inner_container2->add_component(
-        inner_container
-      , COMPASS_LAYOUT_NORTH);
+        inner_container,
+        munin::COMPASS_LAYOUT_NORTH);
     inner_container2->add_component(
-        buttons_outer_container
-      , COMPASS_LAYOUT_CENTRE);
+        buttons_outer_container,
+        munin::COMPASS_LAYOUT_CENTRE);
     
-    BOOST_AUTO(inner_container3, make_shared<basic_container>());
-    inner_container3->set_layout(make_shared<compass_layout>());
-    inner_container3->add_component(inner_container2, COMPASS_LAYOUT_NORTH);
+    auto inner_container3 = std::make_shared<munin::basic_container>();
+    inner_container3->set_layout(std::make_shared<munin::compass_layout>());
+    inner_container3->add_component(inner_container2, munin::COMPASS_LAYOUT_NORTH);
     // TODO: Coalesce?    
-    content->add_component(make_shared<framed_component>(
+    content->add_component(std::make_shared<munin::framed_component>(
         screen_frame
       , inner_container3));
 
     // Add a filler to ensure that the background is opaque.
     content->set_layout(
-        make_shared<grid_layout>(1, 1)
+        std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        make_shared<filled_box>(element_type(' '))
-      , any()
+        std::make_shared<munin::filled_box>(munin::element_type(' '))
+      , {}
       , munin::LOWEST_LAYER);
 }
 
@@ -213,7 +203,7 @@ character_creation_screen::character_creation_screen()
 // ==========================================================================
 character_creation_screen::~character_creation_screen()
 {
-    BOOST_FOREACH(boost::signals::connection &cnx, pimpl_->connections_)
+    for (auto &cnx : pimpl_->connections_)
     {
         cnx.disconnect();
     }
@@ -224,8 +214,8 @@ character_creation_screen::~character_creation_screen()
 // ==========================================================================
 void character_creation_screen::clear()
 {
-    BOOST_AUTO(document, pimpl_->name_field_->get_document());
-    document->delete_text(make_pair(u32(0), document->get_text_size()));
+    auto document = pimpl_->name_field_->get_document();
+    document->delete_text({odin::u32(0), document->get_text_size()});
     
     pimpl_->gm_toggle_->set_toggle(false);
 }
@@ -234,7 +224,7 @@ void character_creation_screen::clear()
 // ON_CHARACTER_CREATED
 // ==========================================================================
 void character_creation_screen::on_character_created(
-    function<void (string, bool)> callback)
+    std::function<void (std::string const &, bool)> const &callback)
 {
     pimpl_->on_character_created_ = callback;
 }
@@ -243,7 +233,7 @@ void character_creation_screen::on_character_created(
 // ON_CHARACTER_CREATION_CANCELLED
 // ==========================================================================
 void character_creation_screen::on_character_creation_cancelled(
-    function<void ()> callback)
+    std::function<void ()> const &callback)
 {
     pimpl_->on_character_creation_cancelled_ = callback;
 }
@@ -251,13 +241,13 @@ void character_creation_screen::on_character_creation_cancelled(
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void character_creation_screen::do_event(any const &ev)
+void character_creation_screen::do_event(boost::any const &ev)
 {
     bool handled = false;
     
-    char const *ch = any_cast<char>(&ev);
-    odin::ansi::control_sequence const *control_sequence = 
-        any_cast<odin::ansi::control_sequence>(&ev);
+    auto const *ch = boost::any_cast<char>(&ev);
+    auto const *control_sequence = 
+        boost::any_cast<odin::ansi::control_sequence>(&ev);
 
     if (ch)
     {

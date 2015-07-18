@@ -6,71 +6,62 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/viewport.hpp"
 #include "munin/canvas.hpp"
 #include "munin/context.hpp"
-#include <boost/assign/list_of.hpp>
-#include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/scope_exit.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace boost::assign;
-using namespace std;
 
 namespace munin {
-    
+
 // ==========================================================================
 // VIEWPORT::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct viewport::impl
 {
-    viewport              &self_;
-    point                  origin_;
-    shared_ptr<component>  component_;
-    
+    viewport                   &self_;
+    point                       origin_;
+    std::shared_ptr<component>  component_;
+
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(viewport &self)
-        : self_(self)
+    impl(viewport &self, std::shared_ptr<component> underlying_component)
+      : self_(self),
+        component_(std::move(underlying_component))
     {
     }
 
     // ======================================================================
     // ON_REDRAW
     // ======================================================================
-    void on_redraw(vector<rectangle> regions)
+    void on_redraw(std::vector<rectangle> regions)
     {
         // Adjust for offset.  If we are currently looking at the component
         // from (5,10), and it wants to update the region (7,12)->[2,2],
         // then we really want to update our own region of (2,2)->[2,2].
         // Also, clip the region to the viewport's extends.
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(origin, self_.get_origin());
+        auto size = self_.get_size();
+        auto origin = self_.get_origin();
 
-        BOOST_FOREACH(rectangle &region, regions)
+        for (auto &region : regions)
         {
             region.origin -= origin;
 
@@ -80,7 +71,7 @@ struct viewport::impl
                 region.origin.x = 0;
             }
 
-            region.size.width = (min)(region.size.width, size.width);
+            region.size.width = (std::min)(region.size.width, size.width);
 
             if (region.origin.y < 0)
             {
@@ -88,9 +79,9 @@ struct viewport::impl
                 region.origin.y = 0;
             }
 
-            region.size.height = (min)(region.size.height, size.height);
+            region.size.height = (std::min)(region.size.height, size.height);
         }
-        
+
         self_.on_redraw(regions);
     }
 
@@ -100,10 +91,10 @@ struct viewport::impl
     void on_cursor_position_changed(point position)
     {
         // Check to see if the cursor has escaped below our view.
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(origin, self_.get_origin());
+        auto size = self_.get_size();
+        auto origin = self_.get_origin();
 
-        // If there is a dimension with no size, then we can't do anything 
+        // If there is a dimension with no size, then we can't do anything
         // with the cursor.
         if (size.width <= 0 || size.height <= 0)
         {
@@ -138,30 +129,30 @@ struct viewport::impl
     // ======================================================================
     void set_subcomponent_size()
     {
-        BOOST_AUTO(size, self_.get_size());
-        
+        auto size = self_.get_size();
+
         // First, we set the subcomponent's size to the viewport size.
         // This means that any boundary that the component shares with the
         // viewport (such as a text area's or list's width) is kept.
         component_->set_size(size);
-        
+
         // We then ask it its preferred size.  Finally, we set its size again
         // so that it is at least as big as the viewport.
-        BOOST_AUTO(preferred_size, component_->get_preferred_size());
-        preferred_size.width  = (max)(size.width, preferred_size.width);
-        preferred_size.height = (max)(size.height, preferred_size.height);
-        
+        auto preferred_size = component_->get_preferred_size();
+        preferred_size.width  = (std::max)(size.width, preferred_size.width);
+        preferred_size.height = (std::max)(size.height, preferred_size.height);
+
         component_->set_size(preferred_size);
     }
-    
+
     // ======================================================================
     // ON_SUBCOMPONENT_PREFERRED_SIZE_CHANGED
     // ======================================================================
     void on_subcomponent_preferred_size_changed()
     {
         set_subcomponent_size();
-        on_redraw(list_of(rectangle(point(0, 0), self_.get_size())));
-        
+        on_redraw({rectangle(point(0, 0), self_.get_size())});
+
         self_.on_subcomponent_size_changed();
     }
 
@@ -171,11 +162,11 @@ struct viewport::impl
     void do_pgup_key_event()
     {
         // PgUp - shift the cursor and the origin one page up.
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(origin, self_.get_origin());
-        BOOST_AUTO(component_size, component_->get_size());
-        BOOST_AUTO(cursor_position, component_->get_cursor_position());
-        
+        auto size = self_.get_size();
+        auto origin = self_.get_origin();
+        auto component_size = component_->get_size();
+        auto cursor_position = component_->get_cursor_position();
+
         if (component_size.height == 0)
         {
             return;
@@ -200,7 +191,7 @@ struct viewport::impl
             self_.set_origin(origin);
             cursor_position.y -= size.height;
         }
-        // Otherwise, move the origin, then move the cursor.  Also redraw, 
+        // Otherwise, move the origin, then move the cursor.  Also redraw,
         // since this will likely require that.
         else
         {
@@ -211,17 +202,17 @@ struct viewport::impl
 
         component_->set_cursor_position(cursor_position);
     }
-    
+
     // ======================================================================
     // DO_PGDN_KEY_EVENT
     // ======================================================================
     void do_pgdn_key_event()
     {
         // PgDn - shift the cursor and the origin one page down.
-        BOOST_AUTO(size, self_.get_size());
-        BOOST_AUTO(origin, self_.get_origin());
-        BOOST_AUTO(component_size, component_->get_size());
-        BOOST_AUTO(cursor_position, component_->get_cursor_position());
+        auto size = self_.get_size();
+        auto origin = self_.get_origin();
+        auto component_size = component_->get_size();
+        auto cursor_position = component_->get_cursor_position();
 
         if (component_size.height == 0)
         {
@@ -239,7 +230,7 @@ struct viewport::impl
         else if (cursor_position.y + size.height >= component_size.height)
         {
             cursor_position.y = component_size.height - 1;
-            self_.on_redraw(list_of(rectangle(point(), size)));
+            self_.on_redraw({rectangle(point(), size)});
         }
         // Otherwise, if we would hit the last page, scroll until the last
         // page, then set the cursor.  This will cause a half-scroll so that
@@ -296,12 +287,12 @@ struct viewport::impl
     // ======================================================================
     // DO_EVENT
     // ======================================================================
-    bool do_event(any const &event)
+    bool do_event(boost::any const &event)
     {
-        odin::ansi::control_sequence const *sequence = 
-            any_cast<odin::ansi::control_sequence>(&event);
-            
-        if (sequence != NULL)
+        odin::ansi::control_sequence const *sequence =
+            boost::any_cast<odin::ansi::control_sequence>(&event);
+
+        if (sequence != nullptr)
         {
             return do_ansi_control_sequence_event(*sequence);
         }
@@ -313,31 +304,27 @@ struct viewport::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-viewport::viewport(shared_ptr<component> underlying_component)
+viewport::viewport(std::shared_ptr<component> underlying_component)
+    : pimpl_(std::make_shared<impl>(std::ref(*this), underlying_component))
 {
-    pimpl_             = make_shared<impl>(ref(*this));
-    pimpl_->component_ = underlying_component;
-    
     get_component()->on_redraw.connect(
-        bind(&impl::on_redraw, pimpl_.get(), _1));
-    
-    get_component()->on_focus_set.connect(
-        bind(ref(on_focus_set)));
+        [this](auto const &regions){pimpl_->on_redraw(regions);});
 
-    get_component()->on_focus_lost.connect(
-        bind(ref(on_focus_lost)));
-    
+    get_component()->on_focus_set.connect([this]{on_focus_set();});
+
+    get_component()->on_focus_lost.connect([this]{on_focus_lost();});
+
     get_component()->on_preferred_size_changed.connect(
-        bind(&impl::on_subcomponent_preferred_size_changed, pimpl_.get()));
+        [this]{pimpl_->on_subcomponent_preferred_size_changed();});
 
     get_component()->on_size_changed.connect(
-        bind(ref(on_subcomponent_size_changed)));
+        [this]{on_subcomponent_size_changed();});
 
     get_component()->on_cursor_state_changed.connect(
-        bind(ref(on_cursor_state_changed), _1));
+        [this](auto const &state){on_cursor_state_changed(state);});
 
     get_component()->on_cursor_position_changed.connect(
-        bind(&impl::on_cursor_position_changed, pimpl_.get(), _1));
+        [this](auto const &pos){pimpl_->on_cursor_position_changed(pos);});
 
     // A component in a viewport is allowed to be whatever size it wants to be.
     // Therefore, the first thing we do is set it to that size.  It will then
@@ -363,16 +350,16 @@ point viewport::get_origin() const
 // ==========================================================================
 // SET_ORIGIN
 // ==========================================================================
-void viewport::set_origin(point origin)
+void viewport::set_origin(point const &origin)
 {
     pimpl_->origin_ = origin;
 
     // Check to see if this has moved the cursor off of our screen.  If so,
     // we will need to move the cursor.
-    BOOST_AUTO(size, get_size());
-    BOOST_AUTO(cursor_position, get_component()->get_cursor_position());
+    auto size = get_size();
+    auto cursor_position = get_component()->get_cursor_position();
 
-    // Only perform these checks if there's anywhere that a cursor could 
+    // Only perform these checks if there's anywhere that a cursor could
     // possibly be.
     if (size.height != 0)
     {
@@ -392,7 +379,7 @@ void viewport::set_origin(point origin)
 
     // It is highly likely that this will require redrawing the entire
     // contained object.
-    on_redraw(list_of(rectangle(point(), get_size())));
+    on_redraw({rectangle(point(), get_size())});
 
     // Also, announce that this has occurred.  This enables a container to
     // react to the fact that the origin has changed.  For example, by
@@ -403,7 +390,7 @@ void viewport::set_origin(point origin)
 // ==========================================================================
 // GET_COMPONENT
 // ==========================================================================
-shared_ptr<component> viewport::get_component()
+std::shared_ptr<component> viewport::get_component()
 {
     return pimpl_->component_;
 }
@@ -411,16 +398,16 @@ shared_ptr<component> viewport::get_component()
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void viewport::do_set_size(extent const &size) 
+void viewport::do_set_size(extent const &size)
 {
     basic_component::do_set_size(size);
     pimpl_->set_subcomponent_size();
 
     // Check if the cursor for the underlying component is within our bounds.
     // If not, scroll the component.
-    BOOST_AUTO(origin, get_origin());
-    BOOST_AUTO(cursor_position, get_component()->get_cursor_position());
-    
+    auto origin = get_origin();
+    auto cursor_position = get_component()->get_cursor_position();
+
     if (cursor_position.y < origin.y)
     {
         origin.y = cursor_position.y;
@@ -432,13 +419,13 @@ void viewport::do_set_size(extent const &size)
         set_origin(origin);
     }
 
-    on_redraw(list_of(rectangle(point(0, 0), size)));
+    on_redraw({rectangle(point(0, 0), size)});
 }
 
 // ==========================================================================
 // DO_SET_PARENT
 // ==========================================================================
-void viewport::do_set_parent(shared_ptr<component> parent)
+void viewport::do_set_parent(std::shared_ptr<component> const &parent)
 {
     pimpl_->component_->set_parent(parent);
 }
@@ -446,7 +433,7 @@ void viewport::do_set_parent(shared_ptr<component> parent)
 // ==========================================================================
 // DO_GET_PARENT
 // ==========================================================================
-shared_ptr<component> viewport::do_get_parent() const
+std::shared_ptr<component> viewport::do_get_parent() const
 {
     return pimpl_->component_->get_parent();
 }
@@ -454,7 +441,7 @@ shared_ptr<component> viewport::do_get_parent() const
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent viewport::do_get_preferred_size() const 
+extent viewport::do_get_preferred_size() const
 {
     return pimpl_->component_->get_preferred_size();
 }
@@ -462,7 +449,7 @@ extent viewport::do_get_preferred_size() const
 // ==========================================================================
 // DO_HAS_FOCUS
 // ==========================================================================
-bool viewport::do_has_focus() const 
+bool viewport::do_has_focus() const
 {
     return pimpl_->component_->has_focus();
 }
@@ -478,7 +465,7 @@ void viewport::do_set_can_focus(bool focus)
 // ==========================================================================
 // DO_CAN_FOCUS
 // ==========================================================================
-bool viewport::do_can_focus() const 
+bool viewport::do_can_focus() const
 {
     return pimpl_->component_->can_focus();
 }
@@ -486,7 +473,7 @@ bool viewport::do_can_focus() const
 // ==========================================================================
 // DO_SET_FOCUS
 // ==========================================================================
-void viewport::do_set_focus() 
+void viewport::do_set_focus()
 {
     pimpl_->component_->set_focus();
 }
@@ -494,7 +481,7 @@ void viewport::do_set_focus()
 // ==========================================================================
 // DO_LOSE_FOCUS
 // ==========================================================================
-void viewport::do_lose_focus() 
+void viewport::do_lose_focus()
 {
     pimpl_->component_->lose_focus();
 }
@@ -502,7 +489,7 @@ void viewport::do_lose_focus()
 // ==========================================================================
 // DO_FOCUS_NEXT
 // ==========================================================================
-void viewport::do_focus_next() 
+void viewport::do_focus_next()
 {
     pimpl_->component_->focus_next();
 }
@@ -510,7 +497,7 @@ void viewport::do_focus_next()
 // ==========================================================================
 // DO_FOCUS_PREVIOUS
 // ==========================================================================
-void viewport::do_focus_previous() 
+void viewport::do_focus_previous()
 {
     pimpl_->component_->focus_previous();
 }
@@ -518,7 +505,7 @@ void viewport::do_focus_previous()
 // ==========================================================================
 // DO_GET_FOCUSSED_COMPONENT
 // ==========================================================================
-shared_ptr<component> viewport::do_get_focussed_component() 
+std::shared_ptr<component> viewport::do_get_focussed_component()
 {
     return pimpl_->component_->get_focussed_component();
 }
@@ -550,7 +537,7 @@ bool viewport::do_is_enabled() const
 // ==========================================================================
 // DO_GET_CURSOR_STATE
 // ==========================================================================
-bool viewport::do_get_cursor_state() const 
+bool viewport::do_get_cursor_state() const
 {
     return pimpl_->component_->get_cursor_state();
 }
@@ -558,9 +545,9 @@ bool viewport::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point viewport::do_get_cursor_position() const 
+point viewport::do_get_cursor_position() const
 {
-    // If we are looking at the component at (5,2) and the component reports 
+    // If we are looking at the component at (5,2) and the component reports
     // its cursor at (10,10), then the cursor in our window is really at (5,8).
     // Adjust for this offset.
     return pimpl_->component_->get_cursor_position() - get_origin();
@@ -571,22 +558,22 @@ point viewport::do_get_cursor_position() const
 // ==========================================================================
 void viewport::do_draw(
     context         &ctx
-  , rectangle const &region) 
+  , rectangle const &region)
 {
     canvas &cvs = ctx.get_canvas();
 
     // If we are looking at the component from (3,5) and the region we want
     // to redraw is (0,0)->[2,2], then we need to offset the canvas by
     // (-3,-5) in order for it to render in our screen coordinates.
-    BOOST_AUTO(offset, pimpl_->origin_);
+    auto offset = pimpl_->origin_;
     cvs.apply_offset(-offset.x, -offset.y);
-    
+
     // Ensure that the offset is unapplied before any exit of this function.
     BOOST_SCOPE_EXIT( (&cvs)(&offset) )
     {
         cvs.apply_offset(offset.x, offset.y);
     } BOOST_SCOPE_EXIT_END
-    
+
     // So with the canvas offset, we also need to recalculate the draw region
     // by that same offset.
     rectangle offset_region(
@@ -600,14 +587,14 @@ void viewport::do_draw(
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void viewport::do_event(any const &event) 
+void viewport::do_event(boost::any const &event)
 {
     odin::ansi::mouse_report const *report =
         boost::any_cast<odin::ansi::mouse_report>(&event);
-    
-    if (report != NULL)
+
+    if (report != nullptr)
     {
-        BOOST_AUTO(origin, get_origin());
+        auto origin = get_origin();
 
         // Offset the mouse report by the origin.
         odin::ansi::mouse_report subreport = *report;
@@ -625,7 +612,7 @@ void viewport::do_event(any const &event)
 // ==========================================================================
 // DO_SET_ATTRIBUTE
 // ==========================================================================
-void viewport::do_set_attribute(string const &name, any const &attr)
+void viewport::do_set_attribute(std::string const &name, boost::any const &attr)
 {
     pimpl_->component_->set_attribute(name, attr);
 }

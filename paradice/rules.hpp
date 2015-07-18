@@ -27,7 +27,7 @@
 
 #include "command.hpp"
 #include "odin/types.hpp"
-#include <boost/weak_ptr.hpp>
+#include <memory>
 #include <string>
 
 namespace paradice {
@@ -36,12 +36,12 @@ class client;
 
 struct roll_data
 {
-    boost::weak_ptr<client> roller;
-    std::string             name;
-    std::string             roll_text;
-    odin::s32               raw_score;
-    odin::s32               score;
-    bool                    max_roll;
+    std::weak_ptr<client> roller;
+    std::string           name;
+    std::string           roll_text;
+    odin::s32             raw_score;
+    odin::s32             score;
+    bool                  max_roll;
 };
 
 PARADICE_COMMAND_DECL(roll);

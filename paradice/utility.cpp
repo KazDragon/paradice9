@@ -26,22 +26,20 @@
 // ==========================================================================
 #include "utility.hpp"
 
-using namespace std;
-
 namespace paradice {
 
 // ==========================================================================
 // IS_IEQUAL
 // ==========================================================================
-bool is_iequal(string const &lhs, string const &rhs)
+bool is_iequal(std::string const &lhs, std::string const &rhs)
 {
     if (lhs.size() != rhs.size())
     {
         return false;
     }
 
-    string::const_iterator lch = lhs.begin();
-    string::const_iterator rch = rhs.begin();
+    auto lch = lhs.begin();
+    auto rch = rhs.begin();
 
     while (lch != lhs.end())
     {

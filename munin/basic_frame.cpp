@@ -6,34 +6,28 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/basic_frame.hpp"
 #include "munin/basic_component.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -42,29 +36,29 @@ namespace munin {
 // ==========================================================================
 struct basic_frame::impl
 {
-    shared_ptr<component> top_left_;
-    shared_ptr<component> top_;
-    shared_ptr<component> top_right_;
-    shared_ptr<component> left_;
-    shared_ptr<component> right_;
-    shared_ptr<component> bottom_left_;
-    shared_ptr<component> bottom_;
-    shared_ptr<component> bottom_right_;
+    std::shared_ptr<component> top_left_;
+    std::shared_ptr<component> top_;
+    std::shared_ptr<component> top_right_;
+    std::shared_ptr<component> left_;
+    std::shared_ptr<component> right_;
+    std::shared_ptr<component> bottom_left_;
+    std::shared_ptr<component> bottom_;
+    std::shared_ptr<component> bottom_right_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 basic_frame::basic_frame(
-    shared_ptr<component> top_left
-  , shared_ptr<component> top
-  , shared_ptr<component> top_right
-  , shared_ptr<component> left
-  , shared_ptr<component> right
-  , shared_ptr<component> bottom_left
-  , shared_ptr<component> bottom
-  , shared_ptr<component> bottom_right)
-  : pimpl_(make_shared<impl>())
+    std::shared_ptr<component> top_left,
+    std::shared_ptr<component> top,
+    std::shared_ptr<component> top_right,
+    std::shared_ptr<component> left,
+    std::shared_ptr<component> right,
+    std::shared_ptr<component> bottom_left,
+    std::shared_ptr<component> bottom,
+    std::shared_ptr<component> bottom_right)
+  : pimpl_(std::make_shared<impl>())
 {
     pimpl_->top_left_     = top_left;
     pimpl_->top_          = top;
@@ -75,25 +69,25 @@ basic_frame::basic_frame(
     pimpl_->bottom_       = bottom;
     pimpl_->bottom_right_ = bottom_right;
 
-    shared_ptr<basic_container> top_container;
+    std::shared_ptr<basic_container> top_container;
 
     if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
     {
-        top_container = make_shared<basic_container>();
-        top_container->set_layout(make_shared<compass_layout>());
+        top_container = std::make_shared<basic_container>();
+        top_container->set_layout(std::make_shared<compass_layout>());
         top_container->add_component(top_left,  COMPASS_LAYOUT_WEST);
         top_container->add_component(top,       COMPASS_LAYOUT_CENTRE);
         top_container->add_component(top_right, COMPASS_LAYOUT_EAST);
     }
 
-    BOOST_AUTO(bottom_container, make_shared<basic_container>());
-    bottom_container->set_layout(make_shared<compass_layout>());
+    auto bottom_container = std::make_shared<basic_container>();
+    bottom_container->set_layout(std::make_shared<compass_layout>());
     bottom_container->add_component(bottom_left,  COMPASS_LAYOUT_WEST);
     bottom_container->add_component(bottom,       COMPASS_LAYOUT_CENTRE);
     bottom_container->add_component(bottom_right, COMPASS_LAYOUT_EAST);
 
-    BOOST_AUTO(content, get_container());
-    content->set_layout(make_shared<compass_layout>());
+    auto content = get_container();
+    content->set_layout(std::make_shared<compass_layout>());
 
     if (top_container)
     {
@@ -107,7 +101,7 @@ basic_frame::basic_frame(
 // ==========================================================================
 // GET_TOP_LEFT_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_top_left_component()
+std::shared_ptr<component> basic_frame::get_top_left_component()
 {
     return pimpl_->top_left_;
 }
@@ -115,7 +109,7 @@ shared_ptr<component> basic_frame::get_top_left_component()
 // ==========================================================================
 // GET_TOP_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_top_component()
+std::shared_ptr<component> basic_frame::get_top_component()
 {
     return pimpl_->top_;
 }
@@ -123,7 +117,7 @@ shared_ptr<component> basic_frame::get_top_component()
 // ==========================================================================
 // GET_TOP_RIGHT_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_top_right_component()
+std::shared_ptr<component> basic_frame::get_top_right_component()
 {
     return pimpl_->top_right_;
 }
@@ -131,7 +125,7 @@ shared_ptr<component> basic_frame::get_top_right_component()
 // ==========================================================================
 // GET_LEFT_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_left_component()
+std::shared_ptr<component> basic_frame::get_left_component()
 {
     return pimpl_->left_;
 }
@@ -139,7 +133,7 @@ shared_ptr<component> basic_frame::get_left_component()
 // ==========================================================================
 // GET_RIGHT_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_right_component()
+std::shared_ptr<component> basic_frame::get_right_component()
 {
     return pimpl_->right_;
 }
@@ -147,7 +141,7 @@ shared_ptr<component> basic_frame::get_right_component()
 // ==========================================================================
 // GET_BOTTOM_LEFT_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_bottom_left_component()
+std::shared_ptr<component> basic_frame::get_bottom_left_component()
 {
     return pimpl_->bottom_left_;
 }
@@ -155,7 +149,7 @@ shared_ptr<component> basic_frame::get_bottom_left_component()
 // ==========================================================================
 // GET_BOTTOM_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_bottom_component()
+std::shared_ptr<component> basic_frame::get_bottom_component()
 {
     return pimpl_->bottom_;
 }
@@ -163,7 +157,7 @@ shared_ptr<component> basic_frame::get_bottom_component()
 // ==========================================================================
 // GET_BOTTOM_RIGHT_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_frame::get_bottom_right_component()
+std::shared_ptr<component> basic_frame::get_bottom_right_component()
 {
     return pimpl_->bottom_right_;
 }
@@ -171,27 +165,27 @@ shared_ptr<component> basic_frame::get_bottom_right_component()
 // ==========================================================================
 // DO_GET_TOP_BORDER_HEIGHT
 // ==========================================================================
-s32 basic_frame::do_get_top_border_height() const
+odin::s32 basic_frame::do_get_top_border_height() const
 {
-    s32 top_border_height = 0;
+    odin::s32 top_border_height = 0;
 
     if (pimpl_->top_left_ != NULL)
     {
-        top_border_height = (max)(
+        top_border_height = (std::max)(
             top_border_height
           , pimpl_->top_left_->get_preferred_size().height);
     }
 
     if (pimpl_->top_ != NULL)
     {
-        top_border_height = (max)(
+        top_border_height = (std::max)(
             top_border_height
           , pimpl_->top_->get_preferred_size().height);
     }
 
     if (pimpl_->top_right_ != NULL)
     {
-        top_border_height = (max)(
+        top_border_height = (std::max)(
             top_border_height
           , pimpl_->top_right_->get_preferred_size().height);
     }
@@ -202,7 +196,7 @@ s32 basic_frame::do_get_top_border_height() const
 // ==========================================================================
 // DO_GET_BOTTOM_BORDER_HEIGHT
 // ==========================================================================
-s32 basic_frame::do_get_bottom_border_height() const
+odin::s32 basic_frame::do_get_bottom_border_height() const
 {
     return 1;
 }
@@ -210,7 +204,7 @@ s32 basic_frame::do_get_bottom_border_height() const
 // ==========================================================================
 // DO_GET_LEFT_BORDER_WIDTH
 // ==========================================================================
-s32 basic_frame::do_get_left_border_width() const
+odin::s32 basic_frame::do_get_left_border_width() const
 {
     return 1;
 }
@@ -218,7 +212,7 @@ s32 basic_frame::do_get_left_border_width() const
 // ==========================================================================
 // DO_GET_RIGHT_BORDER_WIDTH
 // ==========================================================================
-s32 basic_frame::do_get_right_border_width() const
+odin::s32 basic_frame::do_get_right_border_width() const
 {
     return 1;
 }
@@ -233,7 +227,7 @@ s32 basic_frame::do_get_border_height() const
     // preferred heights of the bottom edges, and add them up.
     s32 preferred_height_top    = 0;
     s32 preferred_height_bottom = 0;
-    
+
     if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
     {
         preferred_height_top =
@@ -249,7 +243,7 @@ s32 basic_frame::do_get_border_height() const
           , (max)(pimpl_->bottom_->get_preferred_size().height
           ,       pimpl_->bottom_right_->get_preferred_size().height));
     }
-    
+
     return preferred_height_top + preferred_height_bottom;
 }
 
@@ -265,7 +259,7 @@ s32 basic_frame::do_get_border_width() const
 // ==========================================================================
 // DO_SET_ATTRIBUTE
 // ==========================================================================
-void basic_frame::do_set_attribute(string const &name, any const &attr)
+void basic_frame::do_set_attribute(std::string const &name, boost::any const &attr)
 {
     if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
     {

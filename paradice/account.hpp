@@ -28,8 +28,12 @@
 #define PARADICE_ACCOUNT_HPP_
 
 #include "odin/types.hpp"
+#include "paradice/beast.hpp"
 #include "paradice/cryptography.hpp"
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/extended_type_info_typeid.hpp>
+#include <boost/serialization/singleton.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>

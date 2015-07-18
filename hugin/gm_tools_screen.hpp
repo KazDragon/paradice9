@@ -30,7 +30,6 @@
 #include "munin/composite_component.hpp"
 #include "paradice/beast.hpp"
 #include "paradice/encounter.hpp"
-#include <boost/shared_ptr.hpp>
 
 namespace hugin {
 
@@ -54,38 +53,43 @@ public :
     /// \brief Sets the beasts to be used by the user interface
     //* =====================================================================
     void set_beasts(
-        std::vector< boost::shared_ptr<paradice::beast> > beasts);
+        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
 
     //* =====================================================================
     /// \brief Returns the beasts used by the user interface
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::beast> > get_beasts() const;
+    std::vector<std::shared_ptr<paradice::beast>> get_beasts() const;
 
     //* =====================================================================
     /// \brief Sets the encounters to be used by the user interface
     //* =====================================================================
     void set_encounters(
-        std::vector< boost::shared_ptr<paradice::encounter> > encounters);
+        std::vector<std::shared_ptr<paradice::encounter>> const &encounters);
 
     //* =====================================================================
     /// \brief Returns the encounters used by the user interface
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::encounter> > 
+    std::vector<std::shared_ptr<paradice::encounter>> 
         get_encounters() const;
 
     //* =====================================================================
     /// \fn on_fight_beast
     /// \brief Called when a beast is selected to enter the active encounter.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::beast>)> on_fight_beast;
+    boost::signal
+    <
+        void (std::shared_ptr<paradice::beast> const &)
+    > on_fight_beast;
 
     //* =====================================================================
     /// \fn on_fight_encounter
     /// \brief Called when an encounter is selected to enter the active 
     /// encounter.
     //* =====================================================================
-    boost::signal<void (boost::shared_ptr<paradice::encounter>)> 
-        on_fight_encounter;
+    boost::signal
+    <
+        void (std::shared_ptr<paradice::encounter> const &)
+    > on_fight_encounter;
 
     //* =====================================================================
     /// \fn on_back
@@ -103,7 +107,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

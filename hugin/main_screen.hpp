@@ -29,8 +29,6 @@
 
 #include "munin/composite_component.hpp"
 #include "paradice/active_encounter.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace hugin {
@@ -58,7 +56,7 @@ public :
     /// on the main screen.
     //* =====================================================================
     void on_input_entered(
-        boost::function<void (std::string)> callback);
+        std::function<void (std::string const &)> const &callback);
     
     //* =====================================================================
     /// \brief Adds output to the output text area on the main screen.
@@ -101,7 +99,7 @@ public :
     /// \brief Sets the Active Encounter.
     //* =====================================================================
     void set_active_encounter(
-        boost::shared_ptr<paradice::active_encounter> active_encounter);
+        std::shared_ptr<paradice::active_encounter> const &active_encounter);
 
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.
@@ -113,7 +111,7 @@ public :
     /// \brief Register a callback for when the close button on the help
     /// screen is called.
     //* =====================================================================
-    void on_help_closed(boost::function<void ()> callback);
+    void on_help_closed(std::function<void ()> const &callback);
     
 protected :
     //* =====================================================================
@@ -124,7 +122,7 @@ protected :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_TABBED_PANEL_HPP_
 #define MUNIN_TABBED_PANEL_HPP_
@@ -59,9 +59,9 @@ public :
     /// If this is not specified, then it is inserted as the right-most tab.
     //* =====================================================================
     void insert_tab(
-        std::string const                   &text, 
-        boost::shared_ptr<munin::component>  comp,
-        boost::optional<odin::u32>           index = boost::optional<odin::u32>());
+        std::string const                 &text,
+        std::shared_ptr<munin::component>  comp,
+        boost::optional<odin::u32>         index = {});
 
     //* =====================================================================
     /// \brief Removes a tab from the frame.
@@ -71,7 +71,7 @@ public :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

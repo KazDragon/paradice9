@@ -6,34 +6,27 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/basic_component.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-#include <boost/weak_ptr.hpp>
 #include <map>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
@@ -52,7 +45,7 @@ struct basic_component::impl
         , enabled_(true)
     {
     }
-        
+
     // ======================================================================
     // TOGGLE_FOCUS
     // ======================================================================
@@ -69,14 +62,14 @@ struct basic_component::impl
             self_.on_focus_set();
         }
     }
-    
-    basic_component     &self_;
-    weak_ptr<component>  parent_;
-    map<string, any>     attributes_;
-    rectangle            bounds_;
-    bool                 can_focus_;
-    bool                 has_focus_;
-    bool                 enabled_;
+
+    basic_component                  &self_;
+    std::weak_ptr<component>          parent_;
+    std::map<std::string, boost::any> attributes_;
+    rectangle                         bounds_;
+    bool                              can_focus_;
+    bool                              has_focus_;
+    bool                              enabled_;
 };
 
 // ==========================================================================
@@ -84,24 +77,24 @@ struct basic_component::impl
 // ==========================================================================
 basic_component::basic_component()
 {
-    pimpl_ = make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
 }
 
 // ==========================================================================
-// DESTRUCTOR 
+// DESTRUCTOR
 // ==========================================================================
 basic_component::~basic_component()
 {
 }
 
 // ==========================================================================
-// DO_SET_POSITION 
+// DO_SET_POSITION
 // ==========================================================================
 void basic_component::do_set_position(point const &position)
 {
-    BOOST_AUTO(old_position, pimpl_->bounds_.origin);
+    auto old_position = pimpl_->bounds_.origin;
     pimpl_->bounds_.origin = position;
-    
+
     on_position_changed(old_position, position);
 }
 
@@ -133,7 +126,7 @@ extent basic_component::do_get_size() const
 // ==========================================================================
 // DO_SET_PARENT
 // ==========================================================================
-void basic_component::do_set_parent(shared_ptr<component> parent)
+void basic_component::do_set_parent(std::shared_ptr<component> const &parent)
 {
     pimpl_->parent_ = parent;
 }
@@ -141,7 +134,7 @@ void basic_component::do_set_parent(shared_ptr<component> parent)
 // ==========================================================================
 // DO_GET_PARENT
 // ==========================================================================
-shared_ptr<component> basic_component::do_get_parent() const
+std::shared_ptr<component> basic_component::do_get_parent() const
 {
     return pimpl_->parent_.lock();
 }
@@ -210,11 +203,11 @@ void basic_component::do_focus_previous()
 // ==========================================================================
 // DO_GET_FOCUSSED_COMPONENT
 // ==========================================================================
-shared_ptr<component> basic_component::do_get_focussed_component()
+std::shared_ptr<component> basic_component::do_get_focussed_component()
 {
     return pimpl_->has_focus_
-         ? shared_ptr<component>(shared_from_this())
-         : shared_ptr<component>();
+      ? std::shared_ptr<component>(shared_from_this())
+      : std::shared_ptr<component>();
 }
 
 // ==========================================================================
@@ -270,12 +263,12 @@ void basic_component::do_set_cursor_position(point const &position)
 // ==========================================================================
 // GET_ATTRIBUTE
 // ==========================================================================
-any basic_component::get_attribute(string const &name) const
+boost::any basic_component::get_attribute(std::string const &name) const
 {
-    BOOST_AUTO(attr_iterator, pimpl_->attributes_.find(name));
-    
+    auto attr_iterator = pimpl_->attributes_.find(name);
+
     return attr_iterator == pimpl_->attributes_.end()
-         ? any()
+         ? boost::any()
          : *attr_iterator;
 }
 
@@ -283,7 +276,8 @@ any basic_component::get_attribute(string const &name) const
 // DO_SET_ATTRIBUTE
 // ==========================================================================
 void basic_component::do_set_attribute(
-    string const &name, any const &attr)
+    std::string const &name,
+    boost::any const  &attr)
 {
     pimpl_->attributes_[name] = attr;
 }
@@ -299,11 +293,11 @@ void basic_component::do_layout()
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void basic_component::do_event(any const &event)
+void basic_component::do_event(boost::any const &event)
 {
-    BOOST_AUTO(mouse, any_cast<odin::ansi::mouse_report>(&event));
-    
-    if (mouse != NULL)
+    auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
+
+    if (mouse != nullptr)
     {
         if (!has_focus())
         {

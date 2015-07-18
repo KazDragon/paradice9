@@ -66,21 +66,20 @@ public :
     /// \brief Sets the bestiary that the editor is working with.
     //* =====================================================================
     void set_bestiary(
-        std::vector< boost::shared_ptr<paradice::beast> > beasts);
+        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
 
     //* =====================================================================
     /// \brief Sets the beasts of the encounter that the editor is working
     /// with.
     //* =====================================================================
     void set_encounter_beasts(
-        std::vector< boost::shared_ptr<paradice::beast> > beasts);
+        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
 
     //* =====================================================================
     /// \brief Retrieves the beasts of the encounter that the editor is
     /// working with.
     //* =====================================================================
-    std::vector< boost::shared_ptr<paradice::beast> > 
-        get_encounter_beasts() const;
+    std::vector<std::shared_ptr<paradice::beast>> get_encounter_beasts() const;
 
     //* =====================================================================
     /// \fn on_revert
@@ -96,7 +95,7 @@ public :
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

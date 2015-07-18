@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef PARADICE_CHARACTER_HPP_
 #define PARADICE_CHARACTER_HPP_
@@ -31,42 +31,43 @@
 #include "paradice/encounter.hpp"
 #include "odin/types.hpp"
 #include <boost/serialization/access.hpp>
+#include <boost/serialization/extended_type_info.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/serialization/singleton.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/utility.hpp>
 #include <string>
 #include <vector>
 
 namespace paradice {
-    
+
 class character : boost::noncopyable
 {
 public :
     friend class boost::serialization::access;
-    
+
     //* =====================================================================
     /// \brief Constructor.
     //* =====================================================================
     character();
-    
+
     //* =====================================================================
     /// \brief Destructor.
     //* =====================================================================
     ~character();
-    
+
     //* =====================================================================
     /// \brief Sets the name of the character.
     //* =====================================================================
     void set_name(std::string const &name);
-    
+
     //* =====================================================================
     /// \brief Retrieves the name of the character.
     //* =====================================================================
     std::string get_name() const;
-    
+
     //* =====================================================================
     /// \brief Sets the character's name prefix.
     //* =====================================================================
@@ -78,7 +79,7 @@ public :
     std::string get_prefix() const;
 
     //* =====================================================================
-    /// \brief Sets the character's name suffix. 
+    /// \brief Sets the character's name suffix.
     //* =====================================================================
     void set_suffix(std::string const &suffix);
 
@@ -86,7 +87,7 @@ public :
     /// \brief Retrieves the character's name suffix.
     //* =====================================================================
     std::string get_suffix() const;
-    
+
     //* =====================================================================
     /// \brief Sets the character's GM level.
     //* =====================================================================
@@ -100,23 +101,23 @@ public :
     //* =====================================================================
     /// \brief Sets the character's beasts.
     //* =====================================================================
-    void set_beasts(std::vector< boost::shared_ptr<beast> > beasts);
+    void set_beasts(std::vector<std::shared_ptr<beast>> const &beasts);
 
     //* =====================================================================
     /// \brief Retrieves the character's beasts.
     //* =====================================================================
-    std::vector< boost::shared_ptr<beast> > get_beasts() const;
+    std::vector<std::shared_ptr<beast>> get_beasts() const;
 
     //* =====================================================================
     /// \brief Sets the character's encounters.
     //* =====================================================================
     void set_encounters(
-        std::vector< boost::shared_ptr<encounter> > encounters);
+        std::vector<std::shared_ptr<encounter>> const &encounters);
 
     //* =====================================================================
     /// \brief Retreives the character's encounters.
     //* =====================================================================
-    std::vector< boost::shared_ptr<encounter> > get_encounters() const;
+    std::vector<std::shared_ptr<encounter>> get_encounters() const;
 
     //* =====================================================================
     /// \brief Serializes an character to or from an archive.
@@ -138,6 +139,7 @@ public :
             gm_level_ = 0;
         }
 
+        /* TODO: serialization to std::shared_ptr<> need some work.
         // In version 3, the concept of a bestiary was introduced.
         if (version >= 3)
         {
@@ -149,15 +151,16 @@ public :
         {
             ar & BOOST_SERIALIZATION_NVP(encounters_);
         }
+        */
     }
-    
+
 private :
-    std::string                                 name_;
-    std::string                                 prefix_;
-    std::string                                 suffix_;
-    odin::u32                                   gm_level_;
-    std::vector< boost::shared_ptr<beast> >     beasts_;
-    std::vector< boost::shared_ptr<encounter> > encounters_;
+    std::string                             name_;
+    std::string                             prefix_;
+    std::string                             suffix_;
+    odin::u32                               gm_level_;
+    std::vector<std::shared_ptr<beast>>     beasts_;
+    std::vector<std::shared_ptr<encounter>> encounters_;
 };
 
 }

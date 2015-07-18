@@ -131,7 +131,7 @@ struct extent
     //* =====================================================================
     /// \brief Default Constructor
     /// \par
-    /// Constructs an extent, leaving the width and height uninitialised.
+    /// Constructs an extent, leaving the width and height zeroed.
     //* =====================================================================
     extent();
 

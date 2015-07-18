@@ -6,29 +6,28 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_TEXT_DEFAULT_MULTILINE_DOCUMENT_HPP_
 #define MUNIN_TEXT_DEFAULT_MULTILINE_DOCUMENT_HPP_
 
 #include "munin/text/document.hpp"
-#include <boost/shared_ptr.hpp>
 
 namespace munin { namespace text {
 
@@ -50,12 +49,9 @@ public :
     virtual ~default_multiline_document();
 
 private :
-    struct impl;
-    boost::shared_ptr<impl> pimpl_;
-
     //* =====================================================================
     /// \brief Called by set_size().  Derived classes must override this
-    /// function in order to set the size of the document in a custom 
+    /// function in order to set the size of the document in a custom
     /// manner.
     //* =====================================================================
     virtual void do_set_size(munin::extent size);
@@ -101,7 +97,7 @@ private :
     /// manner.
     //* =====================================================================
     virtual odin::u32 do_get_text_size() const;
-    
+
     //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this
     /// function in order to insert text into the document in a custom
@@ -124,7 +120,7 @@ private :
     virtual void do_set_text(std::vector<munin::element_type> const &text);
 
     //* =====================================================================
-    /// \brief Called by get_number_of_lines().  Derived classes must 
+    /// \brief Called by get_number_of_lines().  Derived classes must
     /// override this function in order to get the number of lines in the
     /// document in a custom manner.
     //* =====================================================================
@@ -135,9 +131,11 @@ private :
     /// function in order to return the text line in a custom manner.
     //* =====================================================================
     virtual std::vector<munin::element_type> do_get_line(odin::u32 index) const;
+
+    struct impl;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }}
 
 #endif
-

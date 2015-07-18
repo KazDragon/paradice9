@@ -28,7 +28,7 @@
 #define ODIN_TELNET_OPTIONS_NAWS_CLIENT_HPP_
 
 #include "odin/telnet/client_option.hpp"
-#include <boost/function.hpp>
+#include <functional>
 
 namespace odin { namespace telnet { namespace options {
 
@@ -43,16 +43,16 @@ public :
     /// \brief A type that describes the callback called whenever the server
     /// announces that its window size has changed.
     //* =====================================================================
-    typedef boost::function<
+    typedef std::function<
         void (odin::u16 width, odin::u16 height)> callback_type;
     
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
     naws_client(
-        boost::shared_ptr<odin::telnet::stream> const                &stream
-      , boost::shared_ptr<odin::telnet::negotiation_router> const    &negotiation_router
-      , boost::shared_ptr<odin::telnet::subnegotiation_router> const &subnegotiation_router);
+        std::shared_ptr<odin::telnet::stream>                stream,
+        std::shared_ptr<odin::telnet::negotiation_router>    negotiation_router,
+        std::shared_ptr<odin::telnet::subnegotiation_router> subnegotiation_router);
 
     //* =====================================================================
     /// \brief Destructor
@@ -74,7 +74,7 @@ private :
         subnegotiation_type const &subnegotiation);
     
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
             
 }}}

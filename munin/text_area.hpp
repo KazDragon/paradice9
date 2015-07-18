@@ -6,38 +6,40 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_TEXT_AREA_HPP_
 #define MUNIN_TEXT_AREA_HPP_
 
 #include "munin/basic_component.hpp"
-#include "munin/text/document.hpp"
-#include <boost/shared_ptr.hpp>
 
 namespace munin {
+
+namespace text {
+    class document;
+}
 
 //* =========================================================================
 /// \brief A class that models a multi-line text control with a frame
 /// bordering it.
 //* =========================================================================
-class text_area 
+class text_area
     : public basic_component
 {
 public :
@@ -50,47 +52,47 @@ public :
     /// \brief Destructor
     //* =====================================================================
     virtual ~text_area();
-    
+
     //* =====================================================================
     /// \brief Retrieves the document that this text area is using.
     //* =====================================================================
-    boost::shared_ptr<munin::text::document> get_document();
-    
+    std::shared_ptr<munin::text::document> get_document();
+
 protected :
     //* =====================================================================
     /// \brief Called by get_size().  Derived classes must override this
-    /// function in order to get the size of the component in a custom 
+    /// function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual extent do_get_size() const;
 
     //* =====================================================================
-    /// \brief Called by set_size().  Derived classes must override this 
-    /// function in order to set the size of the component in a custom 
+    /// \brief Called by set_size().  Derived classes must override this
+    /// function in order to set the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual void do_set_size(extent const &size);
-    
+
     //* =====================================================================
     /// \brief Called by get_preferred_size().  Derived classes must override
-    /// this function in order to get the size of the component in a custom 
+    /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
     virtual extent do_get_preferred_size() const;
-    
+
     //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
     virtual bool do_get_cursor_state() const;
-    
+
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
     virtual point do_get_cursor_position() const;
-    
+
     //* =====================================================================
     /// \brief Called by set_cursor_position().  Derived classes must
     /// override this function in order to set the cursor position in
@@ -100,7 +102,7 @@ protected :
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed context.  A component must only draw 
+    /// in order to draw onto the passed context.  A component must only draw
     /// the part of itself specified by the region.
     ///
     /// \param ctx the context in which the component should draw itself.
@@ -112,14 +114,14 @@ protected :
       , rectangle const &region);
 
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
+    /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     virtual void do_event(boost::any const &event);
-    
+
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

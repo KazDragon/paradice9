@@ -40,18 +40,9 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/status_bar.hpp"
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/thread.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <deque>
-
-using namespace paradice;
-using namespace munin;
-using namespace munin::ansi;
-using namespace odin;
-using namespace boost;
-using namespace std;
+#include <mutex>
+#include <thread>
 
 namespace hugin {
 
@@ -59,34 +50,34 @@ namespace hugin {
 // USER_INTERFACE::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct user_interface::impl
-    : public enable_shared_from_this<impl>
+    : public std::enable_shared_from_this<impl>
 {
     impl(boost::asio::strand &strand)
         : strand_(strand)
     {
     }
     
-    boost::asio::strand                   &strand_;
-    shared_ptr<card>                       active_screen_;
-    string                                 active_face_;                  
+    boost::asio::strand                        &strand_;
+    std::shared_ptr<munin::card>                active_screen_;
+    std::string                                 active_face_;                  
     
-    shared_ptr<intro_screen>               intro_screen_;   
-    shared_ptr<account_creation_screen>    account_creation_screen_;
-    shared_ptr<character_selection_screen> character_selection_screen_;
-    shared_ptr<character_creation_screen>  character_creation_screen_;
-    shared_ptr<main_screen>                main_screen_;
-    shared_ptr<password_change_screen>     password_change_screen_;
-    shared_ptr<gm_tools_screen>            gm_tools_screen_;
+    std::shared_ptr<intro_screen>               intro_screen_;   
+    std::shared_ptr<account_creation_screen>    account_creation_screen_;
+    std::shared_ptr<character_selection_screen> character_selection_screen_;
+    std::shared_ptr<character_creation_screen>  character_creation_screen_;
+    std::shared_ptr<main_screen>                main_screen_;
+    std::shared_ptr<password_change_screen>     password_change_screen_;
+    std::shared_ptr<gm_tools_screen>            gm_tools_screen_;
 
-    shared_ptr<status_bar>                 status_bar_;
+    std::shared_ptr<munin::status_bar>          status_bar_;
 
-    mutex                                  dispatch_queue_mutex_;
-    deque< function<void ()> >             dispatch_queue_;
+    std::mutex                                  dispatch_queue_mutex_;
+    std::deque<std::function<void ()>>          dispatch_queue_;
     
     // ======================================================================
     // SELECT_FACE
     // ======================================================================
-    void select_face(string const &face_name)
+    void select_face(std::string const &face_name)
     {
         active_screen_->select_face(face_name);
         active_screen_->set_focus();
@@ -96,7 +87,7 @@ struct user_interface::impl
     // ======================================================================
     // SET_STATUSBAR_TEXT
     // ======================================================================
-    void set_statusbar_text(vector<element_type> const &text)
+    void set_statusbar_text(std::vector<munin::element_type> const &text)
     {
         status_bar_->set_message(text);
     }
@@ -104,14 +95,15 @@ struct user_interface::impl
     // ======================================================================
     // ASYNC
     // ======================================================================
-    void async(function<void ()> fn)
+    template <typename F>
+    void async(F const &fn)
     {
         {
-            unique_lock<mutex> lock(dispatch_queue_mutex_);
+            std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
             dispatch_queue_.push_back(fn);
         }
         
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        strand_.post([pthis=shared_from_this()]{pthis->dispatch_queue();});
     }
 
 private:
@@ -120,9 +112,9 @@ private:
     // ======================================================================
     void dispatch_queue()
     {
-        function<void ()> fn;
+        std::function<void ()> fn;
 
-        unique_lock<mutex> lock(dispatch_queue_mutex_);
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
         
         while (!dispatch_queue_.empty())
         {
@@ -141,17 +133,17 @@ private:
 // CONSTRUCTOR
 // ==========================================================================
 user_interface::user_interface(boost::asio::strand &strand)
-    : pimpl_(make_shared<impl>(ref(strand)))
+  : pimpl_(std::make_shared<impl>(std::ref(strand)))
 {
-    pimpl_->active_screen_              = make_shared<card>();
-    pimpl_->intro_screen_               = make_shared<intro_screen>();
-    pimpl_->account_creation_screen_    = make_shared<account_creation_screen>();
-    pimpl_->character_creation_screen_  = make_shared<character_creation_screen>();
-    pimpl_->character_selection_screen_ = make_shared<character_selection_screen>();
-    pimpl_->main_screen_                = make_shared<main_screen>();
-    pimpl_->password_change_screen_     = make_shared<password_change_screen>();
-    pimpl_->gm_tools_screen_            = make_shared<gm_tools_screen>();
-    pimpl_->status_bar_                 = make_shared<status_bar>();
+    pimpl_->active_screen_              = std::make_shared<munin::card>();
+    pimpl_->intro_screen_               = std::make_shared<intro_screen>();
+    pimpl_->account_creation_screen_    = std::make_shared<account_creation_screen>();
+    pimpl_->character_creation_screen_  = std::make_shared<character_creation_screen>();
+    pimpl_->character_selection_screen_ = std::make_shared<character_selection_screen>();
+    pimpl_->main_screen_                = std::make_shared<main_screen>();
+    pimpl_->password_change_screen_     = std::make_shared<password_change_screen>();
+    pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
+    pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
     pimpl_->active_screen_->add_face(
         pimpl_->intro_screen_, hugin::FACE_INTRO);
@@ -172,32 +164,32 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->active_face_ = hugin::FACE_INTRO;
 
     // Create a container that has a single spacer element and ... A CLOCK!
-    BOOST_AUTO(clock_container, make_shared<basic_container>());
-    clock_container->set_layout(make_shared<compass_layout>());
+    auto clock_container = std::make_shared<munin::basic_container>();
+    clock_container->set_layout(std::make_shared<munin::compass_layout>());
     clock_container->add_component(
-        make_shared<image>(elements_from_string(" "))
-      , COMPASS_LAYOUT_WEST);
+        std::make_shared<munin::image>(munin::ansi::elements_from_string(" "))
+        , munin::COMPASS_LAYOUT_WEST);
     clock_container->add_component(
-        make_shared<munin::clock>()
-      , COMPASS_LAYOUT_EAST);
+        std::make_shared<munin::clock>()
+        , munin::COMPASS_LAYOUT_EAST);
 
-    BOOST_AUTO(status_bar_container, make_shared<basic_container>());
-    status_bar_container->set_layout(make_shared<compass_layout>());
+    auto status_bar_container = std::make_shared<munin::basic_container>();
+    status_bar_container->set_layout(std::make_shared<munin::compass_layout>());
     status_bar_container->add_component(
         pimpl_->status_bar_
-      , COMPASS_LAYOUT_CENTRE);
+        , munin::COMPASS_LAYOUT_CENTRE);
     status_bar_container->add_component(
         clock_container
-      , COMPASS_LAYOUT_EAST);
+        , munin::COMPASS_LAYOUT_EAST);
 
-    BOOST_AUTO(container, get_container());
-    container->set_layout(make_shared<compass_layout>());
+    auto container = get_container();
+    container->set_layout(std::make_shared<munin::compass_layout>());
     container->add_component(
         pimpl_->active_screen_
-      , COMPASS_LAYOUT_CENTRE);
+        , munin::COMPASS_LAYOUT_CENTRE);
     container->add_component(
         status_bar_container
-      , COMPASS_LAYOUT_SOUTH);
+        , munin::COMPASS_LAYOUT_SOUTH);
 }
 
 // ==========================================================================
@@ -205,7 +197,7 @@ user_interface::user_interface(boost::asio::strand &strand)
 // ==========================================================================
 void user_interface::clear_intro_screen()
 {
-    pimpl_->async(bind(&intro_screen::clear, pimpl_->intro_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->intro_screen_->clear();});
 }
 
 // ==========================================================================
@@ -213,8 +205,7 @@ void user_interface::clear_intro_screen()
 // ==========================================================================
 void user_interface::clear_account_creation_screen()
 {
-    pimpl_->async(bind(
-        &account_creation_screen::clear, pimpl_->account_creation_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->account_creation_screen_->clear();});
 }
 
 // ==========================================================================
@@ -222,6 +213,7 @@ void user_interface::clear_account_creation_screen()
 // ==========================================================================
 void user_interface::clear_character_selection_screen()
 {
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->character_selection_screen_->clear();});
 }
 
 // ==========================================================================
@@ -229,8 +221,7 @@ void user_interface::clear_character_selection_screen()
 // ==========================================================================
 void user_interface::clear_character_creation_screen()
 {
-    pimpl_->async(bind(
-        &character_creation_screen::clear, pimpl_->character_creation_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->character_creation_screen_->clear();});
 }
 
 // ==========================================================================
@@ -238,7 +229,7 @@ void user_interface::clear_character_creation_screen()
 // ==========================================================================
 void user_interface::clear_main_screen()
 {
-    pimpl_->async(bind(&main_screen::clear, pimpl_->main_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->main_screen_->clear();});
 }
 
 // ==========================================================================
@@ -246,15 +237,18 @@ void user_interface::clear_main_screen()
 // ==========================================================================
 void user_interface::clear_password_change_screen()
 {
-    pimpl_->async(bind(
-        &password_change_screen::clear, pimpl_->password_change_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->password_change_screen_->clear();});
 }
 
 // ==========================================================================
 // ON_PASSWORD_CHANGED
 // ==========================================================================
 void user_interface::on_password_changed(
-    function<void (string, string, string)> callback)
+    std::function<
+        void (
+            std::string const &, 
+            std::string const &, 
+            std::string const &)> const &callback)
 {
     pimpl_->password_change_screen_->on_password_changed(callback);
 }
@@ -262,7 +256,8 @@ void user_interface::on_password_changed(
 // ==========================================================================
 // ON_PASSWORD_CHANGE_CANCELLED
 // ==========================================================================
-void user_interface::on_password_change_cancelled(function<void ()> callback)
+void user_interface::on_password_change_cancelled(
+    std::function<void ()> const &callback)
 {
     pimpl_->password_change_screen_->on_password_change_cancelled(callback);
 }
@@ -271,7 +266,7 @@ void user_interface::on_password_change_cancelled(function<void ()> callback)
 // ON_LOGIN
 // ==========================================================================
 void user_interface::on_login(
-    function<void (string, string)> callback)
+    std::function<void (std::string const &, std::string const &)> const &callback)
 {
     pimpl_->intro_screen_->on_login.connect(callback);
 }
@@ -279,7 +274,7 @@ void user_interface::on_login(
 // ==========================================================================
 // ON_NEW_ACCOUNT
 // ==========================================================================
-void user_interface::on_new_account(function<void ()> callback)
+void user_interface::on_new_account(std::function<void ()> const &callback)
 {
     pimpl_->intro_screen_->on_new_account.connect(callback);
 }
@@ -288,7 +283,10 @@ void user_interface::on_new_account(function<void ()> callback)
 // ON_ACCOUNT_CREATED
 // ==========================================================================
 void user_interface::on_account_created(
-    function<void (string, string, string)> callback)
+    std::function<
+        void (std::string const &, 
+              std::string const &, 
+              std::string const &)> const &callback)
 {
     pimpl_->account_creation_screen_->on_account_created(callback);
 }
@@ -296,7 +294,8 @@ void user_interface::on_account_created(
 // ==========================================================================
 // ON_ACCOUNT_CREATION_CANCELLED
 // ==========================================================================
-void user_interface::on_account_creation_cancelled(function<void ()> callback)
+void user_interface::on_account_creation_cancelled(
+    std::function<void ()> const &callback)
 {
     pimpl_->account_creation_screen_->on_account_creation_cancelled(callback);
 }
@@ -304,7 +303,8 @@ void user_interface::on_account_creation_cancelled(function<void ()> callback)
 // ==========================================================================
 // ON_INPUT_ENTERED
 // ==========================================================================
-void user_interface::on_input_entered(function<void (string)> callback)
+void user_interface::on_input_entered(
+    std::function<void (std::string const &)> const &callback)
 {
     pimpl_->main_screen_->on_input_entered(callback);
 }
@@ -312,7 +312,7 @@ void user_interface::on_input_entered(function<void (string)> callback)
 // ==========================================================================
 // ON_NEW_CHARACTER
 // ==========================================================================
-void user_interface::on_new_character(function<void ()> callback)
+void user_interface::on_new_character(std::function<void ()> const &callback)
 {
     pimpl_->character_selection_screen_->on_new_character(callback);
 }
@@ -320,7 +320,8 @@ void user_interface::on_new_character(function<void ()> callback)
 // ==========================================================================
 // ON_CHARACTER_SELECTED
 // ==========================================================================
-void user_interface::on_character_selected(function<void (string)> callback)
+void user_interface::on_character_selected(
+    std::function<void (std::string const &)> const &callback)
 {
     pimpl_->character_selection_screen_->on_character_selected(callback);
 }
@@ -329,7 +330,7 @@ void user_interface::on_character_selected(function<void (string)> callback)
 // ON_CHARACTER_CREATED
 // ==========================================================================
 void user_interface::on_character_created(
-    function<void (string, bool)> callback)
+    std::function<void (std::string const &, bool)> const &callback)
 {
     pimpl_->character_creation_screen_->on_character_created(callback);
 }
@@ -338,7 +339,7 @@ void user_interface::on_character_created(
 // ON_CHARACTER_CREATION_CANCELLED
 // ==========================================================================
 void user_interface::on_character_creation_cancelled(
-    function<void ()> callback)
+    std::function<void ()> const &callback)
 {
     pimpl_->character_creation_screen_->on_character_creation_cancelled(
         callback);
@@ -347,7 +348,7 @@ void user_interface::on_character_creation_cancelled(
 // ==========================================================================
 // ON_GM_TOOLS_BACK
 // ==========================================================================
-void user_interface::on_gm_tools_back(function<void ()> callback)
+void user_interface::on_gm_tools_back(std::function<void ()> const &callback)
 {
     pimpl_->gm_tools_screen_->on_back.connect(callback);
 }
@@ -356,7 +357,7 @@ void user_interface::on_gm_tools_back(function<void ()> callback)
 // ON_GM_FIGHT_BEAST
 // ==========================================================================
 void user_interface::on_gm_fight_beast(
-    function<void (shared_ptr<paradice::beast>)> callback)
+    std::function<void (std::shared_ptr<paradice::beast> const &)> const &callback)
 {
     pimpl_->gm_tools_screen_->on_fight_beast.connect(callback);
 }
@@ -365,7 +366,7 @@ void user_interface::on_gm_fight_beast(
 // ON_GM_FIGHT_ENCOUNTER
 // ==========================================================================
 void user_interface::on_gm_fight_encounter(
-    function<void (shared_ptr<paradice::encounter>)> callback)
+    std::function<void (std::shared_ptr<paradice::encounter> const &)> const &callback)
 {
     pimpl_->gm_tools_screen_->on_fight_encounter.connect(callback);
 }
@@ -389,7 +390,8 @@ void user_interface::hide_active_encounter_window()
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER
 // ==========================================================================
-void user_interface::set_active_encounter(shared_ptr<active_encounter> enc)
+void user_interface::set_active_encounter(
+    std::shared_ptr<paradice::active_encounter> const &enc)
 {
     pimpl_->main_screen_->set_active_encounter(enc);
 }
@@ -398,19 +400,18 @@ void user_interface::set_active_encounter(shared_ptr<active_encounter> enc)
 // SET_CHARACTER_NAMES
 // ==========================================================================
 void user_interface::set_character_names(        
-    vector< pair<string, string> > const &names)
+    std::vector<std::pair<std::string, std::string>> const &names)
 {
-    pimpl_->async(bind(
-        &character_selection_screen::set_character_names
-      , pimpl_->character_selection_screen_
-      , names));
+    pimpl_->async([pimpl_=pimpl_, names]{
+        pimpl_->character_selection_screen_->set_character_names(names);
+    });
 }
 
 // ==========================================================================
 // SET_BEASTS
 // ==========================================================================
 void user_interface::set_beasts(
-    vector< shared_ptr<beast> > beasts)
+    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
 {
     pimpl_->gm_tools_screen_->set_beasts(beasts);
 }
@@ -418,7 +419,7 @@ void user_interface::set_beasts(
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-vector< shared_ptr<beast> > user_interface::get_beasts() const
+std::vector<std::shared_ptr<paradice::beast>> user_interface::get_beasts() const
 {
     return pimpl_->gm_tools_screen_->get_beasts();
 }
@@ -427,7 +428,7 @@ vector< shared_ptr<beast> > user_interface::get_beasts() const
 // SET_ENCOUNTERS
 // ==========================================================================
 void user_interface::set_encounters(
-    vector< shared_ptr<encounter> > encounters)
+    std::vector<std::shared_ptr<paradice::encounter>> const &encounters)
 {
     pimpl_->gm_tools_screen_->set_encounters(encounters);
 }
@@ -435,7 +436,8 @@ void user_interface::set_encounters(
 // ==========================================================================
 // GET_ENCOUNTERS
 // ==========================================================================
-vector< shared_ptr<encounter> > user_interface::get_encounters() const
+std::vector<std::shared_ptr<paradice::encounter>> 
+user_interface::get_encounters() const
 {
     return pimpl_->gm_tools_screen_->get_encounters();
 }
@@ -443,50 +445,45 @@ vector< shared_ptr<encounter> > user_interface::get_encounters() const
 // ==========================================================================
 // SELECT_FACE
 // ==========================================================================
-void user_interface::select_face(string const &face_name)
+void user_interface::select_face(std::string const &face_name)
 {
-    pimpl_->async(bind(&impl::select_face, pimpl_, face_name)); 
+    pimpl_->async([pimpl_=pimpl_, face_name]{pimpl_->select_face(face_name);});
 }
 
 // ==========================================================================
 // ADD_OUTPUT_TEXT
 // ==========================================================================
-void user_interface::add_output_text(vector<element_type> const &text)
+void user_interface::add_output_text(std::vector<munin::element_type> const &text)
 {
-    pimpl_->async(bind(
-        &main_screen::add_output_text
-      , pimpl_->main_screen_
-      , text));
+    pimpl_->async([pimpl_=pimpl_, text]{
+        pimpl_->main_screen_->add_output_text(text);
+    });
 }
 
 // ==========================================================================
 // SET_STATUSBAR_TEXT
 // ==========================================================================
-void user_interface::set_statusbar_text(vector<element_type> const &text)
+void user_interface::set_statusbar_text(std::vector<munin::element_type> const &text)
 {
-    pimpl_->async(bind(&impl::set_statusbar_text, pimpl_, text));
+    pimpl_->async([pimpl_=pimpl_, text]{pimpl_->set_statusbar_text(text);});
 }
 
 // ==========================================================================
 // UPDATE_WHOLIST
 // ==========================================================================
-void user_interface::update_wholist(vector<string> const &names)
+void user_interface::update_wholist(std::vector<std::string> const &names)
 {
-    pimpl_->async(bind(
-        &main_screen::update_wholist
-      , pimpl_->main_screen_
-      , names));
+    pimpl_->async([pimpl_=pimpl_, names]{pimpl_->main_screen_->update_wholist(names);});
 }
 
 // ==========================================================================
 // ADD_COMMAND_HISTORY
 // ==========================================================================
-void user_interface::add_command_history(string const &history)
+void user_interface::add_command_history(std::string const &history)
 {
-    pimpl_->async(bind(
-        &main_screen::add_command_history
-      , pimpl_->main_screen_
-      , history));
+    pimpl_->async([pimpl_=pimpl_, history]{
+        pimpl_->main_screen_->add_command_history(history);
+    });
 }
 
 // ==========================================================================
@@ -494,7 +491,7 @@ void user_interface::add_command_history(string const &history)
 // ==========================================================================
 void user_interface::show_help_window()
 {
-    pimpl_->async(bind(&main_screen::show_help_window, pimpl_->main_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->main_screen_->show_help_window();});
 }
 
 // ==========================================================================
@@ -502,13 +499,13 @@ void user_interface::show_help_window()
 // ==========================================================================
 void user_interface::hide_help_window()
 {
-    pimpl_->async(bind(&main_screen::hide_help_window, pimpl_->main_screen_));
+    pimpl_->async([pimpl_=pimpl_]{pimpl_->main_screen_->hide_help_window();});
 }
 
 // ==========================================================================
 // ON_HELP_CLOSED
 // ==========================================================================
-void user_interface::on_help_closed(function<void ()> callback)
+void user_interface::on_help_closed(std::function<void ()> const &callback)
 {
     pimpl_->main_screen_->on_help_closed(callback);
 }
@@ -516,7 +513,7 @@ void user_interface::on_help_closed(function<void ()> callback)
 // ==========================================================================
 // SET_HELP_WINDOW_TEXT
 // ==========================================================================
-void user_interface::set_help_window_text(vector<element_type> const &text)
+void user_interface::set_help_window_text(std::vector<munin::element_type> const &text)
 {
     pimpl_->main_screen_->set_help_window_text(text);
 }

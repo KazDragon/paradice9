@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #ifndef MUNIN_DETAIL_STRING_TO_ELEMENTS_ADAPTOR_HPP_
 #define MUNIN_DETAIL_STRING_TO_ELEMENTS_ADAPTOR_HPP_
@@ -34,7 +34,7 @@
 #include <string>
 
 namespace munin { namespace detail {
-     
+
 // Because most of the attribute modifiers share types with each other in
 // one way or another, it's necessary to make some structs to differentiate
 // them in the variant.
@@ -49,7 +49,7 @@ struct character_set_directive
 {
     char character_set_;
 };
-    
+
 struct locale_directive
 {
     char locale_;
@@ -82,7 +82,7 @@ struct background_colour_directive
 
 // This variant is a list of all the things the parser can tell us to do.
 typedef boost::variant<
-    char           
+    char
   , default_directive
   , character_set_directive
   , locale_directive
@@ -92,7 +92,7 @@ typedef boost::variant<
   , foreground_colour_directive
   , background_colour_directive
 > string_to_elements_directive;
-    
+
 }}
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -127,7 +127,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     munin::attribute::low_colour
-  , (char, value_)
+  , (odin::ansi::graphics::colour, value_)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

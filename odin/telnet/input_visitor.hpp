@@ -29,9 +29,9 @@
 
 #include "odin/telnet/protocol.hpp"
 #include "odin/telnet/stream.hpp"
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/variant.hpp>
+#include <functional>
+#include <memory>
 #include <string>
 
 namespace odin { namespace telnet {
@@ -45,10 +45,10 @@ class input_visitor
 {
 public :
     input_visitor(
-        boost::shared_ptr<command_router> const        &command_router
-      , boost::shared_ptr<negotiation_router> const    &negotiation_router
-      , boost::shared_ptr<subnegotiation_router> const &subnegotiation_router
-      , boost::function<void (std::string)> const      &text_handler);
+        std::shared_ptr<command_router>           command_router,
+        std::shared_ptr<negotiation_router>       negotiation_router,
+        std::shared_ptr<subnegotiation_router>    subnegotiation_router,
+        std::function<void (std::string const &)> text_handler);
     
     ~input_visitor();
     
@@ -62,7 +62,7 @@ public :
     
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 // A helper function that applies the visitor to a range of values.

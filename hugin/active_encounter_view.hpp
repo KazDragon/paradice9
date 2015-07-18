@@ -57,11 +57,12 @@ public :
     //* =====================================================================
     /// \brief Sets the encounter that the view should work with.
     //* =====================================================================
-    void set_encounter(boost::shared_ptr<paradice::active_encounter> encounter);
+    void set_encounter(
+        std::shared_ptr<paradice::active_encounter> const &encounter);
 
 private :
     struct impl;
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
 };
 
 }

@@ -6,23 +6,23 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/named_frame.hpp"
 #include "munin/ansi/protocol.hpp"
@@ -33,15 +33,7 @@
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
 #include "odin/ansi/protocol.hpp"
-#include <boost/assign/list_of.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
-
-using namespace munin::ansi;
-using namespace odin;
-using namespace boost;
-using namespace boost::assign;
-using namespace std;
+#include <utility>
 
 namespace munin {
 
@@ -55,9 +47,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     title_bar(
-        vector<element_type>  title
-      , element_type const   &filler_element)
-        : title_(title)
+        std::vector<element_type>  title
+      , element_type const        &filler_element)
+        : title_(std::move(title))
         , filler_element_(filler_element)
     {
         set_can_focus(false);
@@ -66,10 +58,10 @@ public :
     // ======================================================================
     // SET_TITLE
     // ======================================================================
-    void set_title(vector<element_type> title)
+    void set_title(std::vector<element_type> const &title)
     {
         title_ = title;
-        on_redraw(list_of(rectangle(point(), get_size())));
+        on_redraw({rectangle(point(), get_size())});
     }
 
     // ======================================================================
@@ -98,19 +90,19 @@ protected :
     // ======================================================================
     // DO_SET_ATTRIBUTE
     // ======================================================================
-    void do_set_attribute(string const &name, any const &attr)
+    void do_set_attribute(std::string const &name, boost::any const &attr)
     {
         if (name == ATTRIBUTE_PEN)
         {
-            BOOST_AUTO(pen, any_cast<attribute>(&attr));
+            auto pen = boost::any_cast<attribute>(&attr);
 
-            if (pen != NULL)
+            if (pen != nullptr)
             {
                 filler_element_.attribute_ = *pen;
             }
         }
 
-        on_redraw(list_of(rectangle(point(), get_size())));
+        on_redraw({rectangle(point(), get_size())});
     }
 
 private :
@@ -121,12 +113,12 @@ private :
         canvas          &cvs
       , rectangle const &region)
     {
-        for (s32 y_coord = region.origin.y; 
-             y_coord < region.origin.y + region.size.height; 
+        for (odin::s32 y_coord = region.origin.y;
+             y_coord < region.origin.y + region.size.height;
              ++y_coord)
         {
-            for (s32 x_coord = region.origin.x; 
-                 x_coord < region.origin.x + region.size.width; 
+            for (odin::s32 x_coord = region.origin.x;
+                 x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
                 cvs[x_coord][y_coord] = filler_element_;
@@ -143,21 +135,21 @@ private :
     {
         static element_type const default_element(' ');
 
-        for (s32 y_coord = region.origin.y; 
-             y_coord < region.origin.y + region.size.height; 
+        for (odin::s32 y_coord = region.origin.y;
+             y_coord < region.origin.y + region.size.height;
              ++y_coord)
         {
-            for (s32 x_coord = region.origin.x; 
-                 x_coord < region.origin.x + region.size.width; 
+            for (odin::s32 x_coord = region.origin.x;
+                 x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                BOOST_AUTO(index, x_coord - 2);
+                auto index = x_coord - 2;
 
-                if (index == -1 || index == s32(title_.size()))
+                if (index == -1 || index == odin::s32(title_.size()))
                 {
                     cvs[x_coord][y_coord] = default_element;
                 }
-                else if (index >= 0 && index < s32(title_.size()))
+                else if (index >= 0 && index < odin::s32(title_.size()))
                 {
                     cvs[x_coord][y_coord] = title_[index];
                 }
@@ -165,8 +157,8 @@ private :
         }
     }
 
-    vector<element_type> title_;
-    element_type         filler_element_;
+    std::vector<element_type> title_;
+    element_type              filler_element_;
 };
 
 // ==========================================================================
@@ -180,15 +172,15 @@ public :
         , closeable_(false)
     {
     }
-    
+
     // ======================================================================
     // SET_NAME
     // ======================================================================
-    void set_name(vector<element_type> name)
+    void set_name(std::vector<element_type> const &name)
     {
         title_bar_->set_title(name);
     }
-    
+
     // ======================================================================
     // SET_CLOSEABLE
     // ======================================================================
@@ -199,8 +191,8 @@ public :
         if (closeable_)
         {
             attribute pen;
-            pen.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
-            pen.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
+            pen.foreground_colour_ = odin::ansi::graphics::colour::red;
+            pen.intensity_ = odin::ansi::graphics::intensity::bold;
 
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, single_lined_top_right_corner);
@@ -214,23 +206,23 @@ public :
             top_right_->set_attribute(ATTRIBUTE_PEN,   attribute());
         }
     }
-    
+
     // ======================================================================
     // HANDLE_MOUSE_CLICK
     // ======================================================================
     bool handle_mouse_click(odin::ansi::mouse_report const *report)
     {
         bool handled = false;
-        
+
         // If we're closeable, then check to see if the close button has been
         // pressed.  If so, fire the close signal.
         if (closeable_)
         {
-            BOOST_AUTO(position, self_.get_position());
-            BOOST_AUTO(size,     self_.get_size());
-            
+            auto position = self_.get_position();
+            auto size =     self_.get_size();
+
             point close_button((position.x + size.width) - 1, 0);
-            
+
             if (report->x_position_ == close_button.x
              && report->y_position_ == close_button.y)
             {
@@ -238,33 +230,34 @@ public :
                 handled = true;
             }
         }
-        
+
         return handled;
     }
-    
-    named_frame                 &self_;
-    shared_ptr<title_bar>        title_bar_;
-    shared_ptr<component>        top_right_;
-    bool                         closeable_;
+
+    named_frame                &self_;
+    std::shared_ptr<title_bar>  title_bar_;
+    std::shared_ptr<component>  top_right_;
+    bool                        closeable_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 named_frame::named_frame()
-    : basic_frame(
-          make_shared<filled_box>(element_type(double_lined_top_left_corner))
-        , make_shared<title_bar>(
-              elements_from_string(""), element_type(double_lined_horizontal_beam))
-        , make_shared<filled_box>(element_type(double_lined_top_right_corner))
-        , make_shared<filled_box>(element_type(double_lined_vertical_beam))
-        , make_shared<filled_box>(element_type(double_lined_vertical_beam))
-        , make_shared<filled_box>(element_type(double_lined_bottom_left_corner))
-        , make_shared<filled_box>(element_type(double_lined_horizontal_beam))
-        , make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
+  : basic_frame(
+        std::make_shared<filled_box>(element_type(double_lined_top_left_corner)),
+        std::make_shared<title_bar>(
+              munin::ansi::elements_from_string(""),
+              element_type(double_lined_horizontal_beam)),
+        std::make_shared<filled_box>(element_type(double_lined_top_right_corner)),
+        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
+        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
+        std::make_shared<filled_box>(element_type(double_lined_bottom_left_corner)),
+        std::make_shared<filled_box>(element_type(double_lined_horizontal_beam)),
+        std::make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
 {
-    pimpl_ = make_shared<impl>(ref(*this));
-    pimpl_->title_bar_ = dynamic_pointer_cast<title_bar>(get_top_component());
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
+    pimpl_->title_bar_ = std::dynamic_pointer_cast<title_bar>(get_top_component());
     pimpl_->top_right_ = get_top_right_component();
 }
 
@@ -278,18 +271,18 @@ named_frame::~named_frame()
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void named_frame::set_name(string const &name)
+void named_frame::set_name(std::string const &name)
 {
-    set_name(elements_from_string(name));
+    set_name(munin::ansi::elements_from_string(name));
 }
 
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void named_frame::set_name(vector<element_type> name)
+void named_frame::set_name(std::vector<element_type> name)
 {
-    pimpl_->set_name(name);
-    on_redraw(list_of(rectangle(point(), extent(get_size().width, 1))));
+    pimpl_->set_name(std::move(name));
+    on_redraw({rectangle(point(), extent(get_size().width, 1))});
 }
 
 // ==========================================================================
@@ -303,18 +296,18 @@ void named_frame::set_closeable(bool closeable)
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void named_frame::do_event(any const &event)
+void named_frame::do_event(boost::any const &event)
 {
     bool handled = false;
-    
+
     odin::ansi::mouse_report const *report =
-        any_cast<odin::ansi::mouse_report>(&event);
-     
-    if (report != NULL)
+        boost::any_cast<odin::ansi::mouse_report>(&event);
+
+    if (report != nullptr)
     {
         handled = pimpl_->handle_mouse_click(report);
     }
-    
+
     if (!handled)
     {
         composite_component::do_event(event);

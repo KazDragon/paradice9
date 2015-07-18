@@ -27,19 +27,15 @@
 #include "paradice9.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
-#include <boost/thread.hpp>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
-
-using namespace std;
-using namespace boost;
 
 namespace po = boost::program_options;
 
-static void run_io_service(asio::io_service &io_service)
+static void run_io_service(boost::asio::io_service &io_service)
 {
     io_service.run();
 }
@@ -47,14 +43,14 @@ static void run_io_service(asio::io_service &io_service)
 int main(int argc, char *argv[])
 {
     unsigned int port        = 4000;
-    string       threads     = "";
+    std::string  threads     = "";
     unsigned int concurrency = 0;
     
     po::options_description description("Available options");
     description.add_options()
         ( "help,h",                                       "show this help message"                            )
         ( "port,p",    po::value<unsigned int>(&port),    "port number"                                       )
-        ( "threads,t", po::value<string>(&threads),       "number of threads of execution (0 for autodetect)" )
+        ( "threads,t", po::value<std::string>(&threads),  "number of threads of execution (0 for autodetect)" )
         ;
 
     po::positional_options_description pos_description;
@@ -89,7 +85,7 @@ int main(int argc, char *argv[])
         {
             try
             {
-                concurrency = lexical_cast<unsigned int>(threads);
+                concurrency = boost::lexical_cast<unsigned int>(threads);
             }
             catch(...)
             {
@@ -99,7 +95,7 @@ int main(int argc, char *argv[])
             
             if (concurrency == 0)
             {
-                concurrency = thread::hardware_concurrency();
+                concurrency = std::thread::hardware_concurrency();
             }
 
             // According to the Boost docs, "thread::hardware_concurrency()" 
@@ -116,45 +112,42 @@ int main(int argc, char *argv[])
     {
         if (strlen(err.what()) == 0)
         {
-            cout << format("USAGE: %s <port number>|<options>\n")
+            std::cout << boost::format("USAGE: %s <port number>|<options>\n")
                         % argv[0]
                  << description
-                 << endl;
+                 << std::endl;
                  
             return EXIT_SUCCESS;
         }
         else
         {
-            cerr << format("ERROR: %s\n\nUSAGE: %s <port number>|<options>\n")
+            std::cerr << boost::format("ERROR: %s\n\nUSAGE: %s <port number>|<options>\n")
                         % err.what()
                         % argv[0]
                  << description
-                 << endl;
+                 << std::endl;
         }
         
         return EXIT_FAILURE;
     }
 
-    asio::io_service io_service;
+    boost::asio::io_service io_service;
     
     paradice9 application(
         io_service
-      , make_shared<asio::io_service::work>(ref(io_service))
+      , std::make_shared<boost::asio::io_service::work>(std::ref(io_service))
       , port);
  
-    vector< shared_ptr<thread> > threadpool;
+    std::vector<std::thread> threadpool;
 
     for (unsigned int thr = 0; thr < concurrency; ++thr)
     {
-        threadpool.push_back(
-            make_shared<thread>(&run_io_service, ref(io_service)));
+        threadpool.emplace_back(&run_io_service, std::ref(io_service));
     }
     
-    for (vector< shared_ptr<thread> >::iterator pthread = threadpool.begin();
-         pthread != threadpool.end();
-         ++pthread)
+    for (auto &pthread : threadpool)
     {
-        (*pthread)->join();
+        pthread.join();
     }
     
     io_service.stop();

@@ -13,7 +13,7 @@ For example:
   * Ubuntu Linux, using Clang 3.4 or above
 
 This is tested automatically on the following platforms:
-  * Ubuntu Linux, using Clang 3.4 on Travis-CI: <img src='https://travis-ci.org/KazDragon/paradice9.svg?branch=master' />
+  * Ubuntu Linux, using Clang 3.4 on Travis-CI: [![Build Status](https://travis-ci.org/KazDragon/paradice9.svg?branch=master)](https://travis-ci.org/KazDragon/paradice9)
 
 It requires the following supporting libraries:
   * The Boost Libraries (www.boost.org)

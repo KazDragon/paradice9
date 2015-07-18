@@ -31,7 +31,7 @@ target_link_libraries(
     paradice_tester
     odin
     cppunit
-    ${BOOST_SYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
 )
 
 add_test(paradice_test paradice_tester)

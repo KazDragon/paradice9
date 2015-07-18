@@ -4,7 +4,16 @@ project(paradice-9)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-find_package(Boost REQUIRED)
+find_package(Boost 
+    REQUIRED
+    COMPONENTS
+        filesystem
+        program_options
+        random
+        serialization
+        signals
+        system)
+
 find_package(Crypto++ REQUIRED)
 
 enable_testing()

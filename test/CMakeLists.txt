@@ -42,4 +42,3 @@ if (CPPUNIT_FOUND)
         cotire(paradice_tester)
     endif()
 endif()
-

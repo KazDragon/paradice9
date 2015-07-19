@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Filled Box.
+// Munin Basic Model.
 //
-// Copyright (C) 2014 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2015 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,65 +24,66 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "yggdrasil/munin/filled_box.hpp"
-#include "yggdrasil/munin/canvas.hpp"
-#include "yggdrasil/munin/element.hpp"
-#include "yggdrasil/munin/model.hpp"
-#include "yggdrasil/munin/rectangle.hpp"
-
+#include "yggdrasil/munin/basic_model.hpp"
 namespace yggdrasil { namespace munin {
-
+    
 // ==========================================================================
-// CONSTRUCTOR
+// EVENT
 // ==========================================================================
-filled_box::filled_box()
-  : filled_box(element(' '))
+boost::any basic_model::event(boost::any const &ev)
 {
+    return {};
 }
 
 // ==========================================================================
-// CONSTRUCTOR
+// SET_SIZE
 // ==========================================================================
-filled_box::filled_box(element brush)
+void basic_model::set_size(extent const &size)
 {
-    set_property(model_, "brush", brush);
+    size_ = size;
 }
 
 // ==========================================================================
-// DRAW
+// GET_SIZE
 // ==========================================================================
-void filled_box::draw(canvas& cvs, const rectangle& region) const
+extent basic_model::get_size() const
 {
-    auto brush = 
-        boost::any_cast<element>(get_property(model_, "brush"));
-
-    for (auto y = region.origin.y;
-         y < region.origin.y + region.size.height;
-         ++y)
-    {
-        for (auto x = region.origin.x;
-             x < region.origin.x + region.size.width;
-             ++x)
-        {
-            cvs[x][y] = brush;
-        }
-    }
+    return size_;
 }
 
 // ==========================================================================
-// GET_MODEL
+// GET_PREFERRED_SIZE
 // ==========================================================================
-basic_model const &filled_box::get_model() const
+extent basic_model::get_preferred_size() const
 {
-    return model_;
+    return {};
 }
 
 // ==========================================================================
-// GET_MODEL
+// GET_PROPERTY
 // ==========================================================================
-basic_model &filled_box::get_model()
+boost::any basic_model::get_property(std::string const &name) const
 {
-    return model_;
+    auto it = properties_.find(name);
+    return it == properties_.end() ? boost::any{} : it->second;
 }
 
+// ==========================================================================
+// SET_PROPERTY
+// ==========================================================================
+void basic_model::set_property(
+    std::string const &name, boost::any const &value)
+{
+    properties_[name] = value;
+}
+
+// ==========================================================================
+// GET_SIGNAL
+// ==========================================================================
+boost::any basic_model::get_signal(std::string const &name) const
+{
+    auto it = signals_.find(name);
+    return it == signals_.end() ? boost::any{} : it->second;
+}
+    
 }}

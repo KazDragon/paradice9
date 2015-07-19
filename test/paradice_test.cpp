@@ -1,11 +1,25 @@
+#include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TextTestRunner.h>
 #include <cstdlib>
 
 int main()
 {
-    CppUnit::TextTestRunner runner;
+    CppUnit::TestResult controller;
+
+    CppUnit::TestResultCollector result;
+    controller.addListener( &result );        
+
+    CppUnit::BriefTestProgressListener progressListener;
+    controller.addListener( &progressListener );
+
+    CppUnit::TestRunner runner;
     runner.addTest(CppUnit::TestFactoryRegistry::getRegistry().makeTest());
     
-    return runner.run() ? EXIT_SUCCESS : EXIT_FAILURE;
+    runner.run(controller);
+    
+    return result.wasSuccessful() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

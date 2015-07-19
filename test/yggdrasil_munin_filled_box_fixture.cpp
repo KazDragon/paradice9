@@ -10,7 +10,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(yggdrasil_munin_filled_box_fixture);
 
 void yggdrasil_munin_filled_box_fixture::test_default_constructor()
 {
-    auto box = yggdrasil::munin::filled_box();
+    auto box = std::move(yggdrasil::munin::filled_box());
 }
 
 void yggdrasil_munin_filled_box_fixture::test_element_constructor()
@@ -26,7 +26,7 @@ void yggdrasil_munin_filled_box_fixture::test_filled_box_is_component()
 void yggdrasil_munin_filled_box_fixture::test_size()
 {
     auto box = yggdrasil::munin::filled_box(yggdrasil::munin::element('#'));
-    auto model = box.get_model();
+    auto &model = box.get_model();
     
     set_size(model, yggdrasil::munin::extent(3, 2));
     

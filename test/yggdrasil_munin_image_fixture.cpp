@@ -41,16 +41,23 @@ void yggdrasil_munin_image_fixture::test_size()
 void yggdrasil_munin_image_fixture::test_background_brush()
 {
     auto image = yggdrasil::munin::image();
-    auto &model = image.get_model();
-
+    auto model = yggdrasil::munin::model{image.get_model()};
+    auto background_brush = 
+        boost::any_cast<yggdrasil::munin::element>(
+            get_property(model, "background_brush"));
+        
     CPPUNIT_ASSERT_EQUAL(
-        yggdrasil::munin::element(' '), model.get_background_brush());
+        yggdrasil::munin::element(' '), background_brush);
 
     auto const new_brush = yggdrasil::munin::element('#');
 
-    model.set_background_brush(new_brush);
+    set_property(model, "background_brush", new_brush);
 
-    CPPUNIT_ASSERT_EQUAL(new_brush, model.get_background_brush());
+    auto new_background_brush =
+        boost::any_cast<yggdrasil::munin::element>(
+            get_property(model, "background_brush"));
+        
+    CPPUNIT_ASSERT_EQUAL(new_brush, new_background_brush);
 }
 
 void yggdrasil_munin_image_fixture::test_set_image()
@@ -59,10 +66,14 @@ void yggdrasil_munin_image_fixture::test_set_image()
 
     {
         auto image = yggdrasil::munin::image();
-        auto &model = image.get_model();
+        auto model = yggdrasil::munin::model{image.get_model()};
 
+        auto value = 
+            boost::any_cast<std::vector<yggdrasil::munin::estring>>(
+                get_property(model, "value"));
+            
         CPPUNIT_ASSERT(
-            std::vector<yggdrasil::munin::estring>() == model.get_image());
+            std::vector<yggdrasil::munin::estring>{} == value);
     }
 
     {
@@ -73,14 +84,17 @@ void yggdrasil_munin_image_fixture::test_set_image()
         };
 
         auto image = yggdrasil::munin::image(im);
-        auto &model = image.get_model();
+        auto model = yggdrasil::munin::model{image.get_model()};
+        auto value = 
+            boost::any_cast<std::vector<yggdrasil::munin::estring>>(
+                get_property(model, "value"));
 
-        CPPUNIT_ASSERT(im == model.get_image());
+        CPPUNIT_ASSERT(im == value);
     }
 
     {
         auto image = yggdrasil::munin::image();
-        auto &model = image.get_model();
+        auto model = yggdrasil::munin::model{image.get_model()};
 
         auto const im = std::vector<yggdrasil::munin::estring> {
             "foo"_es,
@@ -88,9 +102,13 @@ void yggdrasil_munin_image_fixture::test_set_image()
             "baz"_es
         };
 
-        model.set_image(im);
+        set_property(model, "value", im);
 
-        CPPUNIT_ASSERT(im == model.get_image());
+        auto value = 
+            boost::any_cast<std::vector<yggdrasil::munin::estring>>(
+                get_property(model, "value"));
+            
+        CPPUNIT_ASSERT(im == value);
     }
 }
 

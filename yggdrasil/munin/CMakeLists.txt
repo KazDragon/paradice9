@@ -1,5 +1,6 @@
 set (yggdrasil_munin_SOURCES
     attribute.cpp
+    basic_model.cpp
     canvas.cpp
     detail/string_to_elements.cpp
     element.cpp

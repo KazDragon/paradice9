@@ -29,6 +29,7 @@
 
 #include "yggdrasil/munin/element.hpp"
 #include "yggdrasil/munin/extent.hpp"
+#include "yggdrasil/munin/basic_model.hpp"
 #include <boost/any.hpp>
 
 namespace yggdrasil { namespace munin {
@@ -43,41 +44,6 @@ class rectangle;
 //* =========================================================================
 class filled_box
 {
-public :
-    //* =====================================================================
-    /// \brief A model specialization for a filled box.
-    //* =====================================================================
-    struct filled_box_model
-    {
-        //* =================================================================
-        /// \brief Constructor
-        //* =================================================================
-        filled_box_model(element brush);
-
-        //* =================================================================
-        /// \brief Sends an event to the model.
-        //* =================================================================
-        boost::any event(boost::any const &event);
-
-        //* =================================================================
-        /// \brief Sets the size of the component.
-        //* =================================================================
-        void set_size(extent const &size);
-
-        //* =================================================================
-        /// \brief Returns the size of the component.
-        //* =================================================================
-        extent const &get_size() const;
-
-        //* =================================================================
-        /// \brief Returns the preferred size of the component.
-        //* =================================================================
-        extent const &get_preferred_size() const;
-
-        element brush_;
-        extent size_;
-    };
-
 public :
     //* =====================================================================
     /// \brief Constructor
@@ -97,11 +63,15 @@ public :
     //* =====================================================================
     /// \brief Returns the component's model.
     //* =====================================================================
-    filled_box_model &get_model();
+    basic_model const &get_model() const;
 
+    //* =====================================================================
+    /// \brief Returns the component's model.
+    //* =====================================================================
+    basic_model &get_model();
 
 private :
-    filled_box_model model_;
+    basic_model model_;
 };
 
 }}

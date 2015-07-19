@@ -42,13 +42,22 @@ MEMBER_THUNK(event);
 MEMBER_THUNK(set_size);
 MEMBER_THUNK(get_size);
 MEMBER_THUNK(get_preferred_size);
+MEMBER_THUNK(get_property);
+MEMBER_THUNK(set_property);
+MEMBER_THUNK(get_signal);
 
 //* =========================================================================
 /// \brief A conceptual UI "model".  
 /// \par 
 /// A model represents the data required in order to represent the component
 /// on the screen.  Classes that model the "component" concept have a small
-/// set of common functions: they have a size, and they can accept events.
+/// set of properties that are common to all components:
+///   * They have a mutable name.
+///   * They have a mutable size.
+///   * They know what size they would prefer to be.
+///   * They can accept events.
+///   * They have a mutable set of named properties.
+///   * They have a set of named signals.
 /// Classes themselves can further expand on the model, so long as their
 /// models fulfil the model concept.
 //* =========================================================================
@@ -69,6 +78,9 @@ public :
     FRIEND_THUNK(set_size);
     FRIEND_THUNK(get_size);
     FRIEND_THUNK(get_preferred_size);
+    FRIEND_THUNK(set_property);
+    FRIEND_THUNK(get_property);
+    FRIEND_THUNK(get_signal);
     
 private :
     //* =====================================================================
@@ -95,12 +107,28 @@ private :
         //* =================================================================
         /// \brief Return the size of the component.
         //* =================================================================
-        virtual extent const &get_size_() const = 0;
+        virtual extent get_size_() const = 0;
 
         //* =================================================================
         /// \brief Returns the size that the component would prefer to have.
         //* =================================================================
-        virtual extent const &get_preferred_size_() const = 0;
+        virtual extent get_preferred_size_() const = 0;
+
+        //* =================================================================
+        /// \brief Sets a property to have a specific value.
+        //* =================================================================
+        virtual void set_property_(
+            std::string const &name, boost::any const &value) = 0;
+
+        //* =================================================================
+        /// \brief Returns a property with a specific name.
+        //* =================================================================
+        virtual boost::any get_property_(std::string const &name) const = 0;
+        
+        //* =================================================================
+        /// \brief Returns a signal with a specific name.
+        //* =================================================================
+        virtual boost::any get_signal_(std::string const &name) const = 0;
     };
     
     //* =====================================================================
@@ -138,7 +166,7 @@ private :
         //* =================================================================
         /// \brief Return the size of the component.
         //* =================================================================
-        virtual extent const &get_size_() const override
+        virtual extent get_size_() const override
         {
             return model_.get_size();
         }
@@ -146,9 +174,36 @@ private :
         //* =================================================================
         /// \brief Returns the size that the component would prefer to have.
         //* =================================================================
-        virtual extent const &get_preferred_size_() const
+        virtual extent get_preferred_size_() const override
         {
             return model_.get_preferred_size();
+        }
+        
+        //* =================================================================
+        /// \brief Sets a property to have a specific value.
+        //* =================================================================
+        virtual void set_property_(
+            std::string const &name, boost::any const &value) override
+        {
+            model_.set_property(name, value);
+        }
+
+        //* =================================================================
+        /// \brief Returns a property with a specific name.
+        //* =================================================================
+        virtual boost::any get_property_(
+            std::string const &name) const override
+        {
+            return model_.get_property(name);
+        }
+        
+        //* =================================================================
+        /// \brief Returns a signal with a specific name.
+        //* =================================================================
+        virtual boost::any get_signal_(
+            std::string const &name) const override
+        {
+            return model_.get_signal(name);
         }
         
         Model model_;

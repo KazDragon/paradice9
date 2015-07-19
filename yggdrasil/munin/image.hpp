@@ -27,6 +27,7 @@
 #ifndef YGGDRASIL_MUNIN_IMAGE_HPP_
 #define YGGDRASIL_MUNIN_IMAGE_HPP_
 
+#include "yggdrasil/munin/basic_model.hpp"
 #include "yggdrasil/munin/estring.hpp"
 #include "yggdrasil/munin/extent.hpp"
 #include <boost/any.hpp>
@@ -46,66 +47,6 @@ class image
 {
 public :
     //* =====================================================================
-    /// \brief A model specialization for an image.
-    //* =====================================================================
-    struct image_model
-    {
-        //* =================================================================
-        /// \brief Constructor
-        //* =================================================================
-        image_model(std::vector<estring> im);
-
-        //* =================================================================
-        /// \brief Sends an event to the model.
-        //* =================================================================
-        boost::any event(boost::any const &event);
-
-        //* =================================================================
-        /// \brief Sets the size of the component.
-        //* =================================================================
-        void set_size(extent const &size);
-
-        //* =================================================================
-        /// \brief Returns the size of the component.
-        //* =================================================================
-        extent const &get_size() const;
-
-        //* =================================================================
-        /// \brief Returns the preferred size of the component.
-        //* =================================================================
-        extent const &get_preferred_size() const;
-
-        //* =================================================================
-        /// \brief Returns the background brush size of the image; the
-        /// brush to use if the image data is smaller than its actual
-        /// size.
-        //* =================================================================
-        element const &get_background_brush() const;
-
-        //* =================================================================
-        /// \brief Sets the background brush of the image.
-        //* =================================================================
-        void set_background_brush(element const &brush);
-
-        //* =================================================================
-        /// \brief Returns an array of estring which represents the image
-        /// line-by-line.
-        //* =================================================================
-        std::vector<estring> const &get_image() const;
-
-        //* =================================================================
-        /// \brief Sets the content of the image.
-        //* =================================================================
-        void set_image(std::vector<estring> const &im);
-
-    private :
-        std::vector<estring> image_;
-        element background_brush_;
-        extent size_;
-    };
-
-public :
-    //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
     image();
@@ -123,10 +64,10 @@ public :
     //* =====================================================================
     /// \brief Returns the component's model.
     //* =====================================================================
-    image_model &get_model();
+    basic_model &get_model();
 
 private :
-    image_model model_;
+    basic_model model_;
 };
 
 }}

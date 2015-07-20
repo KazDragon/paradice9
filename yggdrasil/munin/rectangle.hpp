@@ -43,22 +43,47 @@ struct rectangle
     /// \par
     /// Constructs the rectangle, leaving the origin and size uninitialised.
     //* =====================================================================
-    rectangle();
+    constexpr rectangle() = default;
 
     //* =====================================================================
     /// \brief Constructor
     /// \par
     /// Constructs the rectangle, using the specified origin and size.
     //* =====================================================================
-    rectangle(point origin, extent size);
-    
+    constexpr rectangle(point org, extent sz)
+      : origin(org),
+        size(sz)
+    {
+    }
+
     point  origin;
     extent size;
 };
 
-bool operator==(rectangle const &lhs, rectangle const &rhs);
-bool operator!=(rectangle const &lhs, rectangle const &rhs);
-rectangle operator+(point const &pt, extent const &ext);
+// ==========================================================================
+// OPERATOR+(POINT,EXTENT)
+// ==========================================================================
+constexpr rectangle operator+(point const &pt, extent const &ext)
+{
+    return rectangle(pt, ext);
+}
+
+// ==========================================================================
+// OPERATOR==(RECTANGLE,RECTANGLE)
+// ==========================================================================
+constexpr bool operator==(rectangle const &lhs, rectangle const &rhs)
+{
+    return lhs.origin == rhs.origin && lhs.size == rhs.size;
+}
+
+// ==========================================================================
+// OPERATOR!=(RECTANGLE,RECTANGLE)
+// ==========================================================================
+constexpr bool operator!=(rectangle const &lhs, rectangle const &rhs)
+{
+    return !(lhs == rhs);
+}
+
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
 
 

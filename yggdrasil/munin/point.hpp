@@ -46,7 +46,11 @@ struct point
     /// \par
     /// Constructs a point, leaving the values uninitialised.
     //* =====================================================================
-    point();
+    constexpr point()
+      : x(0),
+        y(0)
+    {
+    }
     
     //* =====================================================================
     /// \brief Constructor
@@ -54,26 +58,68 @@ struct point
     /// Constructs a point from a passed in x co-ordinate and a passed in
     /// y co-ordinate.
     //* =====================================================================
-    point(yggdrasil::s32 x_coordinate, yggdrasil::s32 y_coordinate);
+    constexpr point(yggdrasil::s32 x_coordinate, yggdrasil::s32 y_coordinate)
+      : x(x_coordinate),
+        y(y_coordinate)
+    {
+    }
     
     //* =====================================================================
     /// \brief Addition
     //* =====================================================================
-    point &operator+=(point const &rhs);
+    constexpr point &operator+=(point const &rhs)
+    {
+        x += rhs.x;
+        y += rhs.y;
+        return *this;
+    }
     
     //* =====================================================================
     /// \brief Subtraction
     //* =====================================================================
-    point &operator-=(point const &rhs);
+    constexpr point &operator-=(point const &rhs)
+    {
+        x -= rhs.x;
+        y -= rhs.y;
+        return *this;
+    }
     
     yggdrasil::s32 x;
     yggdrasil::s32 y;
 };
 
-bool operator==(point const &lhs, point const &rhs);
-bool operator!=(point const &lhs, point const &rhs);
-point operator+(point lhs, point const &rhs);
-point operator-(point lhs, point const &rhs);
+// ==========================================================================
+// OPERATOR==(POINT,POINT)
+// ==========================================================================
+constexpr bool operator==(point const &lhs, point const &rhs)
+{
+    return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
+// ==========================================================================
+// OPERATOR!=(POINT,POINT)
+// ==========================================================================
+constexpr bool operator!=(point const &lhs, point const &rhs)
+{
+    return !(lhs == rhs);
+}
+
+// ==========================================================================
+// OPERATOR+(POINT,POINT)
+// ==========================================================================
+constexpr point operator+(point lhs, point const &rhs)
+{
+    return lhs += rhs;
+}
+
+// ==========================================================================
+// OPERATOR-(POINT,POINT)
+// ==========================================================================
+constexpr point operator-(point lhs, point const &rhs)
+{
+    return lhs -= rhs;
+}
+
 std::ostream& operator<<(std::ostream &out, point const &pt);
     
 }}

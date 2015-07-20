@@ -31,46 +31,6 @@
 namespace yggdrasil { namespace munin {
 
 // ==========================================================================
-// RECTANGLE CONSTRUCTOR
-// ==========================================================================
-rectangle::rectangle()
-{
-}
-
-// ==========================================================================
-// RECTANGLE CONSTRUCTOR
-// ==========================================================================
-rectangle::rectangle(point org, extent sz)
-  : origin(std::move(org)),
-    size(std::move(sz))
-{
-}
-
-// ==========================================================================
-// OPERATOR+(POINT,EXTENT)
-// ==========================================================================
-rectangle operator+(point const &pt, extent const &ext)
-{
-    return rectangle(pt, ext);
-}
-
-// ==========================================================================
-// OPERATOR==(RECTANGLE,RECTANGLE)
-// ==========================================================================
-bool operator==(rectangle const &lhs, rectangle const &rhs)
-{
-    return lhs.origin == rhs.origin && lhs.size == rhs.size;
-}
-
-// ==========================================================================
-// OPERATOR!=(RECTANGLE,RECTANGLE)
-// ==========================================================================
-bool operator!=(rectangle const &lhs, rectangle const &rhs)
-{
-    return !(lhs == rhs);
-}
-
-// ==========================================================================
 // OSTREAM << RECTANGLE
 // ==========================================================================
 std::ostream &operator<<(std::ostream &out, rectangle const &rect)

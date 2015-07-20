@@ -29,6 +29,7 @@
 
 #include <iosfwd>
 #include "yggdrasil/bragi/ansi/protocol.hpp"
+#include "yggdrasil/munin/detail/printable_glyphs.hpp"
 
 namespace yggdrasil { namespace munin {
 
@@ -41,10 +42,15 @@ struct glyph
     //* =====================================================================
     /// \brief Default Constructor
     //* =====================================================================
-    glyph(
+    constexpr glyph(
         char character     = ' ',
         char character_set = character_set::CHARACTER_SET_G0,
-        char locale        = character_set::LOCALE_US_ASCII);
+        char locale        = character_set::LOCALE_US_ASCII)
+      : character_(character),
+        character_set_(character_set),
+        locale_(locale)
+    {
+    }
 
     // Character
     char character_;
@@ -54,15 +60,80 @@ struct glyph
     char locale_;
 };
 
-bool operator==(glyph const &lhs, glyph const &rhs);
-bool operator!=(glyph const &lhs, glyph const &rhs);
+// ==========================================================================
+// OPERATOR==
+// ==========================================================================
+constexpr bool operator==(glyph const &lhs, glyph const &rhs)
+{
+    return lhs.character_     == rhs.character_
+        && lhs.character_set_ == rhs.character_set_
+        && lhs.locale_        == rhs.locale_;
+}
+
+// ==========================================================================
+// OPERATOR!=
+// ==========================================================================
+constexpr bool operator!=(glyph const &lhs, glyph const &rhs)
+{
+    return !(lhs == rhs);
+}
 
 std::ostream &operator<<(std::ostream &out, glyph const &attr);
 
 //* =========================================================================
 /// \brief Returns whether a particular glyph is printable.
 //* =========================================================================
-bool is_printable(glyph const &gly);
+constexpr bool is_printable(glyph const &gly)
+{
+    bool const *lookup = ::yggdrasil::munin::detail::is_printable_g0_dec;
+
+    switch (gly.character_set_)
+    {
+    case character_set::CHARACTER_SET_G0:
+        switch (gly.locale_)
+        {
+        case character_set::LOCALE_DEC:
+            lookup = ::yggdrasil::munin::detail::is_printable_g0_dec;
+            break;
+
+        case character_set::LOCALE_UK:
+            lookup = ::yggdrasil::munin::detail::is_printable_g0_uk;
+            break;
+
+        case character_set::LOCALE_US_ASCII:
+            lookup = ::yggdrasil::munin::detail::is_printable_g0_us_ascii;
+            break;
+
+        case character_set::LOCALE_SCO:
+            lookup = ::yggdrasil::munin::detail::is_printable_g0_sco;
+            break;
+        }
+        break;
+
+    case character_set::CHARACTER_SET_G1:
+        switch (gly.locale_)
+        {
+        case character_set::LOCALE_DEC:
+            lookup = ::yggdrasil::munin::detail::is_printable_g1_dec;
+            break;
+
+        case character_set::LOCALE_UK:
+            lookup = ::yggdrasil::munin::detail::is_printable_g1_uk;
+            break;
+
+        case character_set::LOCALE_US_ASCII:
+            lookup = ::yggdrasil::munin::detail::is_printable_g1_us_ascii;
+            break;
+
+        case character_set::LOCALE_SCO:
+            lookup = ::yggdrasil::munin::detail::is_printable_g1_sco;
+            break;
+        }
+        break;
+    }
+
+    return lookup[::yggdrasil::u8(gly.character_)];
+}
 
 }}
 

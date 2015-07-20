@@ -47,7 +47,11 @@ struct extent
     /// \par
     /// Constructs an extent, leaving the width and height zeroed.
     //* =====================================================================
-    extent();
+    constexpr extent()
+      : width(0),
+        height(0)
+    {
+    }
     
     //* =====================================================================
     /// \brief Constructor
@@ -55,26 +59,68 @@ struct extent
     /// Constructs an extent with width and height being set to the passed-in
     /// arguments.
     //* =====================================================================
-    extent(yggdrasil::s32 width, yggdrasil::s32 height);
+    constexpr extent(yggdrasil::s32 w, yggdrasil::s32 h)
+      : width(w),
+        height(h)
+    {
+    }
     
     //* =====================================================================
     /// \brief Addition
     //* =====================================================================
-    extent &operator+=(extent const &rhs);
+    constexpr extent &operator+=(extent const &rhs)
+    {
+        width  += rhs.width;
+        height += rhs.height;
+        return *this;
+    }
     
     //* =====================================================================
     /// \brief Subtraction
     //* =====================================================================
-    extent &operator-=(extent const &rhs);
+    constexpr extent &operator-=(extent const &rhs)
+    {
+        width  -= rhs.width;
+        height -= rhs.height;
+        return *this;
+    }
     
     yggdrasil::s32 width;
     yggdrasil::s32 height;
 };
 
-bool operator==(extent const &lhs, extent const &rhs);
-bool operator!=(extent const &lhs, extent const &rhs);
-extent operator+(extent lhs, extent const &rhs);
-extent operator-(extent lhs, extent const &rhs);
+// ==========================================================================
+// OPERATOR==(EXTENT,EXTENT)
+// ==========================================================================
+constexpr bool operator==(extent const &lhs, extent const &rhs)
+{
+    return lhs.width == rhs.width && lhs.height == rhs.height;
+}
+
+// ==========================================================================
+// OPERATOR!=(EXTENT,EXTENT)
+// ==========================================================================
+constexpr bool operator!=(extent const &lhs, extent const &rhs)
+{
+    return !(lhs == rhs);
+}
+
+// ==========================================================================
+// OPERATOR+(EXTENT,EXTENT)
+// ==========================================================================
+constexpr extent operator+(extent lhs, extent const &rhs)
+{
+    return lhs += rhs;
+}
+
+// ==========================================================================
+// OPERATOR-(EXTENT,EXTENT)
+// ==========================================================================
+constexpr extent operator-(extent lhs, extent const &rhs)
+{
+    return lhs -= rhs;
+}
+
 std::ostream& operator<<(std::ostream &out, extent const &ext);
     
 }}

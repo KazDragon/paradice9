@@ -34,7 +34,7 @@ namespace yggdrasil { namespace munin { inline namespace graphical_glyphs {
 //  For example, auto gly = single_lined_top_left_corner;
 // ==========================================================================
 #define DECLARE_G0SCO_GLYPH(name, val) \
-    static glyph const name ( \
+    static constexpr ::yggdrasil::munin::glyph const name ( \
         char(val), \
         character_set::CHARACTER_SET_G0, \
         character_set::LOCALE_SCO) \

@@ -13,6 +13,7 @@ set (test_SOURCES
     telnet_subnegotiation_router_fixture.cpp
     yggdrasil_munin_attribute_fixture.cpp
     yggdrasil_munin_canvas_fixture.cpp
+    yggdrasil_munin_create_model_from_ptree_fixture.cpp
     yggdrasil_munin_detail_string_to_elements_parser_fixture.cpp
     yggdrasil_munin_element_fixture.cpp
     yggdrasil_munin_estring_fixture.cpp

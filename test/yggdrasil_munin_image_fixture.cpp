@@ -1,142 +1,53 @@
 #include "yggdrasil_munin_image_fixture.hpp"
+#include "fake_resource_manager.hpp"
 #include "yggdrasil/munin/image.hpp"
 #include "yggdrasil/munin/component.hpp"
 #include "yggdrasil/munin/estring.hpp"
 #include "yggdrasil/munin/canvas.hpp"
 #include "yggdrasil/munin/rectangle.hpp"
+#include <boost/property_tree/json_parser.hpp>
+#include <iostream>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(yggdrasil_munin_image_fixture);
 
-void yggdrasil_munin_image_fixture::test_default_constructor()
-{
-    auto image = yggdrasil::munin::image();
-}
-
-void yggdrasil_munin_image_fixture::test_vector_constructor()
+void yggdrasil_munin_image_fixture::image_with_no_args_provides_default_image()
 {
     using namespace yggdrasil::literals;
 
-    auto image = yggdrasil::munin::image(
-        std::vector<yggdrasil::munin::estring>{"foobar"_es});
-}
-
-void yggdrasil_munin_image_fixture::test_image_is_component()
-{
-    auto comp = yggdrasil::munin::component(yggdrasil::munin::image());
-}
-
-void yggdrasil_munin_image_fixture::test_size()
-{
-    auto comp = yggdrasil::munin::component(yggdrasil::munin::image());
-    auto model = get_model(comp);
-
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent(0, 0), get_size(model));
-
-    auto new_size = yggdrasil::munin::extent(1, 1);
-    set_size(model, new_size);
-
-    CPPUNIT_ASSERT_EQUAL(new_size, get_size(model));
-}
-
-void yggdrasil_munin_image_fixture::test_background_brush()
-{
-    auto image = yggdrasil::munin::image();
-    auto model = yggdrasil::munin::model{image.get_model()};
-    auto background_brush = 
-        boost::any_cast<yggdrasil::munin::element>(
-            get_property(model, "background_brush"));
-        
-    CPPUNIT_ASSERT_EQUAL(
-        yggdrasil::munin::element(' '), background_brush);
-
-    auto const new_brush = yggdrasil::munin::element('#');
-
-    set_property(model, "background_brush", new_brush);
-
-    auto new_background_brush =
-        boost::any_cast<yggdrasil::munin::element>(
-            get_property(model, "background_brush"));
-        
-    CPPUNIT_ASSERT_EQUAL(new_brush, new_background_brush);
-}
-
-void yggdrasil_munin_image_fixture::test_set_image()
-{
-    using namespace yggdrasil::literals;
-
+    // Setup - populate the resource manager with only Image's default
+    // values.
     {
-        auto image = yggdrasil::munin::image();
-        auto model = yggdrasil::munin::model{image.get_model()};
-
-        auto value = 
-            boost::any_cast<std::vector<yggdrasil::munin::estring>>(
-                get_property(model, "value"));
-            
-        CPPUNIT_ASSERT(
-            std::vector<yggdrasil::munin::estring>{} == value);
+        auto resource_manager = 
+            yggdrasil::kvasir::make_unique<fake_resource_manager>();
+        auto tree = boost::property_tree::ptree{};
+        boost::property_tree::read_json(
+            "../../yggdrasil/munin/res/image.json",
+            tree);
+        resource_manager->add_default_properties("image", tree);
+        set_resource_manager(std::move(resource_manager));
     }
+    
+    // When an image is default constructed, it should be initialised with
+    // default properties.  When drawn, this should only paint the background
+    // brush.
+    auto image = yggdrasil::munin::image{};
+    
+    auto background_brush = boost::any_cast<yggdrasil::munin::estring>(
+        get_property(image.get_model(), "background_brush"));
+    
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::estring(" "), background_brush);
+    
+    auto value = boost::any_cast<std::vector<yggdrasil::munin::estring>>(
+        get_property(image.get_model(), "value"));
+    
+    CPPUNIT_ASSERT(
+        std::vector<yggdrasil::munin::estring>{""_es} == value);
 
-    {
-        auto const im = std::vector<yggdrasil::munin::estring> {
-            "foo"_es,
-            "bar"_es,
-            "baz"_es
-        };
-
-        auto image = yggdrasil::munin::image(im);
-        auto model = yggdrasil::munin::model{image.get_model()};
-        auto value = 
-            boost::any_cast<std::vector<yggdrasil::munin::estring>>(
-                get_property(model, "value"));
-
-        CPPUNIT_ASSERT(im == value);
-    }
-
-    {
-        auto image = yggdrasil::munin::image();
-        auto model = yggdrasil::munin::model{image.get_model()};
-
-        auto const im = std::vector<yggdrasil::munin::estring> {
-            "foo"_es,
-            "bar"_es,
-            "baz"_es
-        };
-
-        set_property(model, "value", im);
-
-        auto value = 
-            boost::any_cast<std::vector<yggdrasil::munin::estring>>(
-                get_property(model, "value"));
-            
-        CPPUNIT_ASSERT(im == value);
-    }
-}
-
-void yggdrasil_munin_image_fixture::test_draw()
-{
-    using namespace yggdrasil::literals;
-
-    static auto const lines = std::vector<yggdrasil::munin::estring> {
-        "012"_es,
-        "345"_es,
-        "678"_es
-    };
-
-    auto const image = yggdrasil::munin::component(
-        yggdrasil::munin::image(lines));
-
-    auto canvas = yggdrasil::munin::canvas({3, 3});
+    auto canvas = yggdrasil::munin::canvas({1, 1});
+    canvas[0][0] = "x"_es[0];
     auto const region = yggdrasil::munin::rectangle({0, 0}, canvas.get_size());
 
     draw(image, canvas, region);
-
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('0'), canvas[0][0]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('1'), canvas[1][0]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('2'), canvas[2][0]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('3'), canvas[0][1]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('4'), canvas[1][1]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('5'), canvas[2][1]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('6'), canvas[0][2]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('7'), canvas[1][2]);
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::element('8'), canvas[2][2]);
+    
+    CPPUNIT_ASSERT(canvas[0][0] == " "_es[0]);
 }

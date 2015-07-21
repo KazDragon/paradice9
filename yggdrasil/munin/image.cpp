@@ -25,12 +25,14 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "yggdrasil/munin/image.hpp"
-#include "yggdrasil/munin/model.hpp"
-#include "yggdrasil/munin/rectangle.hpp"
+#include "yggdrasil/munin/basic_model.hpp"
 #include "yggdrasil/munin/canvas.hpp"
+#include "yggdrasil/munin/model.hpp"
+#include "yggdrasil/munin/ptree_model.hpp"
+#include "yggdrasil/munin/rectangle.hpp"
+#include "yggdrasil/munin/resource_manager.hpp"
+#include <boost/property_tree/ptree.hpp>
 #include <utility>
-
-#include <iostream>
 
 namespace yggdrasil { namespace munin {
 
@@ -38,17 +40,16 @@ namespace yggdrasil { namespace munin {
 // CONSTRUCTOR
 // ==========================================================================
 image::image()
-  : image(std::vector<estring>{})
+  : image(get_resource_manager().get_default_properties("image"))
 {
 }
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-image::image(std::vector<estring> im)
+image::image(boost::property_tree::ptree const &properties)
+  : model_(create_model_from_ptree<basic_model>(properties))
 {
-    model_.set_property("value", std::move(im));
-    model_.set_property("background_brush", element(' '));
 }
 
 // ==========================================================================
@@ -56,11 +57,12 @@ image::image(std::vector<estring> im)
 // ==========================================================================
 void image::draw(canvas& cvs, const rectangle& region) const
 {
-    auto const &size = model_.get_size();
-    auto im = 
-        boost::any_cast<std::vector<estring>>(
-            model_.get_property("value"));
-
+    auto const &size = get_size(model_);
+    auto background_brush = boost::any_cast<estring>(
+        get_property(model_, "background_brush"));
+    auto value = boost::any_cast<std::vector<estring>>(
+        get_property(model_, "value"));
+    
     for (auto row = region.origin.y;
          row < region.origin.y + region.size.height;
          ++row)
@@ -69,7 +71,14 @@ void image::draw(canvas& cvs, const rectangle& region) const
              column < region.origin.x + region.size.height;
              ++column)
         {
-            cvs[column][row] = im[row][column];
+            if (row < value.size() && column < value[row].size())
+            {
+                cvs[column][row] = value[row][column];
+            }
+            else
+            {
+                cvs[column][row] = background_brush[0];
+            }
         }
     }
 }
@@ -77,7 +86,7 @@ void image::draw(canvas& cvs, const rectangle& region) const
 // ==========================================================================
 // GET_MODEL
 // ==========================================================================
-basic_model& image::get_model()
+model& image::get_model()
 {
     return model_;
 }

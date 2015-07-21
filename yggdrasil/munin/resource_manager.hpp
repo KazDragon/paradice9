@@ -1,7 +1,7 @@
 // ==========================================================================
-// Munin Image.
+// Munin Resource Manager.
 //
-// Copyright (C) 2014 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2015 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,50 +24,47 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef YGGDRASIL_MUNIN_IMAGE_HPP_
-#define YGGDRASIL_MUNIN_IMAGE_HPP_
+#ifndef YGGDRASIL_MUNIN_RESOURCE_MANAGER_HPP_
+#define YGGDRASIL_MUNIN_RESOURCE_MANAGER_HPP_
 
-#include "yggdrasil/munin/estring.hpp"
-#include "yggdrasil/munin/extent.hpp"
-#include "yggdrasil/munin/model.hpp"
 #include <boost/property_tree/ptree_fwd.hpp>
+#include <string>
 
 namespace yggdrasil { namespace munin {
 
-class canvas;
-class model;
-class rectangle;
-
 //* =========================================================================
-/// \brief A graphical component that represents an image; a static x,y grid
-/// of elements.
+/// \brief A resource manager is a store of assets used to make Munin
+/// components.  In particular, the property trees that can be used to
+/// provide the models for fundamental components, and for composite
+/// components.
 //* =========================================================================
-class image
+class resource_manager
 {
 public :
     //* =====================================================================
-    /// \brief Constructor
+    /// \brief Destructor
     //* =====================================================================
-    image();
+    virtual ~resource_manager() = default;
+    
+    //* =====================================================================
+    /// \brief Retrieves a property tree that represents the default property
+    /// values for a component with the given name.
+    //* =====================================================================
+    virtual boost::property_tree::ptree const &get_default_properties(
+        std::string const &name) const = 0;
 
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
-    image(boost::property_tree::ptree const &properties);
-
-    //* =====================================================================
-    /// \brief Draws the specified region of the component onto the canvas.
-    //* =====================================================================
-    void draw(canvas &cvs, rectangle const &region) const;
-
-    //* =====================================================================
-    /// \brief Returns the component's model.
-    //* =====================================================================
-    model &get_model();
-
-private :
-    model model_;
+protected :
+    resource_manager() = default;
 };
+
+//* =========================================================================
+/// \brief Retrieves the application's resource manager.
+/// \par NOTE
+/// This is not provided by Munin.  An application using the Munin library
+/// must provide its own resource manager, and must populate the property
+/// trees itself.
+//* =========================================================================
+extern resource_manager const &get_resource_manager();
 
 }}
 

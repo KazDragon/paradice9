@@ -1,6 +1,7 @@
 set (test_SOURCES
     ansi_parser_fixture.cpp
     paradice_test.cpp
+    fake_resource_manager.cpp
     telnet_client_option_fixture.cpp
     telnet_command_router_fixture.cpp
     telnet_negotiation_router_fixture.cpp

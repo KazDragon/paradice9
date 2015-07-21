@@ -65,4 +65,3 @@ target_compile_features(munin
         cxx_strong_enums
         cxx_generic_lambdas
 )
-    

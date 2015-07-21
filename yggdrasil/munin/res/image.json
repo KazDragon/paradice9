@@ -1,0 +1,12 @@
+{
+  "name" : "image",
+  "properties" : [
+    { "name" : "value",
+      "default" : [ "" ] },
+    { "name" : "background_brush",
+      "default" : " " }
+  ]
+}
+
+      
+      

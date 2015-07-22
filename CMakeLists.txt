@@ -4,7 +4,7 @@ project(paradice-9)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-find_package(Boost 
+find_package(Boost
     REQUIRED
     COMPONENTS
         filesystem
@@ -14,9 +14,10 @@ find_package(Boost
         signals
         system)
 
-find_package(Crypto++ REQUIRED)
-
-enable_testing()
+# Crypto++ gives us the ability to hash passwords so that they can't be easily
+# discovered by hacking at character files.  However, it's not strictly
+# required.
+find_package(Crypto++)
 
 add_subdirectory(odin)
 add_subdirectory(munin)

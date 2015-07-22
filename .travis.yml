@@ -1,6 +1,6 @@
 language: cpp
 
-sudo: required
+sudo: false
 
 compiler:
 #  - gcc
@@ -29,27 +29,36 @@ addons:
 # Note: libcrypto++-dev is not yet whitelisted, nor usable in the packaged
 # version in Clang without editing a file (see below)
 
+cache:
+  - apt: true
+  - directories:
+      - cmake-3.2.3-Linux-x86_64
+
+
 before_install:
-  - sudo apt-get install -y libcrypto++-dev
 # workaround for not having CMake 3.2
-  - wget http://www.cmake.org/files/v3.2/cmake-3.2.3-Linux-x86_64.tar.gz
-  - tar -xzf cmake-3.2.3-Linux-x86_64.tar.gz
-  - sudo cp -fR cmake-3.2.3-Linux-x86_64/* /usr
-# Fix the dependant-name bug in crypto++
-  - sudo sed -i 's/\tCheckSize/\tthis->CheckSize/g' /usr/include/cryptopp/secblock.h
+  - if [ ! -d "cmake-3.2.3-Linux-x86_64/bin" ]; then
+      wget http://www.cmake.org/files/v3.2/cmake-3.2.3-Linux-x86_64.tar.gz;
+      tar -xzf cmake-3.2.3-Linux-x86_64.tar.gz;
+    fi
+# Install Crypto++, and fix the dependant-name bug
+#  - sudo apt-get install -y libcrypto++-dev
+#  - sudo sed -i 's/\tCheckSize/\tthis->CheckSize/g' /usr/include/cryptopp/secblock.h
 
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - ../cmake-3.2.3-Linux-x86_64/bin/cmake ..
 
-script: make -j2 && make test || (cat Testing/Temporary/LastTest.log && false)
+script:
+  - make -j2
+  - make test
+
+after_failure:
+  - cat Testing/Temporary/LastTest.log
 
 notifications:
   email:
-#    recipients:
-#      - one@example.com
-#      - other@example.com
     on_success: change # [always|never|change] # default: change
     on_failure: change # [always|never|change] # default: always
 

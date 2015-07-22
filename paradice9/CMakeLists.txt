@@ -21,7 +21,7 @@ target_compile_features(paradice9
         cxx_generic_lambdas
 )
 
-target_link_libraries(paradice9 
+target_link_libraries(paradice9
     hugin
     paradice
     munin
@@ -32,5 +32,10 @@ target_link_libraries(paradice9
     ${Boost_SERIALIZATION_LIBRARY}
     ${Boost_SIGNALS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
-    ${CRYPTO++_LIBRARIES}
 )
+
+if (CRYPTO++_FOUND)
+    target_link_libraries(paradice9
+        ${CRYPTO++_LIBRARIES})
+endif()
+

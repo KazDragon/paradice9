@@ -26,10 +26,15 @@ target_include_directories(paradice
     PRIVATE ${CMAKE_SOURCE_DIR}
 )
 
+# Select the best cryptography available.
 if (CRYPTO++_FOUND)
     target_compile_definitions(paradice
         PRIVATE
             PARADICE_USE_CRYPTOPP)
+else()
+    target_compile_definitions(paradice
+        PRIVATE
+            PARADICE_NOCRYPT)
 endif()
 
 target_compile_definitions(paradice

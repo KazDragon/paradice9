@@ -19,6 +19,13 @@ find_package(Boost
 # required.
 find_package(Crypto++)
 
+# CppUnit is required for the unit testing.
+find_package(CppUnit)
+
+if (CPPUNIT_FOUND)
+    enable_testing()
+endif()
+
 add_subdirectory(odin)
 add_subdirectory(munin)
 add_subdirectory(paradice)

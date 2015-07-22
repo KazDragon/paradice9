@@ -13,10 +13,10 @@ set (test_SOURCES
     telnet_subnegotiation_router_fixture.cpp
 )
 
-find_package(CppUnit)
+
+enable_testing()
 
 if (CPPUNIT_FOUND)
-    enable_testing()
     add_executable(paradice_tester ${test_SOURCES})
 
     target_include_directories(paradice_tester

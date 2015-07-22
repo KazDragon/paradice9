@@ -19,21 +19,26 @@ set (paradice_SOURCES
     who.cpp
 )
 
-add_library(paradice 
+add_library(paradice
     STATIC ${paradice_SOURCES})
-    
+
 target_include_directories(paradice
     PRIVATE ${CMAKE_SOURCE_DIR}
 )
 
+if (CRYPTO++_FOUND)
+    target_compile_definitions(paradice
+        PRIVATE
+            PARADICE_USE_CRYPTOPP)
+endif()
+
 target_compile_definitions(paradice
     PRIVATE
         BOOST_SIGNALS_NO_DEPRECATION_WARNING
-        PARADICE_USE_CRYPTOPP
 )
 
 target_compile_features(paradice
-    PRIVATE 
+    PRIVATE
         cxx_right_angle_brackets
         cxx_generic_lambdas
 )

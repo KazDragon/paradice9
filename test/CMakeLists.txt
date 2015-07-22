@@ -13,26 +13,28 @@ set (test_SOURCES
     telnet_subnegotiation_router_fixture.cpp
 )
 
-find_package(CppUnit REQUIRED)
+find_package(CppUnit)
 
-add_executable(paradice_tester ${test_SOURCES})
+if (CPPUNIT_FOUND)
+    enable_testing()
+    add_executable(paradice_tester ${test_SOURCES})
 
-target_include_directories(paradice_tester
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}
-)
+    target_include_directories(paradice_tester
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}
+    )
 
-target_compile_features(paradice_tester
-    PRIVATE
-        cxx_generic_lambdas
-)
+    target_compile_features(paradice_tester
+        PRIVATE
+            cxx_generic_lambdas
+    )
 
-target_link_libraries(
-    paradice_tester
-    odin
-    cppunit
-    ${Boost_SYSTEM_LIBRARY}
-)
+    target_link_libraries(
+        paradice_tester
+        odin
+        cppunit
+        ${Boost_SYSTEM_LIBRARY}
+    )
 
-add_test(paradice_test paradice_tester)
-
+    add_test(paradice_test paradice_tester)
+endif()

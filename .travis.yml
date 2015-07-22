@@ -10,9 +10,9 @@ compiler:
 #  - linux
 #  - osx
 
-#env:
-#  - config=Release
-#  - config=Debug
+env:
+  - CONFIG=Release
+  - CONFIG=Debug
 
 addons:
   apt:
@@ -48,7 +48,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - ../cmake-3.2.3-Linux-x86_64/bin/cmake ..
+  - ../cmake-3.2.3-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=$CONFIG ..
 
 script:
   - make -j2

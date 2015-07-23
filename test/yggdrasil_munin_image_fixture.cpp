@@ -31,14 +31,15 @@ void yggdrasil_munin_image_fixture::image_with_no_args_provides_default_image()
     // default properties.  When drawn, this should only paint the background
     // brush.
     auto image = yggdrasil::munin::image{};
-    
-    auto background_brush = boost::any_cast<yggdrasil::munin::estring>(
-        get_property(image.get_model(), "background_brush"));
+    auto background_brush = yggdrasil::munin::get_property<
+        yggdrasil::munin::estring
+    >(image, "background_brush");
     
     CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::estring(" "), background_brush);
     
-    auto value = boost::any_cast<std::vector<yggdrasil::munin::estring>>(
-        get_property(image.get_model(), "value"));
+    auto value = yggdrasil::munin::get_property<
+        std::vector<yggdrasil::munin::estring>
+    >(image, "value");
     
     CPPUNIT_ASSERT(
         std::vector<yggdrasil::munin::estring>{""_es} == value);

@@ -128,6 +128,23 @@ private :
     std::unique_ptr<concept> self_;
 };
 
+template <class PropertyType, class Component>
+PropertyType get_property(Component &&comp, std::string const &name)
+{
+    return boost::any_cast<PropertyType>(
+        get_property(get_model(std::forward<Component>(comp)), name));
+}
+ 
+template <class PropertyType, class Component>
+void set_property(
+    Component &&comp, std::string const &name, PropertyType &&value)
+{
+    set_property(
+        get_model(std::forward<Component>(comp)),
+        name,
+        std::forward<PropertyType>(value));
+}
+
 }}
 
 #endif

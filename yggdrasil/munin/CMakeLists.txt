@@ -10,6 +10,7 @@ set (yggdrasil_munin_SOURCES
     glyph.cpp
     image.cpp
     point.cpp
+    ptree_model.cpp
     rectangle.cpp
 )
 

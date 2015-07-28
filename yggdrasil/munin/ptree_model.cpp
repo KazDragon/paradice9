@@ -54,6 +54,13 @@ void populate_typed_property(
             name,
             estring(default_value_property.get_value<std::string>())[0]);
     }
+    else if (type == "string")
+    {
+        set_property(
+            model,
+            name,
+            default_value_property.get_value<std::string>());
+    }
     else if (type == "estring")
     {
         set_property(
@@ -61,12 +68,39 @@ void populate_typed_property(
             name,
             estring(default_value_property.get_value<std::string>()));
     }
-    else if (type == "string")
+    else if (type == "array of char")
     {
-        set_property(
-            model,
-            name,
-            default_value_property.get_value<std::string>());
+        std::vector<char> value;
+        
+        for (auto const &child : default_value_property)
+        {
+            value.push_back(child.second.get_value<std::string>()[0]);
+        }
+        
+        set_property(model, name, value);
+    }
+    else if (type == "array of element")
+    {
+        std::vector<element> value;
+        
+        for (auto const &child : default_value_property)
+        {
+            value.push_back(
+                estring(child.second.get_value<std::string>())[0]);
+        }
+        
+        set_property(model, name, value);
+    }
+    else if (type == "array of string")
+    {
+        std::vector<std::string> value;
+        
+        for (auto const &child : default_value_property)
+        {
+            value.push_back(child.second.get_value<std::string>());
+        }
+        
+        set_property(model, name, value);
     }
     else if (type == "array of estring")
     {

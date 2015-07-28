@@ -13,8 +13,13 @@ public :
         CPPUNIT_TEST(test_ptree_with_estring_property);
         CPPUNIT_TEST(test_ptree_with_array_of_estring_property);
         CPPUNIT_TEST(test_ptree_with_char_property);
+        CPPUNIT_TEST(test_ptree_with_array_of_char_property);
         CPPUNIT_TEST(test_ptree_with_string_property);
+        CPPUNIT_TEST(test_ptree_with_array_of_string_property);
         CPPUNIT_TEST(test_ptree_with_element_property);
+        CPPUNIT_TEST(test_ptree_with_array_of_element_property);
+        CPPUNIT_TEST(test_ptree_with_untyped_estring_property);
+        CPPUNIT_TEST(test_ptree_with_untyped_array_of_estring_property);
     CPPUNIT_TEST_SUITE_END();
 
 public :
@@ -23,8 +28,13 @@ public :
     void test_ptree_with_estring_property();
     void test_ptree_with_array_of_estring_property();
     void test_ptree_with_char_property();
+    void test_ptree_with_array_of_char_property();
     void test_ptree_with_string_property();
+    void test_ptree_with_array_of_string_property();
     void test_ptree_with_element_property();
+    void test_ptree_with_array_of_element_property();
+    void test_ptree_with_untyped_estring_property();
+    void test_ptree_with_untyped_array_of_estring_property();
 };
 
 #endif

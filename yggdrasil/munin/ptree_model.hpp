@@ -28,54 +28,24 @@
 #define YGGDRASIL_MUNIN_PTREE_MODEL_HPP_
 
 #include "yggdrasil/munin/model.hpp"
-#include "yggdrasil/munin/estring.hpp"
-#include <boost/property_tree/ptree.hpp>
-#include <string>
-#include <vector>
+#include <boost/property_tree/ptree_fwd.hpp>
 
 namespace yggdrasil { namespace munin {
 
+namespace detail {
+
+void populate_model_from_ptree(
+    ::yggdrasil::munin::model &model,
+    ::boost::property_tree::ptree const &tree);
+}
+
 template <class ConcreteModel>
-ConcreteModel create_model_from_ptree(boost::property_tree::ptree const& tree)
+ConcreteModel create_model_from_ptree(::boost::property_tree::ptree const& tree)
 {
     auto concrete_model = ConcreteModel{};
-    auto model = yggdrasil::munin::model{concrete_model};
-    
-    auto const &properties = tree.get_child_optional("properties");
-    
-    // It's perfectly valid for there to be no properties.  It means that the
-    // component in question doesn't have any model values.
-    if (properties) 
-    {
-        for (auto const &entry : *properties)
-        {
-            auto const &property = entry.second;
-            auto const &name = property.get<std::string>("name");
+    auto model = ::yggdrasil::munin::model{concrete_model};
 
-            auto const &default_value_property = property.get_child("default");
-            
-            // If the "default" property has children of its own, then it is
-            // an array.  Otherwise, it is a textual value.
-            if (default_value_property.begin() == default_value_property.end())
-            {
-                set_property(
-                    model, 
-                    name, 
-                    estring(default_value_property.get_value<std::string>()));
-            }
-            else
-            {
-                std::vector<estring> value;
-                
-                for (auto const &child : default_value_property)
-                {
-                    value.push_back(estring(child.second.get_value<std::string>()));
-                }
-                
-                set_property(model, name, value);
-            }
-        }
-    }
+    ::yggdrasil::munin::detail::populate_model_from_ptree(model, tree);
 
     return concrete_model;
 }

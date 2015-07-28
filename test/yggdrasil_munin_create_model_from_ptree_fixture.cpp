@@ -13,12 +13,12 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_empty_ptree_creates_d
     std::stringstream is("{}");
     boost::property_tree::ptree tree;
     boost::property_tree::read_json(is, tree);
-    
+
     auto model = yggdrasil::munin::model{
         yggdrasil::munin::create_model_from_ptree<
             yggdrasil::munin::basic_model
         >(tree)};
-        
+
     CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
 }
 
@@ -31,22 +31,22 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_only_name_
     )");
     boost::property_tree::ptree tree;
     boost::property_tree::read_json(is, tree);
-    
+
     auto model = yggdrasil::munin::model{
         yggdrasil::munin::create_model_from_ptree<
             yggdrasil::munin::basic_model
         >(tree)};
-        
+
     CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
-    
+
     boost::any prop = get_property(model, "name");
     CPPUNIT_ASSERT(prop.empty());
 }
 
-void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_string_property()
+void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_estring_property()
 {
     using namespace yggdrasil::literals;
-    
+
     // The model should add properties as described in the model description.
     // In particular, given a property with a given name and a string argument,
     // that string should be found in the model's properties.  Note: the model
@@ -55,6 +55,7 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_string_pro
         { "name" : "test",
           "properties" : [
             { "name" : "strprop",
+              "type" : "estring",
               "default" : "success" }
           ]
         }
@@ -62,32 +63,33 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_string_pro
 
     boost::property_tree::ptree tree;
     boost::property_tree::read_json(is, tree);
-    
+
     auto model = yggdrasil::munin::model{
         yggdrasil::munin::create_model_from_ptree<
             yggdrasil::munin::basic_model
         >(tree)};
-        
+
     CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
-    
+
     boost::any prop = get_property(model, "strprop");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<yggdrasil::munin::estring>(prop);
     CPPUNIT_ASSERT_EQUAL("success"_es, value);
 }
 
-void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_string_property()
+void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_estring_property()
 {
     using namespace yggdrasil::literals;
 
     // The model should add properties as described in the model description.
     // In particular, given a property with a given name and an argument that
-    // is an array of strings, that array should be found in the model's 
+    // is an array of strings, that array should be found in the model's
     // properties as a vector<estring>.
     std::stringstream is(R"(
         { "name" : "test",
           "properties" : [
             { "name" : "value",
+              "type" : "array of estring",
               "default" : [
                 "o-o",
                 "-o-",
@@ -98,17 +100,17 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_s
         }
     )");
 
-                
+
     boost::property_tree::ptree tree;
     boost::property_tree::read_json(is, tree);
-    
+
     auto model = yggdrasil::munin::model{
         yggdrasil::munin::create_model_from_ptree<
             yggdrasil::munin::basic_model
         >(tree)};
-        
+
     CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
-    
+
     boost::any prop = get_property(model, "value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::vector<yggdrasil::munin::estring>>(prop);
@@ -119,4 +121,113 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_s
     };
 
     CPPUNIT_ASSERT(expected == value);
+}
+
+void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_char_property()
+{
+    using namespace yggdrasil::literals;
+
+    // The model should add properties as described in the model description.
+    // In particular, given a property with the type "char", it should store
+    // the first character of the value as a char.
+    std::stringstream is(R"(
+        { "name" : "test",
+          "properties" : [
+            { "name" : "value",
+              "type" : "char",
+              "default" : "x"
+            }
+          ]
+        }
+    )");
+
+
+    boost::property_tree::ptree tree;
+    boost::property_tree::read_json(is, tree);
+
+    auto model = yggdrasil::munin::model{
+        yggdrasil::munin::create_model_from_ptree<
+        yggdrasil::munin::basic_model
+        >(tree)};
+
+        CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+
+        boost::any prop = get_property(model, "value");
+        CPPUNIT_ASSERT(!prop.empty());
+        auto value = boost::any_cast<char>(prop);
+        auto expected = char('x');
+
+        CPPUNIT_ASSERT_EQUAL(expected, value);
+}
+
+void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_string_property()
+{
+    using namespace yggdrasil::literals;
+
+    // The model should add properties as described in the model description.
+    // In particular, given a property with a given name and a string argument,
+    // that string should be found in the model's properties.  Note: the model
+    // should store the string value as an estring.
+    std::stringstream is(R"(
+        { "name" : "test",
+            "properties" : [
+            { "name" : "strprop",
+                "type" : "string",
+                "default" : "success" }
+            ]
+        }
+    )");
+
+    boost::property_tree::ptree tree;
+    boost::property_tree::read_json(is, tree);
+
+    auto model = yggdrasil::munin::model{
+        yggdrasil::munin::create_model_from_ptree<
+        yggdrasil::munin::basic_model
+    >(tree)};
+
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+
+    boost::any prop = get_property(model, "strprop");
+    CPPUNIT_ASSERT(!prop.empty());
+    auto value = boost::any_cast<std::string>(prop);
+    CPPUNIT_ASSERT_EQUAL(std::string("success"), value);
+}
+
+void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_element_property()
+{
+    using namespace yggdrasil::literals;
+
+    // The model should add properties as described in the model description.
+    // In particular, given a property with the type "char", it should store
+    // the first character of the value as a char.
+    std::stringstream is(R"(
+        { "name" : "test",
+          "properties" : [
+            { "name" : "value",
+                "type" : "element",
+                "default" : "\\i>b"
+            }
+          ]
+        }
+    )");
+
+
+    boost::property_tree::ptree tree;
+    boost::property_tree::read_json(is, tree);
+
+    auto model = yggdrasil::munin::model{
+        yggdrasil::munin::create_model_from_ptree<
+        yggdrasil::munin::basic_model
+    >(tree)};
+
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+
+    boost::any prop = get_property(model, "value");
+    CPPUNIT_ASSERT(!prop.empty());
+    auto value = boost::any_cast<yggdrasil::munin::element>(prop);
+    auto expected = yggdrasil::munin::element('b');
+    expected.attribute_.intensity_ = yggdrasil::graphics::intensity::bold;
+
+    CPPUNIT_ASSERT_EQUAL(expected, value);
 }

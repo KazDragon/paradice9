@@ -22,10 +22,8 @@
  *    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *    OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef AESIR_KVASIR_THUNK_HPP_
-#define AESIR_KVASIR_THUNK_HPP_
-
-#include "yggdrasil/kvasir/returns.hpp"
+#ifndef YGGDRASIL_KVASIR_THUNK_HPP_
+#define YGGDRASIL_KVASIR_THUNK_HPP_
 
 /**
  * @def MEMBER_THUNK(fun)
@@ -34,7 +32,9 @@
 #define MEMBER_THUNK(fun) \
 template <typename Arg0, typename... Args> \
 auto fun(Arg0 &&arg0, Args&&... args) \
-    RETURNS(arg0.fun(std::forward<Args>(args)...))
+{ \
+    return arg0.fun(std::forward<Args>(args)...); \
+}
 
 
 /**
@@ -45,6 +45,32 @@ auto fun(Arg0 &&arg0, Args&&... args) \
 #define FRIEND_THUNK(fun) \
 template <typename Arg0, typename... Args> \
 friend auto fun(Arg0 &&arg0, Args&&... args) \
-    RETURNS(arg0.self_->fun##_(std::forward<Args>(args)...))
+{ \
+    return arg0.self_->fun##_(std::forward<Args>(args)...); \
+}
+
+/**
+ * @def SELF_THUNK(fun)
+ * @brief Generates a function that converts o.f(args...) to
+ * o.self_->f_(args...), for use in the concept/model pattern.
+ */
+#define SELF_THUNK(fun) \
+template <typename... Args> \
+auto fun(Args&&... args) \
+{ \
+    return self_->fun##_(std::forward<Args>(args)...); \
+}
+
+/**
+ * @def SELF_THUNK_C(fun)
+ * @brief Generates a function that converts o.f(args...) const to
+ * o.self_->f_(args...) const, for use in the concept/model pattern.
+ */
+#define SELF_THUNK_C(fun) \
+template <typename... Args> \
+auto fun(Args&&... args) const \
+{ \
+    return self_->fun##_(std::forward<Args>(args)...); \
+}
 
 #endif

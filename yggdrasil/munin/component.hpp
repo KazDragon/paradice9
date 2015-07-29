@@ -28,19 +28,18 @@
 #define YGGDRASIL_MUNIN_COMPONENT_HPP_
 
 #include "yggdrasil/munin/model.hpp"
-#include "yggdrasil/kvasir/returns.hpp"
-#include "yggdrasil/kvasir/thunk.hpp"
 #include "yggdrasil/kvasir/make_unique.hpp"
+#include "yggdrasil/kvasir/thunk.hpp"
 #include <memory>
 #include <utility>
 
 namespace yggdrasil { namespace munin {
 
-MEMBER_THUNK(draw);
-MEMBER_THUNK(get_model);
-
 class canvas;
 class rectangle;
+
+MEMBER_THUNK(draw);
+MEMBER_THUNK(get_model);
 
 //* =========================================================================
 /// \brief A conceptual UI component.
@@ -64,8 +63,8 @@ public :
     {
     }
 
-    FRIEND_THUNK(draw);
-    FRIEND_THUNK(get_model);
+    SELF_THUNK_C(draw);
+    SELF_THUNK  (get_model);
 
 private :
     //* =====================================================================
@@ -127,23 +126,6 @@ private :
 
     std::unique_ptr<concept> self_;
 };
-
-template <class PropertyType, class Component>
-PropertyType get_property(Component &&comp, std::string const &name)
-{
-    return boost::any_cast<PropertyType>(
-        get_property(get_model(std::forward<Component>(comp)), name));
-}
- 
-template <class PropertyType, class Component>
-void set_property(
-    Component &&comp, std::string const &name, PropertyType &&value)
-{
-    set_property(
-        get_model(std::forward<Component>(comp)),
-        name,
-        std::forward<PropertyType>(value));
-}
 
 }}
 

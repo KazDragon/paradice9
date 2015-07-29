@@ -42,65 +42,61 @@ void populate_typed_property(
 
     if (type == "char")
     {
-        set_property(
-            model,
+        model.set_property(
             name,
             char(default_value_property.get_value<std::string>()[0]));
     }
     else if (type == "element")
     {
-        set_property(
-            model,
+        model.set_property(
             name,
             estring(default_value_property.get_value<std::string>())[0]);
     }
     else if (type == "string")
     {
-        set_property(
-            model,
+        model.set_property(
             name,
             default_value_property.get_value<std::string>());
     }
     else if (type == "estring")
     {
-        set_property(
-            model,
+        model.set_property(
             name,
             estring(default_value_property.get_value<std::string>()));
     }
     else if (type == "array of char")
     {
         std::vector<char> value;
-        
+
         for (auto const &child : default_value_property)
         {
             value.push_back(child.second.get_value<std::string>()[0]);
         }
-        
-        set_property(model, name, value);
+
+        model.set_property(name, value);
     }
     else if (type == "array of element")
     {
         std::vector<element> value;
-        
+
         for (auto const &child : default_value_property)
         {
             value.push_back(
                 estring(child.second.get_value<std::string>())[0]);
         }
-        
-        set_property(model, name, value);
+
+        model.set_property(name, value);
     }
     else if (type == "array of string")
     {
         std::vector<std::string> value;
-        
+
         for (auto const &child : default_value_property)
         {
             value.push_back(child.second.get_value<std::string>());
         }
-        
-        set_property(model, name, value);
+
+        model.set_property(name, value);
     }
     else if (type == "array of estring")
     {
@@ -111,7 +107,7 @@ void populate_typed_property(
             value.push_back(estring(child.second.get_value<std::string>()));
         }
 
-        set_property(model, name, value);
+        model.set_property(name, value);
     }
 }
 

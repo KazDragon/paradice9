@@ -57,12 +57,12 @@ image::image(boost::property_tree::ptree const &properties)
 // ==========================================================================
 void image::draw(canvas& cvs, const rectangle& region) const
 {
-    auto const &size = get_size(model_);
-    auto background_brush = boost::any_cast<estring>(
-        get_property(model_, "background_brush"));
+    auto size = model_.get_size();
+    auto background_brush = boost::any_cast<element>(
+        model_.get_property("background_brush"));
     auto value = boost::any_cast<std::vector<estring>>(
-        get_property(model_, "value"));
-    
+        model_.get_property("value"));
+
     for (auto row = region.origin.y;
          row < region.origin.y + region.size.height;
          ++row)
@@ -75,9 +75,13 @@ void image::draw(canvas& cvs, const rectangle& region) const
             {
                 cvs[column][row] = value[row][column];
             }
+            else if (row < size.height && column < size.width)
+            {
+                cvs[column][row] = background_brush;
+            }
             else
             {
-                cvs[column][row] = background_brush[0];
+                // This is outside the bounds of the image.  Do nothing.
             }
         }
     }

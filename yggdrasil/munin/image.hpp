@@ -41,6 +41,9 @@ class rectangle;
 //* =========================================================================
 /// \brief A graphical component that represents an image; a static x,y grid
 /// of elements.
+/// \par Properties
+///   * value : array of estring - the image used
+///   * background_brush : element - the element used to cover empty space
 //* =========================================================================
 class image
 {

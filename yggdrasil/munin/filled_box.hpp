@@ -29,8 +29,8 @@
 
 #include "yggdrasil/munin/element.hpp"
 #include "yggdrasil/munin/extent.hpp"
-#include "yggdrasil/munin/basic_model.hpp"
-#include <boost/any.hpp>
+#include "yggdrasil/munin/model.hpp"
+#include <boost/property_tree/ptree_fwd.hpp>
 
 namespace yggdrasil { namespace munin {
 
@@ -53,7 +53,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    filled_box(element brush);
+    filled_box(boost::property_tree::ptree const &properties);
 
     //* =====================================================================
     /// \brief Draws the specified region of the component onto the canvas.
@@ -63,15 +63,15 @@ public :
     //* =====================================================================
     /// \brief Returns the component's model.
     //* =====================================================================
-    basic_model const &get_model() const;
+    model const &get_model() const;
 
     //* =====================================================================
     /// \brief Returns the component's model.
     //* =====================================================================
-    basic_model &get_model();
+    model &get_model();
 
 private :
-    basic_model model_;
+    model model_;
 };
 
 }}

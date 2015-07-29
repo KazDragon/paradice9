@@ -1,0 +1,10 @@
+{
+  "name" : "filled_box",
+  "properties" : [
+    { "name" : "brush",
+      "type" : "element",
+      "default" : " " }
+  ]
+}
+
+

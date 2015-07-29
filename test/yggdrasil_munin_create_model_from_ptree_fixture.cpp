@@ -19,7 +19,7 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_empty_ptree_creates_d
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 }
 
 void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_only_name_creates_default_model()
@@ -37,9 +37,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_only_name_
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "name");
+    boost::any prop = model.get_property("name");
     CPPUNIT_ASSERT(prop.empty());
 }
 
@@ -69,9 +69,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_estring_pr
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "strprop");
+    boost::any prop = model.get_property("strprop");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<yggdrasil::munin::estring>(prop);
     CPPUNIT_ASSERT_EQUAL("success"_es, value);
@@ -109,9 +109,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_e
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "value");
+    boost::any prop = model.get_property("value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::vector<yggdrasil::munin::estring>>(prop);
     auto expected = std::vector<yggdrasil::munin::estring>{
@@ -145,17 +145,17 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_char_prope
 
     auto model = yggdrasil::munin::model{
         yggdrasil::munin::create_model_from_ptree<
-        yggdrasil::munin::basic_model
+            yggdrasil::munin::basic_model
         >(tree)};
 
-        CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-        boost::any prop = get_property(model, "value");
-        CPPUNIT_ASSERT(!prop.empty());
-        auto value = boost::any_cast<char>(prop);
-        auto expected = char('x');
+    boost::any prop = model.get_property("value");
+    CPPUNIT_ASSERT(!prop.empty());
+    auto value = boost::any_cast<char>(prop);
+    auto expected = char('x');
 
-        CPPUNIT_ASSERT_EQUAL(expected, value);
+    CPPUNIT_ASSERT_EQUAL(expected, value);
 }
 
 void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_char_property()
@@ -189,9 +189,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_c
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "value");
+    boost::any prop = model.get_property("value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::vector<char>>(prop);
     auto expected = std::vector<char>{'a', 'b', 'c', 'd'};
@@ -223,9 +223,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_string_pro
         yggdrasil::munin::basic_model
     >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "strprop");
+    boost::any prop = model.get_property("strprop");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::string>(prop);
     CPPUNIT_ASSERT_EQUAL(std::string("success"), value);
@@ -261,9 +261,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_s
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "value");
+    boost::any prop = model.get_property("value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::vector<std::string>>(prop);
     auto expected = std::vector<std::string>{"alice", "betty", "carol"};
@@ -298,9 +298,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_element_pr
         yggdrasil::munin::basic_model
     >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "value");
+    boost::any prop = model.get_property("value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<yggdrasil::munin::element>(prop);
     auto expected = yggdrasil::munin::element("\\i>b"_es[0]);
@@ -340,9 +340,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_array_of_e
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "value");
+    boost::any prop = model.get_property("value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::vector<yggdrasil::munin::element>>(prop);
     auto expected = std::vector<yggdrasil::munin::element>{
@@ -376,9 +376,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_untyped_es
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "strprop");
+    boost::any prop = model.get_property("strprop");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<yggdrasil::munin::estring>(prop);
     CPPUNIT_ASSERT_EQUAL("success"_es, value);
@@ -415,9 +415,9 @@ void yggdrasil_munin_create_model_from_ptree_fixture::test_ptree_with_untyped_ar
             yggdrasil::munin::basic_model
         >(tree)};
 
-    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, get_size(model));
+    CPPUNIT_ASSERT_EQUAL(yggdrasil::munin::extent{}, model.get_size());
 
-    boost::any prop = get_property(model, "value");
+    boost::any prop = model.get_property("value");
     CPPUNIT_ASSERT(!prop.empty());
     auto value = boost::any_cast<std::vector<yggdrasil::munin::estring>>(prop);
     auto expected = std::vector<yggdrasil::munin::estring>{

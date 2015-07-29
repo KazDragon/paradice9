@@ -2,11 +2,12 @@
   "name" : "image",
   "properties" : [
     { "name" : "value",
-      "default" : [ "" ] },
+      "type" : "array of estring",
+      "default" : [] },
     { "name" : "background_brush",
+      "type" : "element",
       "default" : " " }
   ]
 }
 
-      
-      
+

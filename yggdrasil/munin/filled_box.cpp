@@ -25,10 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "yggdrasil/munin/filled_box.hpp"
+#include "yggdrasil/munin/basic_model.hpp"
 #include "yggdrasil/munin/canvas.hpp"
 #include "yggdrasil/munin/element.hpp"
-#include "yggdrasil/munin/model.hpp"
+#include "yggdrasil/munin/ptree_model.hpp"
 #include "yggdrasil/munin/rectangle.hpp"
+#include "yggdrasil/munin/resource_manager.hpp"
 
 namespace yggdrasil { namespace munin {
 
@@ -36,16 +38,16 @@ namespace yggdrasil { namespace munin {
 // CONSTRUCTOR
 // ==========================================================================
 filled_box::filled_box()
-  : filled_box(element(' '))
+  : filled_box(get_resource_manager().get_default_properties("filled_box"))
 {
 }
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-filled_box::filled_box(element brush)
+filled_box::filled_box(boost::property_tree::ptree const &tree)
+  : model_(create_model_from_ptree<basic_model>(tree))
 {
-    set_property(model_, "brush", brush);
 }
 
 // ==========================================================================
@@ -53,8 +55,7 @@ filled_box::filled_box(element brush)
 // ==========================================================================
 void filled_box::draw(canvas& cvs, const rectangle& region) const
 {
-    auto brush = 
-        boost::any_cast<element>(get_property(model_, "brush"));
+    auto brush = boost::any_cast<element>(model_.get_property("brush"));
 
     for (auto y = region.origin.y;
          y < region.origin.y + region.size.height;
@@ -72,7 +73,7 @@ void filled_box::draw(canvas& cvs, const rectangle& region) const
 // ==========================================================================
 // GET_MODEL
 // ==========================================================================
-basic_model const &filled_box::get_model() const
+model const &filled_box::get_model() const
 {
     return model_;
 }
@@ -80,7 +81,7 @@ basic_model const &filled_box::get_model() const
 // ==========================================================================
 // GET_MODEL
 // ==========================================================================
-basic_model &filled_box::get_model()
+model &filled_box::get_model()
 {
     return model_;
 }

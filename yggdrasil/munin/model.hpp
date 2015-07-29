@@ -28,11 +28,9 @@
 #define YGGDRASIL_MUNIN_MODEL_HPP_
 
 #include "yggdrasil/munin/extent.hpp"
-#include "yggdrasil/kvasir/returns.hpp"
-#include "yggdrasil/kvasir/thunk.hpp"
 #include "yggdrasil/kvasir/make_unique.hpp"
+#include "yggdrasil/kvasir/thunk.hpp"
 #include <boost/any.hpp>
-#include <boost/concept_check.hpp>
 #include <memory>
 #include <utility>
 
@@ -40,15 +38,13 @@ namespace yggdrasil { namespace munin {
 
 MEMBER_THUNK(event);
 MEMBER_THUNK(set_size);
-MEMBER_THUNK(get_size);
-MEMBER_THUNK(get_preferred_size);
 MEMBER_THUNK(get_property);
 MEMBER_THUNK(set_property);
 MEMBER_THUNK(get_signal);
 
 //* =========================================================================
-/// \brief A conceptual UI "model".  
-/// \par 
+/// \brief A conceptual UI "model".
+/// \par
 /// A model represents the data required in order to represent the component
 /// on the screen.  Classes that model the "component" concept have a small
 /// set of properties that are common to all components:
@@ -69,19 +65,18 @@ public :
     //* =====================================================================
     template <class Model>
     model(Model &&mdl)
-      : self_(yggdrasil::kvasir::make_unique<impl<Model>>(
-            std::forward<Model>(mdl)))
+      : self_(std::make_unique<impl<Model>>(std::forward<Model>(mdl)))
     {
     }
 
-    FRIEND_THUNK(event);
-    FRIEND_THUNK(set_size);
-    FRIEND_THUNK(get_size);
-    FRIEND_THUNK(get_preferred_size);
-    FRIEND_THUNK(set_property);
-    FRIEND_THUNK(get_property);
-    FRIEND_THUNK(get_signal);
-    
+    SELF_THUNK  (event);
+    SELF_THUNK_C(get_size);
+    SELF_THUNK  (set_size);
+    SELF_THUNK_C(get_preferred_size);
+    SELF_THUNK  (set_property);
+    SELF_THUNK_C(get_property);
+    SELF_THUNK_C(get_signal);
+
 private :
     //* =====================================================================
     /// \brief The concept that model will implement.
@@ -124,13 +119,13 @@ private :
         /// \brief Returns a property with a specific name.
         //* =================================================================
         virtual boost::any get_property_(std::string const &name) const = 0;
-        
+
         //* =================================================================
         /// \brief Returns a signal with a specific name.
         //* =================================================================
         virtual boost::any get_signal_(std::string const &name) const = 0;
     };
-    
+
     //* =====================================================================
     /// \brief The wrapper of the model concept, templated around a class
     /// that will actually provide the implementation.
@@ -145,7 +140,7 @@ private :
           : model_(std::forward<Model>(mdl))
         {
         }
-        
+
         //* =================================================================
         /// \brief Send an event of any type to the component, and possibly
         /// get a response.
@@ -154,15 +149,15 @@ private :
         {
             return model_.event(ev);
         }
-        
+
         //* =================================================================
-        /// \brief Set the size of the component.        
+        /// \brief Set the size of the component.
         //* =================================================================
         virtual void set_size_(extent const &size) override
         {
             model_.set_size(size);
         }
-        
+
         //* =================================================================
         /// \brief Return the size of the component.
         //* =================================================================
@@ -170,7 +165,7 @@ private :
         {
             return model_.get_size();
         }
-        
+
         //* =================================================================
         /// \brief Returns the size that the component would prefer to have.
         //* =================================================================
@@ -178,7 +173,7 @@ private :
         {
             return model_.get_preferred_size();
         }
-        
+
         //* =================================================================
         /// \brief Sets a property to have a specific value.
         //* =================================================================
@@ -196,7 +191,7 @@ private :
         {
             return model_.get_property(name);
         }
-        
+
         //* =================================================================
         /// \brief Returns a signal with a specific name.
         //* =================================================================
@@ -205,10 +200,10 @@ private :
         {
             return model_.get_signal(name);
         }
-        
+
         Model model_;
     };
-    
+
     std::unique_ptr<concept> self_;
 };
 

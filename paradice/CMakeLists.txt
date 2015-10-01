@@ -48,6 +48,11 @@ target_compile_features(paradice
         cxx_generic_lambdas
 )
 
+set_source_files_properties(dice_roll_parser.cpp
+    PROPERTIES
+        COTIRE_EXCLUDED TRUE
+)
+
 if (COMMAND cotire)
     cotire(paradice)
 endif()

@@ -53,7 +53,7 @@ set_source_files_properties(dice_roll_parser.cpp
         COTIRE_EXCLUDED TRUE
 )
 
-if (COMMAND cotire)
-    cotire(paradice)
-endif()
+#if (COMMAND cotire)
+#    cotire(paradice)
+#endif()
 

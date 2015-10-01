@@ -27,7 +27,7 @@ void telnet_subnegotiation_router_fixture::test_register_route()
     naws_subnegotiation.content_.push_back(odin::u8('n'));
 
     odin::telnet::subnegotiation_type echo_subnegotiation;
-    echo_subnegotiation.option_id_ = odin::telnet::ECHO;
+    echo_subnegotiation.option_id_ = odin::telnet::OPT_ECHO;
     echo_subnegotiation.content_.push_back(odin::u8('e'));
     
     subnegotiation_router.register_route(
@@ -76,7 +76,7 @@ void telnet_subnegotiation_router_fixture::test_unregister_route()
     naws_subnegotiation.content_.push_back(odin::u8('n'));
 
     odin::telnet::subnegotiation_type echo_subnegotiation;
-    echo_subnegotiation.option_id_ = odin::telnet::ECHO;
+    echo_subnegotiation.option_id_ = odin::telnet::OPT_ECHO;
     echo_subnegotiation.content_.push_back(odin::u8('e'));
     
     subnegotiation_router.register_route(
@@ -122,7 +122,7 @@ void telnet_subnegotiation_router_fixture::test_unregistered_route()
     naws_subnegotiation.content_.push_back(odin::u8('n'));
 
     odin::telnet::subnegotiation_type echo_subnegotiation;
-    echo_subnegotiation.option_id_ = odin::telnet::ECHO;
+    echo_subnegotiation.option_id_ = odin::telnet::OPT_ECHO;
     echo_subnegotiation.content_.push_back(odin::u8('e'));
     
     subnegotiation_router.set_unregistered_route(unregistered_callback);

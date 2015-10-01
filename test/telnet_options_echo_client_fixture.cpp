@@ -9,7 +9,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(telnet_options_echo_client_fixture);
 void telnet_options_echo_client_fixture::test_identity()
 {
     typedef odin::telnet::options::subnegotiationless_client<
-        odin::telnet::ECHO
+        odin::telnet::OPT_ECHO
     > expected_echo_client;
 
     CPPUNIT_ASSERT((

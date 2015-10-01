@@ -44,6 +44,8 @@ if (CPPUNIT_FOUND)
 
     target_link_libraries(
         paradice_tester
+        yg_munin
+        bragi
         odin
         cppunit
         ${Boost_SYSTEM_LIBRARY}

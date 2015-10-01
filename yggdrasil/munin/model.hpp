@@ -65,7 +65,7 @@ public :
     //* =====================================================================
     template <class Model>
     model(Model &&mdl)
-      : self_(std::make_unique<impl<Model>>(std::forward<Model>(mdl)))
+      : self_(kvasir::make_unique<impl<Model>>(std::forward<Model>(mdl)))
     {
     }
 

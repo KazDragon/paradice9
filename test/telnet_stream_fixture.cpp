@@ -522,7 +522,7 @@ void telnet_stream_fixture::test_available_many()
         odin::telnet::IAC, odin::telnet::WILL, odin::telnet::NAWS,
         'd', odin::telnet::IAC, odin::telnet::IAC,
         odin::telnet::IAC, odin::telnet::NOP,
-        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::ECHO,
+        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::OPT_ECHO,
         'e', 'f'
     };
 

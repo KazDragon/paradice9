@@ -138,7 +138,7 @@ void telnet_parser_fixture::test_parse_negotiation()
     odin::telnet::detail::parser parse;
 
     std::vector<odin::u8> data =
-        { odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO };
+        { odin::telnet::IAC, odin::telnet::WILL, odin::telnet::OPT_ECHO };
     sequence results;
 
     for(odin::u8 element : data)
@@ -162,7 +162,7 @@ void telnet_parser_fixture::test_parse_negotiation()
     CPPUNIT_ASSERT_EQUAL(
         odin::u8(odin::telnet::WILL), element.request_);
     CPPUNIT_ASSERT_EQUAL(
-        odin::u8(odin::telnet::ECHO), element.option_id_);
+        odin::u8(odin::telnet::OPT_ECHO), element.option_id_);
 }
 
 void telnet_parser_fixture::test_parse_subnegotiation()
@@ -171,7 +171,7 @@ void telnet_parser_fixture::test_parse_subnegotiation()
 
     std::vector<odin::u8> data =
     {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO,
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::OPT_ECHO,
         'x', 'y',
         odin::telnet::IAC, odin::telnet::SE
     };
@@ -197,7 +197,7 @@ void telnet_parser_fixture::test_parse_subnegotiation()
 
     auto element = boost::get<odin::telnet::subnegotiation_type>(results[0]);
 
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, element.option_id_);
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::OPT_ECHO, element.option_id_);
     CPPUNIT_ASSERT_EQUAL(
         std::vector<odin::u8>::size_type(2), element.content_.size());
     CPPUNIT_ASSERT_EQUAL(expected_data[0], element.content_[0]);
@@ -210,7 +210,7 @@ void telnet_parser_fixture::test_parse_incomplete_subnegotiation()
 
     std::vector<odin::u8> data =
     {
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO,
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::OPT_ECHO,
         'x', 'y',
         odin::telnet::IAC
     };
@@ -256,8 +256,8 @@ void telnet_parser_fixture::test_parse_many()
         odin::telnet::IAC, odin::telnet::NOP,
         odin::telnet::IAC, odin::telnet::AYT,
         'd',
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO,
-        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::ECHO,
+        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::OPT_ECHO,
+        odin::telnet::IAC, odin::telnet::DONT, odin::telnet::OPT_ECHO,
         odin::telnet::IAC, odin::telnet::SB,   odin::telnet::NAWS,
         'e', 'f',
         odin::telnet::IAC, odin::telnet::SE,
@@ -329,7 +329,7 @@ void telnet_parser_fixture::test_parse_many()
         auto element7 = boost::get<odin::telnet::negotiation_type>(results[7]);
 
         CPPUNIT_ASSERT_EQUAL(odin::telnet::WILL, element7.request_);
-        CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, element7.option_id_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::OPT_ECHO, element7.option_id_);
     }
 
     // Element 8: telnet DONT ECHO
@@ -337,7 +337,7 @@ void telnet_parser_fixture::test_parse_many()
         auto element8 = boost::get<odin::telnet::negotiation_type>(results[8]);
 
         CPPUNIT_ASSERT_EQUAL(odin::telnet::DONT, element8.request_);
-        CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, element8.option_id_);
+        CPPUNIT_ASSERT_EQUAL(odin::telnet::OPT_ECHO, element8.option_id_);
     }
 
     // Element 9: telnet SB NAWS 'e' 'f'

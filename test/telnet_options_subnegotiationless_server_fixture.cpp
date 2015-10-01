@@ -26,7 +26,7 @@ void telnet_options_subnegotiationless_server_fixture::test_constructor()
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::subnegotiationless_server<
-        odin::telnet::ECHO
+        odin::telnet::OPT_ECHO
     > echo_server(
         telnet_stream
       , telnet_negotiation_router
@@ -38,7 +38,7 @@ void telnet_options_subnegotiationless_server_fixture::test_constructor()
       , telnet_negotiation_router
       , telnet_subnegotiation_router);
 
-    CPPUNIT_ASSERT_EQUAL(odin::telnet::ECHO, echo_server.get_option_id());
+    CPPUNIT_ASSERT_EQUAL(odin::telnet::OPT_ECHO, echo_server.get_option_id());
     CPPUNIT_ASSERT_EQUAL(
         odin::telnet::SUPPRESS_GOAHEAD
       , suppress_ga_server.get_option_id());
@@ -57,7 +57,7 @@ void telnet_options_subnegotiationless_server_fixture::test_inheritance()
         new odin::telnet::subnegotiation_router);
 
     odin::telnet::options::subnegotiationless_server<
-        odin::telnet::ECHO
+        odin::telnet::OPT_ECHO
     > subnegotiationless_server(
         telnet_stream
       , telnet_negotiation_router

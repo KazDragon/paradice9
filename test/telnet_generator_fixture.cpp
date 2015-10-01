@@ -157,7 +157,7 @@ void telnet_generator_fixture::test_generate_negotiation()
     
     odin::telnet::negotiation_type element0;
     element0.request_   = odin::telnet::WILL;
-    element0.option_id_ = odin::telnet::ECHO;
+    element0.option_id_ = odin::telnet::OPT_ECHO;
 
     element_type variant0(element0);
     
@@ -169,7 +169,7 @@ void telnet_generator_fixture::test_generate_negotiation()
     odin::telnet::detail::generator::result_type result = generate(begin, end);
     
     odin::u8 expected_data[] = { 
-        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::ECHO
+        odin::telnet::IAC, odin::telnet::WILL, odin::telnet::OPT_ECHO
     };
     
     vector<odin::u8> expected_array(expected_data, expected_data + 3);
@@ -184,7 +184,7 @@ void telnet_generator_fixture::test_generate_subnegotiation()
     odin::telnet::detail::generator generate;
     
     odin::telnet::subnegotiation_type element0;
-    element0.option_id_ = odin::telnet::ECHO;
+    element0.option_id_ = odin::telnet::OPT_ECHO;
     element0.content_   = list_of
         ('a')('b')('c')('\xFF')('d');
 
@@ -198,7 +198,7 @@ void telnet_generator_fixture::test_generate_subnegotiation()
     odin::telnet::detail::generator::result_type result = generate(begin, end);
     
     odin::u8 expected_data[] = { 
-        odin::telnet::IAC, odin::telnet::SB, odin::telnet::ECHO
+        odin::telnet::IAC, odin::telnet::SB, odin::telnet::OPT_ECHO
       , 'a', 'b', 'c', odin::telnet::IAC, odin::telnet::IAC, 'd'
       , odin::telnet::IAC, odin::telnet::SE
     };

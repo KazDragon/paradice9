@@ -119,7 +119,7 @@ struct subnegotiation_type
 static option_id_type const TRANSMIT_BINARY                           = 0;
 
 // RFC857/STD28 - Echo
-static option_id_type const ECHO                                      = 1;
+static option_id_type const OPT_ECHO                                  = 1;
 
 // RFCUnknown   - ReConnect Protocol
 static option_id_type const RCP                                       = 2;

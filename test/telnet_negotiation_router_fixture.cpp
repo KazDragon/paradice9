@@ -30,7 +30,7 @@ void telnet_negotiation_router_fixture::test_register_route()
 
     odin::telnet::negotiation_type will_echo;
     will_echo.request_   = odin::telnet::WILL;
-    will_echo.option_id_ = odin::telnet::ECHO;
+    will_echo.option_id_ = odin::telnet::OPT_ECHO;
 
     negotiation_router.register_route(will_naws, will_naws_callback);
 

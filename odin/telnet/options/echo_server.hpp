@@ -31,7 +31,7 @@
 
 namespace odin { namespace telnet { namespace options {
 
-typedef subnegotiationless_server<odin::telnet::ECHO> echo_server;
+typedef subnegotiationless_server<odin::telnet::OPT_ECHO> echo_server;
             
 }}}
 

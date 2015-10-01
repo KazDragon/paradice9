@@ -66,3 +66,7 @@ target_compile_features(munin
         cxx_generic_lambdas
 )
     
+if (COMMAND cotire)
+    cotire(munin)
+endif()
+

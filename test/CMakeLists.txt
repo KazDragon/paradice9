@@ -37,4 +37,9 @@ if (CPPUNIT_FOUND)
     )
 
     add_test(paradice_test paradice_tester)
+
+    if (COMMAND cotire)
+        cotire(paradice_tester)
+    endif()
 endif()
+

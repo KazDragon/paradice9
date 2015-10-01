@@ -28,3 +28,8 @@ target_compile_features(odin
     PRIVATE
         cxx_auto_type
 )
+
+if (COMMAND cotire)
+    cotire(odin)
+endif()
+

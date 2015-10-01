@@ -393,7 +393,7 @@ struct basic_container::impl
 // ==========================================================================
 basic_container::basic_container()
 {
-    pimpl_ = std::make_shared<impl>(ref(*this));
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
 }
 
 // ==========================================================================

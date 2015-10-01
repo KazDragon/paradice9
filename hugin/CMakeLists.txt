@@ -34,3 +34,8 @@ target_compile_features(hugin
         cxx_strong_enums
         cxx_generic_lambdas
 )
+
+if (COMMAND cotire)
+    cotire(hugin)
+endif()
+

@@ -47,3 +47,8 @@ target_compile_features(paradice
         cxx_right_angle_brackets
         cxx_generic_lambdas
 )
+
+if (COMMAND cotire)
+    cotire(paradice)
+endif()
+

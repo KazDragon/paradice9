@@ -182,7 +182,7 @@ public :
         subnegotiation.option_id_ = option_id_;
         subnegotiation.content_   = content;
 
-        stream_->async_write({ subnegotiation }, NULL);
+		stream_->async_write({ subnegotiation }, {});
     }
 
 private :

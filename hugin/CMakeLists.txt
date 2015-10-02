@@ -21,7 +21,9 @@ add_library(hugin
     STATIC ${hugin_SOURCES})
     
 target_include_directories(hugin
-    PRIVATE ${CMAKE_SOURCE_DIR}
+    PRIVATE 
+		${CMAKE_SOURCE_DIR}
+		${Boost_INCLUDE_DIR}
 )
 
 target_compile_definitions(hugin

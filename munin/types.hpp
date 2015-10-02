@@ -100,7 +100,7 @@ struct point
     /// Constructs a point from a passed in x co-ordinate and a passed in
     /// y co-ordinate.
     //* =====================================================================
-    point(odin::s32 x_coordinate, odin::s32 y_coordinate)
+    constexpr point(odin::s32 x_coordinate, odin::s32 y_coordinate)
       : x(x_coordinate),
         y(y_coordinate)
     {
@@ -109,7 +109,7 @@ struct point
     //* =====================================================================
     /// \brief Addition
     //* =====================================================================
-    constexpr point &operator+=(point const &rhs)
+    /*constexpr*/ inline point &operator+=(point const &rhs)
     {
         x += rhs.x;
         y += rhs.y;
@@ -119,7 +119,7 @@ struct point
     //* =====================================================================
     /// \brief Subtraction
     //* =====================================================================
-    constexpr point &operator-=(point const &rhs)
+    /*constexpr*/ inline point &operator-=(point const &rhs)
     {
         x -= rhs.x;
         y -= rhs.y;
@@ -133,7 +133,7 @@ struct point
 // ==========================================================================
 // OPERATOR==(POINT,POINT)
 // ==========================================================================
-constexpr bool operator==(point const &lhs, point const &rhs)
+/*constexpr*/ inline bool operator==(point const &lhs, point const &rhs)
 {
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
@@ -141,7 +141,7 @@ constexpr bool operator==(point const &lhs, point const &rhs)
 // ==========================================================================
 // OPERATOR!=(POINT,POINT)
 // ==========================================================================
-constexpr bool operator!=(point const &lhs, point const &rhs)
+/*constexpr*/ inline bool operator!=(point const &lhs, point const &rhs)
 {
     return !(lhs == rhs);
 }
@@ -149,7 +149,7 @@ constexpr bool operator!=(point const &lhs, point const &rhs)
 // ==========================================================================
 // OPERATOR+(POINT,POINT)
 // ==========================================================================
-constexpr point operator+(point lhs, point const &rhs)
+/*constexpr*/ inline point operator+(point lhs, point const &rhs)
 {
     return lhs += rhs;
 }
@@ -157,7 +157,7 @@ constexpr point operator+(point lhs, point const &rhs)
 // ==========================================================================
 // OPERATOR-(POINT,POINT)
 // ==========================================================================
-constexpr point operator-(point lhs, point const &rhs)
+/*constexpr*/ inline point operator-(point lhs, point const &rhs)
 {
     return lhs -= rhs;
 }
@@ -200,7 +200,7 @@ struct extent
     //* =====================================================================
     /// \brief Addition
     //* =====================================================================
-    constexpr extent &operator+=(extent const &rhs)
+	/*constexpr*/ inline extent &operator+=(extent const &rhs)
     {
         width  += rhs.width;
         height += rhs.height;
@@ -210,7 +210,7 @@ struct extent
     //* =====================================================================
     /// \brief Subtraction
     //* =====================================================================
-    constexpr extent &operator-=(extent const &rhs)
+	/*constexpr*/ inline extent &operator-=(extent const &rhs)
     {
         width  -= rhs.width;
         height -= rhs.height;
@@ -224,7 +224,7 @@ struct extent
 // ==========================================================================
 // OPERATOR==(EXTENT,EXTENT)
 // ==========================================================================
-constexpr bool operator==(extent const &lhs, extent const &rhs)
+/*constexpr*/ inline bool operator==(extent const &lhs, extent const &rhs)
 {
     return lhs.width == rhs.width && lhs.height == rhs.height;
 }
@@ -232,7 +232,7 @@ constexpr bool operator==(extent const &lhs, extent const &rhs)
 // ==========================================================================
 // OPERATOR!=(EXTENT,EXTENT)
 // ==========================================================================
-constexpr bool operator!=(extent const &lhs, extent const &rhs)
+/*constexpr*/ inline bool operator!=(extent const &lhs, extent const &rhs)
 {
     return !(lhs == rhs);
 }
@@ -240,7 +240,7 @@ constexpr bool operator!=(extent const &lhs, extent const &rhs)
 // ==========================================================================
 // OPERATOR+(EXTENT,EXTENT)
 // ==========================================================================
-constexpr extent operator+(extent lhs, extent const &rhs)
+/*constexpr*/ inline extent operator+(extent lhs, extent const &rhs)
 {
     return lhs += rhs;
 }
@@ -248,7 +248,7 @@ constexpr extent operator+(extent lhs, extent const &rhs)
 // ==========================================================================
 // OPERATOR-(EXTENT,EXTENT)
 // ==========================================================================
-constexpr extent operator-(extent lhs, extent const &rhs)
+/*constexpr*/ inline extent operator-(extent lhs, extent const &rhs)
 {
     return lhs -= rhs;
 }
@@ -285,7 +285,7 @@ struct rectangle
 // ==========================================================================
 // OPERATOR+(POINT,EXTENT)
 // ==========================================================================
-constexpr rectangle operator+(point const &pt, extent const &ext)
+/*constexpr*/ inline rectangle operator+(point const &pt, extent const &ext)
 {
     return rectangle(pt, ext);
 }
@@ -293,7 +293,7 @@ constexpr rectangle operator+(point const &pt, extent const &ext)
 // ==========================================================================
 // OPERATOR==(RECTANGLE,RECTANGLE)
 // ==========================================================================
-constexpr bool operator==(rectangle const &lhs, rectangle const &rhs)
+/*constexpr*/ inline bool operator==(rectangle const &lhs, rectangle const &rhs)
 {
     return lhs.origin == rhs.origin && lhs.size == rhs.size;
 }
@@ -301,7 +301,7 @@ constexpr bool operator==(rectangle const &lhs, rectangle const &rhs)
 // ==========================================================================
 // OPERATOR!=(RECTANGLE,RECTANGLE)
 // ==========================================================================
-constexpr bool operator!=(rectangle const &lhs, rectangle const &rhs)
+/*constexpr*/ inline bool operator!=(rectangle const &lhs, rectangle const &rhs)
 {
     return !(lhs == rhs);
 }

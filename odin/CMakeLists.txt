@@ -19,7 +19,9 @@ set (odin_SOURCES
 add_library(odin STATIC ${odin_SOURCES})
 
 target_include_directories(odin 
-    PRIVATE ${CMAKE_SOURCE_DIR}
+    PRIVATE 
+		${Boost_INCLUDE_DIR}
+		${CMAKE_SOURCE_DIR}
 )
 
 target_compile_features(odin

@@ -68,7 +68,7 @@ struct extent
     //* =====================================================================
     /// \brief Addition
     //* =====================================================================
-    constexpr extent &operator+=(extent const &rhs)
+    /*constexpr*/ inline extent &operator+=(extent const &rhs)
     {
         width  += rhs.width;
         height += rhs.height;
@@ -78,7 +78,7 @@ struct extent
     //* =====================================================================
     /// \brief Subtraction
     //* =====================================================================
-    constexpr extent &operator-=(extent const &rhs)
+	/*constexpr*/ inline extent &operator-=(extent const &rhs)
     {
         width  -= rhs.width;
         height -= rhs.height;
@@ -92,7 +92,7 @@ struct extent
 // ==========================================================================
 // OPERATOR==(EXTENT,EXTENT)
 // ==========================================================================
-constexpr bool operator==(extent const &lhs, extent const &rhs)
+/*constexpr*/ inline bool operator==(extent const &lhs, extent const &rhs)
 {
     return lhs.width == rhs.width && lhs.height == rhs.height;
 }
@@ -100,7 +100,7 @@ constexpr bool operator==(extent const &lhs, extent const &rhs)
 // ==========================================================================
 // OPERATOR!=(EXTENT,EXTENT)
 // ==========================================================================
-constexpr bool operator!=(extent const &lhs, extent const &rhs)
+/*constexpr*/ inline bool operator!=(extent const &lhs, extent const &rhs)
 {
     return !(lhs == rhs);
 }
@@ -108,7 +108,7 @@ constexpr bool operator!=(extent const &lhs, extent const &rhs)
 // ==========================================================================
 // OPERATOR+(EXTENT,EXTENT)
 // ==========================================================================
-constexpr extent operator+(extent lhs, extent const &rhs)
+/*constexpr*/ inline extent operator+(extent lhs, extent const &rhs)
 {
     return lhs += rhs;
 }
@@ -116,7 +116,7 @@ constexpr extent operator+(extent lhs, extent const &rhs)
 // ==========================================================================
 // OPERATOR-(EXTENT,EXTENT)
 // ==========================================================================
-constexpr extent operator-(extent lhs, extent const &rhs)
+/*constexpr*/ inline extent operator-(extent lhs, extent const &rhs)
 {
     return lhs -= rhs;
 }

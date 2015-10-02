@@ -7,9 +7,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Boost
     REQUIRED
     COMPONENTS
+        date_time
         filesystem
         program_options
         random
+        regex
         serialization
         signals
         system)

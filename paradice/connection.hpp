@@ -29,6 +29,7 @@
 
 #include "odin/types.hpp"
 #include "odin/ansi/protocol.hpp"
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>

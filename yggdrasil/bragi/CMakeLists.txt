@@ -7,6 +7,7 @@ add_library(bragi ${yggdrasil_bragi_SOURCES})
 target_include_directories(bragi
     PRIVATE
         ${CMAKE_SOURCE_DIR}
+		${Boost_INCLUDE_DIR}
 )
 
 target_compile_features(bragi

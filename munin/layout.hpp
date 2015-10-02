@@ -31,6 +31,7 @@
 #include "munin/types.hpp"
 #include <boost/any.hpp>
 #include <memory>
+#include <vector>
 
 namespace munin {
 

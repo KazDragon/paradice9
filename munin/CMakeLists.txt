@@ -51,7 +51,9 @@ add_library(munin
     STATIC ${munin_SOURCES})
 
 target_include_directories(munin
-    PRIVATE ${CMAKE_SOURCE_DIR}
+    PRIVATE 
+		${CMAKE_SOURCE_DIR}
+		${Boost_INCLUDE_DIR}
 )
 
 #Remove when we move to signals2 or some other mechanism.

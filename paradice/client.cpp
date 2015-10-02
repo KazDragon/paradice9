@@ -55,7 +55,7 @@ namespace paradice {
 
 namespace {
     #define PARADICE_CMD_ENTRY_NOP(name) \
-        { name,        NULL                                  , 0, 0 }
+        { name,        {}                                    , 0, 0 }
 
     #define PARADICE_CMD_ENTRY(func) \
         { #func,        [](auto ctx, auto args, auto player) \

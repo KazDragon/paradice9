@@ -23,7 +23,9 @@ add_library(paradice
     STATIC ${paradice_SOURCES})
 
 target_include_directories(paradice
-    PRIVATE ${CMAKE_SOURCE_DIR}
+    PRIVATE 
+		${Boost_INCLUDE_DIR}
+		${CMAKE_SOURCE_DIR}
 )
 
 # Select the best cryptography available.

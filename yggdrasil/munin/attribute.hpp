@@ -43,17 +43,17 @@ struct attribute
     // Structure representing a normal ANSI 16-colour value
     struct low_colour
     {
-        constexpr low_colour()
+		/*constexpr*/ low_colour()
             : low_colour(yggdrasil::graphics::colour::white)
         {
         }
 
-        constexpr low_colour(char value)
+		/*constexpr*/ low_colour(char value)
           : low_colour(yggdrasil::graphics::colour(value))
         {
         }
 
-        constexpr low_colour(yggdrasil::graphics::colour colour)
+		/*constexpr*/ low_colour(yggdrasil::graphics::colour colour)
           : value_(colour)
         {
         };
@@ -64,14 +64,14 @@ struct attribute
     // Structure representing the central 216 colours of a 256-colour palette
     struct high_colour
     {
-        constexpr high_colour()
+		/*constexpr*/ high_colour()
             : red_(255)
             , green_(255)
             , blue_(255)
         {
         }
 
-        constexpr high_colour(yggdrasil::u8 red, yggdrasil::u8 green, yggdrasil::u8 blue)
+		/*constexpr*/ high_colour(yggdrasil::u8 red, yggdrasil::u8 green, yggdrasil::u8 blue)
             : red_(red)
             , green_(green)
             , blue_(blue)
@@ -86,12 +86,12 @@ struct attribute
     // Structure representing the 24 greyscale tones of a 256-colour palette
     struct greyscale_colour
     {
-        constexpr greyscale_colour()
+		/*constexpr*/ greyscale_colour()
             : shade_(23)
         {
         }
 
-        explicit constexpr greyscale_colour(yggdrasil::u8 shade)
+        explicit /*constexpr*/ greyscale_colour(yggdrasil::u8 shade)
             : shade_(shade)
         {
         }

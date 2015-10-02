@@ -340,7 +340,7 @@ struct connection::impl
     void on_terminal_type_negotiated()
     {
         // No longer wait on the terminal type negotiation.
-        telnet_terminal_type_client_->on_request_complete(NULL);
+		telnet_terminal_type_client_->on_request_complete({});
 
         // Get back to scheduling a terminal type get.
         schedule_get_terminal_type();
@@ -464,7 +464,7 @@ void connection::start()
 // ==========================================================================
 void connection::write(std::vector<odin::u8> const &data)
 {
-    pimpl_->socket_->async_write(data, NULL);
+	pimpl_->socket_->async_write(data, {});
 }
 
 // ==========================================================================

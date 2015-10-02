@@ -19,6 +19,7 @@ add_library(yg_munin ${yggdrasil_munin_SOURCES})
 
 target_include_directories(yg_munin
     PRIVATE
+		${Boost_INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}
 )
 

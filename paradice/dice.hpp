@@ -27,6 +27,7 @@
 
 #include "odin/types.hpp"
 #include <boost/variant.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 

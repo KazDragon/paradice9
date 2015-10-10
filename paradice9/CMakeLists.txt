@@ -33,9 +33,3 @@ target_link_libraries(paradice9
     ${Boost_SIGNALS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
 )
-
-if (CRYPTO++_FOUND)
-    target_link_libraries(paradice9
-        ${CRYPTO++_LIBRARIES})
-endif()
-

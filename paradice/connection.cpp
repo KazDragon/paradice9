@@ -27,6 +27,7 @@
 #include "connection.hpp"
 #include "odin/ansi/ansi_parser.hpp"
 #include "odin/net/socket.hpp"
+/*
 #include "odin/telnet/stream.hpp"
 #include "odin/telnet/command_router.hpp"
 #include "odin/telnet/negotiation_router.hpp"
@@ -36,6 +37,7 @@
 #include "odin/telnet/options/naws_client.hpp"
 #include "odin/telnet/options/suppress_goahead_server.hpp"
 #include "odin/telnet/options/terminal_type_client.hpp"
+*/
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <deque>
@@ -171,6 +173,7 @@ struct connection::impl
                 std::ref(socket_->get_io_service()));
         schedule_keepalive();
 
+        /*
         telnet_stream_ =
             std::make_shared<odin::telnet::stream>(
                 socket_,
@@ -231,6 +234,7 @@ struct connection::impl
             {
                 on_terminal_type_detected(type);
             });
+            */
     }
 
     // ======================================================================
@@ -238,6 +242,7 @@ struct connection::impl
     // ======================================================================
     void schedule_next_read()
     {
+        /*
         if (!telnet_stream_->is_alive())
         {
             return;
@@ -263,22 +268,26 @@ struct connection::impl
                     pthis->data_read(data);
                 });
         }
+        */
     }
 
     // ======================================================================
     // DATA_READ
     // ======================================================================
+    /*
     void data_read(odin::telnet::stream::input_storage_type const &data)
     {
         apply_input_range(*telnet_input_visitor_, data);
         schedule_next_read();
     }
+    */
 
     // ======================================================================
     // ON_KEEPALIVE
     // ======================================================================
     void on_keepalive(boost::system::error_code const &error)
     {
+        /*
         if (!error && socket_->is_alive())
         {
             socket_->async_write(
@@ -287,6 +296,7 @@ struct connection::impl
 
             schedule_keepalive();
         }
+        */
     }
 
     // ======================================================================
@@ -334,6 +344,7 @@ struct connection::impl
         }
     }
 
+    /*
     // ======================================================================
     // ON_TERMINAL_TYPE_NEGOTIATED
     // ======================================================================
@@ -410,8 +421,11 @@ struct connection::impl
             }
         }
     }
-
+    */
+    
     std::shared_ptr<odin::net::socket>                   socket_;
+    
+    /*
     std::shared_ptr<odin::telnet::stream>                telnet_stream_;
     std::shared_ptr<odin::telnet::command_router>        telnet_command_router_;
     std::shared_ptr<odin::telnet::negotiation_router>    telnet_negotiation_router_;
@@ -421,7 +435,8 @@ struct connection::impl
     std::shared_ptr<odin::telnet::options::suppress_goahead_server> telnet_suppress_ga_server_;
     std::shared_ptr<odin::telnet::options::naws_client>  telnet_naws_client_;
     std::shared_ptr<odin::telnet::options::terminal_type_client> telnet_terminal_type_client_;
-
+    */
+    
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     std::function<void (char)>                           on_text_;
     std::function<void (odin::ansi::control_sequence const &)> on_control_sequence_;
@@ -543,7 +558,7 @@ void connection::async_get_terminal_type(
     std::function<void (std::string const &)> const &callback)
 {
     pimpl_->terminal_type_requests_.push_back(callback);
-    pimpl_->schedule_get_terminal_type();
+    //pimpl_->schedule_get_terminal_type();
 }
 
 }

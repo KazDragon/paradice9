@@ -23,7 +23,9 @@ add_library(paradice
     STATIC ${paradice_SOURCES})
 
 target_include_directories(paradice
-    PRIVATE ${CMAKE_SOURCE_DIR}
+    PRIVATE 
+        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/telnetpp/include
 )
 
 # Select the best cryptography available.
@@ -31,6 +33,10 @@ if (CRYPTO++_FOUND)
     target_compile_definitions(paradice
         PRIVATE
             PARADICE_USE_CRYPTOPP)
+            
+    target_link_libraries(paradice
+        LINK_INTERFACE_LIBRARIES
+            cryptopp)
 else()
     target_compile_definitions(paradice
         PRIVATE
@@ -48,6 +54,10 @@ target_compile_features(paradice
         cxx_generic_lambdas
 )
 
+target_link_libraries(paradice
+    LINK_INTERFACE_LIBRARIES
+        telnetpp)
+        
 set_source_files_properties(dice_roll_parser.cpp
     PROPERTIES
         COTIRE_EXCLUDED TRUE

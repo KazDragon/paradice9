@@ -207,14 +207,12 @@ struct connection::impl
         telnet_naws_client_ = 
             std::make_shared<telnetpp::options::naws::client>();
         telnet_naws_client_->set_activatable();
-        /*
         telnet_naws_client_->on_window_size_changed.connect(
             [this](auto &&width, auto &&height) -> std::vector<telnetpp::token>
             {
                 on_window_size_changed(width, height);
                 return {};
             });
-        */
         telnetpp::register_client_option(
             *telnet_naws_client_, 
             *telnet_negotiation_router_, 
@@ -254,9 +252,7 @@ struct connection::impl
         
         for (auto &&activation : activations)
         {
-            socket_->async_write(
-                telnetpp::generate(activation.begin(), activation.end()),
-                nullptr);
+            socket_->async_write(telnetpp::generate(activation), nullptr);
         }
     }
 
@@ -315,9 +311,7 @@ struct connection::impl
         // Send any responses to the socket.
         for (auto &&response : responses)
         {
-            socket_->async_write(
-                telnetpp::generate(response.begin(), response.end()),
-                nullptr);
+            socket_->async_write(telnetpp::generate(response), nullptr);
         }
         
         schedule_next_read();
@@ -334,9 +328,7 @@ struct connection::impl
                 telnetpp::command{telnetpp::nop}
             };
             
-            socket_->async_write(
-                telnetpp::generate(tokens.begin(), tokens.end()),
-                nullptr);
+            socket_->async_write(telnetpp::generate(tokens), nullptr);
                 
             schedule_keepalive();
         }

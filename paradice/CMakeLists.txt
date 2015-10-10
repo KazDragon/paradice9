@@ -56,19 +56,6 @@ target_compile_features(paradice
 
 target_link_libraries(paradice
     LINK_INTERFACE_LIBRARIES
-        telnetpp)
-        
-set_source_files_properties(dice_roll_parser.cpp
-    PROPERTIES
-        COTIRE_EXCLUDED TRUE
+        telnetpp
 )
-
-set_source_files_properties(client.cpp
-    PROPERTIES
-        COTIRE_EXCLUDED TRUE
-)
-
-if (COMMAND cotire)
-    cotire(paradice)
-endif()
 

@@ -128,7 +128,7 @@ struct socket::impl : std::enable_shared_from_this<impl>
         boost::system::error_code ec;
         socket_->read_some(boost::asio::buffer(&*data.begin(), size), ec);
 
-        //* INPUT DEBUGGING
+        /* INPUT DEBUGGING
         for(size_t i = 0; i < data.size(); ++i)
         {
             unsigned char ch[2] = { data[i], 0 };
@@ -281,7 +281,7 @@ private :
     // ======================================================================
     void write_first_request()
     {
-        //* OUTPUT DEBUGGING
+        /* OUTPUT DEBUGGING
         for(size_t i = 0; i < write_requests_.front().values_.size(); ++i)
         {
             unsigned char ch[2] = { write_requests_.front().values_[i], 0 };
@@ -352,7 +352,7 @@ private :
 
         if (!error)
         {
-            //* INPUT DEBUGGING
+            /* INPUT DEBUGGING
             for(size_t i = 0; i < bytes_transferred; ++i)
             {
                 unsigned char ch[2] = { read_requests_.front().values_[i], 0 };

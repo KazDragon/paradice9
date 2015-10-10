@@ -18,12 +18,3 @@ target_compile_features(odin
         cxx_auto_type
 )
 
-set_source_files_properties(telnet/stream.cpp
-    PROPERTIES
-        COTIRE_EXCLUDED TRUE
-)
-
-if (COMMAND cotire)
-    cotire(odin)
-endif()
-

@@ -29,8 +29,8 @@
 #include "odin/net/socket.hpp"
 #include "telnetpp/telnetpp.hpp"
 #include "telnetpp/options/echo/server.hpp"
-// TODO: Go-Ahead server
 #include "telnetpp/options/naws/client.hpp"
+#include "telnetpp/options/suppress_ga/server.hpp"
 #include "telnetpp/options/terminal_type/client.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
@@ -197,7 +197,7 @@ struct connection::impl
             *telnet_subnegotiation_router_);
         
         telnet_suppress_ga_server_ =
-            std::make_shared<telnetpp::server_option>(3); // SUPP-GA is 3
+            std::make_shared<telnetpp::options::suppress_ga::server>();
         telnet_suppress_ga_server_->set_activatable();
         telnetpp::register_server_option(
             *telnet_suppress_ga_server_, 
@@ -466,7 +466,7 @@ struct connection::impl
     std::shared_ptr<telnetpp::subnegotiation_router>          telnet_subnegotiation_router_;
     std::shared_ptr<telnetpp::routing_visitor>                telnet_routing_visitor_;
     std::shared_ptr<telnetpp::options::echo::server>          telnet_echo_server_;
-    std::shared_ptr<telnetpp::server_option>                  telnet_suppress_ga_server_;
+    std::shared_ptr<telnetpp::options::suppress_ga::server>   telnet_suppress_ga_server_;
     std::shared_ptr<telnetpp::options::naws::client>          telnet_naws_client_;
     std::shared_ptr<telnetpp::options::terminal_type::client> telnet_terminal_type_client_;
     

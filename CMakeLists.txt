@@ -3,7 +3,6 @@ cmake_policy(VERSION 3.2)
 project(paradice-9)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-include(cotire OPTIONAL)
 
 find_package(Boost
     REQUIRED

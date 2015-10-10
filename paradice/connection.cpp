@@ -27,17 +27,11 @@
 #include "connection.hpp"
 #include "odin/ansi/ansi_parser.hpp"
 #include "odin/net/socket.hpp"
-/*
-#include "odin/telnet/stream.hpp"
-#include "odin/telnet/command_router.hpp"
-#include "odin/telnet/negotiation_router.hpp"
-#include "odin/telnet/subnegotiation_router.hpp"
-#include "odin/telnet/input_visitor.hpp"
-#include "odin/telnet/options/echo_server.hpp"
-#include "odin/telnet/options/naws_client.hpp"
-#include "odin/telnet/options/suppress_goahead_server.hpp"
-#include "odin/telnet/options/terminal_type_client.hpp"
-*/
+#include "telnetpp/telnetpp.hpp"
+#include "telnetpp/options/echo/server.hpp"
+// TODO: Go-Ahead server
+#include "telnetpp/options/naws/client.hpp"
+#include "telnetpp/options/terminal_type/client.hpp"
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <deque>
@@ -164,6 +158,7 @@ struct connection::impl
     void reconnect(std::shared_ptr<odin::net::socket> const &socket)
     {
         socket_ = socket;
+        unparsed_bytes_.clear();
 
         // Begin the keepalive process.  This sends regular heartbeats to the
         // client to help guard against his network settings timing him out
@@ -173,68 +168,96 @@ struct connection::impl
                 std::ref(socket_->get_io_service()));
         schedule_keepalive();
 
-        /*
-        telnet_stream_ =
-            std::make_shared<odin::telnet::stream>(
-                socket_,
-                std::ref(socket_->get_io_service()));
 
         telnet_command_router_ =
-            std::make_shared<odin::telnet::command_router>();
+            std::make_shared<telnetpp::command_router>();
 
         telnet_negotiation_router_ =
-            std::make_shared<odin::telnet::negotiation_router>();
+            std::make_shared<telnetpp::negotiation_router>();
 
         telnet_subnegotiation_router_ =
-            std::make_shared<odin::telnet::subnegotiation_router>();
+            std::make_shared<telnetpp::subnegotiation_router>();
 
-        telnet_input_visitor_ = std::make_shared<odin::telnet::input_visitor>(
-            telnet_command_router_,
-            telnet_negotiation_router_,
-            telnet_subnegotiation_router_,
-            [this](auto const &text){on_text(text);});
-
-        telnet_echo_server_ = std::make_shared<odin::telnet::options::echo_server>(
-            telnet_stream_
-          , telnet_negotiation_router_
-          , telnet_subnegotiation_router_);
-        telnet_echo_server_->set_activatable(true);
-        telnet_echo_server_->activate();
-
+        telnet_routing_visitor_ = std::make_shared<telnetpp::routing_visitor>(
+            [this](auto &&text) -> std::vector<telnetpp::token>
+            {
+                on_text(text);
+                return {};
+            },
+            *telnet_command_router_,
+            *telnet_negotiation_router_,
+            *telnet_subnegotiation_router_);
+        
+        telnet_echo_server_ = 
+            std::make_shared<telnetpp::options::echo::server>();
+        telnet_echo_server_->set_activatable();
+        telnetpp::register_server_option(
+            *telnet_echo_server_, 
+            *telnet_negotiation_router_, 
+            *telnet_subnegotiation_router_);
+        
         telnet_suppress_ga_server_ =
-            std::make_shared<odin::telnet::options::suppress_goahead_server>(
-            telnet_stream_
-          , telnet_negotiation_router_
-          , telnet_subnegotiation_router_);
-        telnet_suppress_ga_server_->set_activatable(true);
-        telnet_suppress_ga_server_->activate();
-
-        telnet_naws_client_ =
-            std::make_shared<odin::telnet::options::naws_client>(
-            telnet_stream_
-          , telnet_negotiation_router_
-          , telnet_subnegotiation_router_);
-        telnet_naws_client_->set_activatable(true);
-        telnet_naws_client_->activate();
-        telnet_naws_client_->on_size(
-            [this](auto const &width, auto const &height)
+            std::make_shared<telnetpp::server_option>(3); // SUPP-GA is 3
+        telnet_suppress_ga_server_->set_activatable();
+        telnetpp::register_server_option(
+            *telnet_suppress_ga_server_, 
+            *telnet_negotiation_router_, 
+            *telnet_subnegotiation_router_);
+         
+        telnet_naws_client_ = 
+            std::make_shared<telnetpp::options::naws::client>();
+        telnet_naws_client_->set_activatable();
+        /*
+        telnet_naws_client_->on_window_size_changed.connect(
+            [this](auto &&width, auto &&height) -> std::vector<telnetpp::token>
             {
                 on_window_size_changed(width, height);
+                return {};
             });
+        */
+        telnetpp::register_client_option(
+            *telnet_naws_client_, 
+            *telnet_negotiation_router_, 
+            *telnet_subnegotiation_router_);
 
         telnet_terminal_type_client_ =
-            std::make_shared<odin::telnet::options::terminal_type_client>(
-            telnet_stream_
-          , telnet_negotiation_router_
-          , telnet_subnegotiation_router_);
-        telnet_terminal_type_client_->set_activatable(true);
-        telnet_terminal_type_client_->activate();
-        telnet_terminal_type_client_->on_terminal_type_detected(
-            [this](auto const &type)
+            std::make_shared<telnetpp::options::terminal_type::client>();
+        telnet_terminal_type_client_->set_activatable();
+        telnet_terminal_type_client_->on_terminal_type.connect(
+            [this](auto &&type) -> std::vector<telnetpp::token>
             {
                 on_terminal_type_detected(type);
+                return {};
             });
-            */
+        telnet_terminal_type_client_->on_state_changed.connect(
+            [this]() -> std::vector<telnetpp::token>
+            {
+                if (telnet_terminal_type_client_->is_active())
+                {
+                    return telnet_terminal_type_client_->request_terminal_type();
+                }
+                
+                return {};
+            });
+        
+        telnetpp::register_client_option(
+            *telnet_terminal_type_client_, 
+            *telnet_negotiation_router_, 
+            *telnet_subnegotiation_router_);
+        
+        auto activations = {
+            telnet_echo_server_->activate(),
+            telnet_suppress_ga_server_->activate(),
+            telnet_naws_client_->activate(),
+            telnet_terminal_type_client_->activate()
+        };
+        
+        for (auto &&activation : activations)
+        {
+            socket_->async_write(
+                telnetpp::generate(activation.begin(), activation.end()),
+                nullptr);
+        }
     }
 
     // ======================================================================
@@ -242,61 +265,81 @@ struct connection::impl
     // ======================================================================
     void schedule_next_read()
     {
-        /*
-        if (!telnet_stream_->is_alive())
+        if (!socket_->is_alive())
         {
             return;
         }
 
-        auto available = telnet_stream_->available();
-
-        if (available.is_initialized())
-        {
-            telnet_stream_->async_read(
-                odin::telnet::stream::input_size_type(available.get()),
-                [pthis=shared_from_this()](auto const &data)
-                {
-                    pthis->data_read(data);
-                });
-        }
-        else
-        {
-            telnet_stream_->async_read(
-                odin::telnet::stream::input_size_type(1),
-                [pthis=shared_from_this()](auto const &data)
-                {
-                    pthis->data_read(data);
-                });
-        }
-        */
+        auto available = socket_->available();
+        auto amount = available 
+                    ? *available 
+                    : odin::net::socket::input_size_type{1};
+                    
+        socket_->async_read(
+            amount,
+            [this](auto &&data)
+            {
+                on_data(data);
+            });
     }
 
     // ======================================================================
-    // DATA_READ
+    // ON_DATA
     // ======================================================================
-    /*
-    void data_read(odin::telnet::stream::input_storage_type const &data)
+    void on_data(std::vector<odin::u8> const &data)
     {
-        apply_input_range(*telnet_input_visitor_, data);
+        // First, add the bytes received onto the unparsed_bytes_ buffer,
+        // and then parse the entire buffer into as many Telnet tokens as
+        // possible.
+        unparsed_bytes_.insert(
+            unparsed_bytes_.end(),
+            data.begin(),
+            data.end());
+        
+        auto begin = unparsed_bytes_.begin();
+        auto end   = unparsed_bytes_.end();
+        
+        auto tokens = telnetpp::parse(begin, end);
+        unparsed_bytes_.erase(unparsed_bytes_.begin(), begin);
+        
+        // Now, route all of the tokens to their correct destinations, and
+        // collect the responses.
+        std::vector<std::vector<telnetpp::token>> responses;
+        
+        for (auto &&token : tokens)
+        {
+            responses.push_back(
+                boost::apply_visitor(*telnet_routing_visitor_, token));
+        }
+        
+        // Send any responses to the socket.
+        for (auto &&response : responses)
+        {
+            socket_->async_write(
+                telnetpp::generate(response.begin(), response.end()),
+                nullptr);
+        }
+        
         schedule_next_read();
     }
-    */
-
+    
     // ======================================================================
     // ON_KEEPALIVE
     // ======================================================================
     void on_keepalive(boost::system::error_code const &error)
     {
-        /*
         if (!error && socket_->is_alive())
         {
+            std::vector<telnetpp::token> tokens = {
+                telnetpp::command{telnetpp::nop}
+            };
+            
             socket_->async_write(
-                { odin::telnet::IAC, odin::telnet::NOP },
+                telnetpp::generate(tokens.begin(), tokens.end()),
                 nullptr);
-
+                
             schedule_keepalive();
         }
-        */
     }
 
     // ======================================================================
@@ -344,17 +387,16 @@ struct connection::impl
         }
     }
 
-    /*
     // ======================================================================
     // ON_TERMINAL_TYPE_NEGOTIATED
     // ======================================================================
     void on_terminal_type_negotiated()
     {
         // No longer wait on the terminal type negotiation.
-        telnet_terminal_type_client_->on_request_complete(NULL);
+        //telnet_terminal_type_client_->on_request_complete(NULL);
 
         // Get back to scheduling a terminal type get.
-        schedule_get_terminal_type();
+        //schedule_get_terminal_type();
     }
 
     // ======================================================================
@@ -384,6 +426,7 @@ struct connection::impl
     // ======================================================================
     void schedule_get_terminal_type()
     {
+        /*
         if (telnet_terminal_type_client_->is_active())
         {
             // if we already know the terminal type, then simply schedule
@@ -420,22 +463,20 @@ struct connection::impl
                   , "UNKNOWN"));
             }
         }
+        */
     }
-    */
     
     std::shared_ptr<odin::net::socket>                   socket_;
+    std::vector<odin::u8>                                unparsed_bytes_;
     
-    /*
-    std::shared_ptr<odin::telnet::stream>                telnet_stream_;
-    std::shared_ptr<odin::telnet::command_router>        telnet_command_router_;
-    std::shared_ptr<odin::telnet::negotiation_router>    telnet_negotiation_router_;
-    std::shared_ptr<odin::telnet::subnegotiation_router> telnet_subnegotiation_router_;
-    std::shared_ptr<odin::telnet::input_visitor>         telnet_input_visitor_;
-    std::shared_ptr<odin::telnet::options::echo_server>  telnet_echo_server_;
-    std::shared_ptr<odin::telnet::options::suppress_goahead_server> telnet_suppress_ga_server_;
-    std::shared_ptr<odin::telnet::options::naws_client>  telnet_naws_client_;
-    std::shared_ptr<odin::telnet::options::terminal_type_client> telnet_terminal_type_client_;
-    */
+    std::shared_ptr<telnetpp::command_router>                 telnet_command_router_;
+    std::shared_ptr<telnetpp::negotiation_router>             telnet_negotiation_router_;
+    std::shared_ptr<telnetpp::subnegotiation_router>          telnet_subnegotiation_router_;
+    std::shared_ptr<telnetpp::routing_visitor>                telnet_routing_visitor_;
+    std::shared_ptr<telnetpp::options::echo::server>          telnet_echo_server_;
+    std::shared_ptr<telnetpp::server_option>                  telnet_suppress_ga_server_;
+    std::shared_ptr<telnetpp::options::naws::client>          telnet_naws_client_;
+    std::shared_ptr<telnetpp::options::terminal_type::client> telnet_terminal_type_client_;
     
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     std::function<void (char)>                           on_text_;
@@ -558,7 +599,7 @@ void connection::async_get_terminal_type(
     std::function<void (std::string const &)> const &callback)
 {
     pimpl_->terminal_type_requests_.push_back(callback);
-    //pimpl_->schedule_get_terminal_type();
+    pimpl_->schedule_get_terminal_type();
 }
 
 }

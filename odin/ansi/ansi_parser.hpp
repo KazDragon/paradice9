@@ -30,6 +30,7 @@
 #include "odin/ansi/protocol.hpp"
 #include "odin/lexer.hpp"
 #include <boost/variant.hpp>
+#include <memory>
 
 namespace odin { namespace ansi {
 

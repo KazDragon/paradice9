@@ -1,0 +1,3 @@
+[submodule "telnetpp"]
+	path = telnetpp
+	url = https://github.com/KazDragon/telnetpp

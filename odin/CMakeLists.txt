@@ -2,17 +2,6 @@ set (odin_SOURCES
     ansi/ansi_parser.cpp
     net/server.cpp
     net/socket.cpp
-    telnet/client_option.cpp
-    telnet/command_router.cpp
-    telnet/input_visitor.cpp
-    telnet/negotiation_router.cpp
-    telnet/protocol.cpp
-    telnet/server_option.cpp
-    telnet/stream.cpp
-    telnet/subnegotiation_router.cpp
-    telnet/detail/parser.cpp
-    telnet/options/naws_client.cpp
-    telnet/options/terminal_type_client.cpp
     tokenise.cpp
 )
 
@@ -28,13 +17,4 @@ target_compile_features(odin
     PRIVATE
         cxx_auto_type
 )
-
-set_source_files_properties(telnet/stream.cpp
-    PROPERTIES
-        COTIRE_EXCLUDED TRUE
-)
-
-if (COMMAND cotire)
-    cotire(odin)
-endif()
 

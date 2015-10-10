@@ -131,11 +131,11 @@ struct socket::impl : std::enable_shared_from_this<impl>
         /* INPUT DEBUGGING
         for(size_t i = 0; i < data.size(); ++i)
         {
-            char ch[2] = { data[i], 0 };
+            unsigned char ch[2] = { data[i], 0 };
 
             printf(" IN [0x%02X] %s\n",
                 (int)(unsigned char)ch[0]
-              , isprint(ch[0]) ? ch : "(*)");
+              , isprint(char(ch[0])) ? (char*)ch : "(*)");
         }
         //*/
 
@@ -284,11 +284,11 @@ private :
         /* OUTPUT DEBUGGING
         for(size_t i = 0; i < write_requests_.front().values_.size(); ++i)
         {
-            char ch[2] = { write_requests_.front().values_[i], 0 };
+            unsigned char ch[2] = { write_requests_.front().values_[i], 0 };
 
             printf("OUT [0x%02X] %s\n",
                 (int)(unsigned char)ch[0]
-              , isprint(ch[0]) ? ch : "(*)");
+              , isprint(ch[0]) ? (char*)ch : "(*)");
             fflush(stdout);
         }
         //*/
@@ -355,11 +355,11 @@ private :
             /* INPUT DEBUGGING
             for(size_t i = 0; i < bytes_transferred; ++i)
             {
-                char ch[2] = { read_requests_.front().values_[i], 0 };
+                unsigned char ch[2] = { read_requests_.front().values_[i], 0 };
 
                 printf(" IN [0x%02X] %s\n",
                     (int)(unsigned char)ch[0]
-                  , isprint(ch[0]) ? ch : "(*)");
+                  , isprint(char(ch[0])) ? (char*)ch : "(*)");
             }
             //*/
 

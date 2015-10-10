@@ -3,7 +3,6 @@ cmake_policy(VERSION 3.2)
 project(paradice-9)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-include(cotire OPTIONAL)
 
 find_package(Boost
     REQUIRED
@@ -27,6 +26,7 @@ if (CPPUNIT_FOUND)
     enable_testing()
 endif()
 
+add_subdirectory(telnetpp)
 add_subdirectory(odin)
 add_subdirectory(munin)
 add_subdirectory(paradice)

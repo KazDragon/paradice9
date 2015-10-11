@@ -150,16 +150,16 @@ void munin_string_to_elements_fixture::test_intensity()
         munin::string_to_elements(test_string));
     
     munin::attribute attribute_a;
-    attribute_a.intensity_ = odin::ansi::graphics::INTENSITY_BOLD;
+    attribute_a.intensity_ = odin::ansi::graphics::intensity::bold;
     
     munin::attribute attribute_b;
-    attribute_b.intensity_ = odin::ansi::graphics::INTENSITY_NORMAL;
+    attribute_b.intensity_ = odin::ansi::graphics::intensity::normal;
     
     munin::attribute attribute_c;
-    attribute_c.intensity_ = odin::ansi::graphics::INTENSITY_FAINT;
+    attribute_c.intensity_ = odin::ansi::graphics::intensity::faint;
     
     munin::attribute attribute_d;
-    attribute_d.intensity_ = odin::ansi::graphics::INTENSITY_NORMAL;
+    attribute_d.intensity_ = odin::ansi::graphics::intensity::normal;
 
     vector<munin::element_type> expected_array = 
         list_of(munin::element_type('a', attribute_a))
@@ -181,13 +181,13 @@ void munin_string_to_elements_fixture::test_polarity()
         munin::string_to_elements(test_string));
     
     munin::attribute attribute_a;
-    attribute_a.polarity_ = odin::ansi::graphics::POLARITY_POSITIVE;
+    attribute_a.polarity_ = odin::ansi::graphics::polarity::positive;
     
     munin::attribute attribute_b;
-    attribute_b.polarity_ = odin::ansi::graphics::POLARITY_NEGATIVE;
+    attribute_b.polarity_ = odin::ansi::graphics::polarity::negative;
     
     munin::attribute attribute_c;
-    attribute_c.polarity_ = odin::ansi::graphics::POLARITY_POSITIVE;
+    attribute_c.polarity_ = odin::ansi::graphics::polarity::positive;
 
     vector<munin::element_type> expected_array = 
         list_of(munin::element_type('a', attribute_a))
@@ -208,13 +208,13 @@ void munin_string_to_elements_fixture::test_underlining()
         munin::string_to_elements(test_string));
     
     munin::attribute attribute_a;
-    attribute_a.underlining_ = odin::ansi::graphics::UNDERLINING_UNDERLINED;
+    attribute_a.underlining_ = odin::ansi::graphics::underlining::underlined;
     
     munin::attribute attribute_b;
-    attribute_b.underlining_ = odin::ansi::graphics::UNDERLINING_NOT_UNDERLINED;
+    attribute_b.underlining_ = odin::ansi::graphics::underlining::not_underlined;
     
     munin::attribute attribute_c;
-    attribute_c.underlining_ = odin::ansi::graphics::UNDERLINING_NOT_UNDERLINED;
+    attribute_c.underlining_ = odin::ansi::graphics::underlining::not_underlined;
 
     vector<munin::element_type> expected_array = 
         list_of(munin::element_type('a', attribute_a))
@@ -233,11 +233,11 @@ void munin_string_to_elements_fixture::test_foreground_colour_ansi()
         munin::string_to_elements(test_string));
     
     munin::attribute attribute_a;
-    attribute_a.foreground_colour_ = odin::ansi::graphics::COLOUR_BLACK;
+    attribute_a.foreground_colour_ = odin::ansi::graphics::colour::black;
     
     munin::attribute attribute_b;
     attribute_b.foreground_colour_ = 
-        munin::attribute::colour(odin::ansi::graphics::COLOUR_WHITE);
+        munin::attribute::colour(odin::ansi::graphics::colour::white);
     
     vector<munin::element_type> expected_array = 
         list_of(munin::element_type('a', attribute_a))
@@ -309,11 +309,11 @@ void munin_string_to_elements_fixture::test_background_colour_ansi()
         munin::string_to_elements(test_string));
     
     munin::attribute attribute_a;
-    attribute_a.background_colour_ = odin::ansi::graphics::COLOUR_BLACK;
+    attribute_a.background_colour_ = odin::ansi::graphics::colour::black;
     
     munin::attribute attribute_b;
     attribute_b.background_colour_ = 
-        munin::attribute::colour(odin::ansi::graphics::COLOUR_WHITE);
+        munin::attribute::colour(odin::ansi::graphics::colour::white);
     
     vector<munin::element_type> expected_array = 
         list_of(munin::element_type('a', attribute_a))
@@ -390,11 +390,11 @@ void munin_string_to_elements_fixture::test_default()
     glyph_a.locale_        = odin::ansi::character_set::LOCALE_SCO;
     
     munin::attribute attribute_a;
-    attribute_a.intensity_   = odin::ansi::graphics::INTENSITY_BOLD;
-    attribute_a.underlining_ = odin::ansi::graphics::UNDERLINING_UNDERLINED;
-    attribute_a.polarity_    = odin::ansi::graphics::POLARITY_NEGATIVE;
-    attribute_a.foreground_colour_ = odin::ansi::graphics::COLOUR_RED;
-    attribute_a.background_colour_ = odin::ansi::graphics::COLOUR_WHITE;
+    attribute_a.intensity_   = odin::ansi::graphics::intensity::bold;
+    attribute_a.underlining_ = odin::ansi::graphics::underlining::underlined;
+    attribute_a.polarity_    = odin::ansi::graphics::polarity::negative;
+    attribute_a.foreground_colour_ = odin::ansi::graphics::colour::red;
+    attribute_a.background_colour_ = odin::ansi::graphics::colour::white;
 
     munin::attribute attribute_b;
         

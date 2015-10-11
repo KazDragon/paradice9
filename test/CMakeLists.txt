@@ -1,5 +1,8 @@
 set (test_SOURCES
     ansi_parser_fixture.cpp
+    dice_parser_fixture.cpp
+    munin_algorithm_fixture.cpp
+    munin_string_to_elements_fixture.cpp
     paradice_test.cpp
 )
 
@@ -20,7 +23,10 @@ if (CPPUNIT_FOUND)
     )
 
     target_link_libraries(
+    
         paradice_tester
+        paradice
+        munin
         odin
         cppunit
         ${Boost_SYSTEM_LIBRARY}

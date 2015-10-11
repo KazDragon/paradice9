@@ -8,9 +8,9 @@ On top of that, its software architecture can also stand as a platform for Telne
 
 Dependencies
 ------------
-Paradice9 can be built for any platform supporting any reasonably modern (i.e. basic C++11/14) compiler.
+Paradice9 can be built for any platform supporting any modern C++14 compiler.
 For example:
-  * Ubuntu Linux, using g++-4.9 or above
+  * Ubuntu Linux, using g++-5.2 or above
   * Ubuntu Linux, using Clang 3.4 or above
 
 This is tested automatically on the following platforms:
@@ -18,6 +18,7 @@ This is tested automatically on the following platforms:
 
 It requires the following supporting libraries:
   * The Boost Libraries (www.boost.org)
+  * Telnet++ (https://github.com/KazDragon/telnetpp, supplied as a git submodule)
   * Optionally, Crypto++ (www.cryptopp.com)
   * Optionally, CppUnit (sourceforge.net/projects/cppunit)
 

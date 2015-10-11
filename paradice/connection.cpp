@@ -299,19 +299,12 @@ struct connection::impl
         unparsed_bytes_.erase(unparsed_bytes_.begin(), begin);
         
         // Now, route all of the tokens to their correct destinations, and
-        // collect the responses.
-        std::vector<std::vector<telnetpp::token>> responses;
-        
+        // transmit the responses.
         for (auto &&token : tokens)
         {
-            responses.push_back(
-                boost::apply_visitor(*telnet_routing_visitor_, token));
-        }
-        
-        // Send any responses to the socket.
-        for (auto &&response : responses)
-        {
-            socket_->async_write(telnetpp::generate(response), nullptr);
+            socket_->async_write(telnetpp::generate(
+                boost::apply_visitor(*telnet_routing_visitor_, token)),
+                nullptr);
         }
         
         schedule_next_read();
@@ -324,11 +317,11 @@ struct connection::impl
     {
         if (!error && socket_->is_alive())
         {
-            std::vector<telnetpp::token> tokens = {
-                telnetpp::command{telnetpp::nop}
-            };
-            
-            socket_->async_write(telnetpp::generate(tokens), nullptr);
+            socket_->async_write(
+                telnetpp::generate(
+                    std::vector<telnetpp::token>{
+                        telnetpp::command(telnetpp::nop)
+                    }), nullptr);
                 
             schedule_keepalive();
         }

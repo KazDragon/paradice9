@@ -37,6 +37,7 @@ if (CPPUNIT_FOUND)
 endif()
 
 add_subdirectory(telnetpp)
+add_subdirectory(terminalpp)
 add_subdirectory(odin)
 add_subdirectory(munin)
 add_subdirectory(paradice)

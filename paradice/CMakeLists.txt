@@ -55,6 +55,6 @@ target_compile_features(paradice
 )
 
 target_link_libraries(paradice
-    INTERFACE hugin telnetpp ${Boost_RANDOM_LIBRARY}
+    INTERFACE odin hugin telnetpp ${Boost_RANDOM_LIBRARY}
 )
 

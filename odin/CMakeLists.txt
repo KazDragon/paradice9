@@ -5,10 +5,11 @@ set (odin_SOURCES
     tokenise.cpp
 )
 
-add_library(odin STATIC ${odin_SOURCES})
+add_library(odin ${odin_SOURCES})
 
 target_include_directories(odin 
     PRIVATE ${CMAKE_SOURCE_DIR}
+    PUBLIC ${Boost_INCLUDE_DIRS}
 )
 
 target_compile_features(odin

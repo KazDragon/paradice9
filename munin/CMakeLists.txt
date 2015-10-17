@@ -45,13 +45,17 @@ set (munin_SOURCES
     vertical_strip_layout.cpp
     viewport.cpp
     window.cpp
-    )
+)
 
-add_library(munin 
-    STATIC ${munin_SOURCES})
+add_library(munin ${munin_SOURCES})
 
 target_include_directories(munin
     PRIVATE ${CMAKE_SOURCE_DIR}
+    PUBLIC ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(munin
+    INTERFACE ${Boost_SIGNALS_LIBRARY}
 )
 
 #Remove when we move to signals2 or some other mechanism.

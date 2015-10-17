@@ -168,41 +168,22 @@ struct connection::impl
                 std::ref(socket_->get_io_service()));
         schedule_keepalive();
 
-
-        telnet_command_router_ =
-            std::make_shared<telnetpp::command_router>();
-
-        telnet_negotiation_router_ =
-            std::make_shared<telnetpp::negotiation_router>();
-
-        telnet_subnegotiation_router_ =
-            std::make_shared<telnetpp::subnegotiation_router>();
-
-        telnet_routing_visitor_ = std::make_shared<telnetpp::routing_visitor>(
+        telnet_session_ = std::make_shared<telnetpp::session>(
             [this](auto &&text) -> std::vector<telnetpp::token>
             {
                 on_text(text);
                 return {};
-            },
-            *telnet_command_router_,
-            *telnet_negotiation_router_,
-            *telnet_subnegotiation_router_);
-        
+            });
+
         telnet_echo_server_ = 
             std::make_shared<telnetpp::options::echo::server>();
         telnet_echo_server_->set_activatable();
-        telnetpp::register_server_option(
-            *telnet_echo_server_, 
-            *telnet_negotiation_router_, 
-            *telnet_subnegotiation_router_);
+        telnet_session_->install(*telnet_echo_server_);
         
         telnet_suppress_ga_server_ =
             std::make_shared<telnetpp::options::suppress_ga::server>();
         telnet_suppress_ga_server_->set_activatable();
-        telnetpp::register_server_option(
-            *telnet_suppress_ga_server_, 
-            *telnet_negotiation_router_, 
-            *telnet_subnegotiation_router_);
+        telnet_session_->install(*telnet_suppress_ga_server_);
          
         telnet_naws_client_ = 
             std::make_shared<telnetpp::options::naws::client>();
@@ -213,10 +194,7 @@ struct connection::impl
                 on_window_size_changed(width, height);
                 return {};
             });
-        telnetpp::register_client_option(
-            *telnet_naws_client_, 
-            *telnet_negotiation_router_, 
-            *telnet_subnegotiation_router_);
+        telnet_session_->install(*telnet_naws_client_);
 
         telnet_terminal_type_client_ =
             std::make_shared<telnetpp::options::terminal_type::client>();
@@ -237,23 +215,30 @@ struct connection::impl
                 
                 return {};
             });
-        
-        telnetpp::register_client_option(
-            *telnet_terminal_type_client_, 
-            *telnet_negotiation_router_, 
-            *telnet_subnegotiation_router_);
-        
-        auto activations = {
-            telnet_echo_server_->activate(),
-            telnet_suppress_ga_server_->activate(),
-            telnet_naws_client_->activate(),
-            telnet_terminal_type_client_->activate()
-        };
-        
-        for (auto &&activation : activations)
+        telnet_session_->install(*telnet_terminal_type_client_);
+
+        write(telnet_session_->send(telnet_echo_server_->activate()));
+        write(telnet_session_->send(telnet_suppress_ga_server_->activate()));
+        write(telnet_session_->send(telnet_naws_client_->activate()));
+        write(telnet_session_->send(telnet_terminal_type_client_->activate()));
+    }
+
+    // ======================================================================
+    // WRITE
+    // ======================================================================
+    void write(
+        std::vector<boost::variant<telnetpp::u8stream, boost::any>> const &data)
+    {
+        // We currently talk directly to a socket type that expects a
+        // straightforward stream of bytes -- no user-defined data.  This may
+        // change in the future, in which case we will get a nice exception 
+        // thrown here during testing of the new feature.
+        for (auto &&datum : data)
         {
-            socket_->async_write(telnetpp::generate(activation), nullptr);
+            auto &&stream = boost::get<telnetpp::u8stream>(datum);
+            socket_->async_write({stream.begin(), stream.end()}, nullptr);
         }
+        
     }
 
     // ======================================================================
@@ -284,29 +269,9 @@ struct connection::impl
     // ======================================================================
     void on_data(std::vector<odin::u8> const &data)
     {
-        // First, add the bytes received onto the unparsed_bytes_ buffer,
-        // and then parse the entire buffer into as many Telnet tokens as
-        // possible.
-        unparsed_bytes_.insert(
-            unparsed_bytes_.end(),
-            data.begin(),
-            data.end());
-        
-        auto begin = unparsed_bytes_.begin();
-        auto end   = unparsed_bytes_.end();
-        
-        auto tokens = telnetpp::parse(begin, end);
-        unparsed_bytes_.erase(unparsed_bytes_.begin(), begin);
-        
-        // Now, route all of the tokens to their correct destinations, and
-        // transmit the responses.
-        for (auto &&token : tokens)
-        {
-            socket_->async_write(telnetpp::generate(
-                boost::apply_visitor(*telnet_routing_visitor_, token)),
-                nullptr);
-        }
-        
+        write(telnet_session_->send(
+            telnet_session_->receive({data.begin(), data.end()})));
+            
         schedule_next_read();
     }
     
@@ -317,12 +282,10 @@ struct connection::impl
     {
         if (!error && socket_->is_alive())
         {
-            socket_->async_write(
-                telnetpp::generate(
-                    std::vector<telnetpp::token>{
-                        telnetpp::command(telnetpp::nop)
-                    }), nullptr);
-                
+            write(telnet_session_->send({
+                    telnetpp::element(telnetpp::command(telnetpp::nop))
+                }));
+
             schedule_keepalive();
         }
     }
@@ -454,10 +417,7 @@ struct connection::impl
     std::shared_ptr<odin::net::socket>                   socket_;
     std::vector<odin::u8>                                unparsed_bytes_;
     
-    std::shared_ptr<telnetpp::command_router>                 telnet_command_router_;
-    std::shared_ptr<telnetpp::negotiation_router>             telnet_negotiation_router_;
-    std::shared_ptr<telnetpp::subnegotiation_router>          telnet_subnegotiation_router_;
-    std::shared_ptr<telnetpp::routing_visitor>                telnet_routing_visitor_;
+    std::shared_ptr<telnetpp::session>telnet_session_;
     std::shared_ptr<telnetpp::options::echo::server>          telnet_echo_server_;
     std::shared_ptr<telnetpp::options::suppress_ga::server>   telnet_suppress_ga_server_;
     std::shared_ptr<telnetpp::options::naws::client>          telnet_naws_client_;

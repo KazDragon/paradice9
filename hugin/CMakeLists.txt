@@ -17,11 +17,15 @@ set (hugin_SOURCES
     wholist.cpp
 )
 
-add_library(hugin 
-    STATIC ${hugin_SOURCES})
+add_library(hugin ${hugin_SOURCES})
     
 target_include_directories(hugin
     PRIVATE ${CMAKE_SOURCE_DIR}
+    PUBLIC ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(hugin
+    INTERFACE munin
 )
 
 target_compile_definitions(hugin

@@ -19,13 +19,14 @@ set (paradice_SOURCES
     who.cpp
 )
 
-add_library(paradice
-    STATIC ${paradice_SOURCES})
+add_library(paradice ${paradice_SOURCES})
 
 target_include_directories(paradice
     PRIVATE 
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/telnetpp/include
+    PUBLIC 
+        ${Boost_INCLUDE_DIRS}
 )
 
 # Select the best cryptography available.
@@ -35,8 +36,7 @@ if (CRYPTO++_FOUND)
             PARADICE_USE_CRYPTOPP)
             
     target_link_libraries(paradice
-        LINK_INTERFACE_LIBRARIES
-            cryptopp)
+        INTERFACE cryptopp)
 else()
     target_compile_definitions(paradice
         PRIVATE
@@ -55,7 +55,6 @@ target_compile_features(paradice
 )
 
 target_link_libraries(paradice
-    LINK_INTERFACE_LIBRARIES
-        telnetpp
+    INTERFACE odin hugin telnetpp ${Boost_RANDOM_LIBRARY}
 )
 

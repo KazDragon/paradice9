@@ -7,8 +7,9 @@ set (paradice9_SOURCES
 add_executable(paradice9 ${paradice9_SOURCES})
 
 target_include_directories(paradice9
-    PRIVATE
+    PRIVATE 
         ${CMAKE_SOURCE_DIR}
+        ${Boost_INCLUDE_DIRS}
 )
 
 target_compile_definitions(paradice9
@@ -22,14 +23,10 @@ target_compile_features(paradice9
 )
 
 target_link_libraries(paradice9
-    hugin
-    paradice
-    munin
     odin
-    ${Boost_FILESYSTEM_LIBRARY}
+    paradice
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_RANDOM_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SERIALIZATION_LIBRARY}
-    ${Boost_SIGNALS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
 )

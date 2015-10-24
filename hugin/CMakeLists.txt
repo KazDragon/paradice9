@@ -24,6 +24,11 @@ target_include_directories(hugin
     PUBLIC ${Boost_INCLUDE_DIRS}
 )
 
+set_target_properties(hugin
+    PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+)
+
 target_link_libraries(hugin
     INTERFACE munin
 )
@@ -39,3 +44,6 @@ target_compile_features(hugin
         cxx_generic_lambdas
 )
 
+generate_export_header(hugin
+    EXPORT_FILE_NAME "${PROJECT_SOURCE_DIR}/hugin/export.hpp"
+)

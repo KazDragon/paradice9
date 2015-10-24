@@ -35,7 +35,7 @@ namespace munin {
 /// \brief A container that constructs a scroll pane around an underlying
 /// component.
 //* =========================================================================
-class scroll_pane
+class MUNIN_EXPORT scroll_pane
     : public composite_component
 {
 public :

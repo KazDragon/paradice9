@@ -28,7 +28,7 @@
 #define MUNIN_TEXT_DOCUMENT_HPP_
 
 #include "munin/types.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/signal.hpp>
 
 namespace munin { namespace text {
@@ -36,7 +36,7 @@ namespace munin { namespace text {
 //* =========================================================================
 /// \brief Provides a document model for a text component.
 //* =========================================================================
-class document
+class MUNIN_EXPORT document
 {
 public :
     //* =====================================================================

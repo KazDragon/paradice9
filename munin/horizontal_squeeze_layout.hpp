@@ -41,7 +41,7 @@ namespace munin {
 ///  |        |
 ///  +--------+
 //* =========================================================================
-class horizontal_squeeze_layout
+class MUNIN_EXPORT horizontal_squeeze_layout
     : public layout
 {
 protected :

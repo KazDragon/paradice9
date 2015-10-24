@@ -36,7 +36,7 @@ namespace munin {
 /// \brief A class that models a single-line text control with a frame
 /// bordering it.
 //* =========================================================================
-class image : public munin::basic_component
+class MUNIN_EXPORT image : public munin::basic_component
 {
 public :
     //* =====================================================================

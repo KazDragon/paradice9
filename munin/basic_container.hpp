@@ -34,7 +34,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A default implementation of a container.
 //* =========================================================================
-class basic_container : public container
+class MUNIN_EXPORT basic_container : public container
 {
 public :
     //* =====================================================================

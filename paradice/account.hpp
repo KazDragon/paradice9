@@ -27,9 +27,10 @@
 #ifndef PARADICE_ACCOUNT_HPP_
 #define PARADICE_ACCOUNT_HPP_
 
-#include "odin/types.hpp"
+#include "paradice/export.hpp"
 #include "paradice/beast.hpp"
 #include "paradice/cryptography.hpp"
+#include "odin/core.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/extended_type_info_typeid.hpp>
 #include <boost/serialization/singleton.hpp>
@@ -43,7 +44,7 @@
 
 namespace paradice {
     
-class account : boost::noncopyable
+class PARADICE_EXPORT account : boost::noncopyable
 {
 public :
     friend class boost::serialization::access;

@@ -31,7 +31,7 @@
 
 namespace munin {
 
-class solid_frame : public basic_frame
+class MUNIN_EXPORT solid_frame : public basic_frame
 {
 public :
     //* =====================================================================

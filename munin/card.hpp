@@ -38,7 +38,7 @@ namespace munin {
 /// other components, known as "faces".  The card displays only one face at
 /// a time, and can be commanded to show any of them.
 //* =========================================================================
-class card
+class MUNIN_EXPORT card
     : public basic_component
 {
 public :

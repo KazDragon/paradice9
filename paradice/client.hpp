@@ -27,7 +27,8 @@
 #ifndef PARADICE_CLIENT_HPP_
 #define PARADICE_CLIENT_HPP_
 
-#include "odin/types.hpp"
+#include "paradice/export.hpp"
+#include "odin/core.hpp"
 #include <functional>
 #include <memory>
 #include <vector>
@@ -53,7 +54,7 @@ namespace boost { namespace asio {
 
 namespace paradice {
 
-class client
+class PARADICE_EXPORT client
     : public std::enable_shared_from_this<client>
 {
 public :

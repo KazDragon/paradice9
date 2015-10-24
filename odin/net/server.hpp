@@ -27,6 +27,7 @@
 #ifndef PARADICE_SERVER_HPP_
 #define PARADICE_SERVER_HPP_
 
+#include "odin/core.hpp"
 #include <boost/cstdint.hpp>
 #include <functional>
 #include <memory>
@@ -46,7 +47,7 @@ namespace odin { namespace net {
 /// connections will be called in the io_service's run() method.  To stop the
 /// server and cancel any pending acceptance, call stop().
 //* =========================================================================
-class server
+class ODIN_EXPORT server
 {
 public :
     typedef std::function<
@@ -57,7 +58,7 @@ public :
     /// \brief Constructor
     //* =====================================================================
     server(boost::asio::io_service &io_service
-         , boost::uint16_t          port
+         , odin::u16                port
          , accept_handler const    &on_accept);
 
     //* =====================================================================

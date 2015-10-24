@@ -40,7 +40,7 @@ namespace munin {
 ///  |    |    |
 ///  +----+----+
 //* =========================================================================
-class vertical_squeeze_layout
+class MUNIN_EXPORT vertical_squeeze_layout
     : public layout
 {
 protected :

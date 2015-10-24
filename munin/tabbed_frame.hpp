@@ -36,7 +36,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that constructs a tabbed frame.
 //* =========================================================================
-class tabbed_frame : public munin::frame
+class MUNIN_EXPORT tabbed_frame : public munin::frame
 {
 public :
     //* =====================================================================

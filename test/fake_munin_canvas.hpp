@@ -1,5 +1,5 @@
 #include "munin/canvas.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <map>
 
 template <class ElementType>

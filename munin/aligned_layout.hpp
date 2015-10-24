@@ -51,7 +51,7 @@ struct alignment_data
 /// Components added to the aligned will be displayed left-to-right, top-to-
 /// bottom.
 //* =========================================================================
-class aligned_layout : public layout
+class MUNIN_EXPORT aligned_layout : public layout
 {
 protected :
     //* =====================================================================

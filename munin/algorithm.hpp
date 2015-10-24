@@ -39,6 +39,7 @@ class canvas;
 //* =========================================================================
 /// \brief Returns the intersection of two rectangles.
 //* =========================================================================
+MUNIN_EXPORT 
 boost::optional<rectangle> intersection(
     rectangle const &lhs
   , rectangle const &rhs);
@@ -51,6 +52,7 @@ boost::optional<rectangle> intersection(
 /// area covered by the original rectangles.  These are sorted from left to
 /// right, top to bottom.
 //* =========================================================================
+MUNIN_EXPORT 
 std::vector<rectangle> rectangular_slice(
     std::vector<rectangle> const &rectangles);
 
@@ -74,6 +76,7 @@ std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
 //* =========================================================================
 /// \brief Copies a region from one canvas to another.
 //* =========================================================================
+MUNIN_EXPORT
 void copy_region(
     rectangle const &region
   , canvas const    &source
@@ -82,11 +85,13 @@ void copy_region(
 //* =========================================================================
 /// \brief Converts a string into an array of elements.
 //* =========================================================================
+MUNIN_EXPORT 
 std::vector<element_type> string_to_elements(std::string const &str);
 
 //* =========================================================================
 /// \brief Converts an array of strings into an array of arrays of elements.
 //* =========================================================================
+MUNIN_EXPORT 
 std::vector< std::vector<element_type> > strings_to_elements(
     std::vector<std::string> const &strings);
 

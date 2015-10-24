@@ -39,7 +39,7 @@ BOOST_STATIC_CONSTANT(
 /// \brief A class that models a single-line text control with a frame
 /// bordering it.
 //* =========================================================================
-class edit
+class MUNIN_EXPORT edit
     : public munin::basic_component
 {
 public :

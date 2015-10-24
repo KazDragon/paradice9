@@ -41,7 +41,7 @@ BOOST_STATIC_CONSTANT(std::string,
 /// \brief A class that models a multi-line text control with a frame
 /// bordering it.
 //* =========================================================================
-class framed_component
+class MUNIN_EXPORT framed_component
   : public munin::composite_component
 {
 public :

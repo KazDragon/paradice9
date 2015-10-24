@@ -19,3 +19,11 @@ target_compile_features(odin
         cxx_auto_type
 )
 
+set_target_properties(odin
+    PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+)
+
+generate_export_header(odin
+    EXPORT_FILE_NAME "${PROJECT_SOURCE_DIR}/odin/export.hpp"
+)

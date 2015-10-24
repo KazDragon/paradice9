@@ -21,6 +21,11 @@ set (paradice_SOURCES
 
 add_library(paradice ${paradice_SOURCES})
 
+set_target_properties(paradice
+    PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+)
+
 target_include_directories(paradice
     PRIVATE 
         ${CMAKE_SOURCE_DIR}
@@ -52,6 +57,10 @@ target_compile_features(paradice
     PRIVATE
         cxx_right_angle_brackets
         cxx_generic_lambdas
+)
+
+generate_export_header(paradice
+    EXPORT_FILE_NAME "${PROJECT_SOURCE_DIR}/paradice/export.hpp"
 )
 
 target_link_libraries(paradice

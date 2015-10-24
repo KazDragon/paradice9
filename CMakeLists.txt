@@ -4,6 +4,7 @@ project(paradice-9)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+include(FindBoost)
 find_package(Boost
     REQUIRED
     COMPONENTS
@@ -21,6 +22,11 @@ find_package(Crypto++)
 
 # CppUnit is required for the unit testing.
 find_package(CppUnit)
+
+# When building shared objects, etc., we only want to export certain symbols.
+# Therefore, we need to generate headers suitable for declaring which symbols
+# should be included.
+include(GenerateExportHeader)
 
 if (CPPUNIT_FOUND)
     enable_testing()

@@ -37,7 +37,7 @@ namespace munin {
 /// Components added to the grid will be displayed left-to-right, top-to-
 /// bottom.
 //* =========================================================================
-class grid_layout : public layout
+class MUNIN_EXPORT grid_layout : public layout
 {
 public :
     //* =====================================================================

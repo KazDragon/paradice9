@@ -27,7 +27,7 @@
 #ifndef MUNIN_LAYOUT_HPP_
 #define MUNIN_LAYOUT_HPP_
 
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include "munin/types.hpp"
 #include <boost/any.hpp>
 #include <memory>
@@ -40,7 +40,7 @@ class component;
 /// \brief A class that knows how to lay components out in a container in
 /// a specified manner.
 //* =========================================================================
-class layout
+class MUNIN_EXPORT layout
 {
 public :
     //* =====================================================================

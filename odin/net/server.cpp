@@ -42,7 +42,7 @@ struct server::impl
     // CONSTRUCTOR
     // ======================================================================
     impl(boost::asio::io_service             &io_service,
-         uint16_t                             port,
+         odin::u16                            port,
          server::accept_handler const        &on_accept)
       : io_service_(io_service),
         acceptor_(

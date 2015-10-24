@@ -36,7 +36,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that constructs a tabbed panel.
 //* =========================================================================
-class tabbed_panel : public munin::composite_component
+class MUNIN_EXPORT tabbed_panel : public munin::composite_component
 {
 public :
     //* =====================================================================

@@ -45,7 +45,7 @@ namespace munin {
 /// |+-+-----+ |
 /// +----------+
 //* =========================================================================
-class vertical_strip_layout
+class MUNIN_EXPORT vertical_strip_layout
     : public layout
 {
 protected :

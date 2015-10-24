@@ -27,7 +27,8 @@
 #ifndef PARADICE_BEAST_HPP_
 #define PARADICE_BEAST_HPP_
 
-#include "odin/types.hpp"
+#include "paradice/export.hpp"
+#include "odin/core.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
@@ -40,7 +41,7 @@
 
 namespace paradice {
     
-class beast : boost::noncopyable
+class PARADICE_EXPORT beast : boost::noncopyable
 {
 public :
     friend class boost::serialization::access;

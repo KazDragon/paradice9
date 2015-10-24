@@ -27,8 +27,9 @@
 #ifndef PARADICE_ENCOUNTER_HPP_
 #define PARADICE_ENCOUNTER_HPP_
 
+#include "paradice/export.hpp"
 #include "paradice/beast.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
@@ -42,7 +43,7 @@
 
 namespace paradice {
 
-class encounter : boost::noncopyable
+class PARADICE_EXPORT encounter : boost::noncopyable
 {
 public :
     friend class boost::serialization::access;

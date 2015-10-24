@@ -34,7 +34,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a toggle-button.
 //* =========================================================================
-class toggle_button
+class MUNIN_EXPORT toggle_button
   : public munin::composite_component
 {
 public :

@@ -25,7 +25,8 @@
 #ifndef PARADICE_DICE_HPP_
 #define PARADICE_DICE_HPP_
 
-#include "odin/types.hpp"
+#include "paradice/export.hpp"
+#include "odin/core.hpp"
 #include <boost/variant.hpp>
 #include <memory>
 #include <string>
@@ -58,6 +59,7 @@ struct dice_result
     std::vector<std::vector<odin::s32>> results_;
 };
 
+PARADICE_EXPORT 
 std::string describe_dice(dice_roll const &roll);
 
 }

@@ -39,7 +39,7 @@ namespace text {
 /// \brief A class that models a multi-line text control with a frame
 /// bordering it.
 //* =========================================================================
-class text_area
+class MUNIN_EXPORT text_area
     : public basic_component
 {
 public :

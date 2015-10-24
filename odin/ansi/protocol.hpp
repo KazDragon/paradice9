@@ -27,7 +27,7 @@
 #ifndef ODIN_ANSI_PROTOCOL_HPP_
 #define ODIN_ANSI_PROTOCOL_HPP_
 
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include "odin/ascii/protocol.hpp"
 #include <boost/utility.hpp>
 #include <string>

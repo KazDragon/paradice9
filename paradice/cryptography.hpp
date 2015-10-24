@@ -27,6 +27,7 @@
 #ifndef PARADICE_CRYPTOGRAPHY_HPP_
 #define PARADICE_CRYPTOGRAPHY_HPP_
 
+#include "paradice/export.hpp"
 #include <string>
 
 namespace paradice {
@@ -34,6 +35,7 @@ namespace paradice {
 //* =========================================================================
 /// \brief Encrypts a string.
 //* =========================================================================
+PARADICE_EXPORT 
 std::string encrypt(std::string const &text);
 
 }

@@ -35,7 +35,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a vertical scroll bar.
 //* =========================================================================
-class vertical_scroll_bar : public basic_component
+class MUNIN_EXPORT vertical_scroll_bar : public basic_component
 {
 public :
     //* =====================================================================

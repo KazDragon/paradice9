@@ -41,7 +41,7 @@ namespace munin {
 /// implements an abstraction that will allow the viewing of a small part of
 /// the underlying component.
 //* =========================================================================
-class viewport
+class MUNIN_EXPORT viewport
     : public basic_component
 {
 public :

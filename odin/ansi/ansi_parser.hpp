@@ -38,7 +38,7 @@ namespace odin { namespace ansi {
 // \brief Parser for the ANSI protocol.  It recognises general ANSI commands
 // such as home/end, pgup, pgdn, arrows, etc., and mouse clicks.
 // ==========================================================================
-class parser
+class ODIN_EXPORT parser
   : public lexer<
         char,
         boost::variant<

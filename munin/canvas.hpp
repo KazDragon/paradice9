@@ -28,7 +28,7 @@
 #define MUNIN_CANVAS_HPP_
 
 #include "munin/types.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <memory>
 #include <utility>
 
@@ -37,7 +37,7 @@ namespace munin {
 //* =========================================================================
 /// \brief An object onto which components can draw themselves.
 //* =========================================================================
-class canvas
+class MUNIN_EXPORT canvas
 {
 public :
     //* =====================================================================

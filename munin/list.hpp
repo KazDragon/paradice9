@@ -34,7 +34,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a list of items.
 //* =========================================================================
-class list : public munin::basic_component
+class MUNIN_EXPORT list : public munin::basic_component
 {
 public :
     //* =====================================================================

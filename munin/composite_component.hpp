@@ -44,7 +44,7 @@ class container;
 /// class, which simply forwards functions and messages to and from the
 /// underlying container, this can be achieved more easily.
 //* =========================================================================
-class composite_component
+class MUNIN_EXPORT composite_component
     : public component
 {
 public :

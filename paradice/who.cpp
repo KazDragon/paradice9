@@ -34,7 +34,7 @@
 #include "munin/algorithm.hpp"
 #include "munin/ansi/protocol.hpp"
 #include "odin/tokenise.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <cstdio>

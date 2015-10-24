@@ -25,6 +25,7 @@
 #ifndef PARADICE_DICE_ROLL_PARSER_HPP_
 #define PARADICE_DICE_ROLL_PARSER_HPP_
 
+#include "paradice/export.hpp"
 #include "paradice/dice.hpp"
 #include <boost/optional.hpp>
 #include <string>
@@ -41,6 +42,7 @@ namespace paradice {
 /// For example, "2d6+3-4" will convert to a dice_roll of { 1, 2, 6, -1 };
 /// "3*2d20" will convert to a dice_roll of { 3, 2, 20, 0 };
 //* =========================================================================
+PARADICE_EXPORT 
 boost::optional<dice_roll> parse_dice_roll(
     std::string::const_iterator &begin
   , std::string::const_iterator  end);

@@ -27,7 +27,7 @@
 #ifndef PARADICE_RANDOM_HPP_
 #define PARADICE_RANDOM_HPP_
 
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 
 namespace paradice {
 

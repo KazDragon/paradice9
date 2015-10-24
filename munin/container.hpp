@@ -45,7 +45,7 @@ BOOST_STATIC_CONSTANT(
 /// \brief A graphical element capable of containing and arranging other
 /// subcomponents.
 //* =========================================================================
-class container
+class MUNIN_EXPORT container
     : public component
     , public std::enable_shared_from_this<container>
 {

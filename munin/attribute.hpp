@@ -27,7 +27,8 @@
 #ifndef MUNIN_ANSI_ATTRIBUTE_HPP_
 #define MUNIN_ANSI_ATTRIBUTE_HPP_
 
-#include "odin/types.hpp"
+#include "munin/export.hpp"
+#include "odin/core.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <boost/variant.hpp>
 #include <iosfwd>
@@ -38,7 +39,7 @@ namespace munin {
 /// \brief A structure that carries around the presentation attributes of
 /// an ANSI element.
 //* =========================================================================
-struct attribute
+struct MUNIN_EXPORT attribute
 {
     // Structure representing a normal ANSI 16-colour value
     struct low_colour

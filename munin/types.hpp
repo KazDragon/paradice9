@@ -27,9 +27,10 @@
 #ifndef MUNIN_TYPES_HPP_
 #define MUNIN_TYPES_HPP_
 
+#include "munin/export.hpp"
 #include "munin/attribute.hpp"
 #include "munin/glyph.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <iosfwd>
 #include <utility>
 
@@ -39,7 +40,7 @@ namespace munin {
 /// \brief The type of an element in an ANSI component.  Each element is a
 /// character glyph and a set of attributes (such as boldness, colour, etc.).
 //* =========================================================================
-struct element_type
+struct MUNIN_EXPORT element_type
 {
     //* =====================================================================
     /// \brief Default Constructor
@@ -65,14 +66,14 @@ struct element_type
 //* =========================================================================
 /// \brief Equality Operator
 //* =========================================================================
+MUNIN_EXPORT 
 bool operator==(element_type const &lhs, element_type const &rhs);
 
 //* =========================================================================
 /// \brief Output stream operator
 //* =========================================================================
+MUNIN_EXPORT 
 std::ostream &operator<<(std::ostream &out, element_type const &element);
-
-
 
 //* =========================================================================
 /// \brief A class that represents a position in space.
@@ -81,7 +82,7 @@ std::ostream &operator<<(std::ostream &out, element_type const &element);
 /// along the horizontal axis and y being the co-ordinate along the vertical
 /// axis.
 //* =========================================================================
-struct point
+struct MUNIN_EXPORT point
 {
     //* =====================================================================
     /// \brief Default Constructor
@@ -162,6 +163,7 @@ constexpr point operator-(point lhs, point const &rhs)
     return lhs -= rhs;
 }
 
+MUNIN_EXPORT 
 std::ostream& operator<<(std::ostream &out, point const &pt);
 
 //* =========================================================================
@@ -172,7 +174,7 @@ std::ostream& operator<<(std::ostream &out, point const &pt);
 /// extent in the horizontal axis, and height being the extent in the
 /// vertical axis.
 //* =========================================================================
-struct extent
+struct MUNIN_EXPORT extent
 {
     //* =====================================================================
     /// \brief Default Constructor
@@ -253,12 +255,13 @@ constexpr extent operator-(extent lhs, extent const &rhs)
     return lhs -= rhs;
 }
 
+MUNIN_EXPORT 
 std::ostream& operator<<(std::ostream &out, extent const &ext);
 
 //* =========================================================================
 /// \brief A class that represents a rectangle in space.
 //* =========================================================================
-struct rectangle
+struct MUNIN_EXPORT rectangle
 {
     //* =====================================================================
     /// \brief Default Constructor
@@ -306,6 +309,7 @@ constexpr bool operator!=(rectangle const &lhs, rectangle const &rhs)
     return !(lhs == rhs);
 }
 
+MUNIN_EXPORT 
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
 
 // Finally, some common attribute names.

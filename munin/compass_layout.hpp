@@ -45,7 +45,7 @@ BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_WEST   = 4);
 /// components to the west and east are given their preferred width, while
 /// having the height of the containing component.
 //* =========================================================================
-class compass_layout : public layout
+class MUNIN_EXPORT compass_layout : public layout
 {
 protected :
     //* =====================================================================

@@ -37,7 +37,7 @@ namespace munin {
 /// \brief An object that represents a frame that has a title on its
 /// northern edge.
 //* =========================================================================
-class named_frame : public basic_frame
+class MUNIN_EXPORT named_frame : public basic_frame
 {
 public :
     //* =====================================================================

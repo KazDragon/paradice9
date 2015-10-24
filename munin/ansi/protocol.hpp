@@ -45,6 +45,7 @@ std::vector<std::vector<munin::element_type>>
 /// \param source_line a string of text to be converted
 /// \param attr the default attribute given to each element.
 //* =========================================================================
+MUNIN_EXPORT 
 std::vector<munin::element_type> elements_from_string(
     std::string const &source_line
   , attribute const &attr = {});
@@ -52,6 +53,7 @@ std::vector<munin::element_type> elements_from_string(
 //* =========================================================================
 /// \brief Converts a vector<> of ANSI elements into a string.
 //* =========================================================================
+MUNIN_EXPORT
 std::string string_from_elements(
     std::vector<munin::element_type> const &elements);
 
@@ -86,7 +88,7 @@ std::string set_window_title(std::string const &text);
 //* =========================================================================
 /// \brief Sets the 'normal cursor keys' mode.
 //* =========================================================================
-std::string set_normal_cursor_keys();
+MUNIN_EXPORT std::string set_normal_cursor_keys();
 
 //* =========================================================================
 /// \brief Returns a colour value for a high-colour RGB value.
@@ -101,7 +103,7 @@ std::string colour_string(munin::attribute::greyscale_colour const &colour);
 //* =========================================================================
 /// \brief Returns a string that will clear the screen.
 //* =========================================================================
-std::string clear_screen();
+MUNIN_EXPORT std::string clear_screen();
 
 }}
 

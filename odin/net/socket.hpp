@@ -27,15 +27,15 @@
 #ifndef ODIN_NET_SOCKET_HPP_
 #define ODIN_NET_SOCKET_HPP_
 
+#include "odin/core.hpp"
 #include "odin/io/datastream.hpp"
-#include "odin/types.hpp"
 #include <boost/asio/ip/tcp.hpp>
 #include <functional>
 #include <memory>
 
 namespace odin { namespace net {
 
-class socket
+class ODIN_EXPORT socket
     : public odin::io::datastream<odin::u8, odin::u8>
 {
 public :

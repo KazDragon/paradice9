@@ -1,5 +1,5 @@
 // ==========================================================================
-// Odin Portable Types.
+// Odin Core.
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 // This file is covered by the MIT Licence:
@@ -22,9 +22,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 // DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef ODIN_TYPES_HPP_
-#define ODIN_TYPES_HPP_
+#ifndef ODIN_CORE_HPP_
+#define ODIN_CORE_HPP_
 
+#include "odin/export.hpp"
 #include <boost/cstdint.hpp>
 
 namespace odin {

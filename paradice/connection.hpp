@@ -27,7 +27,8 @@
 #ifndef PARADICE_CONNECTION_HPP_
 #define PARADICE_CONNECTION_HPP_
 
-#include "odin/types.hpp"
+#include "paradice/export.hpp"
+#include "odin/core.hpp"
 #include "odin/ansi/protocol.hpp"
 #include <memory>
 #include <string>
@@ -44,7 +45,7 @@ namespace paradice {
 /// \brief An connection to a socket that abstracts away details about the
 /// protocols used.
 //* =========================================================================
-class connection
+class PARADICE_EXPORT connection
 {
 public :
     //* =====================================================================

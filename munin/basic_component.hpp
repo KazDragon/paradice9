@@ -35,7 +35,7 @@ namespace munin {
 /// \brief A default implementation of a component.  Only do_draw()
 /// and do_get_preferred_size() remain unimplemented.
 //* =========================================================================
-class basic_component
+class MUNIN_EXPORT basic_component
   : public component,
     public std::enable_shared_from_this<basic_component>
 {

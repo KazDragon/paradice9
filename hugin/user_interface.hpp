@@ -27,6 +27,7 @@
 #ifndef HUGIN_USER_INTERFACE_HPP_
 #define HUGIN_USER_INTERFACE_HPP_
 
+#include "hugin/export.hpp"
 #include "munin/composite_component.hpp"
 #include "paradice/active_encounter.hpp"
 #include <boost/asio/strand.hpp>
@@ -50,7 +51,7 @@ BOOST_STATIC_CONSTANT(std::string, FACE_GM_TOOLS         = "GM Tools");
 /// \brief An abstraction of the primary user interface for the Paradice
 /// application.
 //* =========================================================================
-class user_interface
+class HUGIN_EXPORT user_interface
     : public munin::composite_component
 {
 public :

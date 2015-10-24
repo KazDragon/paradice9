@@ -26,7 +26,7 @@
 #define PARADICE_RULES_HPP_
 
 #include "command.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <memory>
 #include <string>
 

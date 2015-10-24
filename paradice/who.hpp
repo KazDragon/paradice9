@@ -28,7 +28,7 @@
 #define PARADICE_WHO_HPP_
 
 #include "command.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/utility.hpp>
 #include <string>
 

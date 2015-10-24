@@ -43,7 +43,7 @@ class context;
 /// A component is a fundamental piece of the munin architecture and is the
 /// base class for anything that is capable of being drawn in some way.
 //* =========================================================================
-class component
+class MUNIN_EXPORT component
 {
 public :
     //* =====================================================================

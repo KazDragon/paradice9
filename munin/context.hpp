@@ -27,6 +27,7 @@
 #ifndef MUNIN_CONTEXT_HPP_
 #define MUNIN_CONTEXT_HPP_
 
+#include "munin/types.hpp"
 #include <boost/asio/strand.hpp>
 #include <memory>
 
@@ -37,7 +38,7 @@ class canvas;
 //* =========================================================================
 /// \brief A context onto which components can draw themselves.
 //* =========================================================================
-class context
+class MUNIN_EXPORT context
 {
 public :
     //* =====================================================================

@@ -34,7 +34,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a status_bar.
 //* =========================================================================
-class status_bar
+class MUNIN_EXPORT status_bar
   : public munin::composite_component
 {
 public :

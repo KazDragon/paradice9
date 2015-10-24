@@ -40,7 +40,7 @@ static const std::string ATTRIBUTE_LOCK = "Lock";
 /// a given element.  It allows changing the attribute and glyph of the
 /// element independently.
 //* =========================================================================
-class filled_box : public munin::basic_component
+class MUNIN_EXPORT filled_box : public munin::basic_component
 {
 public :
     //* =====================================================================

@@ -49,6 +49,10 @@ set (munin_SOURCES
 
 add_library(munin ${munin_SOURCES})
 
+set_target_properties(munin
+    PROPERTIES
+        CXX_VISIBILITY_PRESET hidden)
+
 target_include_directories(munin
     PRIVATE ${CMAKE_SOURCE_DIR}
     PUBLIC ${Boost_INCLUDE_DIRS}
@@ -70,3 +74,6 @@ target_compile_features(munin
         cxx_generic_lambdas
 )
 
+generate_export_header(munin
+    EXPORT_FILE_NAME "${PROJECT_SOURCE_DIR}/munin/export.hpp"
+)

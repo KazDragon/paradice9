@@ -34,7 +34,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a dropdown_list of items.
 //* =========================================================================
-class dropdown_list : public munin::composite_component
+class MUNIN_EXPORT dropdown_list : public munin::composite_component
 {
 public :
     //* =====================================================================

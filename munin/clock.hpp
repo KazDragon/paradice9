@@ -34,7 +34,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a clock.
 //* =========================================================================
-class clock
+class MUNIN_EXPORT clock
   : public munin::composite_component
 {
 public :

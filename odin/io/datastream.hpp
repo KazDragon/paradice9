@@ -27,7 +27,7 @@
 
 #include "odin/io/input_datastream.hpp"
 #include "odin/io/output_datastream.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 
 namespace odin { namespace io {
 

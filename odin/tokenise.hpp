@@ -27,11 +27,13 @@
 #ifndef ODIN_TOKENISE_HPP_
 #define ODIN_TOKENISE_HPP_
 
+#include "odin/core.hpp"
 #include <utility>
 #include <string>
 
 namespace odin {
 
+ODIN_EXPORT
 std::pair<std::string, std::string> tokenise(std::string const &text);
 
 }

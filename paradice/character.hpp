@@ -27,9 +27,10 @@
 #ifndef PARADICE_CHARACTER_HPP_
 #define PARADICE_CHARACTER_HPP_
 
+#include "paradice/export.hpp"
 #include "paradice/beast.hpp"
 #include "paradice/encounter.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/extended_type_info.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -43,7 +44,7 @@
 
 namespace paradice {
 
-class character : boost::noncopyable
+class PARADICE_EXPORT character : boost::noncopyable
 {
 public :
     friend class boost::serialization::access;

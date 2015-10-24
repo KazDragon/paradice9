@@ -40,7 +40,7 @@ namespace munin {
 /// example, to show a border highlight when the interior component has
 /// focus.
 //* =========================================================================
-class frame : public munin::composite_component
+class MUNIN_EXPORT frame : public munin::composite_component
 {
 public :
     //* =====================================================================

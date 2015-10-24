@@ -36,7 +36,7 @@ namespace munin {
 //* =========================================================================
 /// \brief A class that models a push-button.
 //* =========================================================================
-class button
+class MUNIN_EXPORT button
   : public munin::composite_component
 {
 public :

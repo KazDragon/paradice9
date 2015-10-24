@@ -27,6 +27,7 @@
 #ifndef PARADICE_COMMUNICATION_HPP_
 #define PARADICE_COMMUNICATION_HPP_
 
+#include "paradice/export.hpp"
 #include "command.hpp"
 #include "munin/ansi/protocol.hpp"
 #include <string>
@@ -39,6 +40,7 @@ class context;
 //* =========================================================================
 /// \brief Send a text message to all connected players.
 //* =========================================================================
+PARADICE_EXPORT 
 void send_to_all(
     std::shared_ptr<context> &ctx
   , std::string const        &text);
@@ -46,6 +48,7 @@ void send_to_all(
 //* =========================================================================
 /// \brief Send a text message to all connected players.
 //* =========================================================================
+PARADICE_EXPORT 
 void send_to_all(
     std::shared_ptr<context>               &ctx
   , std::vector<munin::element_type> const &text);
@@ -53,6 +56,7 @@ void send_to_all(
 //* =========================================================================
 /// \brief Send a text message to a single player.
 //* =========================================================================
+PARADICE_EXPORT 
 void send_to_player(
     std::shared_ptr<context> &ctx
   , std::string const        &text
@@ -61,6 +65,7 @@ void send_to_player(
 //* =========================================================================
 /// \brief Send a text message to a single player.
 //* =========================================================================
+PARADICE_EXPORT 
 void send_to_player(
     std::shared_ptr<context>               &ctx
   , std::vector<munin::element_type> const &text
@@ -70,6 +75,7 @@ void send_to_player(
 /// \brief Send a text message to all players in the same room as player,
 /// but not to player.
 //* =========================================================================
+PARADICE_EXPORT 
 void send_to_room(
     std::shared_ptr<context> &ctx
   , std::string const        &text
@@ -79,6 +85,7 @@ void send_to_room(
 /// \brief Send a text message to all players in the same room as player,
 /// but not to player.
 //* =========================================================================
+PARADICE_EXPORT 
 void send_to_room(
     std::shared_ptr<context>               &ctx
   , std::vector<munin::element_type> const &text

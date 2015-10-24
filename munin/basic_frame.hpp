@@ -35,7 +35,7 @@ namespace munin {
 /// \brief A class that takes a series of components and uses them to
 /// construct a frame.
 //* =========================================================================
-class basic_frame : public munin::frame
+class MUNIN_EXPORT basic_frame : public munin::frame
 {
 public :
     //* =====================================================================

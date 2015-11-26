@@ -28,6 +28,7 @@
 #define MUNIN_FRAME_HPP_
 
 #include "munin/composite_component.hpp"
+#include "odin/types.hpp"
 
 namespace munin {
 

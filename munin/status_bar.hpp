@@ -29,6 +29,10 @@
 
 #include "munin/composite_component.hpp"
 
+namespace terminalpp {
+    class string;
+}
+
 namespace munin {
 
 //* =========================================================================
@@ -51,7 +55,7 @@ public :
     //* =====================================================================
     /// \brief Sets the message shown on the status bar.
     //* =====================================================================
-    void set_message(std::vector<element_type> message);
+    void set_message(terminalpp::string const &message);
 
 protected :
     //* =====================================================================

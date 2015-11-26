@@ -28,7 +28,7 @@
 #define MUNIN_LAYOUT_HPP_
 
 #include "odin/core.hpp"
-#include "munin/types.hpp"
+#include "terminalpp/extent.hpp"
 #include <boost/any.hpp>
 #include <memory>
 
@@ -59,7 +59,7 @@ public :
     /// The preferred size of the layout is the size that the layout would be
     /// if all components in it were at their preferred sizes.
     //* =====================================================================
-    extent get_preferred_size(
+    terminalpp::extent get_preferred_size(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints) const;
 
@@ -70,7 +70,7 @@ public :
     void operator()(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints,
-        extent                                         size);
+        terminalpp::extent                             size);
 
 protected :
     //* =====================================================================
@@ -78,7 +78,7 @@ protected :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size(
+    virtual terminalpp::extent do_get_preferred_size(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints) const = 0;
 
@@ -90,7 +90,7 @@ protected :
     virtual void do_layout(
         std::vector<std::shared_ptr<component> > const &components,
         std::vector<boost::any>                  const &hints,
-        extent                                          size) = 0;
+        terminalpp::extent                              size) = 0;
 };
 
 }

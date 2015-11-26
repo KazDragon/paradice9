@@ -28,347 +28,9 @@
 #include "munin/algorithm.hpp"
 #include "munin/container.hpp"
 #include "munin/basic_container.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "terminalpp/canvas.hpp"
 #include <boost/format.hpp>
-
-namespace {
-
-//* =========================================================================
-/// \brief Returns a set of subregions within the region where the canvases
-/// are different.  This assumes that the region has a height of 1.
-//* =========================================================================
-static std::vector<munin::rectangle> find_different_subslices(
-    munin::rectangle const &region
-  , munin::canvas const    &lhs
-  , munin::canvas const    &rhs)
-{
-    std::vector<munin::rectangle> subslices;
-
-    munin::rectangle current_rectangle(region.origin, munin::extent(0, 1));
-    auto y_coord = region.origin.y;
-
-    for (odin::s32 x_coord = region.origin.x;
-         x_coord < region.origin.x + region.size.width;
-         ++x_coord)
-    {
-        auto const &lhs_element = lhs[x_coord][y_coord];
-        auto const &rhs_element = rhs[x_coord][y_coord];
-
-        if (lhs_element == rhs_element)
-        {
-            if (current_rectangle.size.width != 0)
-            {
-                subslices.push_back(current_rectangle);
-            }
-
-            current_rectangle = munin::rectangle(
-                munin::point(x_coord + 1, y_coord), munin::extent(0, 1));
-        }
-        else
-        {
-            ++current_rectangle.size.width;
-        }
-    }
-
-    if (current_rectangle.size.width != 0)
-    {
-        subslices.push_back(current_rectangle);
-    }
-
-    return subslices;
-}
-
-//* =========================================================================
-/// \brief Returns a string that will be a foreground colour representation
-/// of the passed attribute colour.
-//* =========================================================================
-static std::string foreground_colour_string(munin::attribute::colour const &colour)
-{
-    auto low_colour = boost::get<munin::attribute::low_colour>(&colour.value_);
-
-    if (low_colour != nullptr)
-    {
-        return boost::str(boost::format("%s")
-                 % (int(odin::ansi::graphics::FOREGROUND_COLOUR_BASE)
-                    + int(low_colour->value_)));
-
-    }
-
-    auto high_colour = boost::get<munin::attribute::high_colour>(&colour.value_);
-
-    if (high_colour != nullptr)
-    {
-        return boost::str(boost::format("38;5;%s")
-             % munin::ansi::colour_string(*high_colour));
-    }
-
-    auto greyscale_colour =
-        boost::get<munin::attribute::greyscale_colour>(&colour.value_);
-
-    if (greyscale_colour != nullptr)
-    {
-        return boost::str(boost::format("38;5;%s")
-            % munin::ansi::colour_string(*greyscale_colour));
-    }
-
-    return {};
-}
-
-//* =========================================================================
-/// \brief Returns a string that will be a background colour representation
-/// of the passed attribute colour.
-//* =========================================================================
-static std::string background_colour_string(munin::attribute::colour const &colour)
-{
-    auto low_colour = boost::get<munin::attribute::low_colour>(&colour.value_);
-
-    if (low_colour != nullptr)
-    {
-        return boost::str(boost::format("%s")
-             % (int(odin::ansi::graphics::BACKGROUND_COLOUR_BASE)
-                 + int(low_colour->value_)));
-    }
-
-    auto high_colour = boost::get<munin::attribute::high_colour>(&colour.value_);
-
-    if (high_colour != nullptr)
-    {
-        return boost::str(boost::format("48;5;%s")
-             % munin::ansi::colour_string(*high_colour));
-    }
-
-    auto greyscale_colour =
-      boost::get<munin::attribute::greyscale_colour>(&colour.value_);
-
-    if (greyscale_colour != nullptr)
-    {
-        return boost::str(boost::format("48;5;%s")
-            % munin::ansi::colour_string(*greyscale_colour));
-    }
-
-    return {};
-}
-
-//* =========================================================================
-/// \brief Returns a string that is an ANSI sequence that will change the
-/// output style from 'from' to 'to'.  Assigns the latter to the former.
-//* =========================================================================
-static std::string change_attribute(munin::attribute &from, munin::attribute to)
-{
-    // Some terminal clients are particularly bad at handling colour changes
-    // using the 'default', and leave the attribute as whatever it was last.
-    // We can work around this by using the 'reset attributes' key in advance.
-    // However, this will also mean that we need to send all other attributes
-    // afterwards.  We can do that by making the 'from' attribute default in
-    // all cases.
-    std::string default_sequence;
-
-    if ((from.foreground_colour_ != to.foreground_colour_
-      && to.foreground_colour_ == odin::ansi::graphics::colour::default_)
-     || (from.background_colour_ != to.background_colour_
-      && to.background_colour_ == odin::ansi::graphics::colour::default_))
-    {
-        static std::string const clear_sequence = std::string()
-          + odin::ansi::ESCAPE
-          + odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-          + boost::str(boost::format("%d")
-              % int(odin::ansi::graphics::NO_ATTRIBUTES))
-          + odin::ansi::SELECT_GRAPHICS_RENDITION;
-
-        default_sequence = clear_sequence;
-
-        // Clear the attribute so that it can be rewritten entirely.
-        from = munin::attribute();
-    }
-
-    std::string graphics_sequence;
-
-    if (from.foreground_colour_ != to.foreground_colour_)
-    {
-        if (graphics_sequence.empty())
-        {
-            graphics_sequence += std::string()
-                              + odin::ansi::ESCAPE
-                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-        }
-        else
-        {
-            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
-        }
-
-        graphics_sequence += foreground_colour_string(to.foreground_colour_);
-
-        from.foreground_colour_ = to.foreground_colour_;
-    }
-
-    if (from.background_colour_ != to.background_colour_)
-    {
-        if (graphics_sequence.empty())
-        {
-            graphics_sequence += std::string()
-                               + odin::ansi::ESCAPE
-                               + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-        }
-        else
-        {
-            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
-        }
-
-        graphics_sequence += background_colour_string(to.background_colour_);
-
-        from.background_colour_ = to.background_colour_;
-    }
-
-    if (from.intensity_ != to.intensity_)
-    {
-        if (graphics_sequence.empty())
-        {
-            graphics_sequence += std::string()
-                              + odin::ansi::ESCAPE
-                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-        }
-        else
-        {
-            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
-        }
-
-        graphics_sequence += boost::str(boost::format("%s") % int(to.intensity_));
-
-        from.intensity_ = to.intensity_;
-    }
-
-    if (from.polarity_ != to.polarity_)
-    {
-        if (graphics_sequence.empty())
-        {
-            graphics_sequence += std::string()
-                              + odin::ansi::ESCAPE
-                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-        }
-        else
-        {
-            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
-        }
-
-        graphics_sequence += boost::str(boost::format("%s") % int(to.polarity_));
-
-        from.polarity_ = to.polarity_;
-    }
-
-    if (from.blinking_ != to.blinking_)
-    {
-        if (graphics_sequence.empty())
-        {
-            graphics_sequence += std::string()
-                              + odin::ansi::ESCAPE
-                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-        }
-        else
-        {
-            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
-        }
-
-        graphics_sequence += boost::str(boost::format("%s") % int(to.blinking_));
-
-        from.blinking_ = to.blinking_;
-    }
-
-    if (from.underlining_ != to.underlining_)
-    {
-        if (graphics_sequence.empty())
-        {
-            graphics_sequence += std::string()
-                              + odin::ansi::ESCAPE
-                              + odin::ansi::CONTROL_SEQUENCE_INTRODUCER;
-        }
-        else
-        {
-            graphics_sequence += odin::ansi::PARAMETER_SEPARATOR;
-        }
-
-        graphics_sequence += boost::str(boost::format("%s") % int(to.underlining_));
-
-        from.underlining_ = to.underlining_;
-    }
-
-    if (!graphics_sequence.empty())
-    {
-        graphics_sequence += odin::ansi::SELECT_GRAPHICS_RENDITION;
-    }
-
-    return default_sequence + graphics_sequence;
-}
-
-//* =========================================================================
-/// \brief Returns a string that is an ANSI sequence of commands required
-/// to draw the selected glyph.  Character set and locale are only output
-/// if they have changed.
-//* =========================================================================
-static std::string write_glyph(
-    munin::glyph &last_glyph
-  , munin::glyph  current_glyph)
-{
-    std::string charset_sequence;
-
-    if (last_glyph.locale_        != current_glyph.locale_
-     || last_glyph.character_set_ != current_glyph.character_set_)
-    {
-        last_glyph.locale_        = current_glyph.locale_;
-        last_glyph.character_set_ = current_glyph.character_set_;
-
-        charset_sequence += std::string()
-                          + odin::ansi::ESCAPE
-                          + current_glyph.character_set_
-                          + current_glyph.locale_;
-
-    }
-
-    last_glyph.character_ = current_glyph.character_;
-
-    return charset_sequence + current_glyph.character_;
-}
-
-//* =========================================================================
-/// \brief Returns a string which would paint the specified region on a
-/// canvas.
-//* =========================================================================
-static std::string canvas_region_string(
-    munin::glyph           &last_glyph
-  , munin::attribute       &last_attribute
-  , munin::rectangle const &region
-  , munin::canvas const    &cvs)
-{
-    std::string output;
-
-    for (odin::s32 row = 0; row < region.size.height; ++row)
-    {
-        // Place the cursor at the start of this row.
-        output += munin::ansi::cursor_position(
-            munin::point(region.origin.x, region.origin.y + row));
-
-        for (odin::s32 column = 0; column < region.size.width; ++column)
-        {
-            munin::element_type const &element =
-                cvs[column + region.origin.x]
-                   [row    + region.origin.y];
-
-            // Apply any attribute changes that are required.
-            if (!(last_attribute == element.attribute_))
-            {
-                output += change_attribute(last_attribute, element.attribute_);
-            }
-
-            output += write_glyph(last_glyph, element.glyph_);
-        }
-    }
-
-    return output;
-}
-
-}
 
 namespace munin {
 
@@ -389,8 +51,10 @@ public :
         , self_valid_(true)
         , strand_(strand)
         , content_(std::make_shared<basic_container>())
+        , canvas_({80, 24})
+        , canvas_clone_({80, 24})
         , context_(canvas_, strand_)
-        , last_cursor_position_(point(0,0))
+        , last_cursor_position_({})
         , last_cursor_state_(false)
         , repaint_scheduled_(false)
         , layout_scheduled_(false)
@@ -453,6 +117,7 @@ public :
     // ======================================================================
     void event(boost::any const &event)
     {
+        /* @@ TODO:
         // Here we handle newlines.  These come in as either:
         // \n
         // \n\r (bad, bad Dikus)
@@ -504,6 +169,7 @@ public :
         {
             content_->event(event);
         }
+        */
     }
 
 private :
@@ -586,6 +252,7 @@ private :
     // ======================================================================
     void do_repaint()
     {
+        /* @@ TODO:
         auto size = content_->get_size();
 
         // If the canvas has changed size, then many things can happen.
@@ -701,6 +368,7 @@ private :
 
         // We are once again interested in repaint requests.
         repaint_scheduled_ = false;
+        */
     }
 
     // ======================================================================
@@ -720,13 +388,13 @@ private :
 
     boost::asio::strand          &strand_;
     std::shared_ptr<container>    content_;
-    canvas                        canvas_;
-    canvas                        canvas_clone_;
+    terminalpp::canvas            canvas_;
+    terminalpp::canvas            canvas_clone_;
     context                       context_;
-    glyph                         glyph_;
-    attribute                     attribute_;
+    terminalpp::glyph             glyph_;
+    terminalpp::attribute         attribute_;
 
-    point                         last_cursor_position_;
+    terminalpp::point             last_cursor_position_;
     bool                          last_cursor_state_;
 
     std::vector<rectangle>        redraw_regions_;
@@ -758,7 +426,7 @@ window::~window()
 // ==========================================================================
 // GET_SIZE
 // ==========================================================================
-munin::extent window::get_size() const
+terminalpp::extent window::get_size() const
 {
     return pimpl_->get_content()->get_size();
 }
@@ -766,7 +434,7 @@ munin::extent window::get_size() const
 // ==========================================================================
 // SET_SIZE
 // ==========================================================================
-void window::set_size(extent size)
+void window::set_size(terminalpp::extent size)
 {
     get_content()->set_size(size);
     get_content()->on_layout_change();
@@ -777,7 +445,7 @@ void window::set_size(extent size)
 // ==========================================================================
 void window::set_title(std::string const &title)
 {
-    on_repaint(munin::ansi::set_window_title(title));
+    // @@ TODO: on_repaint(munin::ansi::set_window_title(title));
 }
 
 // ==========================================================================
@@ -785,7 +453,7 @@ void window::set_title(std::string const &title)
 // ==========================================================================
 void window::enable_mouse_tracking()
 {
-    on_repaint(munin::ansi::enable_mouse_tracking());
+    // @@ TODO: on_repaint(munin::ansi::enable_mouse_tracking());
 }
 
 // ==========================================================================

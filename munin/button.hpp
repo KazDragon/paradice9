@@ -29,7 +29,10 @@
 
 #include "munin/composite_component.hpp"
 #include <boost/signal.hpp>
-#include <vector>
+
+namespace terminalpp {
+    class string;
+}
 
 namespace munin {
 
@@ -43,7 +46,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    button(std::vector<element_type> const &caption);
+    button(terminalpp::string const &caption);
 
     //* =====================================================================
     /// \brief Destructor

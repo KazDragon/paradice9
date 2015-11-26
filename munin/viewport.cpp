@@ -25,8 +25,8 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/viewport.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
+#include "terminalpp/canvas.hpp"
 #include <boost/scope_exit.hpp>
 
 namespace munin {
@@ -37,7 +37,7 @@ namespace munin {
 struct viewport::impl
 {
     viewport                   &self_;
-    point                       origin_;
+    terminalpp::point           origin_;
     std::shared_ptr<component>  component_;
 
     // ======================================================================
@@ -88,7 +88,7 @@ struct viewport::impl
     // ======================================================================
     // ON_CURSOR_POSITION_CHANGED
     // ======================================================================
-    void on_cursor_position_changed(point position)
+    void on_cursor_position_changed(terminalpp::point position)
     {
         // Check to see if the cursor has escaped below our view.
         auto size = self_.get_size();
@@ -151,7 +151,7 @@ struct viewport::impl
     void on_subcomponent_preferred_size_changed()
     {
         set_subcomponent_size();
-        on_redraw({rectangle(point(0, 0), self_.get_size())});
+        on_redraw({rectangle(terminalpp::point(0, 0), self_.get_size())});
 
         self_.on_subcomponent_size_changed();
     }
@@ -230,7 +230,7 @@ struct viewport::impl
         else if (cursor_position.y + size.height >= component_size.height)
         {
             cursor_position.y = component_size.height - 1;
-            self_.on_redraw({rectangle(point(), size)});
+            self_.on_redraw({rectangle({}, size)});
         }
         // Otherwise, if we would hit the last page, scroll until the last
         // page, then set the cursor.  This will cause a half-scroll so that
@@ -257,6 +257,7 @@ struct viewport::impl
     // ======================================================================
     // DO_ANSI_CONTROL_SEQUENCE_EVENT
     // ======================================================================
+    /* @@ TODO:
     bool do_ansi_control_sequence_event(
         odin::ansi::control_sequence const &sequence)
     {
@@ -283,10 +284,12 @@ struct viewport::impl
 
         return false;
     }
+    */
 
     // ======================================================================
     // DO_EVENT
     // ======================================================================
+    /* @@ TODO:
     bool do_event(boost::any const &event)
     {
         odin::ansi::control_sequence const *sequence =
@@ -299,6 +302,7 @@ struct viewport::impl
 
         return false;
     }
+    */
 };
 
 // ==========================================================================
@@ -342,7 +346,7 @@ viewport::~viewport()
 // ==========================================================================
 // GET_ORIGIN
 // ==========================================================================
-point viewport::get_origin() const
+terminalpp::point viewport::get_origin() const
 {
     return pimpl_->origin_;
 }
@@ -350,7 +354,7 @@ point viewport::get_origin() const
 // ==========================================================================
 // SET_ORIGIN
 // ==========================================================================
-void viewport::set_origin(point const &origin)
+void viewport::set_origin(terminalpp::point const &origin)
 {
     pimpl_->origin_ = origin;
 
@@ -379,7 +383,7 @@ void viewport::set_origin(point const &origin)
 
     // It is highly likely that this will require redrawing the entire
     // contained object.
-    on_redraw({rectangle(point(), get_size())});
+    on_redraw({rectangle({}, get_size())});
 
     // Also, announce that this has occurred.  This enables a container to
     // react to the fact that the origin has changed.  For example, by
@@ -398,7 +402,7 @@ std::shared_ptr<component> viewport::get_component()
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void viewport::do_set_size(extent const &size)
+void viewport::do_set_size(terminalpp::extent const &size)
 {
     basic_component::do_set_size(size);
     pimpl_->set_subcomponent_size();
@@ -419,7 +423,7 @@ void viewport::do_set_size(extent const &size)
         set_origin(origin);
     }
 
-    on_redraw({rectangle(point(0, 0), size)});
+    on_redraw({rectangle({}, size)});
 }
 
 // ==========================================================================
@@ -441,7 +445,7 @@ std::shared_ptr<component> viewport::do_get_parent() const
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent viewport::do_get_preferred_size() const
+terminalpp::extent viewport::do_get_preferred_size() const
 {
     return pimpl_->component_->get_preferred_size();
 }
@@ -545,7 +549,7 @@ bool viewport::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point viewport::do_get_cursor_position() const
+terminalpp::point viewport::do_get_cursor_position() const
 {
     // If we are looking at the component at (5,2) and the component reports
     // its cursor at (10,10), then the cursor in our window is really at (5,8).
@@ -560,7 +564,8 @@ void viewport::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    canvas &cvs = ctx.get_canvas();
+    /* @@ TODO:
+    auto &cvs = ctx.get_canvas();
 
     // If we are looking at the component from (3,5) and the region we want
     // to redraw is (0,0)->[2,2], then we need to offset the canvas by
@@ -582,6 +587,7 @@ void viewport::do_draw(
               region.size);
 
     pimpl_->component_->draw(ctx, offset_region);
+    */
 }
 
 // ==========================================================================
@@ -589,6 +595,7 @@ void viewport::do_draw(
 // ==========================================================================
 void viewport::do_event(boost::any const &event)
 {
+    /* @@ TODO:
     odin::ansi::mouse_report const *report =
         boost::any_cast<odin::ansi::mouse_report>(&event);
 
@@ -607,6 +614,7 @@ void viewport::do_event(boost::any const &event)
     {
         pimpl_->component_->event(event);
     }
+    */
 }
 
 // ==========================================================================

@@ -28,6 +28,11 @@
 #define MUNIN_LIST_HPP_
 
 #include "munin/basic_component.hpp"
+#include "odin/types.hpp"
+
+namespace terminalpp {
+    class string;
+}
 
 namespace munin {
 
@@ -50,7 +55,7 @@ public :
     //* =====================================================================
     /// \brief Sets the items in the list.
     //* =====================================================================
-    void set_items(std::vector<std::vector<element_type>> items);
+    void set_items(std::vector<terminalpp::string> const &items);
 
     //* =====================================================================
     /// \brief Selects an item with the given index.
@@ -67,7 +72,7 @@ public :
     //* =====================================================================
     /// \brief Gets the value of the currently selected item.
     //* =====================================================================
-    std::vector<element_type> get_item() const;
+    terminalpp::string get_item() const;
 
     //* =====================================================================
     /// \fn on_item_changed
@@ -86,21 +91,21 @@ protected :
     /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const;
+    virtual terminalpp::extent do_get_preferred_size() const;
 
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual point do_get_cursor_position() const;
+    virtual terminalpp::point do_get_cursor_position() const;
 
     //* =====================================================================
     /// \brief Called by set_cursor_position().  Derived classes must
     /// override this function in order to set the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual void do_set_cursor_position(point const &position);
+    virtual void do_set_cursor_position(terminalpp::point const &position);
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

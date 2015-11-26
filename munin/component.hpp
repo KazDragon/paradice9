@@ -27,7 +27,9 @@
 #ifndef MUNIN_COMPONENT_HPP_
 #define MUNIN_COMPONENT_HPP_
 
-#include "munin/types.hpp"
+#include "munin/rectangle.hpp"
+#include "terminalpp/point.hpp"
+#include "terminalpp/extent.hpp"
 #include <boost/any.hpp>
 #include <boost/signal.hpp>
 #include <memory>
@@ -36,6 +38,10 @@
 namespace munin {
 
 class context;
+
+// TODO: Remove these somehow.
+static const std::string ATTRIBUTE_GLYPH = "GLYPH";
+static const std::string ATTRIBUTE_PEN = "PEN";
 
 //* =========================================================================
 /// \brief An object capable of being drawn on a canvas.
@@ -62,12 +68,12 @@ public :
     /// a layout manager) knows about it, and is better informed about all
     /// regions redrawn.
     //* =====================================================================
-    void set_position(point const &position);
+    void set_position(terminalpp::point const &position);
 
     //* =====================================================================
     /// \brief Retrieve the position of this component.
     //* =====================================================================
-    point get_position() const;
+    terminalpp::point get_position() const;
 
     //* =====================================================================
     /// \brief Sets the size of this component.  This does not cause a
@@ -76,12 +82,12 @@ public :
     /// regions redrawn.  It does, however, inform an active layout to lay
     /// the components out.
     //* =====================================================================
-    void set_size(extent const &size);
+    void set_size(terminalpp::extent const &size);
 
     //* =====================================================================
     /// \brief Retreives the size of this component.
     //* =====================================================================
-    extent get_size() const;
+    terminalpp::extent get_size() const;
 
     //* =====================================================================
     /// \brief Sets the parent of this component.
@@ -108,7 +114,7 @@ public :
     /// \endcode
     /// would be (15, 2).
     //* =====================================================================
-    extent get_preferred_size() const;
+    terminalpp::extent get_preferred_size() const;
 
     //* =====================================================================
     /// \brief Returns whether this component currently has focus.
@@ -182,12 +188,12 @@ public :
     //* =====================================================================
     /// \brief Returns the cursor's current position within the component.
     //* =====================================================================
-    point get_cursor_position() const;
+    terminalpp::point get_cursor_position() const;
 
     //* =====================================================================
     /// \brief Sets the cursor's current position within the component.
     //* =====================================================================
-    void set_cursor_position(point const &position);
+    void set_cursor_position(terminalpp::point const &position);
 
     //* =====================================================================
     /// \brief Sets an implementation-specific attribute of the component.
@@ -269,7 +275,7 @@ public :
     //* =====================================================================
     boost::signal
     <
-        void (point from, point to)
+        void (terminalpp::point from, terminalpp::point to)
     > on_position_changed;
 
     //* =====================================================================
@@ -305,7 +311,7 @@ public :
     /// when the component's cursor position changes.
     //* =====================================================================
     boost::signal<
-        void (point)
+        void (terminalpp::point)
     > on_cursor_position_changed;
 
 protected :
@@ -314,28 +320,28 @@ protected :
     /// function in order to set the position of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_position(point const &position) = 0;
+    virtual void do_set_position(terminalpp::point const &position) = 0;
 
     //* =====================================================================
     /// \brief Called by get_position().  Derived classes must override this
     /// function in order to get the position of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual point do_get_position() const = 0;
+    virtual terminalpp::point do_get_position() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_size().  Derived classes must override this
     /// function in order to set the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_size(extent const &size) = 0;
+    virtual void do_set_size(terminalpp::extent const &size) = 0;
 
     //* =====================================================================
     /// \brief Called by get_size().  Derived classes must override this
     /// function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_size() const = 0;
+    virtual terminalpp::extent do_get_size() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_parent().  Derived classes must override this
@@ -356,7 +362,7 @@ protected :
     /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const = 0;
+    virtual terminalpp::extent do_get_preferred_size() const = 0;
 
     //* =====================================================================
     /// \brief Called by has_focus().  Derived classes must override this
@@ -442,14 +448,14 @@ protected :
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual point do_get_cursor_position() const = 0;
+    virtual terminalpp::point do_get_cursor_position() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_cursor_position().  Derived classes must
     /// override this function in order to set the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual void do_set_cursor_position(point const &position) = 0;
+    virtual void do_set_cursor_position(terminalpp::point const &position) = 0;
 
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this

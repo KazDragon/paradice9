@@ -27,7 +27,7 @@
 #ifndef MUNIN_ANSI_WINDOW_HPP_
 #define MUNIN_ANSI_WINDOW_HPP_
 
-#include "munin/types.hpp"
+#include "terminalpp/extent.hpp"
 #include <boost/any.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/signal.hpp>
@@ -58,13 +58,13 @@ public :
     //* =====================================================================
     /// \brief Gets the size of the window.
     //* =====================================================================
-    munin::extent get_size() const;
+    terminalpp::extent get_size() const;
 
     //* =====================================================================
     /// \brief Sets the size of the window.  Following this, the contents
     /// of the window are re-laid out.
     //* =====================================================================
-    void set_size(munin::extent size);
+    void set_size(terminalpp::extent size);
 
     //* =====================================================================
     /// \brief Sets the title of the window.

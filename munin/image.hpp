@@ -30,6 +30,10 @@
 #include "munin/basic_component.hpp"
 #include <vector>
 
+namespace terminalpp {
+    class string;
+}
+
 namespace munin {
 
 //* =========================================================================
@@ -44,23 +48,23 @@ public :
     /// \param elements - a multidimentional array with each element
     /// representing one horizontal line of the image.
     //* =====================================================================
-    image(std::vector<std::vector<element_type>> elements);
+    image(std::vector<terminalpp::string> const &elements);
 
     //* =====================================================================
     /// \brief Constructor
     /// \param elements - an array representing a single-lined image.
     //* =====================================================================
-    image(std::vector<element_type> elements);
+    image(terminalpp::string const &elements);
 
     //* =====================================================================
     /// \brief Sets the image displayed
     //* =====================================================================
-    void set_image(std::vector<std::vector<element_type>> elements);
+    void set_image(std::vector<terminalpp::string> const &elements);
 
     //* =====================================================================
     /// \brief Sets the image displayed
     //* =====================================================================
-    void set_image(std::vector<element_type> elements);
+    void set_image(terminalpp::string const &elements);
 
     //* =====================================================================
     /// \brief Destructor
@@ -73,7 +77,7 @@ protected :
     /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const;
+    virtual terminalpp::extent do_get_preferred_size() const;
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function

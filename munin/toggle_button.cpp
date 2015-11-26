@@ -30,8 +30,7 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "terminalpp/string.hpp"
 
 namespace munin {
 
@@ -50,8 +49,7 @@ struct toggle_button::impl
 toggle_button::toggle_button(bool default_state)
   : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = std::make_shared<image>(munin::ansi::elements_from_string(
-        default_state ? "X" : " "));
+    pimpl_->image_ = std::make_shared<image>(default_state ? "X" : " ");
     pimpl_->image_->set_can_focus(true);
 
     pimpl_->state_ = default_state;
@@ -78,12 +76,13 @@ toggle_button::~toggle_button()
 // ==========================================================================
 void toggle_button::set_toggle(bool toggle)
 {
+    using namespace terminalpp::literals;
+    
     if (toggle != pimpl_->state_)
     {
         pimpl_->state_ = toggle;
 
-        pimpl_->image_->set_image(
-            munin::ansi::elements_from_string(toggle ? "X" : " "));
+        pimpl_->image_->set_image(toggle ? "X" : " ");
     }
 }
 
@@ -100,6 +99,7 @@ bool toggle_button::get_toggle() const
 // ==========================================================================
 void toggle_button::do_event(boost::any const &event)
 {
+    /* @@ TODO:
     auto ch = boost::any_cast<char>(&event);
 
     if (ch != nullptr)
@@ -121,6 +121,7 @@ void toggle_button::do_event(boost::any const &event)
             set_focus();
         }
     }
+    */
 }
 
 }

@@ -32,17 +32,17 @@ namespace munin {
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE 
 // ==========================================================================
-extent vertical_strip_layout::do_get_preferred_size(
+terminalpp::extent vertical_strip_layout::do_get_preferred_size(
     std::vector<std::shared_ptr<component>> const &components
   , std::vector<boost::any>                 const &hints) const
 {
     // The preferred size of the whole component is the maximum height of
     // the components and the sum of the preferred widths of the components.
-    extent maximum_preferred_size(0, 0);
+    terminalpp::extent maximum_preferred_size(0, 0);
 
     for (auto &comp : components)
     {
-        extent preferred_size = comp->get_preferred_size();
+        terminalpp::extent preferred_size = comp->get_preferred_size();
 
         maximum_preferred_size.height = (std::max)(
             maximum_preferred_size.height
@@ -60,7 +60,7 @@ extent vertical_strip_layout::do_get_preferred_size(
 void vertical_strip_layout::do_layout(
     std::vector<std::shared_ptr<component>> const &components
   , std::vector<boost::any>                 const &hints
-  , extent                                         size)
+  , terminalpp::extent                             size)
 {
     auto x_coord = odin::u32(0);
     
@@ -68,8 +68,8 @@ void vertical_strip_layout::do_layout(
     {    
         auto preferred_size = comp->get_preferred_size();
         
-        comp->set_position(point(x_coord, 0));
-        comp->set_size(extent(preferred_size.width, size.height));
+        comp->set_position(terminalpp::point(x_coord, 0));
+        comp->set_size(terminalpp::extent(preferred_size.width, size.height));
         
         x_coord += preferred_size.width;
     }

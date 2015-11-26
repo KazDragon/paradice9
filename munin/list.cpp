@@ -25,9 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/list.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
+#include "terminalpp/canvas.hpp"
+#include "terminalpp/string.hpp"
 
 namespace munin {
 
@@ -47,6 +47,7 @@ struct list::impl
     // ======================================================================
     // DO_CHARACTER_EVENT
     // ======================================================================
+    /* @@ TODO:
     void do_character_event(char ch)
     {
         if (ch == '\b' || ch == odin::ascii::DEL)
@@ -54,10 +55,12 @@ struct list::impl
             self_.set_item_index(-1);
         }
     }
+    */
 
     // ======================================================================
     // DO_CURSOR_UP_KEY_EVENT
     // ======================================================================
+    /* @@ TODO:
     void do_cursor_up_key_event(odin::u32 times)
     {
         if (odin::s32(times) >= item_index_)
@@ -69,34 +72,42 @@ struct list::impl
             self_.set_item_index(item_index_ - times);
         }
     }
+    */
 
     // ======================================================================
     // DO_CURSOR_DOWN_KEY_EVENT
     // ======================================================================
+    /* @@ TODO:
     void do_cursor_down_key_event(odin::u32 times)
     {
         self_.set_item_index(item_index_ + times);
     }
+    */
 
     // ======================================================================
     // DO_HOME_KEY_EVENT
     // ======================================================================
+    /* @@ TODO:
     void do_home_key_event()
     {
         self_.set_item_index(0);
     }
+    */
 
     // ======================================================================
     // DO_END_KEY_EVENT
     // ======================================================================
+    /* @@ TODO:
     void do_end_key_event()
     {
         self_.set_item_index(items_.size() - 1);
     }
+    */
 
     // ======================================================================
     // DO_ANSI_CONTROL_SEQUENCE_EVENT
     // ======================================================================
+    /*@@ TODO:
     void do_ansi_control_sequence_event(
         odin::ansi::control_sequence const &sequence)
     {
@@ -137,10 +148,12 @@ struct list::impl
             }
         }
     }
-
+    */
+    
     // ======================================================================
     // DO_ANSI_MOUSE_REPORT_EVENT
     // ======================================================================
+    /*@@ TODO:
     void do_ansi_mouse_report_event(
         odin::ansi::mouse_report const &mouse_report)
     {
@@ -163,10 +176,11 @@ struct list::impl
             self_.set_focus();
         }
     }
+    */
 
-    list                                   &self_;
-    std::vector<std::vector<element_type>>  items_;
-    odin::s32                               item_index_;
+    list                            &self_;
+    std::vector<terminalpp::string>  items_;
+    odin::s32                        item_index_;
 };
 
 // ==========================================================================
@@ -188,7 +202,7 @@ list::~list()
 // ==========================================================================
 // SET_ITEMS
 // ==========================================================================
-void list::set_items(std::vector<std::vector<element_type>> items)
+void list::set_items(std::vector<terminalpp::string> const &items)
 {
     auto old_items_size = pimpl_->items_.size();
     auto size = get_size();
@@ -203,7 +217,7 @@ void list::set_items(std::vector<std::vector<element_type>> items)
     }
 
     // We will probably require redrawing the entire component.
-    on_redraw({rectangle(point(), size)});
+    on_redraw({rectangle({}, size)});
 
     // This may well change the preferred size of this component.
     on_preferred_size_changed();
@@ -229,12 +243,18 @@ void list::set_item_index(odin::s32 index)
 
     if (old_index >= 0)
     {
-        on_redraw({rectangle(point(0, old_index), extent(size.width, 1))});
+        on_redraw({
+            rectangle(
+                terminalpp::point(0, old_index)
+              , terminalpp::extent(size.width, 1))});
     }
 
     if (index >= 0)
     {
-        on_redraw({rectangle(point(0, index), extent(size.width, 1))});
+        on_redraw({
+            rectangle(
+                terminalpp::point(0, index)
+              , terminalpp::extent(size.width, 1))});
     }
 
     on_item_changed(old_index);
@@ -252,17 +272,17 @@ odin::s32 list::get_item_index() const
 // ==========================================================================
 // GET_ITEM
 // ==========================================================================
-std::vector<element_type> list::get_item() const
+terminalpp::string list::get_item() const
 {
     return pimpl_->item_index_ < 0
-      ? std::vector<element_type>()
+      ? terminalpp::string()
       : pimpl_->items_[pimpl_->item_index_];
 }
 
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent list::do_get_preferred_size() const
+terminalpp::extent list::do_get_preferred_size() const
 {
     // The preferred size of this component is the widest item wide, and
     // the number of components high.
@@ -273,16 +293,16 @@ extent list::do_get_preferred_size() const
         max_width = (std::max)(max_width, odin::u32(item.size()));
     }
 
-    return extent(max_width, pimpl_->items_.size());
+    return terminalpp::extent(max_width, pimpl_->items_.size());
 }
 
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point list::do_get_cursor_position() const
+terminalpp::point list::do_get_cursor_position() const
 {
     // The 'cursor' is the selected element, or (0,0) if none is selected.
-    return point(
+    return terminalpp::point(
         0
       , pimpl_->item_index_ == -1 ? 0 : pimpl_->item_index_);
 }
@@ -290,7 +310,7 @@ point list::do_get_cursor_position() const
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void list::do_set_cursor_position(point const &position)
+void list::do_set_cursor_position(terminalpp::point const &position)
 {
     set_item_index(position.y);
 }
@@ -302,8 +322,8 @@ void list::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    static element_type const default_element(' ');
-    canvas &cvs = ctx.get_canvas();
+    static terminalpp::element const default_element(' ');
+    auto &cvs = ctx.get_canvas();
 
     for (odin::s32 y_coord = region.origin.y;
         y_coord < region.origin.y + region.size.height;
@@ -321,16 +341,16 @@ void list::do_draw(
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                element_type element = x_coord < odin::s32(item.size())
-                                     ? item[x_coord]
-                                     : default_element;
+                auto element = x_coord < odin::s32(item.size())
+                             ? item[x_coord]
+                             : default_element;
 
                 if (is_selected_item)
                 {
                     element.attribute_.polarity_ =
-                        element.attribute_.polarity_ == odin::ansi::graphics::polarity::negative
-                                                      ? odin::ansi::graphics::polarity::positive
-                                                      : odin::ansi::graphics::polarity::negative;
+                        element.attribute_.polarity_ == terminalpp::ansi::graphics::polarity::negative
+                                                      ? terminalpp::ansi::graphics::polarity::positive
+                                                      : terminalpp::ansi::graphics::polarity::negative;
                 }
 
                 cvs[x_coord][y_coord] = element;
@@ -353,6 +373,7 @@ void list::do_draw(
 // ==========================================================================
 void list::do_event(boost::any const &event)
 {
+    /* @@ TODO:
     char const *ch = boost::any_cast<char>(&event);
 
     if (ch != nullptr)
@@ -375,6 +396,7 @@ void list::do_event(boost::any const &event)
     {
         pimpl_->do_ansi_mouse_report_event(*report);
     }
+    */
 }
 
 }

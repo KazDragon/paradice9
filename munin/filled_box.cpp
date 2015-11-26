@@ -25,8 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/filled_box.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
+#include "odin/types.hpp"
+#include "terminalpp/canvas.hpp"
 
 namespace munin {
 
@@ -35,19 +36,19 @@ namespace munin {
 // ==========================================================================
 struct filled_box::impl
 {
-    element_type element_;
-    extent       preferred_size_;
-    bool         locked_;
+    terminalpp::element element_;
+    terminalpp::extent  preferred_size_;
+    bool                locked_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-filled_box::filled_box(element_type const &element)
+filled_box::filled_box(terminalpp::element const &element)
     : pimpl_(std::make_shared<impl>())
 {
     pimpl_->element_        = element;
-    pimpl_->preferred_size_ = extent(1, 1);
+    pimpl_->preferred_size_ = terminalpp::extent(1, 1);
     pimpl_->locked_         = false;
     set_can_focus(false);
 }
@@ -62,7 +63,7 @@ filled_box::~filled_box()
 // ==========================================================================
 // SET_PREFERRED_SIZE
 // ==========================================================================
-void filled_box::set_preferred_size(extent preferred_size)
+void filled_box::set_preferred_size(terminalpp::extent preferred_size)
 {
     pimpl_->preferred_size_ = preferred_size;
 }
@@ -70,16 +71,16 @@ void filled_box::set_preferred_size(extent preferred_size)
 // ==========================================================================
 // SET_FILL
 // ==========================================================================
-void filled_box::set_fill(element_type const &element)
+void filled_box::set_fill(terminalpp::element const &element)
 {
     pimpl_->element_ = element;
-    on_redraw({rectangle(point(), get_size())});
+    on_redraw({rectangle({}, get_size())});
 }
 
 // ==========================================================================
 // GET_FILL
 // ==========================================================================
-element_type filled_box::get_fill() const
+terminalpp::element filled_box::get_fill() const
 {
     return pimpl_->element_;
 }
@@ -87,7 +88,7 @@ element_type filled_box::get_fill() const
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent filled_box::do_get_preferred_size() const
+terminalpp::extent filled_box::do_get_preferred_size() const
 {
     return pimpl_->preferred_size_;
 }
@@ -116,7 +117,7 @@ void filled_box::do_set_attribute(std::string const &name, boost::any const &att
 
     if (name == ATTRIBUTE_GLYPH)
     {
-        auto gly = boost::any_cast<glyph>(&attr);
+        auto gly = boost::any_cast<terminalpp::glyph>(&attr);
 
         if (gly != nullptr)
         {
@@ -127,7 +128,7 @@ void filled_box::do_set_attribute(std::string const &name, boost::any const &att
 
     if (name == ATTRIBUTE_PEN)
     {
-        auto pen = boost::any_cast<attribute>(&attr);
+        auto pen = boost::any_cast<terminalpp::attribute>(&attr);
 
         if (pen != nullptr)
         {
@@ -138,7 +139,7 @@ void filled_box::do_set_attribute(std::string const &name, boost::any const &att
 
     if (attribute_changed)
     {
-        on_redraw({rectangle(point(), get_size())});
+        on_redraw({rectangle({}, get_size())});
     }
 }
 
@@ -149,7 +150,7 @@ void filled_box::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    canvas &cvs = ctx.get_canvas();
+    terminalpp::canvas &cvs = ctx.get_canvas();
 
     for (odin::u32 row = region.origin.y;
          row < odin::u32(region.origin.y + region.size.height);

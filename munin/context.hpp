@@ -31,9 +31,11 @@
 #include <boost/asio/strand.hpp>
 #include <memory>
 
-namespace munin {
+namespace terminalpp {
+    class canvas;
+}
 
-class canvas;
+namespace munin {
 
 //* =========================================================================
 /// \brief A context onto which components can draw themselves.
@@ -44,7 +46,7 @@ public :
     //* =====================================================================
     /// \brief Constructor.
     //* =====================================================================
-    context(canvas &cvs, boost::asio::strand &strand);
+    context(terminalpp::canvas &cvs, boost::asio::strand &strand);
 
     //* =====================================================================
     /// \brief Destructor.
@@ -54,7 +56,7 @@ public :
     //* =====================================================================
     /// \brief Retrieve the canvas.
     //* =====================================================================
-    canvas &get_canvas();
+    terminalpp::canvas &get_canvas();
 
     //* =====================================================================
     /// \brief Retrieve the strand.

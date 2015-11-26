@@ -33,13 +33,13 @@ namespace munin {
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent aligned_layout::do_get_preferred_size(
+terminalpp::extent aligned_layout::do_get_preferred_size(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints) const
 {
     // The preferred size of this component is the largest preferred
     // extents of all components.
-    extent maximum_preferred_size(0, 0);
+    terminalpp::extent maximum_preferred_size(0, 0);
 
     for (auto const &comp : components)
     {
@@ -63,7 +63,7 @@ extent aligned_layout::do_get_preferred_size(
 void aligned_layout::do_layout(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints,
-    extent                                         size)
+    terminalpp::extent                             size)
 {
     for (odin::u32 index = 0; index < components.size(); ++index)
     {
@@ -86,7 +86,7 @@ void aligned_layout::do_layout(
 
         auto comp_size = comp->get_preferred_size();
 
-        point position;
+        terminalpp::point position;
 
         switch (alignment.horizontal_alignment)
         {

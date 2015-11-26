@@ -27,10 +27,9 @@
 #include "munin/text_area.hpp"
 #include "munin/text/default_multiline_document.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
-#include "odin/ansi/protocol.hpp"
-#include "odin/ascii/protocol.hpp"
+#include "terminalpp/canvas.hpp"
+#include "terminalpp/string.hpp"
 #include <cctype>
 #include <vector>
 
@@ -71,7 +70,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Gets the size of the document.
     //* =====================================================================
-    extent get_size() const
+    terminalpp::extent get_size() const
     {
         return document_->get_size();
     }
@@ -79,7 +78,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Sets the size of the document.
     //* =====================================================================
-    void set_size(extent const &size)
+    void set_size(terminalpp::extent const &size)
     {
         document_->set_size(size);
     }
@@ -87,7 +86,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Gets the preferred size of the document.
     //* =====================================================================
-    extent get_preferred_size() const
+    terminalpp::extent get_preferred_size() const
     {
         return document_->get_size();
     }
@@ -103,7 +102,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Returns the cursor position.
     //* =====================================================================
-    point get_cursor_position() const
+    terminalpp::point get_cursor_position() const
     {
         return document_->get_caret_position();
     }
@@ -111,7 +110,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Sets the cursor position.
     //* =====================================================================
-    void set_cursor_position(point const &position)
+    void set_cursor_position(terminalpp::point const &position)
     {
         document_->set_caret_position(position);
     }
@@ -120,7 +119,7 @@ struct text_area::impl
     /// \brief Draws the document onto the canvas.
     //* =====================================================================
     void draw(
-        canvas          &cvs
+        terminalpp::canvas &cvs
       , rectangle const &region)
     {
         for (odin::u32 row_index = region.origin.y;
@@ -140,7 +139,7 @@ struct text_area::impl
             }
 
             // Pad the rest with blanks
-            static element_type const default_element(' ');
+            static terminalpp::element const default_element(' ');
             for (;
                 column_index < odin::u32(region.size.width);
                 ++column_index)
@@ -155,6 +154,7 @@ struct text_area::impl
     //* =====================================================================
     void do_event(boost::any const &event)
     {
+        /* @@ TODO: 
         char const *ch = boost::any_cast<char>(&event);
 
         if (ch != nullptr)
@@ -177,6 +177,7 @@ struct text_area::impl
         {
             do_ansi_mouse_report_event(*report);
         }
+        */
     }
 
 private :
@@ -203,7 +204,7 @@ private :
     //* =====================================================================
     void repaint()
     {
-        self_.on_redraw({rectangle(point(), self_.get_size())});
+        self_.on_redraw({rectangle({}, self_.get_size())});
     }
 
     //* =====================================================================
@@ -219,7 +220,8 @@ private :
             times = position.y;
         }
 
-        document_->set_caret_position(point(position.x, position.y - times));
+        document_->set_caret_position(
+            terminalpp::point(position.x, position.y - times));
     }
 
     //* =====================================================================
@@ -230,7 +232,7 @@ private :
     {
         auto position = document_->get_caret_position();
 
-        document_->set_caret_position(point(
+        document_->set_caret_position(terminalpp::point(
             position.x
           , position.y + times));
     }
@@ -291,7 +293,7 @@ private :
     {
         // The HOME key goes to the first character of the current line.
         auto position = document_->get_caret_position();
-        document_->set_caret_position(point(0, position.y));
+        document_->set_caret_position(terminalpp::point(0, position.y));
     }
 
     //* =====================================================================
@@ -317,7 +319,7 @@ private :
     {
         // The END key goes to the last character of the current line.
         auto position = document_->get_caret_position();
-        document_->set_caret_position(point(
+        document_->set_caret_position(terminalpp::point(
             document_->get_size().width - 1
           , position.y));
     }
@@ -326,6 +328,7 @@ private :
     /// \brief Called by do_event when an ANSI control sequence has been
     /// received.
     //* =====================================================================
+    /*@@ TODO:
     void do_ansi_control_sequence_event(
         odin::ansi::control_sequence const &sequence)
     {
@@ -428,10 +431,12 @@ private :
             }
         }
     }
+    */
 
     //* =====================================================================
     /// \brief Called by do_event when a character event has occurred.
     //* =====================================================================
+    /*@@ TODO:
     void do_character_event(char ch)
     {
         if (self_.is_enabled())
@@ -457,11 +462,13 @@ private :
             }
         }
     }
-
+    */
+    
     //* =====================================================================
     /// \brief Called by do_event when an ANSI mouse report has been
     /// received.
     //* =====================================================================
+    /*@@ TODO:
     void do_ansi_mouse_report_event(odin::ansi::mouse_report const &report)
     {
         if (report.button_ == 0)
@@ -479,6 +486,7 @@ private :
             }
         }
     }
+    */
 
     text_area                              &self_;
     std::shared_ptr<munin::text::document>  document_;
@@ -511,7 +519,7 @@ std::shared_ptr<munin::text::document> text_area::get_document()
 // ==========================================================================
 // DO_GET_SIZE
 // ==========================================================================
-extent text_area::do_get_size() const
+terminalpp::extent text_area::do_get_size() const
 {
     return pimpl_->get_size();
 }
@@ -519,7 +527,7 @@ extent text_area::do_get_size() const
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void text_area::do_set_size(extent const &size)
+void text_area::do_set_size(terminalpp::extent const &size)
 {
     // The size is a property owned by the document, not this area.
     pimpl_->set_size(size);
@@ -528,7 +536,7 @@ void text_area::do_set_size(extent const &size)
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent text_area::do_get_preferred_size() const
+terminalpp::extent text_area::do_get_preferred_size() const
 {
     return pimpl_->get_preferred_size();
 }
@@ -544,7 +552,7 @@ bool text_area::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point text_area::do_get_cursor_position() const
+terminalpp::point text_area::do_get_cursor_position() const
 {
     return pimpl_->get_cursor_position();
 }
@@ -552,7 +560,7 @@ point text_area::do_get_cursor_position() const
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void text_area::do_set_cursor_position(point const &position)
+void text_area::do_set_cursor_position(terminalpp::point const &position)
 {
     pimpl_->set_cursor_position(position);
 }

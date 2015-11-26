@@ -28,6 +28,11 @@
 #define MUNIN_DROPDOWN_LIST_HPP_
 
 #include "munin/composite_component.hpp"
+#include "odin/types.hpp"
+
+namespace terminalpp {
+    class string;
+}
 
 namespace munin {
 
@@ -50,7 +55,7 @@ public :
     //* =====================================================================
     /// \brief Sets the items in the drop-down list.
     //* =====================================================================
-    void set_items(std::vector<std::vector<element_type>> const &items);
+    void set_items(std::vector<terminalpp::string> const &items);
 
     //* =====================================================================
     /// \brief Selects an item with the given index.
@@ -67,7 +72,7 @@ public :
     //* =====================================================================
     /// \brief Gets the value of the currently selected item.
     //* =====================================================================
-    std::vector<element_type> get_item() const;
+    terminalpp::string get_item() const;
 
     //* =====================================================================
     /// \fn on_item_changed

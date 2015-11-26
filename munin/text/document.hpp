@@ -27,9 +27,15 @@
 #ifndef MUNIN_TEXT_DOCUMENT_HPP_
 #define MUNIN_TEXT_DOCUMENT_HPP_
 
-#include "munin/types.hpp"
+#include "munin/rectangle.hpp"
 #include "odin/core.hpp"
+#include "terminalpp/extent.hpp"
+#include "terminalpp/point.hpp"
 #include <boost/signal.hpp>
+
+namespace terminalpp {
+    class string;
+}
 
 namespace munin { namespace text {
 
@@ -47,22 +53,22 @@ public :
     //* =====================================================================
     /// \brief Sets the document's size.
     //* =====================================================================
-    void set_size(munin::extent size);
+    void set_size(terminalpp::extent size);
 
     //* =====================================================================
     /// \brief Gets the document's size.
     //* =====================================================================
-    munin::extent get_size() const;
+    terminalpp::extent get_size() const;
 
     //* =====================================================================
     /// \brief Sets the caret's location from an x,y position.
     //* =====================================================================
-    void set_caret_position(munin::point const& pt);
+    void set_caret_position(terminalpp::point const& pt);
 
     //* =====================================================================
     /// \brief Returns the caret's location as an x,y position.
     //* =====================================================================
-    munin::point get_caret_position() const;
+    terminalpp::point get_caret_position() const;
 
     //* =====================================================================
     /// \brief Sets the caret's location from an index into the text.
@@ -84,7 +90,7 @@ public :
     /// a specified index.
     //* =====================================================================
     void insert_text(
-        std::vector<element_type> const &text
+        terminalpp::string const &text
       , boost::optional<odin::u32> index = boost::optional<odin::u32>());
 
     //* =====================================================================
@@ -99,7 +105,7 @@ public :
     //* =====================================================================
     /// \brief Replaces the entire text content with the specified text.
     //* =====================================================================
-    void set_text(std::vector<element_type> const &text);
+    void set_text(terminalpp::string const &text);
 
     //* =====================================================================
     /// \brief Returns the number of lines in the text.
@@ -109,7 +115,7 @@ public :
     //* =====================================================================
     /// \brief Returns the specified line of text in the document.
     //* =====================================================================
-    std::vector<element_type> get_line(odin::u32 index) const;
+    terminalpp::string get_line(odin::u32 index) const;
 
     //* =====================================================================
     /// \fn on_redraw
@@ -119,7 +125,7 @@ public :
     //* =====================================================================
     boost::signal
     <
-        void (std::vector<rectangle> const &regions)
+        void (std::vector<munin::rectangle> const &regions)
     > on_redraw;
 
     //* =====================================================================
@@ -138,28 +144,28 @@ protected :
     /// function in order to set the size of the document in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_size(munin::extent size) = 0;
+    virtual void do_set_size(terminalpp::extent size) = 0;
 
     //* =====================================================================
     /// \brief Called by get_size().  Derived classes must override this
     /// function in order to retrieve the size of the document in a
     /// custom manner.
     //* =====================================================================
-    virtual munin::extent do_get_size() const = 0;
+    virtual terminalpp::extent do_get_size() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_caret_position().  Derived classes must
     /// override this function in order to set the caret's position in a
     /// custom manner.
     //* =====================================================================
-    virtual void do_set_caret_position(munin::point const& pt) = 0;
+    virtual void do_set_caret_position(terminalpp::point const& pt) = 0;
 
     //* =====================================================================
     /// \brief Called by get_caret_position().  Derived classes must
     /// override this function in order to retrieve the caret's position in a
     /// custom manner.
     //* =====================================================================
-    virtual munin::point do_get_caret_position() const = 0;
+    virtual terminalpp::point do_get_caret_position() const = 0;
 
     //* =====================================================================
     /// \brief Called by set_caret_index().  Derived classes must

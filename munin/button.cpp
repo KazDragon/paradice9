@@ -30,7 +30,6 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
-#include "odin/ansi/protocol.hpp"
 
 namespace munin {
 
@@ -50,7 +49,7 @@ struct button::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-button::button(std::vector<element_type> const &caption)
+button::button(terminalpp::string const &caption)
     : pimpl_(std::make_shared<impl>())
 {
     auto img = std::make_shared<image>(caption);
@@ -77,6 +76,7 @@ button::~button()
 // ==========================================================================
 void button::do_event(boost::any const &event)
 {
+    /*@@ TODO:
     auto ch = boost::any_cast<char>(&event);
 
     if (ch != NULL)
@@ -96,6 +96,7 @@ void button::do_event(boost::any const &event)
             on_click();
         }
     }
+    */
 }
 
 }

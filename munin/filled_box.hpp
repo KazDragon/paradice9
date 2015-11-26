@@ -29,6 +29,10 @@
 
 #include "munin/basic_component.hpp"
 
+namespace terminalpp {
+    class element;
+}
+
 namespace munin {
 
 // Changing this boolean attribute to true will stop other attributes from
@@ -46,7 +50,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    filled_box(element_type const &element);
+    filled_box(terminalpp::element const &element);
 
     //* =====================================================================
     /// \brief Destructor
@@ -56,17 +60,17 @@ public :
     //* =====================================================================
     /// \brief Sets the preferred size of this box.  The default is (1,1).
     //* =====================================================================
-    void set_preferred_size(extent preferred_size);
+    void set_preferred_size(terminalpp::extent preferred_size);
 
     //* =====================================================================
     /// \brief Sets the element with which the box is filled.
     //* =====================================================================
-    void set_fill(element_type const &element);
+    void set_fill(terminalpp::element const &element);
 
     //* =====================================================================
     /// \brief Gets the element with which the box is filled.
     //* =====================================================================
-    element_type get_fill() const;
+    terminalpp::element get_fill() const;
 
 protected :
     //* =====================================================================
@@ -74,7 +78,7 @@ protected :
     /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const;
+    virtual terminalpp::extent do_get_preferred_size() const;
 
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this

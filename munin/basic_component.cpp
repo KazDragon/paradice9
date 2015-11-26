@@ -25,7 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/basic_component.hpp"
-#include "odin/ansi/protocol.hpp"
 #include <map>
 
 namespace munin {
@@ -90,7 +89,7 @@ basic_component::~basic_component()
 // ==========================================================================
 // DO_SET_POSITION
 // ==========================================================================
-void basic_component::do_set_position(point const &position)
+void basic_component::do_set_position(terminalpp::point const &position)
 {
     auto old_position = pimpl_->bounds_.origin;
     pimpl_->bounds_.origin = position;
@@ -101,7 +100,7 @@ void basic_component::do_set_position(point const &position)
 // ==========================================================================
 // DO_GET_POSITION
 // ==========================================================================
-point basic_component::do_get_position() const
+terminalpp::point basic_component::do_get_position() const
 {
     return pimpl_->bounds_.origin;
 }
@@ -109,7 +108,7 @@ point basic_component::do_get_position() const
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void basic_component::do_set_size(extent const &size)
+void basic_component::do_set_size(terminalpp::extent const &size)
 {
     pimpl_->bounds_.size = size;
     on_size_changed();
@@ -118,7 +117,7 @@ void basic_component::do_set_size(extent const &size)
 // ==========================================================================
 // DO_GET_SIZE
 // ==========================================================================
-extent basic_component::do_get_size() const
+terminalpp::extent basic_component::do_get_size() const
 {
     return pimpl_->bounds_.size;
 }
@@ -246,17 +245,17 @@ bool basic_component::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point basic_component::do_get_cursor_position() const
+terminalpp::point basic_component::do_get_cursor_position() const
 {
     // By default, a component has no cursor, so we choose a sentry
     // value of (0,0) for its non-existent location.
-    return point();
+    return {};
 }
 
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void basic_component::do_set_cursor_position(point const &position)
+void basic_component::do_set_cursor_position(terminalpp::point const &position)
 {
 }
 
@@ -295,6 +294,7 @@ void basic_component::do_layout()
 // ==========================================================================
 void basic_component::do_event(boost::any const &event)
 {
+    /* @@ TODO
     auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
 
     if (mouse != nullptr)
@@ -304,6 +304,7 @@ void basic_component::do_event(boost::any const &event)
             set_focus();
         }
     }
+    */
 }
 
 }

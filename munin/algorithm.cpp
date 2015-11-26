@@ -25,11 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
-#include "munin/detail/string_to_elements_parser.hpp"
+#include "terminalpp/canvas.hpp"
+#include "odin/types.hpp"
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <algorithm>
 
 using namespace odin;
@@ -112,15 +110,14 @@ static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
 {
     vector<rectangle> slices;
 
-    BOOST_FOREACH(rectangle const &current_rectangle, rectangles)
+    for (auto &&current_rectangle : rectangles)
     {
         for (odin::s32 row = 0; row < current_rectangle.size.height; ++row)
         {
             slices.push_back(
-                rectangle(point(current_rectangle.origin.x
-                              , current_rectangle.origin.y + row)
-                        , extent(current_rectangle.size.width
-                               , 1)));
+                rectangle{{ current_rectangle.origin.x
+                          , current_rectangle.origin.y + row}
+                        , {current_rectangle.size.width, 1}});
         }
     }
 
@@ -157,7 +154,7 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
 {
     sort(rectangles.begin(), rectangles.end(), compare_slices);
 
-    BOOST_AUTO(first_slice, rectangles.begin());
+    auto first_slice = rectangles.begin();
 
     // Iterate through adjacent slices, merging any that overlap.
     for (; first_slice != rectangles.end(); ++first_slice)
@@ -168,7 +165,7 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
             continue;
         }
 
-        BOOST_AUTO(second_slice, first_slice + 1);
+        auto second_slice = first_slice + 1;
 
         // Iterate through all adjacent slices that share a y-coordinate
         // until we either run out of slices, or cannot merge a slice.
@@ -212,7 +209,7 @@ vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
 // CLIP_REGION
 // ==========================================================================
 static munin::rectangle clip_region(
-    munin::rectangle region, munin::extent size)
+    munin::rectangle region, terminalpp::extent size)
 {
     if (region.origin.x < 0)
     {
@@ -264,7 +261,7 @@ static bool has_zero_dimension(munin::rectangle const &region)
 // ==========================================================================
 // CLIP_REGIONS
 // ==========================================================================
-vector<rectangle> clip_regions(vector<rectangle> regions, extent size)
+vector<rectangle> clip_regions(vector<rectangle> regions, terminalpp::extent size)
 {
     // Returns a vector of rectangles that is identical to the regions
     // passed in, except that their extends are clipped to those of the
@@ -297,9 +294,9 @@ vector<rectangle> prune_regions(vector<rectangle> regions)
 // COPY_REGION
 // ==========================================================================
 void copy_region(
-    rectangle const &region
-  , canvas const    &source
-  , canvas          &destination)
+    rectangle          const &region
+  , terminalpp::canvas const &source
+  , terminalpp::canvas       &destination)
 {
     for (s32 y_coord = region.origin.y;
          y_coord < region.origin.y + region.size.height;
@@ -312,147 +309,6 @@ void copy_region(
             destination[x_coord][y_coord] = source[x_coord][y_coord];
         }
     }
-}
-
-// ==========================================================================
-// DIRECTIVE_VISITOR
-// ==========================================================================
-class directive_visitor
-    : public static_visitor<>
-{
-public :
-    // ======================================================================
-    // GET_ELEMENTS
-    // ======================================================================
-    vector<element_type> get_elements()
-    {
-        return elements_;
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(char ch)
-    {
-        current_glyph_.character_ = ch;
-        elements_.push_back(
-            element_type(current_glyph_, current_attribute_));
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::default_directive const &directive)
-    {
-        current_glyph_     = glyph();
-        current_attribute_ = attribute();
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::character_set_directive const &directive)
-    {
-        current_glyph_.character_set_ = directive.character_set_;
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::locale_directive const &directive)
-    {
-        current_glyph_.locale_ = directive.locale_;
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::intensity_directive const &directive)
-    {
-        current_attribute_.intensity_ = odin::ansi::graphics::intensity(
-            directive.intensity_);
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::polarity_directive const &directive)
-    {
-        current_attribute_.polarity_ = odin::ansi::graphics::polarity(
-            directive.polarity_);
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::underlining_directive const &directive)
-    {
-        current_attribute_.underlining_ = odin::ansi::graphics::underlining(
-            directive.underlining_);
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::foreground_colour_directive const &directive)
-    {
-        current_attribute_.foreground_colour_ = directive.foreground_colour_;
-    }
-
-    // ======================================================================
-    // OPERATOR()
-    // ======================================================================
-    void operator()(munin::detail::background_colour_directive const &directive)
-    {
-        current_attribute_.background_colour_ = directive.background_colour_;
-    }
-
-private :
-    vector<element_type> elements_;
-    glyph                current_glyph_;
-    attribute            current_attribute_;
-};
-
-// ==========================================================================
-// STRING_TO_ELEMENTS
-// ==========================================================================
-vector<element_type> string_to_elements(string const &str)
-{
-    static munin::detail::string_to_elements_parser
-    <
-        string::const_iterator
-    > parser;
-
-    vector<munin::detail::string_to_elements_directive> parsed_result;
-    BOOST_AUTO(parse_begin, str.begin());
-    BOOST_AUTO(parse_end, str.end());
-    boost::spirit::qi::parse(parse_begin, parse_end, parser, parsed_result);
-
-    directive_visitor visitor;
-    BOOST_FOREACH(
-        munin::detail::string_to_elements_directive const &directive
-      , parsed_result)
-    {
-        apply_visitor(visitor, directive);
-    }
-
-    return visitor.get_elements();
-}
-
-// ==========================================================================
-// STRINGS_TO_ELEMENTS
-// ==========================================================================
-vector< vector<element_type> > strings_to_elements(
-    vector<string> const &strings)
-{
-    vector< vector<element_type> > result(strings.size());
-    transform(
-        strings.begin()
-      , strings.end()
-      , result.begin()
-      , string_to_elements);
-
-    return result;
 }
 
 }

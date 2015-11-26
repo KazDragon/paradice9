@@ -27,10 +27,14 @@
 #ifndef MUNIN_ALGORITHM_HPP_
 #define MUNIN_ALGORITHM_HPP_
 
-#include "munin/types.hpp"
+#include "munin/rectangle.hpp"
 #include <boost/optional.hpp>
 #include <string>
 #include <vector>
+
+namespace terminalpp {
+    class canvas;
+}
 
 namespace munin {
     
@@ -65,7 +69,7 @@ std::vector<rectangle> rectangular_slice(
 //* =========================================================================
 std::vector<rectangle> clip_regions(
     std::vector<rectangle> regions
-  , extent                 size);
+  , terminalpp::extent     size);
 
 //* =========================================================================
 /// \brief Returns the passed array, except that any regions that have a
@@ -78,22 +82,9 @@ std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
 //* =========================================================================
 MUNIN_EXPORT
 void copy_region(
-    rectangle const &region
-  , canvas const    &source
-  , canvas          &destination);
-
-//* =========================================================================
-/// \brief Converts a string into an array of elements.
-//* =========================================================================
-MUNIN_EXPORT 
-std::vector<element_type> string_to_elements(std::string const &str);
-
-//* =========================================================================
-/// \brief Converts an array of strings into an array of arrays of elements.
-//* =========================================================================
-MUNIN_EXPORT 
-std::vector< std::vector<element_type> > strings_to_elements(
-    std::vector<std::string> const &strings);
+    rectangle          const &region
+  , terminalpp::canvas const &source
+  , terminalpp::canvas       &destination);
 
 }
     

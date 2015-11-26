@@ -46,7 +46,7 @@ component::~component()
 // ==========================================================================
 // SET_POSITION
 // ==========================================================================
-void component::set_position(point const &position)
+void component::set_position(terminalpp::point const &position)
 {
     do_set_position(position);
 }
@@ -54,7 +54,7 @@ void component::set_position(point const &position)
 // ==========================================================================
 // GET_POSITION
 // ==========================================================================
-point component::get_position() const
+terminalpp::point component::get_position() const
 {
     return do_get_position();
 }
@@ -62,7 +62,7 @@ point component::get_position() const
 // ==========================================================================
 // SET_SIZE
 // ==========================================================================
-void component::set_size(extent const &size)
+void component::set_size(terminalpp::extent const &size)
 {
     assert(size.width >= 0);
     assert(size.height >= 0);
@@ -72,7 +72,7 @@ void component::set_size(extent const &size)
 // ==========================================================================
 // GET_SIZE
 // ==========================================================================
-extent component::get_size() const
+terminalpp::extent component::get_size() const
 {
     return do_get_size();
 }
@@ -96,7 +96,7 @@ std::shared_ptr<component> component::get_parent() const
 // ==========================================================================
 // GET_PREFERRED_SIZE
 // ==========================================================================
-extent component::get_preferred_size() const
+terminalpp::extent component::get_preferred_size() const
 {
     return do_get_preferred_size();
 }
@@ -200,7 +200,7 @@ bool component::get_cursor_state() const
 // ==========================================================================
 // GET_CURSOR_POSITION
 // ==========================================================================
-point component::get_cursor_position() const
+terminalpp::point component::get_cursor_position() const
 {
     return do_get_cursor_position();
 }
@@ -208,7 +208,7 @@ point component::get_cursor_position() const
 // ==========================================================================
 // SET_CURSOR_POSITION
 // ==========================================================================
-void component::set_cursor_position(point const &position)
+void component::set_cursor_position(terminalpp::point const &position)
 {
     do_set_cursor_position(position);
 }

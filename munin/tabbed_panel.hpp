@@ -28,6 +28,7 @@
 #define MUNIN_TABBED_PANEL_HPP_
 
 #include "munin/composite_component.hpp"
+#include "odin/types.hpp"
 #include <boost/optional.hpp>
 #include <string>
 

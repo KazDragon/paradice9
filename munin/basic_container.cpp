@@ -25,9 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/basic_container.hpp"
-#include "munin/canvas.hpp"
 #include "munin/layout.hpp"
-#include "odin/ansi/protocol.hpp"
 #include <boost/scope_exit.hpp>
 
 namespace munin {
@@ -146,7 +144,7 @@ struct basic_container::impl
                     // cursor position.
                     if (cursor_state_)
                     {
-                        point cursor_position =
+                        terminalpp::point cursor_position =
                             current_component->get_position()
                           + current_component->get_cursor_position();
 
@@ -180,7 +178,7 @@ struct basic_container::impl
     // ======================================================================
     void subcomponent_cursor_position_change_handler(
         std::weak_ptr<component> const &weak_subcomponent
-      , point                           position)
+      , terminalpp::point               position)
     {
         auto subcomponent = weak_subcomponent.lock();
 
@@ -196,14 +194,14 @@ struct basic_container::impl
     // ======================================================================
     void subcomponent_position_change_handler(
         std::weak_ptr<component> const &weak_subcomponent
-      , point                           changed_from
-      , point                           changed_to)
+      , terminalpp::point               changed_from
+      , terminalpp::point               changed_to)
     {
         auto subcomponent = weak_subcomponent.lock();
 
         if (subcomponent)
         {
-            extent const subcomponent_size = subcomponent->get_size();
+            auto const subcomponent_size = subcomponent->get_size();
 
             std::vector<rectangle> regions =
             {
@@ -413,7 +411,7 @@ basic_container::~basic_container()
 // ==========================================================================
 // DO_SET_POSITION
 // ==========================================================================
-void basic_container::do_set_position(point const &position)
+void basic_container::do_set_position(terminalpp::point const &position)
 {
     pimpl_->bounds_.origin = position;
 }
@@ -421,7 +419,7 @@ void basic_container::do_set_position(point const &position)
 // ==========================================================================
 // DO_GET_POSITION
 // ==========================================================================
-point basic_container::do_get_position() const
+terminalpp::point basic_container::do_get_position() const
 {
     return pimpl_->bounds_.origin;
 }
@@ -429,7 +427,7 @@ point basic_container::do_get_position() const
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void basic_container::do_set_size(extent const &size)
+void basic_container::do_set_size(terminalpp::extent const &size)
 {
     pimpl_->bounds_.size = size;
     on_layout_change();
@@ -438,7 +436,7 @@ void basic_container::do_set_size(extent const &size)
 // ==========================================================================
 // DO_GET_SIZE
 // ==========================================================================
-extent basic_container::do_get_size() const
+terminalpp::extent basic_container::do_get_size() const
 {
     return pimpl_->bounds_.size;
 }
@@ -462,7 +460,7 @@ std::shared_ptr<component> basic_container::do_get_parent() const
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent basic_container::do_get_preferred_size() const
+terminalpp::extent basic_container::do_get_preferred_size() const
 {
     // If there are any layouts, then find the union of their preferred
     // sizes.  Otherwise, our current size is just fine.
@@ -471,7 +469,7 @@ extent basic_container::do_get_preferred_size() const
         return get_size();
     }
 
-    extent preferred_size(0, 0);
+    terminalpp::extent preferred_size(0, 0);
 
     // Sort the components/hints into layers
     typedef std::map<odin::u32, std::vector<std::shared_ptr<component>>> clmap;
@@ -853,6 +851,7 @@ void basic_container::do_event(boost::any const &event)
     // We split the events into two types.  Mouse events are passed to
     // whichever component is under the mouse click.  All other events are
     // passed to the focussed component.
+    /* @@ TODO:
     auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
 
     if (mouse != NULL)
@@ -893,6 +892,7 @@ void basic_container::do_event(boost::any const &event)
             }
         }
     }
+    */
 }
 
 // ==========================================================================
@@ -906,7 +906,7 @@ bool basic_container::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point basic_container::do_get_cursor_position() const
+terminalpp::point basic_container::do_get_cursor_position() const
 {
     // If we have no focus, then return the default position.
     if (pimpl_->has_focus_ && pimpl_->cursor_state_)
@@ -926,13 +926,13 @@ point basic_container::do_get_cursor_position() const
 
     // Either we do not have focus, or the currently focussed subcomponent
     // does not have a cursor.  Return the default position.
-    return point();
+    return {};
 }
 
 // ==========================================================================
 // DO_SET_CURSOR_POSITIONG
 // ==========================================================================
-void basic_container::do_set_cursor_position(point const &position)
+void basic_container::do_set_cursor_position(terminalpp::point const &position)
 {
     // If we have no focus, then ignore this.
     if (pimpl_->has_focus_ && pimpl_->cursor_state_)

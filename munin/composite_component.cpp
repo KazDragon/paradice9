@@ -89,7 +89,7 @@ std::shared_ptr<container> composite_component::get_container()
 // ==========================================================================
 // DO_SET_POSITION
 // ==========================================================================
-void composite_component::do_set_position(point const &position)
+void composite_component::do_set_position(terminalpp::point const &position)
 {
     pimpl_->container_->set_position(position);
 }
@@ -97,7 +97,7 @@ void composite_component::do_set_position(point const &position)
 // ==========================================================================
 // DO_GET_POSITION
 // ==========================================================================
-point composite_component::do_get_position() const
+terminalpp::point composite_component::do_get_position() const
 {
     return pimpl_->container_->get_position();
 }
@@ -105,7 +105,7 @@ point composite_component::do_get_position() const
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void composite_component::do_set_size(extent const &size)
+void composite_component::do_set_size(terminalpp::extent const &size)
 {
     pimpl_->container_->set_size(size);
 }
@@ -113,7 +113,7 @@ void composite_component::do_set_size(extent const &size)
 // ==========================================================================
 // DO_GET_SIZE
 // ==========================================================================
-extent composite_component::do_get_size() const
+terminalpp::extent composite_component::do_get_size() const
 {
     return pimpl_->container_->get_size();
 }
@@ -137,7 +137,7 @@ std::shared_ptr<component> composite_component::do_get_parent() const
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent composite_component::do_get_preferred_size() const
+terminalpp::extent composite_component::do_get_preferred_size() const
 {
     return pimpl_->container_->get_preferred_size();
 }
@@ -241,7 +241,7 @@ bool composite_component::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point composite_component::do_get_cursor_position() const
+terminalpp::point composite_component::do_get_cursor_position() const
 {
     return pimpl_->container_->get_cursor_position();
 }
@@ -249,7 +249,7 @@ point composite_component::do_get_cursor_position() const
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void composite_component::do_set_cursor_position(point const &position)
+void composite_component::do_set_cursor_position(terminalpp::point const &position)
 {
     pimpl_->container_->set_cursor_position(position);
 }

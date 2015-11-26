@@ -25,12 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/status_bar.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/container.hpp"
 #include "munin/context.hpp"
 #include "munin/image.hpp"
 #include "munin/grid_layout.hpp"
+#include "terminalpp/string.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -55,7 +55,7 @@ struct status_bar::impl : public std::enable_shared_from_this<impl>
 {
     std::shared_ptr<boost::asio::deadline_timer> timer_;
     std::shared_ptr<image>                       image_;
-    std::vector<element_type>                    message_;
+    terminalpp::string                           message_;
     odin::s32                                    tick_;
 
     void start_marquee()
@@ -79,7 +79,7 @@ private :
     void marquee_start()
     {
         // TODO: Implement the marquee functionality.
-        image_->set_image(munin::ansi::elements_from_string(""));
+        image_->set_image("");
     }
 };
 
@@ -106,9 +106,9 @@ status_bar::~status_bar()
 // ==========================================================================
 // SET_MESSAGE
 // ==========================================================================
-void status_bar::set_message(std::vector<element_type> message)
+void status_bar::set_message(terminalpp::string const &message)
 {
-    pimpl_->message_ = std::move(message);
+    pimpl_->message_ = message;
     pimpl_->tick_    = -1;
     pimpl_->image_->set_image(pimpl_->message_);
 }

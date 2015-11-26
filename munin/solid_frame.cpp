@@ -26,11 +26,11 @@
 // ==========================================================================
 #include "munin/solid_frame.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "munin/sco_glyphs.hpp"
+#include "terminalpp/canvas.hpp"
 
 namespace munin {
 
@@ -56,9 +56,10 @@ public :
 
         if (closeable_)
         {
-            attribute pen;
-            pen.foreground_colour_ = odin::ansi::graphics::colour::red;
-            pen.intensity_ = odin::ansi::graphics::intensity::bold;
+            terminalpp::attribute pen;
+            pen.foreground_colour_ = 
+                terminalpp::low_colour(terminalpp::ansi::graphics::colour::red);
+            pen.intensity_ = terminalpp::ansi::graphics::intensity::bold;
 
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, single_lined_top_right_corner);
@@ -69,13 +70,14 @@ public :
         {
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, double_lined_top_right_corner);
-            top_right_->set_attribute(ATTRIBUTE_PEN,   attribute());
+            top_right_->set_attribute(ATTRIBUTE_PEN,   terminalpp::attribute());
         }
     }
 
     // ======================================================================
     // HANDLE_MOUSE_CLICK
     // ======================================================================
+    /* @@ TODO:
     bool handle_mouse_click(odin::ansi::mouse_report const *report)
     {
         bool handled = false;
@@ -99,6 +101,7 @@ public :
 
         return handled;
     }
+    */
 
     solid_frame                &self_;
     std::shared_ptr<component>  top_right_;
@@ -110,14 +113,14 @@ public :
 // ==========================================================================
 solid_frame::solid_frame()
   : basic_frame(
-        std::make_shared<filled_box>(element_type(double_lined_top_left_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_horizontal_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_top_right_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_bottom_left_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_horizontal_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
+        std::make_shared<filled_box>(double_lined_top_left_corner),
+        std::make_shared<filled_box>(double_lined_horizontal_beam),
+        std::make_shared<filled_box>(double_lined_top_right_corner),
+        std::make_shared<filled_box>(double_lined_vertical_beam),
+        std::make_shared<filled_box>(double_lined_vertical_beam),
+        std::make_shared<filled_box>(double_lined_bottom_left_corner),
+        std::make_shared<filled_box>(double_lined_horizontal_beam),
+        std::make_shared<filled_box>(double_lined_bottom_right_corner))
 {
     pimpl_ = std::make_shared<impl>(std::ref(*this), get_top_right_component());
 }
@@ -142,6 +145,7 @@ void solid_frame::set_closeable(bool closeable)
 // ==========================================================================
 void solid_frame::do_event(boost::any const &event)
 {
+    /* @@ TODO :
     bool handled = false;
 
     odin::ansi::mouse_report const *report =
@@ -156,6 +160,7 @@ void solid_frame::do_event(boost::any const &event)
     {
         composite_component::do_event(event);
     }
+    */
 }
 
 }

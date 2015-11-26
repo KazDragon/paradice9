@@ -53,7 +53,7 @@ public :
     /// If this is not specified, then it is inserted as the right-most tab.
     //* =====================================================================
     void insert_tab(
-        std::string const          &text,
+        std::string const &text,
         boost::optional<odin::u32>  index = {});
 
     //* =====================================================================

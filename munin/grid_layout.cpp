@@ -67,14 +67,14 @@ grid_layout::~grid_layout()
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent grid_layout::do_get_preferred_size(
+terminalpp::extent grid_layout::do_get_preferred_size(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints) const
 {
     // The preferred size of the whole component is the maximum preferred
     // width and the maximum preferred height of all components,
     // multiplied appropriately by the rows and columns
-    extent maximum_preferred_size(0, 0);
+    terminalpp::extent maximum_preferred_size(0, 0);
 
     for (auto comp : components)
     {
@@ -101,7 +101,7 @@ extent grid_layout::do_get_preferred_size(
 void grid_layout::do_layout(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints,
-    extent                                         size)
+    terminalpp::extent                             size)
 {
     for (odin::u32 index = 0; index < components.size(); ++index)
     {
@@ -113,12 +113,12 @@ void grid_layout::do_layout(
 
         // Naive: will have missing pixels and off-by-one errors
         comp->set_position(
-            munin::point(
+            terminalpp::point(
                 (size.width / pimpl_->columns_) * column
               , (size.height / pimpl_->rows_) * row));
 
         comp->set_size(
-            munin::extent(
+            terminalpp::extent(
                 size.width  / pimpl_->columns_
               , size.height / pimpl_->rows_));
     }

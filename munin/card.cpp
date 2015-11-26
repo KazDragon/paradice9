@@ -155,9 +155,9 @@ void card::select_face(std::string const &name)
                               ? new_face.get()->get_cursor_state()
                               : false;
 
-        point cursor_position = new_face.is_initialized()
-                              ? new_face.get()->get_cursor_position()
-                              : point();
+        auto cursor_position = new_face.is_initialized()
+                             ? new_face.get()->get_cursor_position()
+                             : terminalpp::point();
 
         // Fire any necessary events.
         if (old_focussed != new_focussed)
@@ -181,7 +181,7 @@ void card::select_face(std::string const &name)
 
         // The face of the card has changed.  Fire an on_redraw event for
         // the entire component.
-        on_redraw({{point(), get_size()}});
+        on_redraw({{{}, get_size()}});
     }
 }
 
@@ -231,9 +231,9 @@ void card::do_set_focus()
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent card::do_get_preferred_size() const
+terminalpp::extent card::do_get_preferred_size() const
 {
-    return extent();
+    return {};
 }
 
 // ==========================================================================
@@ -286,7 +286,7 @@ void card::do_event(boost::any const &event)
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void card::do_set_size(extent const &size)
+void card::do_set_size(terminalpp::extent const &size)
 {
     basic_component::do_set_size(size);
 
@@ -396,7 +396,7 @@ bool card::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point card::do_get_cursor_position() const
+terminalpp::point card::do_get_cursor_position() const
 {
     auto current_face = pimpl_->get_current_face();
 
@@ -405,13 +405,13 @@ point card::do_get_cursor_position() const
         return current_face.get()->get_cursor_position();
     }
 
-    return point();
+    return {};
 }
 
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void card::do_set_cursor_position(point const &position)
+void card::do_set_cursor_position(terminalpp::point const &position)
 {
     auto current_face = pimpl_->get_current_face();
 

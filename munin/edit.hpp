@@ -64,20 +64,20 @@ protected :
     /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const;
+    virtual terminalpp::extent do_get_preferred_size() const override;
 
     //* =====================================================================
     /// \brief Called by get_cursor_state().  Derived classes must override
     /// this function in order to return the cursor state in a custom manner.
     //* =====================================================================
-    virtual bool do_get_cursor_state() const;
+    virtual bool do_get_cursor_state() const override;
 
     //* =====================================================================
     /// \brief Called by get_cursor_position().  Derived classes must
     /// override this function in order to return the cursor position in
     /// a custom manner.
     //* =====================================================================
-    virtual point do_get_cursor_position() const;
+    virtual terminalpp::point do_get_cursor_position() const override;
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -90,20 +90,20 @@ protected :
     //* =====================================================================
     virtual void do_draw(
         context         &ctx
-      , rectangle const &region);
+      , rectangle const &region) override;
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
-    virtual void do_event(boost::any const &event);
+    virtual void do_event(boost::any const &event) override;
 
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.
     //* =====================================================================
     virtual void do_set_attribute(
-        std::string const &name, boost::any const &attr);
+        std::string const &name, boost::any const &attr) override;
 
 private :
     struct impl;

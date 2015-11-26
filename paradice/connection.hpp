@@ -29,7 +29,6 @@
 
 #include "paradice/export.hpp"
 #include "odin/core.hpp"
-#include "odin/ansi/protocol.hpp"
 #include <memory>
 #include <string>
 #include <utility>
@@ -88,15 +87,19 @@ public :
     /// \brief Set a function to be called when a mouse report is received
     /// from the connection.
     //* =====================================================================
+    /* @@ TODO: 
     void on_mouse_report(
         std::function<void (odin::ansi::mouse_report const &)> const &callback);
+        */
 
     //* =====================================================================
     /// \brief Set a function to be called when an ANSI control sequence
     /// is received from the client.
     //* =====================================================================
+    /* @@ TODO:
     void on_control_sequence(
         std::function<void (odin::ansi::control_sequence const &)> const &callback);
+        */
 
     //* =====================================================================
     /// \brief Set up a callback to be called when the underlying socket

@@ -29,7 +29,8 @@
 #include "munin/basic_container.hpp"
 #include "munin/frame.hpp"
 #include "munin/layout.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "terminalpp/attribute.hpp"
+#include "terminalpp/extent.hpp"
 
 namespace munin {
 
@@ -66,12 +67,12 @@ private :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size(
+    virtual terminalpp::extent do_get_preferred_size(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints) const
     {
-        extent preferred_interior_size;
-        extent preferred_border_size;
+        terminalpp::extent preferred_interior_size;
+        terminalpp::extent preferred_border_size;
 
         for (odin::u32 index = 0; index < components.size(); ++index)
         {
@@ -92,13 +93,13 @@ private :
                 border_left_width_    = border->get_left_border_width();
                 border_right_width_   = border->get_right_border_width();
 
-                preferred_border_size = extent(
+                preferred_border_size = terminalpp::extent(
                     border_left_width_ + border_right_width_
                   , border_top_height_ + border_bottom_height_);
             }
         }
 
-        return extent(
+        return terminalpp::extent(
             preferred_interior_size.width  + preferred_border_size.width
           , preferred_interior_size.height + preferred_border_size.height);
     }
@@ -111,7 +112,7 @@ private :
     virtual void do_layout(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints,
-        extent                                         size)
+        terminalpp::extent                             size)
     {
         // This layout expects only two subcomponents: a frame, and a central
         // component.  It lays them out in the expected format.
@@ -123,7 +124,7 @@ private :
 
             if (hint == hint_border)
             {
-                comp->set_position(point(0, 0));
+                comp->set_position({});
                 comp->set_size(size);
 
                 auto border = std::dynamic_pointer_cast<frame>(comp);
@@ -135,11 +136,11 @@ private :
             }
             else if (hint == hint_interior)
             {
-                comp->set_position(point(
+                comp->set_position(terminalpp::point(
                     border_left_width_
                   , border_top_height_));
 
-                extent new_size;
+                terminalpp::extent new_size;
 
                 // Have care that the new size we would set does not become
                 // less than zero due to taking the borders into account.
@@ -183,8 +184,8 @@ struct framed_component::impl
     std::shared_ptr<frame>     border_;
     std::shared_ptr<component> interior_;
 
-    attribute focussed_pen_;
-    attribute unfocussed_pen_;
+    terminalpp::attribute focussed_pen_;
+    terminalpp::attribute unfocussed_pen_;
 };
 
 // ==========================================================================
@@ -209,7 +210,7 @@ framed_component::framed_component(
     interior->on_focus_set.connect([this]{pimpl_->update_pen();});
     interior->on_focus_lost.connect([this]{pimpl_->update_pen();});
 
-    pimpl_->focussed_pen_.foreground_colour_ = attribute::high_colour(1, 4, 5);
+    pimpl_->focussed_pen_.foreground_colour_ = terminalpp::high_colour(1, 4, 5);
 }
 
 // ==========================================================================
@@ -226,7 +227,8 @@ void framed_component::do_set_attribute(std::string const &name, boost::any cons
 {
     if (name == FOCUSSED_BORDER_PEN)
     {
-        attribute const *pen = boost::any_cast<attribute>(&attr);
+        terminalpp::attribute const *pen = 
+            boost::any_cast<terminalpp::attribute>(&attr);
 
         if (pen != nullptr)
         {
@@ -236,7 +238,8 @@ void framed_component::do_set_attribute(std::string const &name, boost::any cons
     }
     else if (name == UNFOCUSSED_BORDER_PEN)
     {
-        attribute const *pen = boost::any_cast<attribute>(&attr);
+        terminalpp::attribute const *pen = 
+            boost::any_cast<terminalpp::attribute>(&attr);
 
         if (pen != nullptr)
         {
@@ -251,6 +254,7 @@ void framed_component::do_set_attribute(std::string const &name, boost::any cons
 // ==========================================================================
 void framed_component::do_event(boost::any const &event)
 {
+    /* @@ TODO:
     bool handled = false;
 
     odin::ansi::mouse_report const *report =
@@ -295,6 +299,7 @@ void framed_component::do_event(boost::any const &event)
     {
         composite_component::do_event(event);
     }
+    */
 }
 
 }

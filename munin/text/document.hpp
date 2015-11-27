@@ -27,6 +27,7 @@
 #ifndef MUNIN_TEXT_DOCUMENT_HPP_
 #define MUNIN_TEXT_DOCUMENT_HPP_
 
+#include "munin/export.hpp"
 #include "munin/rectangle.hpp"
 #include "odin/core.hpp"
 #include "terminalpp/extent.hpp"
@@ -194,8 +195,8 @@ protected :
     /// manner.
     //* =====================================================================
     virtual void do_insert_text(
-        std::vector<element_type> const& text
-      , boost::optional<odin::u32>       index) = 0;
+        terminalpp::string const&  text
+      , boost::optional<odin::u32> index) = 0;
 
     //* =====================================================================
     /// \brief Called by delete_text().  Derived classes must override this
@@ -207,7 +208,7 @@ protected :
     /// \brief Called by set_text().  Derived classes must override this
     /// function in order to set text in a custom manner.
     //* =====================================================================
-    virtual void do_set_text(std::vector<element_type> const &text) = 0;
+    virtual void do_set_text(terminalpp::string const &text) = 0;
 
     //* =====================================================================
     /// \brief Called by get_number_of_lines().  Derived classes must
@@ -220,7 +221,7 @@ protected :
     /// \brief Called by get_line().  Derived classes must override this
     /// function in order to return the text line in a custom manner.
     //* =====================================================================
-    virtual std::vector<element_type> do_get_line(odin::u32 index) const = 0;
+    virtual terminalpp::string do_get_line(odin::u32 index) const = 0;
 };
 
 }}

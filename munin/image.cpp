@@ -26,7 +26,7 @@
 // ==========================================================================
 #include "munin/image.hpp"
 #include "munin/context.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include "terminalpp/canvas.hpp"
 #include "terminalpp/string.hpp"
 #include <algorithm>

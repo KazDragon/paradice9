@@ -27,8 +27,9 @@
 #ifndef MUNIN_CARD_HPP_
 #define MUNIN_CARD_HPP_
 
+#include "munin/export.hpp"
 #include "munin/basic_component.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/optional.hpp>
 #include <string>
 

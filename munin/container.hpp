@@ -27,8 +27,9 @@
 #ifndef MUNIN_CONTAINER_HPP_
 #define MUNIN_CONTAINER_HPP_
 
-#include "odin/types.hpp"
+#include "munin/export.hpp"
 #include "munin/component.hpp"
+#include "odin/core.hpp"
 #include <vector>
 
 namespace munin {

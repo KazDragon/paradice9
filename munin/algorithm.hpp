@@ -27,6 +27,7 @@
 #ifndef MUNIN_ALGORITHM_HPP_
 #define MUNIN_ALGORITHM_HPP_
 
+#include "munin/export.hpp"
 #include "munin/rectangle.hpp"
 #include <boost/optional.hpp>
 #include <string>
@@ -37,8 +38,6 @@ namespace terminalpp {
 }
 
 namespace munin {
-    
-class canvas;
 
 //* =========================================================================
 /// \brief Returns the intersection of two rectangles.

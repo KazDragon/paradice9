@@ -27,8 +27,9 @@
 #ifndef MUNIN_HORIZONTAL_SCROLL_BAR_HPP_
 #define MUNIN_HORIZONTAL_SCROLL_BAR_HPP_
 
+#include "munin/export.hpp"
 #include "munin/basic_component.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/optional.hpp>
 
 namespace munin {

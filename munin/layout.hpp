@@ -27,6 +27,7 @@
 #ifndef MUNIN_LAYOUT_HPP_
 #define MUNIN_LAYOUT_HPP_
 
+#include "munin/export.hpp"
 #include "odin/core.hpp"
 #include "terminalpp/extent.hpp"
 #include <boost/any.hpp>

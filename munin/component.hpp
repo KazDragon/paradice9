@@ -27,6 +27,7 @@
 #ifndef MUNIN_COMPONENT_HPP_
 #define MUNIN_COMPONENT_HPP_
 
+#include "munin/export.hpp"
 #include "munin/rectangle.hpp"
 #include "terminalpp/point.hpp"
 #include "terminalpp/extent.hpp"

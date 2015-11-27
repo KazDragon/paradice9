@@ -27,8 +27,9 @@
 #ifndef MUNIN_LIST_HPP_
 #define MUNIN_LIST_HPP_
 
+#include "munin/export.hpp"
 #include "munin/basic_component.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 
 namespace terminalpp {
     class string;

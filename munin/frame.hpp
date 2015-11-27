@@ -27,8 +27,9 @@
 #ifndef MUNIN_FRAME_HPP_
 #define MUNIN_FRAME_HPP_
 
+#include "munin/export.hpp"
 #include "munin/composite_component.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 
 namespace munin {
 

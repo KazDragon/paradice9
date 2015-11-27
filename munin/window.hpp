@@ -27,6 +27,7 @@
 #ifndef MUNIN_ANSI_WINDOW_HPP_
 #define MUNIN_ANSI_WINDOW_HPP_
 
+#include "munin/export.hpp"
 #include "terminalpp/extent.hpp"
 #include <boost/any.hpp>
 #include <boost/asio/strand.hpp>

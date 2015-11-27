@@ -26,7 +26,7 @@
 // ==========================================================================
 #include "munin/algorithm.hpp"
 #include "terminalpp/canvas.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>
 

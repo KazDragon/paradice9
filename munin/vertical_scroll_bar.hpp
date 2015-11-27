@@ -28,7 +28,7 @@
 #define MUNIN_VERTICAL_SCROLL_BAR_HPP_
 
 #include "munin/basic_component.hpp"
-#include "odin/types.hpp"
+#include "odin/core.hpp"
 #include <boost/optional.hpp>
 
 namespace munin {

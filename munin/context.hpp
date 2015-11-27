@@ -27,7 +27,7 @@
 #ifndef MUNIN_CONTEXT_HPP_
 #define MUNIN_CONTEXT_HPP_
 
-#include "munin/types.hpp"
+#include "munin/export.hpp"
 #include <boost/asio/strand.hpp>
 #include <memory>
 

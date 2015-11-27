@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-cmake_policy(VERSION 3.2)
 project(paradice-9)
+cmake_policy(VERSION 3.2)
+
+if (POLICY CMP0063)
+    cmake_policy(SET CMP0063 NEW)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 

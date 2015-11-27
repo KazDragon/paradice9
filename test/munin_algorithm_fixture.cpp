@@ -1,5 +1,6 @@
 #include "munin_algorithm_fixture.hpp"
 #include "munin/algorithm.hpp"
+#include <odin/core.hpp>
 
 using namespace boost;
 using namespace odin;
@@ -407,112 +408,10 @@ void munin_algorithm_fixture::test_rectangle_intersection_contain()
     CPPUNIT_ASSERT_EQUAL(s32(3), intersection->size.height);
 }
 
-void munin_algorithm_fixture::test_point_point_arithmetic()
-{
-    // Test the arithmetic of points and points.
-    {
-        munin::point p0(1, 2);
-        munin::point p1(3, 4);
-        munin::point p0_plus_p1(p0.x + p1.x, p0.y + p1.y);
-        
-        CPPUNIT_ASSERT_EQUAL(p0_plus_p1, p0 + p1);
-    }
-    
-    {
-        munin::point p0(1, 2);
-        munin::point p1(3, 4);
-        munin::point p0_plus_p1(p0.x + p1.x, p0.y + p1.y);
-        
-        p0 += p1;
-        
-        CPPUNIT_ASSERT_EQUAL(p0_plus_p1, p0);
-    }
-
-    {
-        munin::point p0(3, 4);
-        munin::point p1(1, 2);
-        munin::point p0_minus_p1(p0.x - p1.x, p0.y - p1.y);
-        
-        CPPUNIT_ASSERT_EQUAL(p0_minus_p1, p0 - p1);
-    }
-
-    {
-        munin::point p0(3, 4);
-        munin::point p1(1, 2);
-        munin::point p0_minus_p1(p0.x - p1.x, p0.y - p1.y);
-        
-        p0 -= p1;
-        
-        CPPUNIT_ASSERT_EQUAL(p0_minus_p1, p0);
-    }
-}
-
-void munin_algorithm_fixture::test_extent_extent_arithmetic()
-{
-    // Test the arithmetic of extents and extents.
-    {
-        munin::extent ext0(1, 2);
-        munin::extent ext1(3, 4);
-        munin::extent ext0_plus_ext1(
-            ext0.width  + ext1.width
-          , ext0.height + ext1.height);
-        
-        CPPUNIT_ASSERT_EQUAL(ext0_plus_ext1, ext0 + ext1);
-    }
-    
-    {
-        munin::extent ext0(1, 2);
-        munin::extent ext1(3, 4);
-        munin::extent ext0_plus_ext1(
-            ext0.width  + ext1.width
-          , ext0.height + ext1.height);
-        
-        ext0 += ext1;
-        
-        CPPUNIT_ASSERT_EQUAL(ext0_plus_ext1, ext0);
-    }
-
-    {
-        munin::extent ext0(3, 4);
-        munin::extent ext1(1, 2);
-        munin::extent ext0_minus_ext1(
-            ext0.width  - ext1.width
-          , ext0.height - ext1.height);
-        
-        CPPUNIT_ASSERT_EQUAL(ext0_minus_ext1, ext0 - ext1);
-    }
-
-    {
-        munin::extent ext0(3, 4);
-        munin::extent ext1(1, 2);
-        munin::extent ext0_minus_ext1(
-            ext0.width  - ext1.width
-          , ext0.height - ext1.height);
-        
-        ext0 -= ext1;
-        
-        CPPUNIT_ASSERT_EQUAL(ext0_minus_ext1, ext0);
-    }
-}
-
-void munin_algorithm_fixture::test_point_extent_arithmetic()
-{
-    // Test the arithmetic of points and extents.
-    {
-        munin::point  pt(1, 2);
-        munin::extent ext(3, 4);
-        
-        munin::rectangle expected(pt, ext);
-        munin::rectangle actual = pt + ext;
-        
-        CPPUNIT_ASSERT_EQUAL(expected, actual);
-    }
-}
-
 void munin_algorithm_fixture::test_rectangular_slice()
 {
-    using munin::point;
-    using munin::extent;
+    using terminalpp::point;
+    using terminalpp::extent;
     using munin::rectangle;
     
     {

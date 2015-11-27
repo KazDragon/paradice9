@@ -27,8 +27,9 @@
 #ifndef MUNIN_RECTANGLE_HPP_
 #define MUNIN_RECTANGLE_HPP_
 
-#include "terminalpp/point.hpp"
-#include "terminalpp/extent.hpp"
+#include "munin/export.hpp"
+#include <terminalpp/point.hpp>
+#include <terminalpp/extent.hpp>
 #include <iosfwd>
 
 namespace munin {
@@ -85,6 +86,10 @@ constexpr bool operator!=(rectangle const &lhs, rectangle const &rhs)
     return !(lhs == rhs);
 }
 
+// ==========================================================================
+// OPERATOR<<(RECTANGLE)
+// ==========================================================================
+MUNIN_EXPORT
 std::ostream& operator<<(std::ostream &out, rectangle const &rect);
 
 

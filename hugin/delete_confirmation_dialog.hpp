@@ -29,6 +29,10 @@
 
 #include "munin/composite_component.hpp"
 
+namespace terminalpp {
+    class string;
+}
+
 namespace hugin {
 
 //* =========================================================================
@@ -50,7 +54,7 @@ public :
     //* =====================================================================
     /// \brief Sets a description of what it is you want to be deleted
     //* =====================================================================
-    void set_deletion_target_text(std::string const &text);
+    void set_deletion_target_text(terminalpp::string const &text);
 
     //* =====================================================================
     /// \fn on_delete_confirmation

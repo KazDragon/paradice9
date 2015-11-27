@@ -26,10 +26,10 @@
 // ==========================================================================
 #include "wholist.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <odin/core.hpp>
+#include <terminalpp/canvas.hpp>
+#include <terminalpp/encoder.hpp>
 #include <vector>
 
 BOOST_STATIC_CONSTANT(odin::u16, MIN_COLUMN_WIDTH        = 36);
@@ -48,6 +48,7 @@ struct wholist::impl
     // ======================================================================
     impl(wholist &self)
         : self_(self)
+        , view_({0, 0})
         , name_index_(0)
         , current_selection_(0)
     {
@@ -57,7 +58,7 @@ struct wholist::impl
     // DRAW
     // ======================================================================
     void draw(
-        munin::canvas          &cvs,
+        terminalpp::canvas     &cvs,
         munin::rectangle const &region)
     {
         munin::copy_region(region, view_, cvs);
@@ -145,12 +146,12 @@ private :
 
             if (current_name_index < names_.size())
             {
-                munin::attribute pen;
+                terminalpp::attribute pen;
                 pen.underlining_ = 
                     current_name_index == current_selection_
                  && self_.has_focus()
-                    ? odin::ansi::graphics::underlining::underlined
-                    : odin::ansi::graphics::underlining::not_underlined;
+                    ? terminalpp::ansi::graphics::underlining::underlined
+                    : terminalpp::ansi::graphics::underlining::not_underlined;
                 
                 // Trim down the name if it is too long.
                 auto current_name = names_[current_name_index];
@@ -159,7 +160,13 @@ private :
                     0, (std::min)(current_name.size(), size_t(MIN_COLUMN_WIDTH)));
                 
                 // Convert this to elements.
-                auto name_elements = munin::ansi::elements_from_string(current_name, pen);
+                // @@ TODO:
+                //auto name_elements = terminalpp::string(current_name, pen);
+                auto name_elements = terminalpp::string(current_name);
+                for (auto &elem : name_elements)
+                {
+                    elem.attribute_ = pen;
+                }
                 
                 // Find the x coordinate of this cell.
                 odin::u32 cell_x_coordinate = 
@@ -195,13 +202,13 @@ private :
         // If necessary, we will have to totally recreate the view
         if (size != current_size_)
         {
-            view_.set_size(size);
+            view_ = terminalpp::canvas(size);
         }
 
         current_size_ = size;
         
-        munin::attribute pen;
-        munin::element_type const blank_element(' ', pen);
+        terminalpp::attribute pen;
+        terminalpp::element const blank_element(' ', pen);
         
         // Blank out the view.
         for (odin::s32 column = 0; column < size.width; ++column)
@@ -219,7 +226,7 @@ private :
     void repaint()
     {
         std::vector<munin::rectangle> regions;
-        regions.push_back(munin::rectangle(munin::point(), self_.get_size()));
+        regions.push_back(munin::rectangle({}, self_.get_size()));
         self_.on_redraw(regions);
     }
     
@@ -305,8 +312,8 @@ private :
 
     wholist                  &self_;
     std::vector<std::string>  names_;
-    munin::canvas             view_;
-    munin::extent             current_size_;
+    terminalpp::canvas        view_;
+    terminalpp::extent        current_size_;
     odin::u32                 name_index_;
     odin::u32                 current_selection_;
     
@@ -341,15 +348,15 @@ void wholist::set_names(std::vector<std::string> const &names)
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-munin::extent wholist::do_get_preferred_size() const
+terminalpp::extent wholist::do_get_preferred_size() const
 {
-    return munin::extent(get_size().width, NUMBER_OF_ROWS);
+    return terminalpp::extent(get_size().width, NUMBER_OF_ROWS);
 }
 
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void wholist::do_set_size(munin::extent const &size)
+void wholist::do_set_size(terminalpp::extent const &size)
 {
     basic_component::do_set_size(size);
     pimpl_->render();
@@ -370,6 +377,7 @@ void wholist::do_draw(
 // ==========================================================================
 void wholist::do_event(boost::any const &ev)
 {
+    /* @@ TODO:
     auto *sequence = boost::any_cast<odin::ansi::control_sequence>(&ev);
     
     if (sequence != NULL)
@@ -409,6 +417,7 @@ void wholist::do_event(boost::any const &ev)
     {
         basic_component::do_event(ev);
     }
+    */
 }
 
 }

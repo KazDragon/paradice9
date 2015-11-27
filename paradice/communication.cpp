@@ -78,6 +78,17 @@ void send_to_player(
 // SEND_TO_PLAYER
 // ==========================================================================
 void send_to_player(
+    std::shared_ptr<context> &ctx, 
+    char const *text, 
+    std::shared_ptr<client> &conn)
+{
+    send_to_player(ctx, terminalpp::string(text), conn);
+}
+
+// ==========================================================================
+// SEND_TO_PLAYER
+// ==========================================================================
+void send_to_player(
     std::shared_ptr<context> &ctx,
     terminalpp::string const &text,
     std::shared_ptr<client>  &conn)

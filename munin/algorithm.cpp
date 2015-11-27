@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/algorithm.hpp"
-#include "terminalpp/canvas.hpp"
+#include <terminalpp/canvas.hpp>
 #include "odin/core.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>

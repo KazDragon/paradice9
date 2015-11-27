@@ -37,6 +37,7 @@
 #include "munin/compass_layout.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/tabbed_panel.hpp"
+#include <terminalpp/string.hpp>
 #include <vector>
 
 namespace hugin {
@@ -49,6 +50,18 @@ namespace {
     BOOST_STATIC_CONSTANT(std::string, encounters_face = "ENCOUNTERS");
     BOOST_STATIC_CONSTANT(std::string, encounter_editor_face = "ENCOUNTER_EDITOR");
     BOOST_STATIC_CONSTANT(std::string, delete_encounter_face = "DELETE_ENCOUNTER");
+    
+    static std::string to_string(terminalpp::string const &str)
+    {
+        std::string result;
+        
+        for (auto const &elem : str)
+        {
+            result += elem.glyph_.character_;
+        }
+        
+        return result;
+    }
 }
 
 // ==========================================================================
@@ -117,8 +130,8 @@ struct gm_tools_screen::impl
 
     void on_save_beast()
     {
-        current_beast_->set_name(beast_editor_->get_beast_name());
-        current_beast_->set_description(beast_editor_->get_beast_description());
+        current_beast_->set_name(to_string(beast_editor_->get_beast_name()));
+        current_beast_->set_description(to_string(beast_editor_->get_beast_description()));
 
         // If it's not in the beast list, then add it and make it selected.
         auto beasts = bestiary_page_->get_beasts();
@@ -227,7 +240,7 @@ struct gm_tools_screen::impl
     void on_save_encounter()
     {
         // Copy encounter attributess to current_encounter_
-        current_encounter_->set_name(encounter_editor_->get_encounter_name());
+        current_encounter_->set_name(to_string(encounter_editor_->get_encounter_name()));
         current_encounter_->set_beasts(
             encounter_editor_->get_encounter_beasts());
 
@@ -319,6 +332,8 @@ struct gm_tools_screen::impl
 gm_tools_screen::gm_tools_screen()
     : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+
     pimpl_->bestiary_page_           = std::make_shared<bestiary_page>();
     pimpl_->beast_editor_            = std::make_shared<beast_editor>();
     pimpl_->encounters_page_         = std::make_shared<encounters_page>();
@@ -374,8 +389,7 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->delete_encounter_dialog_->on_delete_rejection.connect(
         [this]{pimpl_->on_delete_encounter_rejection();});
     
-    pimpl_->back_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements("Back"));
+    pimpl_->back_button_ = std::make_shared<munin::button>("Back"_ts);
     pimpl_->back_button_->on_click.connect(on_back);
 
     pimpl_->tabbed_panel_ = std::make_shared<munin::tabbed_panel>();
@@ -386,7 +400,7 @@ gm_tools_screen::gm_tools_screen()
     buttons_panel->set_layout(std::make_shared<munin::compass_layout>());
     buttons_panel->add_component(pimpl_->back_button_, munin::COMPASS_LAYOUT_WEST);
     buttons_panel->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
         , munin::COMPASS_LAYOUT_CENTRE);
 
     auto content = get_container();
@@ -441,6 +455,7 @@ std::vector< std::shared_ptr<paradice::encounter> > gm_tools_screen::get_encount
 // ==========================================================================
 void gm_tools_screen::do_event(boost::any const &ev)
 {
+    /* @@ TODO:
     bool handled = false;
 
     auto const *ch = boost::any_cast<char>(&ev);
@@ -476,6 +491,7 @@ void gm_tools_screen::do_event(boost::any const &ev)
     {
         composite_component::do_event(ev);
     }
+    */
 }
 
 }

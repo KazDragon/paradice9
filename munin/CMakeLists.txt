@@ -28,6 +28,7 @@ set (munin_SOURCES
     layout.cpp
     list.cpp
     named_frame.cpp
+    rectangle.cpp
     scroll_pane.cpp
     solid_frame.cpp
     status_bar.cpp
@@ -55,7 +56,7 @@ target_include_directories(munin
 )
 
 target_link_libraries(munin
-    INTERFACE ${Boost_SIGNALS_LIBRARY}
+    INTERFACE terminalpp ${Boost_SIGNALS_LIBRARY}
 )
 
 #Remove when we move to signals2 or some other mechanism.

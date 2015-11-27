@@ -30,7 +30,7 @@
 #include "munin/container.hpp"
 #include "munin/image.hpp"
 #include "munin/grid_layout.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>

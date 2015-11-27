@@ -29,6 +29,10 @@
 
 #include "munin/composite_component.hpp"
 
+namespace terminalpp {
+    class string;
+}
+
 namespace paradice {
     class beast;
 }
@@ -54,13 +58,13 @@ public :
     //* =====================================================================
     /// \brief Sets the name of the encounter that the editor is working with.
     //* =====================================================================
-    void set_encounter_name(std::string const &name);
+    void set_encounter_name(terminalpp::string const &name);
 
     //* =====================================================================
     /// \brief Retrieves the name of the encounter that the editor is working 
     /// with.
     //* =====================================================================
-    std::string get_encounter_name() const;
+    terminalpp::string get_encounter_name() const;
 
     //* =====================================================================
     /// \brief Sets the bestiary that the editor is working with.

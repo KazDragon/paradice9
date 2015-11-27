@@ -26,9 +26,8 @@
 // ==========================================================================
 #include "munin/rectangle.hpp"
 #include <ostream>
-#include <utility>
 
-namespace yggdrasil { namespace munin {
+namespace munin {
 
 // ==========================================================================
 // OSTREAM << RECTANGLE
@@ -39,4 +38,4 @@ std::ostream &operator<<(std::ostream &out, rectangle const &rect)
     return out;
 }
 
-}}
+}

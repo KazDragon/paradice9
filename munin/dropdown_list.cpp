@@ -36,7 +36,7 @@
 #include "munin/sco_glyphs.hpp"
 #include "munin/scroll_pane.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/string.hpp>
 
 namespace munin {
 

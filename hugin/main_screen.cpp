@@ -28,7 +28,6 @@
 #include "hugin/active_encounter_view.hpp"
 #include "hugin/command_prompt.hpp"
 #include "hugin/wholist.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
@@ -39,7 +38,23 @@
 #include "munin/scroll_pane.hpp"
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/string.hpp>
+
+namespace {
+    
+static std::string to_string(terminalpp::string const &str)
+{
+    std::string result;
+    
+    for (auto const &elem : str)
+    {
+        result += elem.glyph_.character_;
+    }
+    
+    return result;
+}
+
+}
 
 namespace hugin {
 
@@ -66,7 +81,7 @@ struct main_screen::impl
         {
             auto document = input_field_->get_document();
             auto elements = document->get_line(0);
-            auto input = munin::ansi::string_from_elements(elements); 
+            auto input = to_string(elements); 
 
             document->delete_text({odin::u32(0), document->get_text_size()});
 
@@ -109,6 +124,8 @@ struct main_screen::impl
 main_screen::main_screen()
   : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+
     auto content = get_container();
     content->set_layout(std::make_shared<munin::compass_layout>());
     
@@ -122,7 +139,7 @@ main_screen::main_screen()
     pimpl_->wholist_ = std::make_shared<wholist>();
     
     auto wholist_frame = std::make_shared<munin::named_frame>();
-    wholist_frame->set_name("CURRENTLY PLAYING");
+    wholist_frame->set_name("CURRENTLY PLAYING"_ts);
     
     content->add_component(
         std::make_shared<munin::framed_component>(wholist_frame, pimpl_->wholist_)
@@ -185,7 +202,7 @@ void main_screen::on_input_entered(
 // ==========================================================================
 // ADD_OUTPUT_TEXT
 // ==========================================================================
-void main_screen::add_output_text(std::vector<munin::element_type> const &text)
+void main_screen::add_output_text(terminalpp::string const &text)
 {
     pimpl_->output_field_->get_document()->insert_text(
         text
@@ -280,7 +297,7 @@ void main_screen::set_active_encounter(
 // ==========================================================================
 // SET_HELP_WINDOW_TEXT
 // ==========================================================================
-void main_screen::set_help_window_text(std::vector<munin::element_type> const &text)
+void main_screen::set_help_window_text(terminalpp::string const &text)
 {
     auto document = pimpl_->help_field_->get_document();
     document->delete_text({odin::u32(0), document->get_text_size()});
@@ -300,6 +317,7 @@ void main_screen::on_help_closed(std::function<void ()> const &callback)
 // ==========================================================================
 void main_screen::do_event(boost::any const &ev)
 {
+    /* @@ TODO: 
     bool handled = false;
 
     auto *ch = boost::any_cast<char>(&ev);
@@ -343,6 +361,7 @@ void main_screen::do_event(boost::any const &ev)
     {
         composite_component::do_event(ev);
     }
+    */
 }
 
 }

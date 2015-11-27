@@ -37,7 +37,7 @@
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/string.hpp>
 
 namespace hugin {
 

@@ -29,8 +29,8 @@
 
 #include "munin/export.hpp"
 #include "munin/rectangle.hpp"
-#include "terminalpp/point.hpp"
-#include "terminalpp/extent.hpp"
+#include <terminalpp/point.hpp>
+#include <terminalpp/extent.hpp>
 #include <boost/any.hpp>
 #include <boost/signal.hpp>
 #include <memory>

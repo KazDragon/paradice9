@@ -25,12 +25,10 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "command_prompt.hpp"
-#include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/string.hpp> 
 #include <boost/optional.hpp>
 #include <algorithm>
 #include <deque>
@@ -50,7 +48,7 @@ struct command_prompt::impl
     std::deque<std::string>          history_;
 
     // Text to remember while running through the history.
-    std::vector<munin::element_type> current_text_;
+    terminalpp::string               current_text_;
 };
 
 // ==========================================================================
@@ -102,6 +100,7 @@ void command_prompt::clear_history()
 // ==========================================================================
 void command_prompt::do_event(boost::any const &ev)
 {
+    /* @@ TODO:
     auto const *sequence = 
         boost::any_cast<odin::ansi::control_sequence>(&ev);
 
@@ -184,6 +183,7 @@ void command_prompt::do_event(boost::any const &ev)
     {
         composite_component::do_event(ev);
     }
+    */
 }
 
 }

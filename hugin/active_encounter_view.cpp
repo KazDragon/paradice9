@@ -32,6 +32,7 @@
 #include <munin/scroll_pane.hpp>
 #include <paradice/beast.hpp>
 #include <paradice/character.hpp>
+#include <terminalpp/encoder.hpp>
 #include <boost/format.hpp>
 #include <numeric>
 
@@ -80,7 +81,7 @@ struct active_encounter_view::impl
         auto selected_index = participant_list_->get_item_index();
 
         active_encounter_entry_visitor entry_visitor;
-        std::vector<std::vector<munin::element_type>> list_data;
+        std::vector<terminalpp::string> list_data;
 
         for (auto const &entry : encounter_->entries_)
         {
@@ -120,7 +121,7 @@ struct active_encounter_view::impl
                         % total_score);
             }
 
-            list_data.push_back(munin::string_to_elements(text));
+            list_data.push_back(terminalpp::encode(text));
         }
 
         participant_list_->set_items(list_data);

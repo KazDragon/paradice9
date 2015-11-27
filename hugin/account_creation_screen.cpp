@@ -25,7 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "account_creation_screen.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
@@ -38,10 +37,27 @@
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "terminalpp/string.hpp"
 
 namespace hugin {
 
+namespace {
+// ==========================================================================
+// TO_STRING
+// ==========================================================================
+static std::string to_string(terminalpp::string const &str)
+{
+    std::string result;
+    
+    for (auto const &elem : str)
+    {
+        result = elem.glyph_.character_;
+    }
+    
+    return result;
+}
+    
+}
 // ==========================================================================
 // ACCOUNT_CREATION_SCREEN::IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -56,17 +72,17 @@ struct account_creation_screen::impl
         {
             auto document = name_field_->get_document();
             auto elements = document->get_line(0);
-            auto name = munin::ansi::string_from_elements(elements);
+            auto name = to_string(elements);
             
             document = password_field_->get_document();
             elements = document->get_line(0);
             
-            auto password = munin::ansi::string_from_elements(elements);
+            auto password = to_string(elements);
             
             document = password_verify_field_->get_document();
             elements = document->get_line(0);
             
-            auto password_verify = munin::ansi::string_from_elements(elements);
+            auto password_verify = to_string(elements);
             
             on_account_created_(name, password, password_verify);
         }
@@ -102,11 +118,13 @@ struct account_creation_screen::impl
 account_creation_screen::account_creation_screen()
     : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+    
     auto content = get_container();
     content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     
     auto screen_frame = std::make_shared<munin::named_frame>();
-    screen_frame->set_name("ACCOUNT CREATION");
+    screen_frame->set_name("ACCOUNT CREATION"_ts);
     
     // Create the Name, Password and Password (verify) labels.
     munin::alignment_data alignment;
@@ -116,20 +134,19 @@ account_creation_screen::account_creation_screen()
     auto name_container = std::make_shared<munin::basic_container>();
     name_container->set_layout(std::make_shared<munin::aligned_layout>());
     name_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("Name: ")),
+        std::make_shared<munin::image>("Name: "_ts),
         alignment);
     
     auto password0_container = std::make_shared<munin::basic_container>();
     password0_container->set_layout(std::make_shared<munin::aligned_layout>());
     password0_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("Password: "))
+        std::make_shared<munin::image>("Password: "_ts)
       , alignment);
     
     auto password1_container = std::make_shared<munin::basic_container>();
     password1_container->set_layout(std::make_shared<munin::aligned_layout>());
     password1_container->add_component(
-        std::make_shared<munin::image>(
-            munin::string_to_elements("Password (verify): ")),
+        std::make_shared<munin::image>("Password (verify): "_ts),
         alignment);
 
     auto labels_container = std::make_shared<munin::basic_container>();
@@ -143,10 +160,10 @@ account_creation_screen::account_creation_screen()
     pimpl_->password_field_        = std::make_shared<munin::edit>();
     pimpl_->password_verify_field_ = std::make_shared<munin::edit>();
     
-    munin::element_type password_element;
+    terminalpp::element password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        odin::ansi::graphics::colour::red;
+        terminalpp::low_colour(terminalpp::ansi::graphics::colour::red);
     pimpl_->password_field_->set_attribute(
         munin::EDIT_PASSWORD_ELEMENT
       , password_element);
@@ -185,13 +202,11 @@ account_creation_screen::account_creation_screen()
         munin::COMPASS_LAYOUT_NORTH);
 
     // Create the OK and Cancel buttons.
-    pimpl_->ok_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements("  OK  "));
+    pimpl_->ok_button_ = std::make_shared<munin::button>("  OK  "_ts);
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
         [this]{pimpl_->on_account_creation_ok();}));
     
-    pimpl_->cancel_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements("Cancel"));
+    pimpl_->cancel_button_ = std::make_shared<munin::button>("Cancel"_ts);
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
         [this]{pimpl_->on_account_creation_cancelled();}));
     
@@ -228,7 +243,7 @@ account_creation_screen::account_creation_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
       , {}
       , munin::LOWEST_LAYER);
 }
@@ -285,6 +300,7 @@ void account_creation_screen::on_account_creation_cancelled(
 // ==========================================================================
 void account_creation_screen::do_event(boost::any const &ev)
 {
+    /* @@ TODO:
     bool handled = false;
     
     auto const *ch = boost::any_cast<char>(&ev);
@@ -323,6 +339,7 @@ void account_creation_screen::do_event(boost::any const &ev)
     {
         composite_component::do_event(ev);
     }
+    */
 }
 
 }

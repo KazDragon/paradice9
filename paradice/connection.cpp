@@ -25,7 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "connection.hpp"
-#include "odin/ansi/ansi_parser.hpp"
 #include "odin/net/socket.hpp"
 #include "telnetpp/telnetpp.hpp"
 #include "telnetpp/options/echo/server.hpp"
@@ -45,6 +44,7 @@ namespace {
 // ==========================================================================
 // ANSI_INPUT_VISITOR
 // ==========================================================================
+/* @@ TODO:
 struct ansi_input_visitor
     : public boost::static_visitor<>
 {
@@ -135,7 +135,7 @@ struct ansi_input_visitor
     std::function<void (odin::ansi::control_sequence const &)> on_control_sequence_;
     std::function<void (char)>                                 on_text_;
 };
-
+*/
 }
 
 // ==========================================================================
@@ -308,6 +308,12 @@ struct connection::impl
     // ======================================================================
     void on_text(std::string const &text)
     {
+        for (auto const &ch : text)
+        {
+            on_text_(ch);
+        }
+        
+        /* @@ TODO:
         ansi_input_visitor visitor(
             on_mouse_report_, on_control_sequence_, on_text_);
 
@@ -322,6 +328,7 @@ struct connection::impl
                 apply_visitor(visitor, token.get());
             }
         }
+        */
     }
 
     // ======================================================================
@@ -425,10 +432,10 @@ struct connection::impl
     
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     std::function<void (char)>                           on_text_;
-    std::function<void (odin::ansi::control_sequence const &)> on_control_sequence_;
-    std::function<void (odin::ansi::mouse_report const &)> on_mouse_report_;
+    //std::function<void (odin::ansi::control_sequence const &)> on_control_sequence_;
+    //std::function<void (odin::ansi::mouse_report const &)> on_mouse_report_;
 
-    odin::ansi::parser                                   parse_;
+    //odin::ansi::parser                                   parse_;
     std::shared_ptr<boost::asio::deadline_timer>         keepalive_timer_;
 
     std::string                                          terminal_type_;
@@ -488,20 +495,24 @@ void connection::on_text(std::function<void (char)> const &callback)
 // ==========================================================================
 // ON_MOUSE_REPORT
 // ==========================================================================
+/* @@ TODO:
 void connection::on_mouse_report(
     std::function<void (odin::ansi::mouse_report const &)> const &callback)
 {
     pimpl_->on_mouse_report_ = callback;
 }
+*/
 
 // ==========================================================================
 // ON_CONTROL_SEQUENCE
 // ==========================================================================
+/* @@ TODO:
 void connection::on_control_sequence(
     std::function<void (odin::ansi::control_sequence const &)> const &callback)
 {
     pimpl_->on_control_sequence_ = callback;
 }
+*/
 
 // ==========================================================================
 // ON_SOCKET_DEATH

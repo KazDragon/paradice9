@@ -32,8 +32,6 @@
 #include "paradice/context.hpp"
 #include "paradice/random.hpp"
 #include "odin/tokenise.hpp"
-#include "odin/ansi/protocol.hpp"
-#include "munin/ansi/protocol.hpp"
 #include <boost/format.hpp>
 #include <map>
 #include <mutex>
@@ -69,27 +67,6 @@ namespace {
     static std::string const DEFAULT_ATTRIBUTE   = "\\x";      // Default
     static std::string const MAXIMUM_HIT         = "\\i>\\[2!\\x"; // Bold, Green "!"
     static std::string const TOTAL_ATTRIBUTE     = "\\i>";     // Bold
-}
-
-// ==========================================================================
-// CONCAT_TEXT
-// ==========================================================================
-void concat_text(
-    std::vector<munin::element_type>       &dest,
-    std::vector<munin::element_type> const &source)
-{
-    dest.insert(dest.end(), source.begin(), source.end());
-}
-
-// ==========================================================================
-// CONCAT_TEXT
-// ==========================================================================
-void concat_text(
-    std::vector<munin::element_type> &dest,
-    std::string const                &source,
-    munin::attribute const           &attr = {})
-{
-    concat_text(dest, munin::ansi::elements_from_string(source, attr));
 }
 
 // ==========================================================================

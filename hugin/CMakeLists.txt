@@ -21,6 +21,7 @@ add_library(hugin ${hugin_SOURCES})
     
 target_include_directories(hugin
     PRIVATE ${CMAKE_SOURCE_DIR}
+            ${CMAKE_SOURCE_DIR}/terminalpp/include
     PUBLIC ${Boost_INCLUDE_DIRS}
 )
 

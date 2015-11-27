@@ -32,9 +32,9 @@
 #include "context.hpp"
 #include "utility.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/core.hpp"
+#include "terminalpp/string.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
@@ -68,6 +68,8 @@ bool is_acceptible_name(std::string const &name)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(title)
 {
+    using namespace terminalpp::literals;
+    
     auto character = player->get_character();
     character->set_suffix(boost::algorithm::trim_copy(arguments));
 
@@ -93,8 +95,7 @@ PARADICE_COMMAND_IMPL(title)
 
         send_to_player(
             ctx
-          , munin::string_to_elements(
-                "\\[1There was an error saving your character.")
+          , "\\[1There was an error saving your character."_ets
           , player);
     }
 
@@ -106,6 +107,8 @@ PARADICE_COMMAND_IMPL(title)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(prefix)
 {
+    using namespace terminalpp::literals;
+
     auto character = player->get_character();
     character->set_prefix(boost::algorithm::trim_copy(arguments));
 
@@ -132,8 +135,7 @@ PARADICE_COMMAND_IMPL(prefix)
 
         send_to_player(
             ctx
-          , munin::string_to_elements(
-                "\\[1There was an error saving your character.")
+          , "\\[1There was an error saving your character."_ets
           , player);
     }
 

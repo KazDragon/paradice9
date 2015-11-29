@@ -31,7 +31,6 @@
 #include <telnetpp/options/naws/client.hpp>
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
-#include <terminalpp/terminal.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <deque>
@@ -39,50 +38,6 @@
 #include <utility>
 
 namespace paradice {
-
-// ==========================================================================
-// TERMINAL_INPUT_VISITOR
-// ==========================================================================
-struct terminal_input_visitor : boost::static_visitor<>
-{
-    terminal_input_visitor(
-        std::function<void (terminalpp::ansi::mouse::report const &)> const &on_mouse_report,
-        std::function<void (terminalpp::ansi::control_sequence const &)> const &on_control_sequence,
-        std::function<void (terminalpp::virtual_key const &)> const &on_virtual_key)
-      : on_mouse_report_(on_mouse_report),
-        on_control_sequence_(on_control_sequence),
-        on_virtual_key_(on_virtual_key)
-    {
-    }
-
-    void operator()(terminalpp::ansi::mouse::report const &report)
-    {
-        if (on_mouse_report_)
-        {
-            on_mouse_report_(report);
-        }
-    }
-    
-    void operator()(terminalpp::ansi::control_sequence const &sequence)
-    {
-        if (on_control_sequence_)
-        {
-            on_control_sequence_(sequence);
-        }
-    }
-    
-    void operator()(terminalpp::virtual_key const &virtual_key)
-    {
-        if (on_virtual_key_)
-        {
-            on_virtual_key_(virtual_key);
-        }
-    }
-    
-    std::function<void (terminalpp::ansi::mouse::report const &)> on_mouse_report_;
-    std::function<void (terminalpp::ansi::control_sequence const &)> on_control_sequence_;
-    std::function<void (terminalpp::virtual_key const &)> on_virtual_key_;
-};
 
 // ==========================================================================
 // CONNECTION::IMPLEMENTATION STRUCTURE
@@ -113,8 +68,6 @@ struct connection::impl
             std::make_shared<boost::asio::deadline_timer>(
                 std::ref(socket_->get_io_service()));
         schedule_keepalive();
-
-        terminal_ = std::make_shared<terminalpp::terminal>();
 
         telnet_session_ = std::make_shared<telnetpp::session>(
             [this](auto &&text) -> std::vector<telnetpp::token>
@@ -171,6 +124,10 @@ struct connection::impl
         write(telnet_session_->send(telnet_terminal_type_client_->activate()));
     }
 
+    // ======================================================================
+    // DATA_READ
+    // ======================================================================
+    
     // ======================================================================
     // WRITE
     // ======================================================================
@@ -256,14 +213,9 @@ struct connection::impl
     // ======================================================================
     void on_text(std::string const &text)
     {
-        auto tokens = terminal_->read(text);
-        
-        terminal_input_visitor visitor(
-            on_mouse_report_, on_control_sequence_, on_virtual_key_);
-        
-        for (auto const &token : tokens)
+        if (on_data_read_)
         {
-            apply_visitor(visitor, token);
+            on_data_read_(text);
         }
     }
 
@@ -360,7 +312,7 @@ struct connection::impl
     std::shared_ptr<odin::net::socket>                   socket_;
     std::vector<odin::u8>                                unparsed_bytes_;
     
-    std::shared_ptr<terminalpp::terminal>                     terminal_;
+    std::function<void (std::string const &)>                 on_data_read_;
     std::shared_ptr<telnetpp::session>                        telnet_session_;
     std::shared_ptr<telnetpp::options::echo::server>          telnet_echo_server_;
     std::shared_ptr<telnetpp::options::suppress_ga::server>   telnet_suppress_ga_server_;
@@ -368,11 +320,6 @@ struct connection::impl
     std::shared_ptr<telnetpp::options::terminal_type::client> telnet_terminal_type_client_;
     
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
-    std::function<void (terminalpp::ansi::control_sequence const &)> on_control_sequence_;
-    std::function<void (terminalpp::ansi::mouse::report const &)> on_mouse_report_;
-    std::function<void (terminalpp::virtual_key const &)> on_virtual_key_;
-
-    //odin::ansi::parser                                   parse_;
     std::shared_ptr<boost::asio::deadline_timer>         keepalive_timer_;
 
     std::string                                          terminal_type_;
@@ -413,6 +360,15 @@ void connection::write(std::vector<odin::u8> const &data)
 }
 
 // ==========================================================================
+// ON_DATA_READ
+// ==========================================================================
+void connection::on_data_read(
+    std::function<void (std::string const &)> const &callback)
+{
+    pimpl_->on_data_read_ = callback;
+}
+
+// ==========================================================================
 // ON_WINDOW_SIZE_CHANGED
 // ==========================================================================
 void connection::on_window_size_changed(
@@ -420,36 +376,6 @@ void connection::on_window_size_changed(
 {
     pimpl_->on_window_size_changed_ = callback;
 }
-
-// ==========================================================================
-// ON_MOUSE_REPORT
-// ==========================================================================
-void connection::on_mouse_report(
-    std::function<void (terminalpp::ansi::mouse::report const &)> 
-        const &callback)
-{
-    pimpl_->on_mouse_report_ = callback;
-}
-
-// ==========================================================================
-// ON_CONTROL_SEQUENCE
-// ==========================================================================
-void connection::on_control_sequence(
-    std::function<void (terminalpp::ansi::control_sequence const &)> 
-        const &callback)
-{
-    pimpl_->on_control_sequence_ = callback;
-}
-
-// ==========================================================================
-// ON_VIRTUAL_KEY
-// ==========================================================================
-void connection::on_virtual_key(
-    std::function<void (terminalpp::virtual_key const &)> const &callback)
-{
-    pimpl_->on_virtual_key_ = callback;
-}
-
 
 // ==========================================================================
 // ON_SOCKET_DEATH

@@ -84,11 +84,11 @@ public :
     std::shared_ptr<container> get_content();
 
     //* =====================================================================
-    /// \brief Send an event to the window.  This will be passed down to the
-    /// focused component, who should interpret it according to its
-    /// specifications.
+    /// \brief Sends data that has been received from the client.  This is
+    /// expected to be in ANSI format, and will be converted to events that
+    /// are passed down into the focussed component.
     //* =====================================================================
-    void event(boost::any const &event);
+    void data(std::string const &data);
 
     //* =====================================================================
     /// \fn on_repaint

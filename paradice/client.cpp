@@ -180,16 +180,14 @@ public :
         connection_ = cnx;
 
         // CONNECTION CALLBACKS
-        /*@@ TODO:
-        connection_->on_text(
-            [this](auto const &text){on_text(text);});
-
-        connection_->on_mouse_report(
-            [this](auto const &rpt){on_mouse_report(rpt);});
-
-        connection_->on_control_sequence(
-            [this](auto const &seq){on_control_sequence(seq);});
-        */
+        connection_->on_data_read(
+            [this](std::string const &data)
+            {
+                std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+                dispatch_queue_.push_back(
+                    bind(&munin::window::data, window_, data));
+                strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+            });
 
         connection_->on_window_size_changed(
             [this](auto const &width, auto const &height)
@@ -266,10 +264,6 @@ public :
         content->set_focus();
 
         window_->enable_mouse_tracking();
-        /* @@ TODO:
-        window_->on_repaint(munin::ansi::clear_screen());
-        window_->on_repaint(munin::ansi::set_normal_cursor_keys());
-        */
     }
 
     // ======================================================================
@@ -365,45 +359,6 @@ public :
     }
 
 private :
-    // ======================================================================
-    // ON_TEXT
-    // ======================================================================
-    void on_text(char text)
-    {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-
-        dispatch_queue_.push_back(
-            bind(&munin::window::event, window_, text));
-
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-    }
-
-    // ======================================================================
-    // ON_MOUSE_REPORT
-    // ======================================================================
-    /* @@ TODO:
-    void on_mouse_report(odin::ansi::mouse_report const &report)
-    {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        dispatch_queue_.push_back(bind(&munin::window::event, window_, report));
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-    }
-    */
-
-    // ======================================================================
-    // ON_CONTROL_SEQUENCE
-    // ======================================================================
-    /* @@ TODO:
-    void on_control_sequence(
-        odin::ansi::control_sequence const &control_sequence)
-    {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        dispatch_queue_.push_back(
-            bind(&munin::window::event, window_, control_sequence));
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-    }
-    */
-
     // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================

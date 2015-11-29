@@ -29,10 +29,27 @@
 #include "munin/container.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/context.hpp"
-#include "terminalpp/canvas.hpp"
+#include <terminalpp/terminalpp.hpp>
 #include <boost/format.hpp>
 
 namespace munin {
+    
+namespace {
+
+// ==========================================================================
+// UNPACKAGE_VISITOR
+// ==========================================================================
+struct unpackage_visitor : boost::static_visitor<boost::any>
+{
+    // Simply package up any input into a Boost.Any and return it.
+    template <class Packaged>
+    boost::any operator()(Packaged &&pack)
+    {
+        return pack;
+    }
+};
+
+}
 
 // ==========================================================================
 // WINDOW IMPLEMENTATION STRUCTURE
@@ -97,6 +114,22 @@ public :
     }
 
     // ======================================================================
+    // SET_TITLE
+    // ======================================================================
+    void set_title(std::string const &title)
+    {
+        self_.on_repaint(terminal_.set_window_title(title));
+    }
+
+    // ======================================================================
+    // ENABLE_MOUSE_TRACKING
+    // ======================================================================
+    void enable_mouse_tracking()
+    {
+        self_.on_repaint(terminal_.enable_mouse());
+    }
+
+    // ======================================================================
     // GET_CONTENT
     // ======================================================================
     std::shared_ptr<container> get_content()
@@ -113,63 +146,18 @@ public :
     }
 
     // ======================================================================
-    // EVENT
+    // DATA
     // ======================================================================
-    void event(boost::any const &event)
+    void data(std::string const &data)
     {
-        /* @@ TODO:
-        // Here we handle newlines.  These come in as either:
-        // \n
-        // \n\r (bad, bad Dikus)
-        // \r\n
-        // \r\0
+        static unpackage_visitor visitor;
 
-        // Therefore, we translate \r into \n, and ignore the next character
-        // if it is either \n or \0.
-        char const *ch = boost::any_cast<char>(&event);
-
-        if (ch != nullptr)
+        auto tokens = terminal_.read(data);
+        
+        for (auto const &token : tokens)
         {
-            if (handling_newline_)
-            {
-                if ((newline_char_ == '\r' && (*ch == '\n' || *ch == '\0'))
-                 || (newline_char_ == '\n' && (*ch == '\r' || *ch == '\0')))
-                {
-                    // This is the matching newline character.  Ignore it.
-                }
-                else
-                {
-                    // This requires no special handling.  Handle this event as
-                    // normal.
-                    content_->event(event);
-                }
-
-                // Whatever happened, we're done handling that now.
-                handling_newline_ = false;
-            }
-            else
-            {
-                if (*ch == '\r' || *ch == '\n')
-                {
-                    newline_char_ = *ch;
-                    handling_newline_ = true;
-
-                    // Always send '\n' for a newline.  It's easier for the GUI
-                    // to parse, that way.
-                    content_->event('\n');
-                }
-                else
-                {
-                    // This requires no special handling.
-                    content_->event(event);
-                }
-            }
+            content_->event(boost::apply_visitor(visitor, token));
         }
-        else
-        {
-            content_->event(event);
-        }
-        */
     }
 
 private :
@@ -387,6 +375,8 @@ private :
     bool                          self_valid_;
 
     boost::asio::strand          &strand_;
+    
+    terminalpp::terminal          terminal_;
     std::shared_ptr<container>    content_;
     terminalpp::canvas            canvas_;
     terminalpp::canvas            canvas_clone_;
@@ -445,7 +435,7 @@ void window::set_size(terminalpp::extent size)
 // ==========================================================================
 void window::set_title(std::string const &title)
 {
-    // @@ TODO: on_repaint(munin::ansi::set_window_title(title));
+    pimpl_->set_title(title);
 }
 
 // ==========================================================================
@@ -453,7 +443,7 @@ void window::set_title(std::string const &title)
 // ==========================================================================
 void window::enable_mouse_tracking()
 {
-    // @@ TODO: on_repaint(munin::ansi::enable_mouse_tracking());
+    pimpl_->enable_mouse_tracking();
 }
 
 // ==========================================================================
@@ -467,9 +457,9 @@ std::shared_ptr<container> window::get_content()
 // ==========================================================================
 // EVENT
 // ==========================================================================
-void window::event(boost::any const &event)
+void window::data(std::string const &data)
 {
-    pimpl_->event(event);
+    pimpl_->data(data);
 }
 
 }

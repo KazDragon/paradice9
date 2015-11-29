@@ -180,10 +180,10 @@ public :
         connection_ = cnx;
 
         // CONNECTION CALLBACKS
+        /*@@ TODO:
         connection_->on_text(
             [this](auto const &text){on_text(text);});
 
-        /*@@ TODO:
         connection_->on_mouse_report(
             [this](auto const &rpt){on_mouse_report(rpt);});
 

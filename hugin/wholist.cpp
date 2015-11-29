@@ -160,13 +160,7 @@ private :
                     0, (std::min)(current_name.size(), size_t(MIN_COLUMN_WIDTH)));
                 
                 // Convert this to elements.
-                // @@ TODO:
-                //auto name_elements = terminalpp::string(current_name, pen);
-                auto name_elements = terminalpp::string(current_name);
-                for (auto &elem : name_elements)
-                {
-                    elem.attribute_ = pen;
-                }
+                auto name_elements = terminalpp::string(current_name, pen);
                 
                 // Find the x coordinate of this cell.
                 odin::u32 cell_x_coordinate = 

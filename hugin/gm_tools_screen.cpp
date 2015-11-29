@@ -50,18 +50,6 @@ namespace {
     BOOST_STATIC_CONSTANT(std::string, encounters_face = "ENCOUNTERS");
     BOOST_STATIC_CONSTANT(std::string, encounter_editor_face = "ENCOUNTER_EDITOR");
     BOOST_STATIC_CONSTANT(std::string, delete_encounter_face = "DELETE_ENCOUNTER");
-    
-    static std::string to_string(terminalpp::string const &str)
-    {
-        std::string result;
-        
-        for (auto const &elem : str)
-        {
-            result += elem.glyph_.character_;
-        }
-        
-        return result;
-    }
 }
 
 // ==========================================================================
@@ -400,7 +388,7 @@ gm_tools_screen::gm_tools_screen()
     buttons_panel->set_layout(std::make_shared<munin::compass_layout>());
     buttons_panel->add_component(pimpl_->back_button_, munin::COMPASS_LAYOUT_WEST);
     buttons_panel->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
         , munin::COMPASS_LAYOUT_CENTRE);
 
     auto content = get_container();

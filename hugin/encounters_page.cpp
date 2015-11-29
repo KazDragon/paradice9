@@ -231,7 +231,7 @@ encounters_page::encounters_page()
     buttons_container->add_component(
         safe_buttons_container, munin::COMPASS_LAYOUT_WEST);
     buttons_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')), munin::COMPASS_LAYOUT_CENTRE);
+        std::make_shared<munin::filled_box>(' '), munin::COMPASS_LAYOUT_CENTRE);
     buttons_container->add_component(
         dangerous_buttons_container, munin::COMPASS_LAYOUT_EAST);
 

@@ -39,22 +39,6 @@
 #include "munin/toggle_button.hpp"
 #include <terminalpp/string.hpp>
 
-namespace {
-    
-static std::string to_string(terminalpp::string const &str)
-{
-    std::string result;
-    
-    for (auto const &elem : str)
-    {
-        result += elem.glyph_.character_;
-    }
-    
-    return result;
-}
-
-}
-
 namespace hugin {
 
 // ==========================================================================
@@ -207,7 +191,7 @@ character_creation_screen::character_creation_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }

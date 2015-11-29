@@ -40,22 +40,6 @@
 #include "munin/vertical_squeeze_layout.hpp"
 #include <terminalpp/string.hpp>
 
-namespace {
-    
-static std::string to_string(terminalpp::string const &str)
-{
-    std::string result;
-    
-    for (auto const &elem : str)
-    {
-        result += elem.glyph_.character_;
-    }
-    
-    return result;
-}
-
-}
-
 namespace hugin {
 
 // ==========================================================================

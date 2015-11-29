@@ -41,23 +41,6 @@
 
 namespace hugin {
 
-namespace {
-// ==========================================================================
-// TO_STRING
-// ==========================================================================
-static std::string to_string(terminalpp::string const &str)
-{
-    std::string result;
-    
-    for (auto const &elem : str)
-    {
-        result = elem.glyph_.character_;
-    }
-    
-    return result;
-}
-    
-}
 // ==========================================================================
 // ACCOUNT_CREATION_SCREEN::IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -163,7 +146,7 @@ account_creation_screen::account_creation_screen()
     terminalpp::element password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        terminalpp::low_colour(terminalpp::ansi::graphics::colour::red);
+        terminalpp::ansi::graphics::colour::red;
     pimpl_->password_field_->set_attribute(
         munin::EDIT_PASSWORD_ELEMENT
       , password_element);
@@ -243,7 +226,7 @@ account_creation_screen::account_creation_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }

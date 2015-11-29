@@ -386,7 +386,7 @@ encounter_editor::encounter_editor()
         pimpl_->insert_button_,
         munin::COMPASS_LAYOUT_NORTH);
     pimpl_->bestiary_button_container_->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
 
     auto inner_beast_button_container = std::make_shared<munin::basic_container>();
@@ -395,7 +395,7 @@ encounter_editor::encounter_editor()
         pimpl_->down_button_,
         munin::COMPASS_LAYOUT_NORTH);
     inner_beast_button_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
 
     pimpl_->beast_button_container_->set_layout(std::make_shared<munin::compass_layout>());
@@ -443,7 +443,7 @@ encounter_editor::encounter_editor()
     auto edit_button_container = std::make_shared<munin::basic_container>();
     edit_button_container->set_layout(std::make_shared<munin::compass_layout>());
     edit_button_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
     edit_button_container->add_component(
         pimpl_->edit_button_,
@@ -464,7 +464,7 @@ encounter_editor::encounter_editor()
     lower_buttons_container->add_component(
         pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST);
     lower_buttons_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')), 
+        std::make_shared<munin::filled_box>(' '), 
         munin::COMPASS_LAYOUT_CENTRE);
     lower_buttons_container->add_component(
         pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);

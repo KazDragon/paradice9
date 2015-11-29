@@ -190,8 +190,7 @@ public :
         if (closeable_)
         {
             terminalpp::attribute pen;
-            pen.foreground_colour_ = 
-                terminalpp::low_colour(terminalpp::ansi::graphics::colour::red);
+            pen.foreground_colour_ = terminalpp::ansi::graphics::colour::red;
             pen.intensity_ = terminalpp::ansi::graphics::intensity::bold;
 
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);

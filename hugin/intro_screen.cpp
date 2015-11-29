@@ -77,18 +77,6 @@ static std::vector<terminalpp::string> const main_image = {
  "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~"_ets,
 };
 
-static std::string to_string(terminalpp::string const &str)
-{
-    std::string result;
-    
-    for (auto const &elem : str)
-    {
-        result += elem.glyph_.character_;
-    }
-    
-    return result;
-}
-
 }
 
 // ==========================================================================
@@ -175,7 +163,7 @@ intro_screen::intro_screen()
     terminalpp::element password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        terminalpp::low_colour(terminalpp::ansi::graphics::colour::red);
+        terminalpp::ansi::graphics::colour::red;
     pimpl_->intro_password_field_->set_attribute(
         munin::EDIT_PASSWORD_ELEMENT
       , password_element);
@@ -197,7 +185,7 @@ intro_screen::intro_screen()
     auto outer_buttons_container = std::make_shared<munin::basic_container>();
     outer_buttons_container->set_layout(std::make_shared<munin::compass_layout>());
     outer_buttons_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')), 
+        std::make_shared<munin::filled_box>(' '), 
         munin::COMPASS_LAYOUT_CENTRE);
     outer_buttons_container->add_component(
         buttons_container, munin::COMPASS_LAYOUT_EAST);
@@ -229,7 +217,7 @@ intro_screen::intro_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }

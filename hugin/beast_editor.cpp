@@ -114,7 +114,7 @@ beast_editor::beast_editor()
     name_container->set_layout(
         std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
     name_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 
@@ -122,7 +122,7 @@ beast_editor::beast_editor()
     auto description_label_container = std::make_shared<munin::basic_container>();
     description_label_container->set_layout(std::make_shared<munin::compass_layout>());
     description_label_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_NORTH);
     description_label_container->add_component(
         description_label,
@@ -156,7 +156,7 @@ beast_editor::beast_editor()
     alignment_container->set_layout(
         std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
     alignment_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')),
+        std::make_shared<munin::filled_box>(' '),
         {},
         munin::LOWEST_LAYER);
 
@@ -172,7 +172,7 @@ beast_editor::beast_editor()
     button_container->set_layout(std::make_shared<munin::compass_layout>());
     button_container->add_component(pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST);
     button_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
     button_container->add_component(pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);
 

@@ -51,9 +51,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     tabbed_frame_header_rivet()
-      : top_element_(std::make_shared<filled_box>(terminalpp::glyph(' ')))
-      , middle_element_(std::make_shared<filled_box>(terminalpp::glyph(' ')))
-      , bottom_element_(std::make_shared<filled_box>(terminalpp::glyph(' ')))
+      : top_element_(std::make_shared<filled_box>(' '))
+      , middle_element_(std::make_shared<filled_box>(' '))
+      , bottom_element_(std::make_shared<filled_box>(' '))
     {
         auto content = get_container();
         content->set_layout(std::make_shared<grid_layout>(3, 1));
@@ -102,9 +102,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     tabbed_frame_header_label(terminalpp::string const &label)
-      : top_box_(std::make_shared<filled_box>(terminalpp::glyph(' '))),
+      : top_box_(std::make_shared<filled_box>(' ')),
         label_(std::make_shared<image>(label)),
-        bottom_box_(std::make_shared<filled_box>(terminalpp::glyph(' ')))
+        bottom_box_(std::make_shared<filled_box>(' '))
     {
         auto content = get_container();
         content->set_layout(std::make_shared<compass_layout>());
@@ -333,10 +333,10 @@ private :
         auto filler = std::make_shared<basic_container>();
         filler->set_layout(std::make_shared<compass_layout>());
         filler->add_component(
-            std::make_shared<filled_box>(terminalpp::glyph(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_NORTH);
         filler->add_component(
-            std::make_shared<filled_box>(terminalpp::glyph(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_CENTRE);
         filler_ = std::make_shared<filled_box>(double_lined_horizontal_beam);
         filler->add_component(filler_, COMPASS_LAYOUT_SOUTH);
@@ -490,10 +490,10 @@ private :
         auto filler = std::make_shared<basic_container>();
         filler->set_layout(std::make_shared<compass_layout>());
         filler->add_component(
-            std::make_shared<filled_box>(terminalpp::glyph(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_NORTH);
         filler->add_component(
-            std::make_shared<filled_box>(terminalpp::glyph(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_CENTRE);
         filler->add_component(
             std::make_shared<filled_box>(double_lined_horizontal_beam)

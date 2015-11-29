@@ -84,7 +84,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     auto upper_container = std::make_shared<munin::basic_container>();
     upper_container->set_layout(std::make_shared<munin::compass_layout>());
     upper_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
         , munin::COMPASS_LAYOUT_CENTRE);
     upper_container->add_component(text_container, munin::COMPASS_LAYOUT_SOUTH);
 
@@ -106,7 +106,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     auto west_button_container = std::make_shared<munin::basic_container>();
     west_button_container->set_layout(std::make_shared<munin::compass_layout>());
     west_button_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , munin::COMPASS_LAYOUT_CENTRE);
     west_button_container->add_component(yes_container, munin::COMPASS_LAYOUT_EAST);
         
@@ -114,7 +114,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     east_button_container->set_layout(std::make_shared<munin::compass_layout>());
     east_button_container->add_component(no_container, munin::COMPASS_LAYOUT_WEST);
     east_button_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , munin::COMPASS_LAYOUT_CENTRE);
 
     auto button_container = std::make_shared<munin::basic_container>();
@@ -126,7 +126,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     lower_container->set_layout(std::make_shared<munin::compass_layout>());
     lower_container->add_component(button_container, munin::COMPASS_LAYOUT_NORTH);
     lower_container->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , munin::COMPASS_LAYOUT_CENTRE);
 
     auto content = get_container();
@@ -136,7 +136,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
 
     content->set_layout(std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(terminalpp::glyph(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }

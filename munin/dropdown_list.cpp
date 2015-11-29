@@ -399,8 +399,8 @@ dropdown_list::dropdown_list()
 
     // Create a spacer to the right, so that the list is offset by the
     // width of the dropdown button.
-    auto spacer0 = std::make_shared<filled_box>(terminalpp::glyph(' '));
-    auto spacer1 = std::make_shared<filled_box>(terminalpp::glyph(' '));
+    auto spacer0 = std::make_shared<filled_box>(' ');
+    auto spacer1 = std::make_shared<filled_box>(' ');
     auto spacer =  std::make_shared<basic_container>();
     spacer->set_layout(std::make_shared<vertical_squeeze_layout>());
     spacer->add_component(spacer0);

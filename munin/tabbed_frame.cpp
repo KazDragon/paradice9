@@ -33,8 +33,9 @@
 #include "munin/image.hpp"
 #include "munin/sco_glyphs.hpp"
 #include "munin/vertical_strip_layout.hpp"
-#include "terminalpp/canvas.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/canvas.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <algorithm>
 
 namespace munin {
@@ -147,14 +148,15 @@ protected :
     // ======================================================================
     void do_event(boost::any const &event)
     {
-        /* @@ TODO:
-        auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-        if (mouse)
+        auto *report = 
+            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+            
+        if (report
+         && report->button_ != terminalpp::ansi::mouse::report::BUTTON_UP)
         {
+            
             on_click();
         }
-        */
     }
 
 private :
@@ -253,32 +255,36 @@ protected :
     // ======================================================================
     void do_event(boost::any const &event)
     {
-        /* @@ TODO: 
-        auto sequence = boost::any_cast<odin::ansi::control_sequence>(&event);
-
         bool handled = false;
+        auto *vk = boost::any_cast<terminalpp::virtual_key>(&event);
 
-        if (sequence)
+        if (vk)
         {
-            if (sequence->command_ == odin::ansi::CURSOR_FORWARD)
+            switch (vk->key)
             {
-                if (selected_ + 1 < tabs_.size())
-                {
-                    ++selected_;
-                    update_highlights();
-                    on_tab_selected(tabs_[selected_]);
-                    handled = true;
-                }
-            }
-            else if (sequence->command_ == odin::ansi::CURSOR_BACKWARD)
-            {
-                if (selected_ != 0)
-                {
-                    --selected_;
-                    update_highlights();
-                    on_tab_selected(tabs_[selected_]);
-                    handled = true;
-                }
+                case terminalpp::vk::cursor_right :
+                    if (selected_ + 1 < tabs_.size())
+                    {
+                        ++selected_;
+                        update_highlights();
+                        on_tab_selected(tabs_[selected_]);
+                        handled = true;
+                    }
+                    break;
+                    
+                case terminalpp::vk::cursor_left :
+                    if (selected_ != 0)
+                    {
+                        --selected_;
+                        update_highlights();
+                        on_tab_selected(tabs_[selected_]);
+                        handled = true;
+                    }
+                    break;
+                    
+                default :
+                    // Do nothing.
+                    break;
             }
         }
 
@@ -286,7 +292,6 @@ protected :
         {
             composite_component::do_event(event);
         }
-        */
     }
 
 private :

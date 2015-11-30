@@ -39,6 +39,7 @@
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace hugin {
 
@@ -301,51 +302,39 @@ void main_screen::on_help_closed(std::function<void ()> const &callback)
 // ==========================================================================
 void main_screen::do_event(boost::any const &ev)
 {
-    /* @@ TODO: 
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
     bool handled = false;
-
-    auto *ch = boost::any_cast<char>(&ev);
-    auto *control_sequence = 
-        boost::any_cast<odin::ansi::control_sequence>(&ev);
-
-    if (pimpl_->input_field_->has_focus() && ch != NULL)
+    
+    if (vk)
     {
-        if (*ch == '\n')
-        {
-            pimpl_->on_input_entered();
-            handled = true;
-        }
-    }
-    else if (ch != NULL && *ch == '\t')
-    {
-        focus_next();
-        
-        if (!has_focus())
+        if (vk->key == terminalpp::vk::ht)
         {
             focus_next();
+            
+            if (!has_focus())
+            {
+                focus_next();
+            }
+            
+            handled = true;
         }
-        
-        handled = true;
-    }
-    else if (control_sequence != NULL
-          && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-          && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
-    {
-        focus_previous();
-
-        if (!has_focus())
+        else if (vk->key == terminalpp::vk::bt)
         {
             focus_previous();
+
+            if (!has_focus())
+            {
+                focus_previous();
+            }
+            
+            handled = true;
         }
-        
-        handled = true;
     }
     
     if (!handled)
     {
         composite_component::do_event(ev);
     }
-    */
 }
 
 }

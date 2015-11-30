@@ -30,6 +30,7 @@
 #include <odin/core.hpp>
 #include <terminalpp/canvas.hpp>
 #include <terminalpp/encoder.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <vector>
 
 BOOST_STATIC_CONSTANT(odin::u16, MIN_COLUMN_WIDTH        = 36);
@@ -371,18 +372,13 @@ void wholist::do_draw(
 // ==========================================================================
 void wholist::do_event(boost::any const &ev)
 {
-    /* @@ TODO:
-    auto *sequence = boost::any_cast<odin::ansi::control_sequence>(&ev);
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
     
-    if (sequence != NULL)
+    if (vk)
     {
-        if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-         && sequence->command_   == odin::ansi::CURSOR_UP)
+        if (vk->key == terminalpp::vk::cursor_up)
         {
-            odin::u32 times = sequence->arguments_.empty()
-                      ? 1
-                      : atoi(sequence->arguments_.c_str());
-                      
+            auto times = vk->repeat_count;
             auto selected_index = pimpl_->get_selected_index();
             
             pimpl_->set_selected_index(
@@ -392,14 +388,9 @@ void wholist::do_event(boost::any const &ev)
             
             pimpl_->render();
         }
-
-        if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-         && sequence->command_   == odin::ansi::CURSOR_DOWN)
+        else if (vk->key == terminalpp::vk::cursor_down)
         {
-            odin::u32 times = sequence->arguments_.empty()
-                      ? 1
-                      : atoi(sequence->arguments_.c_str());
-                      
+            auto times = vk->repeat_count;
             auto selected_index = pimpl_->get_selected_index();
             
             pimpl_->set_selected_index(selected_index + times);
@@ -411,7 +402,6 @@ void wholist::do_event(boost::any const &ev)
     {
         basic_component::do_event(ev);
     }
-    */
 }
 
 }

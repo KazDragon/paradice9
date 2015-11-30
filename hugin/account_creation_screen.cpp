@@ -38,6 +38,7 @@
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
 #include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace hugin {
 
@@ -283,16 +284,12 @@ void account_creation_screen::on_account_creation_cancelled(
 // ==========================================================================
 void account_creation_screen::do_event(boost::any const &ev)
 {
-    /* @@ TODO:
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
     bool handled = false;
     
-    auto const *ch = boost::any_cast<char>(&ev);
-    auto const *control_sequence = 
-        boost::any_cast<odin::ansi::control_sequence>(&ev);
-
-    if (ch)
+    if (vk)
     {
-        if (*ch == '\t')
+        if (vk->key == terminalpp::vk::ht)
         {
             focus_next();
             
@@ -303,27 +300,24 @@ void account_creation_screen::do_event(boost::any const &ev)
             
             handled = true;
         }
-    }
-    else if (control_sequence != NULL
-          && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-          && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
-    {
-        focus_previous();
-
-        if (!has_focus())
+        else if (vk->key == terminalpp::vk::bt)
         {
             focus_previous();
-        }
-        
-        handled = true;
-    }
 
+            if (!has_focus())
+            {
+                focus_previous();
+            }
+            
+            handled = true;
+        }
+    }
+    
     if (!handled)
     {
         composite_component::do_event(ev);
     }
-    */
-}
+}        
 
 }
 

@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/basic_component.hpp"
+#include <terminalpp/ansi/mouse.hpp>
 #include <map>
 
 namespace munin {
@@ -294,17 +295,17 @@ void basic_component::do_layout()
 // ==========================================================================
 void basic_component::do_event(boost::any const &event)
 {
-    /* @@ TODO
-    auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (mouse != nullptr)
+    auto const *mouse = 
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+        
+    if (mouse
+     && mouse->button_ != terminalpp::ansi::mouse::report::BUTTON_UP)
     {
         if (!has_focus())
         {
             set_focus();
         }
     }
-    */
 }
 
 }

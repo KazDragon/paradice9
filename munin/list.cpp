@@ -26,8 +26,9 @@
 // ==========================================================================
 #include "munin/list.hpp"
 #include "munin/context.hpp"
-#include "terminalpp/canvas.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/canvas.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -45,22 +46,8 @@ struct list::impl
     }
 
     // ======================================================================
-    // DO_CHARACTER_EVENT
-    // ======================================================================
-    /* @@ TODO:
-    void do_character_event(char ch)
-    {
-        if (ch == '\b' || ch == odin::ascii::DEL)
-        {
-            self_.set_item_index(-1);
-        }
-    }
-    */
-
-    // ======================================================================
     // DO_CURSOR_UP_KEY_EVENT
     // ======================================================================
-    /* @@ TODO:
     void do_cursor_up_key_event(odin::u32 times)
     {
         if (odin::s32(times) >= item_index_)
@@ -72,94 +59,73 @@ struct list::impl
             self_.set_item_index(item_index_ - times);
         }
     }
-    */
 
     // ======================================================================
     // DO_CURSOR_DOWN_KEY_EVENT
     // ======================================================================
-    /* @@ TODO:
     void do_cursor_down_key_event(odin::u32 times)
     {
         self_.set_item_index(item_index_ + times);
     }
-    */
 
     // ======================================================================
     // DO_HOME_KEY_EVENT
     // ======================================================================
-    /* @@ TODO:
     void do_home_key_event()
     {
         self_.set_item_index(0);
     }
-    */
 
     // ======================================================================
     // DO_END_KEY_EVENT
     // ======================================================================
-    /* @@ TODO:
     void do_end_key_event()
     {
         self_.set_item_index(items_.size() - 1);
     }
-    */
-
-    // ======================================================================
-    // DO_ANSI_CONTROL_SEQUENCE_EVENT
-    // ======================================================================
-    /*@@ TODO:
-    void do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
-    {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
-        {
-            // Check for the up arrow key
-            if (sequence.command_ == odin::ansi::CURSOR_UP)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_up_key_event(times);
-            }
-            // Check for the down arrow key
-            else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_down_key_event(times);
-            }
-            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
-            {
-                // Check for the HOME key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '1')
-                {
-                    do_home_key_event();
-                }
-                // Check for the END key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '4')
-                {
-                    do_end_key_event();
-                }
-            }
-        }
-    }
-    */
     
     // ======================================================================
-    // DO_ANSI_MOUSE_REPORT_EVENT
+    // DO_VK_EVENT
     // ======================================================================
-    /*@@ TODO:
-    void do_ansi_mouse_report_event(
-        odin::ansi::mouse_report const &mouse_report)
+    void do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (mouse_report.button_ == odin::ansi::mouse_report::LEFT_BUTTON_DOWN)
+        switch (vk.key)
         {
-            auto item_selected = mouse_report.y_position_;
+            case terminalpp::vk::cursor_up :
+                do_cursor_up_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_down :
+                do_cursor_down_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::home :
+                do_home_key_event();
+                break;
+                
+            case terminalpp::vk::end :
+                do_end_key_event();
+                break;
+                
+            case terminalpp::vk::bs : // fall-through
+            case terminalpp::vk::del :
+                self_.set_item_index(-1);
+                break;
+                
+            default :
+                // Do nothing.
+                break;
+        }
+    }
+
+    // ======================================================================
+    // DO_MOUSE_EVENT
+    // ======================================================================
+    void do_mouse_event(terminalpp::ansi::mouse::report const &report)
+    {
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
+        {
+            auto item_selected = report.y_position_;
 
             if (odin::u32(item_selected) <= items_.size())
             {
@@ -176,7 +142,6 @@ struct list::impl
             self_.set_focus();
         }
     }
-    */
 
     list                            &self_;
     std::vector<terminalpp::string>  items_;
@@ -373,30 +338,20 @@ void list::do_draw(
 // ==========================================================================
 void list::do_event(boost::any const &event)
 {
-    /* @@ TODO:
-    char const *ch = boost::any_cast<char>(&event);
-
-    if (ch != nullptr)
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        pimpl_->do_character_event(*ch);
+        pimpl_->do_vk_event(*vk);
     }
-
-    odin::ansi::control_sequence const *sequence =
-        boost::any_cast<odin::ansi::control_sequence>(&event);
-
-    if (sequence != nullptr)
+    
+    auto const *report = 
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+        
+    if (report)
     {
-        pimpl_->do_ansi_control_sequence_event(*sequence);
+        pimpl_->do_mouse_event(*report);
     }
-
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != nullptr)
-    {
-        pimpl_->do_ansi_mouse_report_event(*report);
-    }
-    */
 }
 
 }

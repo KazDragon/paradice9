@@ -31,6 +31,7 @@
 #include "munin/context.hpp"
 #include <terminalpp/terminalpp.hpp>
 #include <boost/format.hpp>
+#include <iostream>
 
 namespace munin {
     
@@ -45,6 +46,7 @@ struct unpackage_visitor : boost::static_visitor<boost::any>
     template <class Packaged>
     boost::any operator()(Packaged &&pack)
     {
+        std::cout << "EVENT: " << pack << std::endl;
         return pack;
     }
 };
@@ -69,10 +71,10 @@ public :
         , strand_(strand)
         , content_(std::make_shared<basic_container>())
         , canvas_({80, 24})
-        , canvas_clone_({80, 24})
-        , context_(canvas_, strand_)
+        , screen_()
         , last_cursor_position_({})
         , last_cursor_state_(false)
+        , last_window_size_({0, 0})
         , repaint_scheduled_(false)
         , layout_scheduled_(false)
         , handling_newline_(false)
@@ -240,21 +242,23 @@ private :
     // ======================================================================
     void do_repaint()
     {
-        /* @@ TODO:
         auto size = content_->get_size();
-
+        
         // If the canvas has changed size, then many things can happen.
         // If it's shrunk, then there's no way to tell if the client has
         // clipped or scrolled or whatever.  If it's grown, then the new
         // regions of the screen may contain junk and need to be overwritten.
         // Therefore, we forego detection of whether a region is similar
         // to what it used to be and instead just repaint everything.
-        bool repaint_all = canvas_.get_size().width  != size.width
-                        || canvas_.get_size().height != size.height;
-
+        bool size_changed = size != last_window_size_;
+        
         // Ensure that our canvas is the correct size for the content that we
         // are going to paint.
-        canvas_.set_size(size);
+        if (size_changed)
+        {
+            this->redraw_regions_.push_back({{}, size});
+            canvas_ = terminalpp::canvas(size);
+        }
 
         // Create the slices that we aim to repaint.
         // Since we are going to repaint as little as possible, we first
@@ -263,16 +267,18 @@ private :
         // into horizontal slices.
         auto slices = create_repaint_slices();
 
-        // Take a copy of the canvas.  We will want to check against this
-        // after the draw operations to see if anything has changed.
-        canvas_clone_ = canvas_;
-
+        context ctx(canvas_, strand_);
+        
         // Draw each slice on the canvas.
         for (auto const &region : slices)
         {
-            content_->draw(context_, region);
+            content_->draw(ctx, region);
         }
-
+        
+        // And draw the screen onto the terminal.
+        self_.on_repaint(screen_.draw(terminal_, canvas_));
+        
+/*
         // Prepare a string that is a collection of the ANSI data required
         // to update the window.
         std::string output;
@@ -378,14 +384,14 @@ private :
     
     terminalpp::terminal          terminal_;
     std::shared_ptr<container>    content_;
+    terminalpp::screen            screen_;
     terminalpp::canvas            canvas_;
-    terminalpp::canvas            canvas_clone_;
-    context                       context_;
     terminalpp::glyph             glyph_;
     terminalpp::attribute         attribute_;
 
     terminalpp::point             last_cursor_position_;
     bool                          last_cursor_state_;
+    terminalpp::extent            last_window_size_;
 
     std::vector<rectangle>        redraw_regions_;
     bool                          repaint_scheduled_;

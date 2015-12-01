@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/basic_container.hpp"
 #include "munin/layout.hpp"
+#include <terminalpp/ansi/mouse.hpp>
 #include <boost/scope_exit.hpp>
 
 namespace munin {
@@ -851,10 +852,9 @@ void basic_container::do_event(boost::any const &event)
     // We split the events into two types.  Mouse events are passed to
     // whichever component is under the mouse click.  All other events are
     // passed to the focussed component.
-    /* @@ TODO:
-    auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (mouse != NULL)
+    auto report = boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+    
+    if (report != NULL)
     {
         for (auto const &current_component : pimpl_->components_)
         {
@@ -863,17 +863,17 @@ void basic_container::do_event(boost::any const &event)
 
             // Check to see if the reported position is within the component's
             // bounds.
-            if (mouse->x_position_ >= position.x
-             && mouse->x_position_  < position.x + size.width
-             && mouse->y_position_ >= position.y
-             && mouse->y_position_  < position.y + size.height)
+            if (report->x_position_ >= position.x
+             && report->x_position_  < position.x + size.width
+             && report->y_position_ >= position.y
+             && report->y_position_  < position.y + size.height)
             {
                 // Copy the mouse's report and adjust it so that the
                 // subcomponent's position is taken into account.
-                odin::ansi::mouse_report subreport;
-                subreport.button_     = mouse->button_;
-                subreport.x_position_ = odin::u8(mouse->x_position_ - position.x);
-                subreport.y_position_ = odin::u8(mouse->y_position_ - position.y);
+                terminalpp::ansi::mouse::report subreport;
+                subreport.button_     = report->button_;
+                subreport.x_position_ = odin::u8(report->x_position_ - position.x);
+                subreport.y_position_ = odin::u8(report->y_position_ - position.y);
 
                 // Forward the event onto the component, then look no further.
                 current_component->event(subreport);
@@ -892,7 +892,6 @@ void basic_container::do_event(boost::any const &event)
             }
         }
     }
-    */
 }
 
 // ==========================================================================

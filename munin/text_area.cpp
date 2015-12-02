@@ -28,8 +28,10 @@
 #include "munin/text/default_multiline_document.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/context.hpp"
-#include "terminalpp/canvas.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/canvas.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <cctype>
 #include <vector>
 
@@ -208,8 +210,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the up arrow
-    /// key has been pressed.
+    /// \brief Called by when the up arrow key has been pressed.
     //* =====================================================================
     void do_cursor_up_key_event(odin::u32 times)
     {
@@ -225,8 +226,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the down arrow
-    /// key has been pressed.
+    /// \brief Called when the down arrow key has been pressed.
     //* =====================================================================
     void do_cursor_down_key_event(odin::u32 times)
     {
@@ -238,8 +238,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the <- key
-    /// has been pressed.
+    /// \brief Called when the <- key has been pressed.
     //* =====================================================================
     void do_cursor_backward_key_event(odin::u32 times)
     {
@@ -250,8 +249,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the -> key
-    /// has been pressed.
+    /// \brief Called when the -> key has been pressed.
     //* =====================================================================
     void do_cursor_forward_key_event(odin::u32 times)
     {
@@ -259,8 +257,21 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the DEL key
-    /// has been pressed.
+    /// \brief Called when the BS key has been pressed.
+    //* =====================================================================
+    void do_bs_key_event()
+    {
+        auto caret_index = document_->get_caret_index();
+
+        if (caret_index != 0)
+        {
+            document_->delete_text(
+                std::make_pair(caret_index - 1, caret_index));
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Called when the DEL key has been pressed.
     //* =====================================================================
     void do_del_key_event()
     {
@@ -273,8 +284,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the META+HOME
-    /// key combination has been pressed.
+    /// \brief Called when the META+HOME key combination has been pressed.
     //* =====================================================================
     void do_meta_home_key_event()
     {
@@ -286,8 +296,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the HOME key
-    /// has been pressed.
+    /// \brief Called when the HOME key has been pressed.
     //* =====================================================================
     void do_home_key_event()
     {
@@ -297,8 +306,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the META+END
-    /// key combination has been pressed.
+    /// \brief Called when the META+END key combination has been pressed.
     //* =====================================================================
     void do_meta_end_key_event()
     {
@@ -312,8 +320,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the END key
-    /// has been pressed.
+    /// \brief Called when the END key has been pressed.
     //* =====================================================================
     void do_end_key_event()
     {
@@ -325,153 +332,91 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_event when an ANSI control sequence has been
-    /// received.
+    /// \brief Called when a virtual key sequence is received
     //* =====================================================================
-    /*@@ TODO:
-    void do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    void do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        switch (vk.key)
         {
-            // Check for the <- key
-            if (sequence.command_ == odin::ansi::CURSOR_BACKWARD)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_backward_key_event(times);
-            }
-            // Check for the -> key
-            else if (sequence.command_ == odin::ansi::CURSOR_FORWARD)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_forward_key_event(times);
-            }
-            // Check for the up arrow key
-            else if (sequence.command_ == odin::ansi::CURSOR_UP)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_up_key_event(times);
-            }
-            // Check for the down arrow key
-            else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_down_key_event(times);
-            }
-            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
-            {
-                // Check for the HOME key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '1')
+            case terminalpp::vk::cursor_left :
+                do_cursor_backward_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_right :
+                do_cursor_forward_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_up :
+                do_cursor_up_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_down :
+                do_cursor_down_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::home :
+                /* @@TODO: vk_modifier needs an & operator
+                if ((vk.modifiers & terminalpp::vk_modifier::meta) 
+                  != terminalpp::vk_modifier::none)
                 {
-                    if (sequence.meta_)
+                    do_meta_home_key_event();
+                }
+                else */
+                {
+                    do_home_key_event();
+                }
+                break;
+
+            case terminalpp::vk::end :
+                /* @@TODO: vk_modifier needs an & operator
+                if ((vk.modifiers & terminalpp::vk_modifier::meta) 
+                  != terminalpp::vk_modifier::none)
+                {
+                {
+                    do_meta_end_key_event();
+                }
+                else */
+                {
+                    do_end_key_event();
+                }
+                break;
+                
+            case terminalpp::vk::bs :
+                do_bs_key_event();
+                break;
+
+            case terminalpp::vk::del :
+                do_del_key_event();
+                break;
+                
+            case terminalpp::vk::f12 :
+                if (self_.is_enabled())
+                {
+                    get_document()->delete_text(
+                        std::make_pair(0, get_document()->get_text_size()));
+                }
+                break;
+                
+            default :
+                if (self_.is_enabled())
+                {
+                    terminalpp::glyph gly(char(vk.key));
+                    
+                    if (is_printable(gly))
                     {
-                        do_meta_home_key_event();
-                    }
-                    else
-                    {
-                        do_home_key_event();
+                        document_->insert_text({gly});
                     }
                 }
-                // Check for the END key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '4')
-                {
-                    if (sequence.meta_)
-                    {
-                        do_meta_end_key_event();
-                    }
-                    else
-                    {
-                        do_end_key_event();
-                    }
-                }
-                // Check for the DEL key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '3')
-                {
-                    do_del_key_event();
-                }
-                // Check for F12 key
-                if (sequence.arguments_.size() >= 2
-                 && sequence.arguments_[0] == '2'
-                 && sequence.arguments_[1] == '4')
-                {
-                    if (self_.is_enabled())
-                    {
-                        get_document()->delete_text(
-                            std::make_pair(0, get_document()->get_text_size()));
-                    }
-                }
-            }
-        }
-        else if (sequence.initiator_ == odin::ansi::SINGLE_SHIFT_SELECT_G3)
-        {
-            // Check for the alternative HOME key
-            if (sequence.command_ == odin::ansi::ss3::HOME)
-            {
-                do_home_key_event();
-            }
-            // Check for the alternative END key
-            if (sequence.command_ == odin::ansi::ss3::END)
-            {
-                do_end_key_event();
-            }
         }
     }
-    */
 
-    //* =====================================================================
-    /// \brief Called by do_event when a character event has occurred.
-    //* =====================================================================
-    /*@@ TODO:
-    void do_character_event(char ch)
-    {
-        if (self_.is_enabled())
-        {
-            if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
-            {
-                auto caret_index = document_->get_caret_index();
-
-                if (caret_index != 0)
-                {
-                    document_->delete_text(
-                        std::make_pair(caret_index - 1, caret_index));
-                }
-            }
-            else
-            {
-                glyph gly(ch);
-
-                if (is_printable(gly))
-                {
-                    document_->insert_text({element_type(gly)});
-                }
-            }
-        }
-    }
-    */
-    
     //* =====================================================================
     /// \brief Called by do_event when an ANSI mouse report has been
     /// received.
     //* =====================================================================
-    /*@@ TODO:
-    void do_ansi_mouse_report_event(odin::ansi::mouse_report const &report)
+    void do_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (report.button_ == 0)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
             if (self_.can_focus())
             {
@@ -480,13 +425,12 @@ private :
                     self_.set_focus();
                 }
 
-                self_.set_cursor_position(point(
+                self_.set_cursor_position(terminalpp::point(
                     report.x_position_
                   , report.y_position_));
             }
         }
     }
-    */
 
     text_area                              &self_;
     std::shared_ptr<munin::text::document>  document_;

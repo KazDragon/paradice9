@@ -36,7 +36,9 @@
 #include "munin/sco_glyphs.hpp"
 #include "munin/scroll_pane.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
+#include <terminalpp/ansi/mouse.hpp>
 #include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -199,20 +201,6 @@ struct dropdown_list::impl
     }
 
     // ======================================================================
-    // DO_CHARACTER_EVENT
-    // ======================================================================
-    bool do_character_event(char ch)
-    {
-        if (ch == '\n')
-        {
-            toggle_dropdown();
-            return true;
-        }
-
-        return false;
-    }
-
-    // ======================================================================
     // DO_CURSOR_DOWN_KEY_EVENT
     // ======================================================================
     bool do_cursor_down_key_event(odin::u32 times)
@@ -231,42 +219,36 @@ struct dropdown_list::impl
     // ======================================================================
     // DO_ANSI_CONTROL_SEQUENCE_EVENT
     // ======================================================================
-    /* @@ TODO:
-    bool do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    bool do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        switch (vk.key)
         {
-            // Check for the down arrow key
-            if (sequence.command_ == odin::ansi::CURSOR_DOWN)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                return do_cursor_down_key_event(times);
-            }
+            case terminalpp::vk::enter :
+                toggle_dropdown();
+                return true;
+                
+            case terminalpp::vk::cursor_down :
+                return do_cursor_down_key_event(vk.repeat_count);
+                
+            default :
+                // Do nothing.
+                break;
         }
-
+        
         return false;
     }
-    */
 
     // ======================================================================
-    // DO_ANSI_MOUSE_REPORT_EVENT
+    // DO_MOUSE_EVENT
     // ======================================================================
-    /* @@ TODO:
-    bool do_ansi_mouse_report_event(
-        odin::ansi::mouse_report const &mouse_report)
+    bool do_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        // printf("button = %d", mouse_report.button_);
-
         // Detect if the click occurred within the dropdown-button area.
         // Otherwise, we don't care.
-        if (mouse_report.x_position_ >= self_.get_size().width - 3
-         && mouse_report.y_position_ < 3)
+        if (report.x_position_ >= self_.get_size().width - 3
+         && report.y_position_ < 3)
         {
-            if (mouse_report.button_ == odin::ansi::mouse_report::BUTTON_UP)
+            if (report.button_ == terminalpp::ansi::mouse::report::BUTTON_UP)
             {
                 toggle_dropdown();
             }
@@ -276,7 +258,6 @@ struct dropdown_list::impl
 
         return false;
     }
-    */
 
     dropdown_list             &self_;
     terminalpp::attribute      focussed_pen_;
@@ -469,37 +450,27 @@ terminalpp::string dropdown_list::get_item() const
 // ==========================================================================
 void dropdown_list::do_event(boost::any const &event)
 {
-    /* @@ TODO: 
     bool handled = false;
 
-    char const *ch = boost::any_cast<char>(&event);
-
-    if (ch != nullptr)
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        handled = pimpl_->do_character_event(*ch);
+        handled = pimpl_->do_vk_event(*vk);
     }
 
-    odin::ansi::control_sequence const *sequence =
-        boost::any_cast<odin::ansi::control_sequence>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (sequence != nullptr)
+    if (report)
     {
-        handled = pimpl_->do_ansi_control_sequence_event(*sequence);
-    }
-
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != nullptr)
-    {
-        handled = pimpl_->do_ansi_mouse_report_event(*report);
+        handled = pimpl_->do_mouse_event(*report);
     }
 
     if (!handled)
     {
         composite_component::do_event(event);
     }
-    */
 }
 
 }

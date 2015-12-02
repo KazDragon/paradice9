@@ -30,7 +30,9 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -99,29 +101,26 @@ bool toggle_button::get_toggle() const
 // ==========================================================================
 void toggle_button::do_event(boost::any const &event)
 {
-    /* @@ TODO:
-    auto ch = boost::any_cast<char>(&event);
-
-    if (ch != nullptr)
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        if (*ch == ' ' || *ch == '\n')
+        if (vk->key == terminalpp::vk::space
+         || vk->key == terminalpp::vk::enter)
         {
             set_toggle(!get_toggle());
             set_focus();
         }
     }
-
-    auto report = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != nullptr)
+    
+    auto report = boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+    
+    if (report
+     && report->button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
     {
-        if (report->button_ == 0)
-        {
-            set_toggle(!get_toggle());
-            set_focus();
-        }
+        set_toggle(!get_toggle());
+        set_focus();
     }
-    */
 }
 
 }

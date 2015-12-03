@@ -35,6 +35,7 @@
 
 namespace terminalpp {
     class canvas;
+    class canvas_view;
 }
 
 namespace munin {
@@ -81,9 +82,9 @@ std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
 //* =========================================================================
 MUNIN_EXPORT
 void copy_region(
-    rectangle          const &region
-  , terminalpp::canvas const &source
-  , terminalpp::canvas       &destination);
+    rectangle               const &region
+  , terminalpp::canvas      const &source
+  , terminalpp::canvas_view       &destination);
 
 }
     

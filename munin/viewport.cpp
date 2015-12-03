@@ -26,7 +26,8 @@
 // ==========================================================================
 #include "munin/viewport.hpp"
 #include "munin/context.hpp"
-#include "terminalpp/canvas.hpp"
+#include "munin/rectangle.hpp"
+#include <terminalpp/canvas_view.hpp>
 #include <boost/scope_exit.hpp>
 
 namespace munin {
@@ -564,30 +565,28 @@ void viewport::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    /* @@ TODO:
     auto &cvs = ctx.get_canvas();
 
     // If we are looking at the component from (3,5) and the region we want
     // to redraw is (0,0)->[2,2], then we need to offset the canvas by
     // (-3,-5) in order for it to render in our screen coordinates.
     auto offset = pimpl_->origin_;
-    cvs.apply_offset(-offset.x, -offset.y);
+    cvs.offset_by({-offset.x, -offset.y});
 
     // Ensure that the offset is unapplied before any exit of this function.
     BOOST_SCOPE_EXIT( (&cvs)(&offset) )
     {
-        cvs.apply_offset(offset.x, offset.y);
+        cvs.offset_by({offset.x, offset.y});
     } BOOST_SCOPE_EXIT_END
 
     // So with the canvas offset, we also need to recalculate the draw region
     // by that same offset.
-    rectangle offset_region(
-        point(region.origin.x + offset.x,
-              region.origin.y + offset.y),
-              region.size);
+    munin::rectangle offset_region(
+        { region.origin.x + offset.x,
+          region.origin.y + offset.y },
+        region.size);
 
     pimpl_->component_->draw(ctx, offset_region);
-    */
 }
 
 // ==========================================================================

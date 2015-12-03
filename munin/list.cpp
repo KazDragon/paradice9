@@ -26,7 +26,7 @@
 // ==========================================================================
 #include "munin/list.hpp"
 #include "munin/context.hpp"
-#include <terminalpp/canvas.hpp>
+#include <terminalpp/canvas_view.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 

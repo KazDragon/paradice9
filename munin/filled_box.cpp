@@ -27,7 +27,7 @@
 #include "munin/filled_box.hpp"
 #include "munin/context.hpp"
 #include "odin/core.hpp"
-#include "terminalpp/canvas.hpp"
+#include <terminalpp/canvas_view.hpp>
 
 namespace munin {
 
@@ -150,7 +150,7 @@ void filled_box::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    terminalpp::canvas &cvs = ctx.get_canvas();
+    auto &cvs = ctx.get_canvas();
 
     for (odin::u32 row = region.origin.y;
          row < odin::u32(region.origin.y + region.size.height);

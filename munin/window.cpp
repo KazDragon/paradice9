@@ -29,6 +29,7 @@
 #include "munin/container.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/context.hpp"
+#include <terminalpp/canvas_view.hpp>
 #include <terminalpp/terminalpp.hpp>
 #include <boost/format.hpp>
 #include <iostream>
@@ -64,11 +65,13 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        window                  &self
-      , boost::asio::strand     &strand)
+        window                                &self
+      , boost::asio::strand                   &strand
+      , terminalpp::terminal::behaviour const &behaviour)
         : self_(self)
         , self_valid_(true)
         , strand_(strand)
+        , terminal_(behaviour)
         , content_(std::make_shared<basic_container>())
         , canvas_({80, 24})
         , screen_()
@@ -267,7 +270,8 @@ private :
         // into horizontal slices.
         auto slices = create_repaint_slices();
 
-        context ctx(canvas_, strand_);
+        terminalpp::canvas_view canvas_view(canvas_);
+        context ctx(canvas_view, strand_);
         
         // Draw each slice on the canvas.
         for (auto const &region : slices)
@@ -406,9 +410,12 @@ private :
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-window::window(boost::asio::strand &strand)
+window::window(
+    boost::asio::strand &strand
+  , terminalpp::terminal::behaviour const &behaviour)
 {
-    pimpl_ = std::make_shared<impl>(std::ref(*this), std::ref(strand));
+    pimpl_ = std::make_shared<impl>(
+        std::ref(*this), std::ref(strand), std::ref(behaviour));
 }
 
 // ==========================================================================

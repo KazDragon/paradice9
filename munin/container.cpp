@@ -28,7 +28,7 @@
 #include "munin/algorithm.hpp"
 #include "munin/context.hpp"
 #include "munin/layout.hpp"
-#include <terminalpp/canvas.hpp>
+#include <terminalpp/canvas_view.hpp>
 #include <boost/scope_exit.hpp>
 #include <vector>
 
@@ -293,7 +293,7 @@ void container::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    terminalpp::canvas &cvs = ctx.get_canvas();
+    auto &cvs = ctx.get_canvas();
 
     // First, we obtain a list of components sorted by layer from lowest
     // to highest.
@@ -319,19 +319,17 @@ void container::do_draw(
             // The canvas must have an offset applied to it so that the
             // inner component can pretend that it is being drawn with its
             // container being at position (0,0).
-            /*@@ TODO: this was all with canvas_view, etc.
             auto const position = current_component->get_position();
-            cvs.apply_offset(position.x, position.y);
+            cvs.offset_by({position.x, position.y});
 
             // Ensure that the offset is unapplied before exit of this
             // function.
             BOOST_SCOPE_EXIT( (&cvs)(&position) )
             {
-                cvs.apply_offset(-position.x, -position.y);
+                cvs.offset_by({-position.x, -position.y});
             } BOOST_SCOPE_EXIT_END
 
             current_component->draw(ctx, draw_region.get());
-            */
         }
     }
 }

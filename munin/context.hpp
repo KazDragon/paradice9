@@ -32,7 +32,7 @@
 #include <memory>
 
 namespace terminalpp {
-    class canvas;
+    class canvas_view;
 }
 
 namespace munin {
@@ -46,7 +46,7 @@ public :
     //* =====================================================================
     /// \brief Constructor.
     //* =====================================================================
-    context(terminalpp::canvas &cvs, boost::asio::strand &strand);
+    context(terminalpp::canvas_view &cvs, boost::asio::strand &strand);
 
     //* =====================================================================
     /// \brief Destructor.
@@ -56,7 +56,7 @@ public :
     //* =====================================================================
     /// \brief Retrieve the canvas.
     //* =====================================================================
-    terminalpp::canvas &get_canvas();
+    terminalpp::canvas_view &get_canvas();
 
     //* =====================================================================
     /// \brief Retrieve the strand.

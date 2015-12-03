@@ -31,7 +31,7 @@
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/sco_glyphs.hpp"
-#include "terminalpp/canvas.hpp"
+#include <terminalpp/canvas_view.hpp>
 #include <utility>
 
 namespace munin {
@@ -109,7 +109,7 @@ private :
     // DRAW_FILLER
     // ======================================================================
     void draw_filler(
-        terminalpp::canvas &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         for (odin::s32 y_coord = region.origin.y;
@@ -129,7 +129,7 @@ private :
     // DRAW_TITLE
     // ======================================================================
     void draw_title(
-        terminalpp::canvas &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         static terminalpp::element const default_element(' ');

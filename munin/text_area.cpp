@@ -29,7 +29,7 @@
 #include "munin/algorithm.hpp"
 #include "munin/context.hpp"
 #include <terminalpp/ansi/mouse.hpp>
-#include <terminalpp/canvas.hpp>
+#include <terminalpp/canvas_view.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <cctype>
@@ -121,7 +121,7 @@ struct text_area::impl
     /// \brief Draws the document onto the canvas.
     //* =====================================================================
     void draw(
-        terminalpp::canvas &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         for (odin::u32 row_index = region.origin.y;
@@ -355,27 +355,24 @@ private :
                 break;
                 
             case terminalpp::vk::home :
-                /* @@TODO: vk_modifier needs an & operator
                 if ((vk.modifiers & terminalpp::vk_modifier::meta) 
                   != terminalpp::vk_modifier::none)
                 {
                     do_meta_home_key_event();
                 }
-                else */
+                else
                 {
                     do_home_key_event();
                 }
                 break;
 
             case terminalpp::vk::end :
-                /* @@TODO: vk_modifier needs an & operator
                 if ((vk.modifiers & terminalpp::vk_modifier::meta) 
                   != terminalpp::vk_modifier::none)
                 {
-                {
                     do_meta_end_key_event();
                 }
-                else */
+                else
                 {
                     do_end_key_event();
                 }

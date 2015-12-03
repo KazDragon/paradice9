@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "munin/algorithm.hpp"
 #include <terminalpp/canvas.hpp>
+#include <terminalpp/canvas_view.hpp>
 #include "odin/core.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>
@@ -294,9 +295,9 @@ vector<rectangle> prune_regions(vector<rectangle> regions)
 // COPY_REGION
 // ==========================================================================
 void copy_region(
-    rectangle          const &region
-  , terminalpp::canvas const &source
-  , terminalpp::canvas       &destination)
+    rectangle               const &region
+  , terminalpp::canvas      const &source
+  , terminalpp::canvas_view       &destination)
 {
     for (s32 y_coord = region.origin.y;
          y_coord < region.origin.y + region.size.height;

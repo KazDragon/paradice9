@@ -155,6 +155,16 @@ namespace {
 class client::impl
     : public std::enable_shared_from_this<client::impl>
 {
+    static terminalpp::terminal::behaviour create_behaviour()
+    {
+        terminalpp::terminal::behaviour behaviour;
+        behaviour.can_use_eight_bit_control_codes = true;
+        behaviour.supports_basic_mouse_tracking = true;
+        behaviour.supports_window_title_bel = true;
+        
+        return behaviour;
+    }
+    
 public :
     // ======================================================================
     // CONSTRUCTOR
@@ -166,7 +176,8 @@ public :
       : self_(self),
         strand_(io_service),
         context_(ctx),
-        window_(std::make_shared<munin::window>(std::ref(strand_))),
+        window_(std::make_shared<munin::window>(
+            std::ref(strand_), create_behaviour())),
         user_interface_(std::make_shared<hugin::user_interface>(std::ref(strand_)))
     {
         window_->set_size(terminalpp::extent(80, 24));

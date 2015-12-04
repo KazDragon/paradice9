@@ -207,13 +207,19 @@ public :
     }
 
     // ======================================================================
-    // HANDLE_MOUSE_CLICK
+    // HANDLE_MOUSE_EVENT
     // ======================================================================
-    /* @@ TODO:
-    bool handle_mouse_click(odin::ansi::mouse_report const *report)
+    bool handle_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
         bool handled = false;
 
+        // If this is not a mouse click, then ignore the event.
+        if (report.button_ != terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN
+         && report.button_ != terminalpp::ansi::mouse::report::RIGHT_BUTTON_DOWN)
+        {
+            return false;
+        }
+        
         // If we're closeable, then check to see if the close button has been
         // pressed.  If so, fire the close signal.
         if (closeable_)
@@ -221,10 +227,10 @@ public :
             auto position = self_.get_position();
             auto size =     self_.get_size();
 
-            point close_button((position.x + size.width) - 1, 0);
+            terminalpp::point close_button((position.x + size.width) - 1, 0);
 
-            if (report->x_position_ == close_button.x
-             && report->y_position_ == close_button.y)
+            if (report.x_position_ == close_button.x
+             && report.y_position_ == close_button.y)
             {
                 self_.on_close();
                 handled = true;
@@ -233,7 +239,6 @@ public :
 
         return handled;
     }
-    */
 
     named_frame                &self_;
     std::shared_ptr<title_bar>  title_bar_;
@@ -297,22 +302,20 @@ void named_frame::set_closeable(bool closeable)
 // ==========================================================================
 void named_frame::do_event(boost::any const &event)
 {
-    /* @@ TODO:
     bool handled = false;
 
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
-        handled = pimpl_->handle_mouse_click(report);
+        handled = pimpl_->handle_mouse_event(*report);
     }
 
     if (!handled)
     {
         composite_component::do_event(event);
     }
-    */
 }
 
 }

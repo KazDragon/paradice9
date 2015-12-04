@@ -254,13 +254,12 @@ void framed_component::do_set_attribute(std::string const &name, boost::any cons
 // ==========================================================================
 void framed_component::do_event(boost::any const &event)
 {
-    /* @@ TODO:
     bool handled = false;
 
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
         // If this intersects the interior, then we send the event onto
         // that.  Otherwise, it's clicking the frame, so we set focus
@@ -268,14 +267,14 @@ void framed_component::do_event(boost::any const &event)
         if (intersection(
             rectangle(pimpl_->interior_->get_position()
                     , pimpl_->interior_->get_size())
-          , rectangle(point(report->x_position_, report->y_position_)
-                    , extent(1, 1))))
+          , rectangle(terminalpp::point(report->x_position_, report->y_position_)
+                    , terminalpp::extent{1, 1})))
         {
             auto position = pimpl_->interior_->get_position();
-            odin::ansi::mouse_report subreport;
+            terminalpp::ansi::mouse::report subreport;
             subreport.button_     = report->button_;
-            subreport.x_position_ = odin::u8(report->x_position_ - position.x);
-            subreport.y_position_ = odin::u8(report->y_position_ - position.y);
+            subreport.x_position_ = terminalpp::u8(report->x_position_ - position.x);
+            subreport.y_position_ = terminalpp::u8(report->y_position_ - position.y);
 
             pimpl_->interior_->event(subreport);
             handled = true;
@@ -283,10 +282,10 @@ void framed_component::do_event(boost::any const &event)
         else
         {
             auto position = pimpl_->border_->get_position();
-            odin::ansi::mouse_report subreport;
+            terminalpp::ansi::mouse::report subreport;
             subreport.button_     = report->button_;
-            subreport.x_position_ = odin::u8(report->x_position_ - position.x);
-            subreport.y_position_ = odin::u8(report->y_position_ - position.y);
+            subreport.x_position_ = terminalpp::u8(report->x_position_ - position.x);
+            subreport.y_position_ = terminalpp::u8(report->y_position_ - position.y);
 
             pimpl_->border_->event(subreport);
 
@@ -299,7 +298,6 @@ void framed_component::do_event(boost::any const &event)
     {
         composite_component::do_event(event);
     }
-    */
 }
 
 }

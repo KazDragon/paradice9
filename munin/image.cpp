@@ -82,9 +82,9 @@ void image::set_image(std::vector<terminalpp::string> const &elements)
 // ==========================================================================
 // SET_IMAGE
 // ==========================================================================
-void image::set_image(terminalpp::string const &elements)
+void image::set_image(terminalpp::string const &element)
 {
-    set_image({elements});
+    set_image(std::vector<terminalpp::string>{element});
 }
 
 // ==========================================================================

@@ -156,30 +156,20 @@ struct text_area::impl
     //* =====================================================================
     void do_event(boost::any const &event)
     {
-        /* @@ TODO: 
-        char const *ch = boost::any_cast<char>(&event);
-
-        if (ch != nullptr)
+        auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+        
+        if (vk)
         {
-            do_character_event(*ch);
+            do_vk_event(*vk);
         }
 
-        odin::ansi::control_sequence const *sequence =
-            boost::any_cast<odin::ansi::control_sequence>(&event);
+        auto report =
+            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-        if (sequence != nullptr)
+        if (report)
         {
-            do_ansi_control_sequence_event(*sequence);
+            do_mouse_event(*report);
         }
-
-        odin::ansi::mouse_report const *report =
-            boost::any_cast<odin::ansi::mouse_report>(&event);
-
-        if (report != nullptr)
-        {
-            do_ansi_mouse_report_event(*report);
-        }
-        */
     }
 
 private :

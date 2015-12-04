@@ -28,6 +28,7 @@
 #include "munin/context.hpp"
 #include "munin/rectangle.hpp"
 #include <terminalpp/canvas_view.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <boost/scope_exit.hpp>
 
 namespace munin {
@@ -256,54 +257,39 @@ struct viewport::impl
     }
 
     // ======================================================================
-    // DO_ANSI_CONTROL_SEQUENCE_EVENT
+    // DO_VK_EVENT
     // ======================================================================
-    /* @@ TODO:
-    bool do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    bool do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        switch (vk.key)
         {
-            if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
-            {
-                // Check for the PGUP key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '5')
-                {
-                    do_pgup_key_event();
-                    return true;
-                }
-                // Check for the PGDN key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '6')
-                {
-                    do_pgdn_key_event();
-                    return true;
-                }
-            }
+            case terminalpp::vk::pgup :
+                do_pgup_key_event();
+                return true;
+                
+            case terminalpp::vk::pgdn :
+                do_pgdn_key_event();
+                return true;
+                
+            default :
+                return false;
         }
-
-        return false;
     }
-    */
 
     // ======================================================================
     // DO_EVENT
     // ======================================================================
-    /* @@ TODO:
     bool do_event(boost::any const &event)
     {
-        odin::ansi::control_sequence const *sequence =
-            boost::any_cast<odin::ansi::control_sequence>(&event);
-
-        if (sequence != nullptr)
+        auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+        
+        if (vk)
         {
-            return do_ansi_control_sequence_event(*sequence);
+            return do_vk_event(*vk);
         }
-
+        
         return false;
     }
-    */
 };
 
 // ==========================================================================
@@ -594,16 +580,15 @@ void viewport::do_draw(
 // ==========================================================================
 void viewport::do_event(boost::any const &event)
 {
-    /* @@ TODO:
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
-
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+        
     if (report != nullptr)
     {
         auto origin = get_origin();
 
         // Offset the mouse report by the origin.
-        odin::ansi::mouse_report subreport = *report;
+        terminalpp::ansi::mouse::report subreport = *report;
         subreport.x_position_ += origin.x;
         subreport.y_position_ += origin.y;
 
@@ -613,7 +598,6 @@ void viewport::do_event(boost::any const &event)
     {
         pimpl_->component_->event(event);
     }
-    */
 }
 
 // ==========================================================================

@@ -32,6 +32,7 @@
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
 #include <terminalpp/encoder.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <boost/format.hpp>
 
 namespace hugin {
@@ -162,11 +163,11 @@ void character_selection_screen::on_character_selected(
 // ==========================================================================
 void character_selection_screen::do_event(boost::any const &event)
 {
-    char const *ch = boost::any_cast<char>(&event);
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
     
-    if (ch != NULL)
+    if (vk)
     {
-        if (*ch == '+')
+        if (vk->key == terminalpp::vk::plus)
         {
             if (pimpl_->on_new_character_)
             {
@@ -175,7 +176,7 @@ void character_selection_screen::do_event(boost::any const &event)
         }
         else
         {
-            unsigned int selection = *ch - '0';
+            unsigned int selection = char(vk->key) - '0';
             
             if (selection < pimpl_->characters_.size()
              && pimpl_->on_character_selected_ != NULL)

@@ -307,7 +307,13 @@ void main_screen::do_event(boost::any const &ev)
     
     if (vk)
     {
-        if (vk->key == terminalpp::vk::ht)
+        if (pimpl_->input_field_->has_focus() 
+         && vk->key == terminalpp::vk::enter)
+        {
+            pimpl_->on_input_entered();
+            handled = true;
+        }
+        else if (vk->key == terminalpp::vk::ht)
         {
             focus_next();
             

@@ -32,7 +32,6 @@
 #include <terminalpp/canvas_view.hpp>
 #include <terminalpp/terminalpp.hpp>
 #include <boost/format.hpp>
-#include <iostream>
 
 namespace munin {
     
@@ -47,7 +46,6 @@ struct unpackage_visitor : boost::static_visitor<boost::any>
     template <class Packaged>
     boost::any operator()(Packaged &&pack)
     {
-        std::cout << "EVENT: " << pack << std::endl;
         return pack;
     }
 };
@@ -75,8 +73,6 @@ public :
         , content_(std::make_shared<basic_container>())
         , canvas_({80, 24})
         , screen_()
-        , last_cursor_position_({})
-        , last_cursor_state_(false)
         , last_window_size_({0, 0})
         , repaint_scheduled_(false)
         , layout_scheduled_(false)
@@ -261,6 +257,7 @@ private :
         {
             this->redraw_regions_.push_back({{}, size});
             canvas_ = terminalpp::canvas(size);
+            last_window_size_ = size;
         }
 
         // Create the slices that we aim to repaint.
@@ -278,95 +275,28 @@ private :
         {
             content_->draw(ctx, region);
         }
+
+        // First, get the data that will draw the screen onto the terminal.
+        auto repaint_data = screen_.draw(terminal_, canvas_);
         
-        // And draw the screen onto the terminal.
-        self_.on_repaint(screen_.draw(terminal_, canvas_));
-        
-/*
-        // Prepare a string that is a collection of the ANSI data required
-        // to update the window.
-        std::string output;
-
-        // First, if we are repainting everything, then clear the screen to
-        // ensure that nothing is left from the previous data.
-        if (repaint_all)
+        // And deal with the cursor.
+        if (content_->get_cursor_state())
         {
-            output += munin::ansi::clear_screen();
-        }
-
-        // For each slice, see if it has changed between the canvas that was
-        // updated and the clone of the original.
-        for (auto const &slice : slices)
-        {
-            std::vector<rectangle> subslices;
-
-            if (repaint_all)
-            {
-                subslices.push_back(slice);
-            }
-            else
-            {
-                subslices = find_different_subslices(
-                    slice, canvas_, canvas_clone_);
-            }
-
-            for (auto const &subslice : subslices)
-            {
-                output += canvas_region_string(
-                    glyph_, attribute_, subslice, canvas_);
-            }
-        }
-
-        // Finally, deal with the cursor.
-        bool cursor_state = content_->get_cursor_state();
-
-        if (cursor_state != last_cursor_state_)
-        {
-            output += cursor_state
-                    ? munin::ansi::show_cursor()
-                    : munin::ansi::hide_cursor();
-        }
-
-        if (cursor_state)
-        {
-            auto current_cursor_position = content_->get_cursor_position();
-
-            // The cursor is enabled.  If there has been any output, or if
-            // it has been moved, or the cursor has just been turned on, then
-            // it must be put in position.
-            if (!output.empty()
-             || current_cursor_position != last_cursor_position_
-             || cursor_state != last_cursor_state_)
-            {
-                output += munin::ansi::cursor_position(current_cursor_position);
-                last_cursor_position_ = current_cursor_position;
-            }
+            repaint_data += terminal_.show_cursor();
+            repaint_data += terminal_.move_cursor(
+                content_->get_cursor_position());
         }
         else
         {
-            // There is no cursor.  Therefore, we drop it in the bottom right
-            // corner, but only if there has been any output.
-            if (!output.empty())
-            {
-                output += munin::ansi::cursor_position(
-                    point(size.width - 1, size.height - 1));
-            }
+            repaint_data += terminal_.hide_cursor();
         }
-
-        last_cursor_state_ = cursor_state;
-
-        // Finally, only if anything has been repainted, send the notification
-        // to any observers, telling them how it is done.
-        if (!output.empty() && self_valid_)
-        {
-            self_.on_repaint(output);
-        }
-
+        
+        self_.on_repaint(repaint_data);
+        
         redraw_regions_.clear();
 
         // We are once again interested in repaint requests.
         repaint_scheduled_ = false;
-        */
     }
 
     // ======================================================================
@@ -393,8 +323,6 @@ private :
     terminalpp::glyph             glyph_;
     terminalpp::attribute         attribute_;
 
-    terminalpp::point             last_cursor_position_;
-    bool                          last_cursor_state_;
     terminalpp::extent            last_window_size_;
 
     std::vector<rectangle>        redraw_regions_;
@@ -468,7 +396,7 @@ std::shared_ptr<container> window::get_content()
 }
 
 // ==========================================================================
-// EVENT
+// DATA
 // ==========================================================================
 void window::data(std::string const &data)
 {

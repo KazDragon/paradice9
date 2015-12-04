@@ -34,7 +34,7 @@
 #include "munin/algorithm.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/core.hpp"
-#include "terminalpp/string.hpp"
+#include "terminalpp/encoder.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 
@@ -47,7 +47,7 @@ void send_to_all(
     std::shared_ptr<context> &ctx,
     std::string const        &text)
 {
-    send_to_all(ctx, terminalpp::string(text));
+    send_to_all(ctx, terminalpp::encode(text));
 }
 
 // ==========================================================================
@@ -71,7 +71,7 @@ void send_to_player(
     std::string const        &text,
     std::shared_ptr<client>  &conn)
 {
-    send_to_player(ctx, terminalpp::string(text), conn);
+    send_to_player(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
@@ -82,7 +82,7 @@ void send_to_player(
     char const *text, 
     std::shared_ptr<client> &conn)
 {
-    send_to_player(ctx, terminalpp::string(text), conn);
+    send_to_player(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
@@ -104,7 +104,7 @@ void send_to_room(
     std::string const        &text,
     std::shared_ptr<client>  &conn)
 {
-    send_to_room(ctx, terminalpp::string(text), conn);
+    send_to_room(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================

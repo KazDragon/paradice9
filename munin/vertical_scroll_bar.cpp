@@ -146,10 +146,9 @@ struct vertical_scroll_bar::impl
     // ======================================================================
     // ON_MOUSE_EVENT
     // ======================================================================
-    /* @@ TODO:
-    void on_mouse_event(odin::ansi::mouse_report const &report)
+    void on_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (report.button_ == odin::ansi::mouse_report::LEFT_BUTTON_DOWN)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
             if (report.y_position_ < slider_position_)
             {
@@ -161,7 +160,6 @@ struct vertical_scroll_bar::impl
             }
         }
     }
-    */
 
     vertical_scroll_bar       &self_;
     terminalpp::attribute      pen_;
@@ -259,15 +257,13 @@ void vertical_scroll_bar::do_draw(
 // ==========================================================================
 void vertical_scroll_bar::do_event(boost::any const &event)
 {
-    /* @@ TODO: 
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
         pimpl_->on_mouse_event(*report);
     }
-    */
 }
 
 // ==========================================================================
@@ -277,19 +273,17 @@ void vertical_scroll_bar::do_set_attribute(
     std::string const &name,
     boost::any const  &attr)
 {
-    /* @@ TODO:
     if (name == ATTRIBUTE_PEN)
     {
-        auto pen = boost::any_cast<attribute>(&attr);
+        auto pen = boost::any_cast<terminalpp::attribute>(&attr);
 
-        if (pen != nullptr)
+        if (pen)
         {
             pimpl_->pen_ = *pen;
         }
 
-        on_redraw({rectangle(point(), get_size())});
+        on_redraw({rectangle({}, get_size())});
     }
-    */
 }
 
 }

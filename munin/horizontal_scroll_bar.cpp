@@ -146,10 +146,9 @@ struct horizontal_scroll_bar::impl
     // ======================================================================
     // ON_MOUSE_EVENT
     // ======================================================================
-    /* @@ TODO: 
-    void on_mouse_event(odin::ansi::mouse_report const &report)
+    void on_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (report.button_ == odin::ansi::mouse_report::LEFT_BUTTON_DOWN)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
             if (report.x_position_ < slider_position_)
             {
@@ -161,7 +160,6 @@ struct horizontal_scroll_bar::impl
             }
         }
     }
-    */
 
     horizontal_scroll_bar     &self_;
     terminalpp::attribute      pen_;
@@ -259,15 +257,13 @@ void horizontal_scroll_bar::do_draw(
 // ==========================================================================
 void horizontal_scroll_bar::do_event(boost::any const &event)
 {
-    /* @@ TODO: 
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
         pimpl_->on_mouse_event(*report);
     }
-    */
 }
 
 // ==========================================================================

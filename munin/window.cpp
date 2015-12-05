@@ -291,7 +291,10 @@ private :
             repaint_data += terminal_.hide_cursor();
         }
         
-        self_.on_repaint(repaint_data);
+        if (self_valid_)
+        {
+            self_.on_repaint(repaint_data);
+        }
         
         redraw_regions_.clear();
 

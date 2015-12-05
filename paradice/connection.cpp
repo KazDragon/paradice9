@@ -25,13 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "connection.hpp"
-#include "odin/ansi/ansi_parser.hpp"
 #include "odin/net/socket.hpp"
-#include "telnetpp/telnetpp.hpp"
-#include "telnetpp/options/echo/server.hpp"
-#include "telnetpp/options/naws/client.hpp"
-#include "telnetpp/options/suppress_ga/server.hpp"
-#include "telnetpp/options/terminal_type/client.hpp"
+#include <telnetpp/telnetpp.hpp>
+#include <telnetpp/options/echo/server.hpp>
+#include <telnetpp/options/naws/client.hpp>
+#include <telnetpp/options/suppress_ga/server.hpp>
+#include <telnetpp/options/terminal_type/client.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <deque>
@@ -39,104 +38,6 @@
 #include <utility>
 
 namespace paradice {
-
-namespace {
-
-// ==========================================================================
-// ANSI_INPUT_VISITOR
-// ==========================================================================
-struct ansi_input_visitor
-    : public boost::static_visitor<>
-{
-    ansi_input_visitor(
-        std::function<void (odin::ansi::mouse_report const &)>     on_mouse_report,
-        std::function<void (odin::ansi::control_sequence const &)> on_control_sequence,
-        std::function<void (char)>                                 on_text)
-      : on_mouse_report_(std::move(on_mouse_report)),
-        on_control_sequence_(std::move(on_control_sequence)),
-        on_text_(std::move(on_text))
-    {
-    }
-
-    void operator()(odin::ansi::control_sequence const &control_sequence)
-    {
-        std::printf("Control Sequence(\n"
-               "    META: %s\n"
-               "    CSI:  0x%02X ('%c')\n"
-               "    CMD:  0x%02X ('%c')\n"
-          , (control_sequence.meta_ ? "Yes" : "No")
-          , int(control_sequence.initiator_)
-          , control_sequence.initiator_
-          , int(control_sequence.command_)
-          , control_sequence.command_
-          );
-
-        if (!control_sequence.arguments_.empty())
-        {
-            std::printf("    ARGUMENTS:\n");
-
-            for (auto ch : control_sequence.arguments_)
-            {
-                std::printf("        [0x%02X]", int(ch));
-
-                if (isprint(ch))
-                {
-                    std::printf(" (%c)", ch);
-                }
-
-                std::printf("\n");
-            }
-        }
-
-        std::printf(")\n");
-
-        if (on_control_sequence_)
-        {
-            on_control_sequence_(control_sequence);
-        }
-    }
-
-    void operator()(odin::ansi::mouse_report report)
-    {
-        // Mouse reports' x- and y-positions are read as bytes.  Unfortunately,
-        // the parser stores them as signed chars.  This means that positions
-        // of 128 or over are negative.  Therefore, we do some casting magic
-        // to make them unsigned again.
-        report.x_position_ = odin::u8(odin::s8(report.x_position_));
-        report.y_position_ = odin::u8(odin::s8(report.y_position_));
-
-        // Mouse reports are all offset by 32 in the protocol, ostensibly to
-        // avoid any other protocol errors.  It then has (1,1) as the origin
-        // where we have (0,0), so we must compensate for that too.
-        report.button_     -= 32;
-        report.x_position_ -= 33;
-        report.y_position_ -= 33;
-
-        std::printf("[BUTTON=%d, X=%d, Y=%d]\n",
-            int(report.button_),
-            int(report.x_position_),
-            int(report.y_position_));
-
-        if (on_mouse_report_)
-        {
-            on_mouse_report_(report);
-        }
-    }
-
-    void operator()(char text)
-    {
-        if (on_text_)
-        {
-            on_text_(text);
-        }
-    }
-
-    std::function<void (odin::ansi::mouse_report const &)>     on_mouse_report_;
-    std::function<void (odin::ansi::control_sequence const &)> on_control_sequence_;
-    std::function<void (char)>                                 on_text_;
-};
-
-}
 
 // ==========================================================================
 // CONNECTION::IMPLEMENTATION STRUCTURE
@@ -224,6 +125,10 @@ struct connection::impl
     }
 
     // ======================================================================
+    // DATA_READ
+    // ======================================================================
+    
+    // ======================================================================
     // WRITE
     // ======================================================================
     void write(
@@ -308,19 +213,9 @@ struct connection::impl
     // ======================================================================
     void on_text(std::string const &text)
     {
-        ansi_input_visitor visitor(
-            on_mouse_report_, on_control_sequence_, on_text_);
-
-        for (auto const &ch : text)
+        if (on_data_read_)
         {
-            parse_(ch);
-
-            auto token = parse_.token();
-
-            if (token.is_initialized())
-            {
-                apply_visitor(visitor, token.get());
-            }
+            on_data_read_(text);
         }
     }
 
@@ -417,18 +312,14 @@ struct connection::impl
     std::shared_ptr<odin::net::socket>                   socket_;
     std::vector<odin::u8>                                unparsed_bytes_;
     
-    std::shared_ptr<telnetpp::session>telnet_session_;
+    std::function<void (std::string const &)>                 on_data_read_;
+    std::shared_ptr<telnetpp::session>                        telnet_session_;
     std::shared_ptr<telnetpp::options::echo::server>          telnet_echo_server_;
     std::shared_ptr<telnetpp::options::suppress_ga::server>   telnet_suppress_ga_server_;
     std::shared_ptr<telnetpp::options::naws::client>          telnet_naws_client_;
     std::shared_ptr<telnetpp::options::terminal_type::client> telnet_terminal_type_client_;
     
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
-    std::function<void (char)>                           on_text_;
-    std::function<void (odin::ansi::control_sequence const &)> on_control_sequence_;
-    std::function<void (odin::ansi::mouse_report const &)> on_mouse_report_;
-
-    odin::ansi::parser                                   parse_;
     std::shared_ptr<boost::asio::deadline_timer>         keepalive_timer_;
 
     std::string                                          terminal_type_;
@@ -469,38 +360,21 @@ void connection::write(std::vector<odin::u8> const &data)
 }
 
 // ==========================================================================
+// ON_DATA_READ
+// ==========================================================================
+void connection::on_data_read(
+    std::function<void (std::string const &)> const &callback)
+{
+    pimpl_->on_data_read_ = callback;
+}
+
+// ==========================================================================
 // ON_WINDOW_SIZE_CHANGED
 // ==========================================================================
 void connection::on_window_size_changed(
     std::function<void (odin::u16, odin::u16)> const &callback)
 {
     pimpl_->on_window_size_changed_ = callback;
-}
-
-// ==========================================================================
-// ON_TEXT
-// ==========================================================================
-void connection::on_text(std::function<void (char)> const &callback)
-{
-    pimpl_->on_text_ = callback;
-}
-
-// ==========================================================================
-// ON_MOUSE_REPORT
-// ==========================================================================
-void connection::on_mouse_report(
-    std::function<void (odin::ansi::mouse_report const &)> const &callback)
-{
-    pimpl_->on_mouse_report_ = callback;
-}
-
-// ==========================================================================
-// ON_CONTROL_SEQUENCE
-// ==========================================================================
-void connection::on_control_sequence(
-    std::function<void (odin::ansi::control_sequence const &)> const &callback)
-{
-    pimpl_->on_control_sequence_ = callback;
 }
 
 // ==========================================================================

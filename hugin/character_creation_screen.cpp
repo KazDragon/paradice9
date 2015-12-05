@@ -25,8 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "character_creation_screen.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
@@ -39,7 +37,8 @@
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
 #include "munin/toggle_button.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace hugin {
 
@@ -57,7 +56,7 @@ struct character_creation_screen::impl
         {
             auto document = name_field_->get_document();
             auto elements = document->get_line(0);
-            auto name = munin::ansi::string_from_elements(elements);
+            auto name = to_string(elements);
             
             on_character_created_(name, gm_toggle_->get_toggle());
         }
@@ -90,11 +89,13 @@ struct character_creation_screen::impl
 character_creation_screen::character_creation_screen()
     : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+    
     auto content = get_container();
     content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     
     auto screen_frame = std::make_shared<munin::named_frame>();
-    screen_frame->set_name("CHARACTER CREATION");
+    screen_frame->set_name("CHARACTER CREATION"_ts);
     
     // Create the Name, Password and Password (verify) labels.
     munin::alignment_data alignment;
@@ -104,13 +105,13 @@ character_creation_screen::character_creation_screen()
     auto name_container = std::make_shared<munin::basic_container>();
     name_container->set_layout(std::make_shared<munin::aligned_layout>());
     name_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("Name: "))
+        std::make_shared<munin::image>("Name: "_ts)
       , alignment);
 
     auto gm_container = std::make_shared<munin::basic_container>();
     gm_container->set_layout(std::make_shared<munin::aligned_layout>());
     gm_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("GM: "))
+        std::make_shared<munin::image>("GM: "_ts)
       , alignment);
     
     auto labels_container = std::make_shared<munin::basic_container>();
@@ -150,13 +151,11 @@ character_creation_screen::character_creation_screen()
         munin::COMPASS_LAYOUT_NORTH);
 
     // Create the OK and Cancel buttons.
-    pimpl_->ok_button_     = std::make_shared<munin::button>(
-        munin::string_to_elements("  OK  "));
+    pimpl_->ok_button_     = std::make_shared<munin::button>("  OK  "_ts);
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
         [this]{pimpl_->on_character_creation_ok();}));
     
-    pimpl_->cancel_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements("Cancel"));
+    pimpl_->cancel_button_ = std::make_shared<munin::button>("Cancel"_ts);
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
         [this]{pimpl_->on_character_creation_cancelled();}));
     
@@ -193,7 +192,7 @@ character_creation_screen::character_creation_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }
@@ -243,15 +242,12 @@ void character_creation_screen::on_character_creation_cancelled(
 // ==========================================================================
 void character_creation_screen::do_event(boost::any const &ev)
 {
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
     bool handled = false;
     
-    auto const *ch = boost::any_cast<char>(&ev);
-    auto const *control_sequence = 
-        boost::any_cast<odin::ansi::control_sequence>(&ev);
-
-    if (ch)
+    if (vk)
     {
-        if (*ch == '\t')
+        if (vk->key == terminalpp::vk::ht)
         {
             focus_next();
             
@@ -262,21 +258,19 @@ void character_creation_screen::do_event(boost::any const &ev)
             
             handled = true;
         }
-    }
-    else if (control_sequence != NULL
-          && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-          && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
-    {
-        focus_previous();
-
-        if (!has_focus())
+        else if (vk->key == terminalpp::vk::bt)
         {
             focus_previous();
-        }
-        
-        handled = true;
-    }
 
+            if (!has_focus())
+            {
+                focus_previous();
+            }
+            
+            handled = true;
+        }
+    }
+    
     if (!handled)
     {
         composite_component::do_event(ev);

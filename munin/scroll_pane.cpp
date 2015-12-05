@@ -31,8 +31,10 @@
 #include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
+#include "munin/sco_glyphs.hpp"
 #include "munin/vertical_scroll_bar.hpp"
 #include "munin/viewport.hpp"
+#include "terminalpp/element.hpp"
 #include <algorithm>
 
 namespace munin {
@@ -51,19 +53,19 @@ public :
         bool                                   top_border)
       : basic_frame(
             top_border
-          ? std::make_shared<filled_box>(element_type(double_lined_top_left_corner))
+          ? std::make_shared<filled_box>(double_lined_top_left_corner)
           : std::shared_ptr<filled_box>(),
             top_border
-          ? std::make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+          ? std::make_shared<filled_box>(double_lined_horizontal_beam)
           : std::shared_ptr<filled_box>(),
             top_border
-          ? std::make_shared<filled_box>(element_type(double_lined_top_right_corner))
+          ? std::make_shared<filled_box>(double_lined_top_right_corner)
           : std::shared_ptr<filled_box>(),
-            std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
+            std::make_shared<filled_box>(double_lined_vertical_beam),
             vscroll_bar,
-            std::make_shared<filled_box>(element_type(double_lined_bottom_left_corner)),
+            std::make_shared<filled_box>(double_lined_bottom_left_corner),
             hscroll_bar,
-            std::make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
+            std::make_shared<filled_box>(double_lined_bottom_right_corner))
     {
     }
 
@@ -102,7 +104,7 @@ struct scroll_pane::impl
     // ======================================================================
     void on_page_left()
     {
-        point new_origin;
+        terminalpp::point new_origin;
         auto origin = viewport_->get_origin();
 
         new_origin = origin;
@@ -122,7 +124,7 @@ struct scroll_pane::impl
     // ======================================================================
     void on_page_right()
     {
-        point new_origin;
+        terminalpp::point new_origin;
         auto origin = viewport_->get_origin();
         auto size = self_.get_size();
         auto underlying_component_size = underlying_component_->get_size();
@@ -181,7 +183,7 @@ struct scroll_pane::impl
     // ======================================================================
     void on_page_down()
     {
-        point new_origin;
+        terminalpp::point new_origin;
         auto origin = viewport_->get_origin();
         auto size = viewport_->get_size();
         auto underlying_component_size = underlying_component_->get_size();

@@ -25,9 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/dropdown_list.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
-#include "munin/canvas.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/grid_layout.hpp"
@@ -35,8 +33,12 @@
 #include "munin/horizontal_squeeze_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/list.hpp"
+#include "munin/sco_glyphs.hpp"
 #include "munin/scroll_pane.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -62,7 +64,7 @@ protected :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size(
+    virtual terminalpp::extent do_get_preferred_size(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints) const
     {
@@ -70,9 +72,9 @@ protected :
         // should only be one component in this anyway.
         auto preferred_size =
             components.empty()
-          ? extent(0, 0)
-          : extent(components[0]->get_preferred_size().width
-                 , preferred_height_);
+          ? terminalpp::extent{}
+          : terminalpp::extent(components[0]->get_preferred_size().width
+                             , preferred_height_);
 
         return preferred_size;
     }
@@ -85,11 +87,11 @@ protected :
     virtual void do_layout(
         std::vector<std::shared_ptr<component>> const &components,
         std::vector<boost::any>                 const &hints,
-        extent                                         size)
+        terminalpp::extent                             size)
     {
         for (auto current_component : components)
         {
-            current_component->set_position(point());
+            current_component->set_position({});
             current_component->set_size(size);
         }
     }
@@ -112,7 +114,7 @@ struct dropdown_list::impl
         , dropdown_open_(false)
         , closing_dropdown_(false)
     {
-        focussed_pen_.foreground_colour_ = attribute::high_colour(1, 4, 5);
+        focussed_pen_.foreground_colour_ = terminalpp::high_colour(1, 4, 5);
     }
 
     // ======================================================================
@@ -199,20 +201,6 @@ struct dropdown_list::impl
     }
 
     // ======================================================================
-    // DO_CHARACTER_EVENT
-    // ======================================================================
-    bool do_character_event(char ch)
-    {
-        if (ch == '\n')
-        {
-            toggle_dropdown();
-            return true;
-        }
-
-        return false;
-    }
-
-    // ======================================================================
     // DO_CURSOR_DOWN_KEY_EVENT
     // ======================================================================
     bool do_cursor_down_key_event(odin::u32 times)
@@ -231,39 +219,36 @@ struct dropdown_list::impl
     // ======================================================================
     // DO_ANSI_CONTROL_SEQUENCE_EVENT
     // ======================================================================
-    bool do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    bool do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        switch (vk.key)
         {
-            // Check for the down arrow key
-            if (sequence.command_ == odin::ansi::CURSOR_DOWN)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                return do_cursor_down_key_event(times);
-            }
+            case terminalpp::vk::enter :
+                toggle_dropdown();
+                return true;
+                
+            case terminalpp::vk::cursor_down :
+                return do_cursor_down_key_event(vk.repeat_count);
+                
+            default :
+                // Do nothing.
+                break;
         }
-
+        
         return false;
     }
 
     // ======================================================================
-    // DO_ANSI_MOUSE_REPORT_EVENT
+    // DO_MOUSE_EVENT
     // ======================================================================
-    bool do_ansi_mouse_report_event(
-        odin::ansi::mouse_report const &mouse_report)
+    bool do_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        // printf("button = %d", mouse_report.button_);
-
         // Detect if the click occurred within the dropdown-button area.
         // Otherwise, we don't care.
-        if (mouse_report.x_position_ >= self_.get_size().width - 3
-         && mouse_report.y_position_ < 3)
+        if (report.x_position_ >= self_.get_size().width - 3
+         && report.y_position_ < 3)
         {
-            if (mouse_report.button_ == odin::ansi::mouse_report::BUTTON_UP)
+            if (report.button_ == terminalpp::ansi::mouse::report::BUTTON_UP)
             {
                 toggle_dropdown();
             }
@@ -275,8 +260,8 @@ struct dropdown_list::impl
     }
 
     dropdown_list             &self_;
-    attribute                  focussed_pen_;
-    attribute                  unfocussed_pen_;
+    terminalpp::attribute      focussed_pen_;
+    terminalpp::attribute      unfocussed_pen_;
     std::shared_ptr<image>     selected_text_;
     std::shared_ptr<image>     dropdown_button_;
     std::shared_ptr<component> bottom_left_corner_;
@@ -301,11 +286,11 @@ dropdown_list::dropdown_list()
 
     // Construct the top right part of the dropdown +-+
     auto dropdown_top_left = std::make_shared<filled_box>(
-        element_type(double_lined_top_tee));
+        double_lined_top_tee);
     auto dropdown_top_centre = std::make_shared<filled_box>(
-        element_type(double_lined_horizontal_beam));
+        double_lined_horizontal_beam);
     auto dropdown_top_right = std::make_shared<filled_box>(
-        element_type(double_lined_top_right_corner));
+        double_lined_top_right_corner);
 
     auto dropdown_top_row = std::make_shared<basic_container>();
     dropdown_top_row->set_layout(std::make_shared<compass_layout>());
@@ -315,9 +300,9 @@ dropdown_list::dropdown_list()
 
     // Construct the top bar +----+-+
     auto top_left = std::make_shared<filled_box>(
-        element_type(double_lined_top_left_corner));
+        double_lined_top_left_corner);
     auto top_centre = std::make_shared<filled_box>(
-        element_type(double_lined_horizontal_beam));
+        double_lined_horizontal_beam);
 
     auto top_row = std::make_shared<basic_container>();
     top_row->set_layout(std::make_shared<compass_layout>());
@@ -327,12 +312,11 @@ dropdown_list::dropdown_list()
 
     // Construct the middle-right part of the dropdown |V|
     auto dropdown_centre_left = std::make_shared<filled_box>(
-        element_type(double_lined_vertical_beam));
-    pimpl_->dropdown_button_ = std::make_shared<image>(
-        munin::ansi::elements_from_string("V"));
+        double_lined_vertical_beam);
+    pimpl_->dropdown_button_ = std::make_shared<image>("V");
     pimpl_->dropdown_button_->set_can_focus(true);
     auto dropdown_centre_right = std::make_shared<filled_box>(
-        element_type(double_lined_vertical_beam));
+        double_lined_vertical_beam);
 
     auto dropdown_centre_row = std::make_shared<basic_container>();
     dropdown_centre_row->set_layout(std::make_shared<compass_layout>());
@@ -342,9 +326,8 @@ dropdown_list::dropdown_list()
 
     // Construct the centre bar |   |V|
     auto centre_left = std::make_shared<filled_box>(
-        element_type(double_lined_vertical_beam));
-    pimpl_->selected_text_ = std::make_shared<image>(
-        munin::ansi::elements_from_string(""));
+        double_lined_vertical_beam);
+    pimpl_->selected_text_ = std::make_shared<image>("");
 
     auto centre_row = std::make_shared<basic_container>();
     centre_row->set_layout(std::make_shared<compass_layout>());
@@ -354,11 +337,11 @@ dropdown_list::dropdown_list()
 
     // Construct the bottom-right part of the dropdown +-+
     pimpl_->bottom_tee_ = std::make_shared<filled_box>(
-        element_type(double_lined_bottom_tee));
+        double_lined_bottom_tee);
     auto dropdown_bottom_centre = std::make_shared<filled_box>(
-        element_type(double_lined_horizontal_beam));
+        double_lined_horizontal_beam);
     pimpl_->bottom_right_corner_ = std::make_shared<filled_box>(
-        element_type(double_lined_bottom_right_corner));
+        double_lined_bottom_right_corner);
 
     auto dropdown_bottom_row = std::make_shared<basic_container>();
     dropdown_bottom_row->set_layout(std::make_shared<compass_layout>());
@@ -368,9 +351,9 @@ dropdown_list::dropdown_list()
 
     // Construct the bottom bar +-----+
     pimpl_->bottom_left_corner_ = std::make_shared<filled_box>(
-        element_type(double_lined_bottom_left_corner));
+        double_lined_bottom_left_corner);
     auto bottom_centre = std::make_shared<filled_box>(
-        element_type(double_lined_horizontal_beam));
+        double_lined_horizontal_beam);
 
     auto bottom_row = std::make_shared<basic_container>();
     bottom_row->set_layout(std::make_shared<compass_layout>());
@@ -397,8 +380,8 @@ dropdown_list::dropdown_list()
 
     // Create a spacer to the right, so that the list is offset by the
     // width of the dropdown button.
-    auto spacer0 = std::make_shared<filled_box>(element_type(' '));
-    auto spacer1 = std::make_shared<filled_box>(element_type(' '));
+    auto spacer0 = std::make_shared<filled_box>(' ');
+    auto spacer1 = std::make_shared<filled_box>(' ');
     auto spacer =  std::make_shared<basic_container>();
     spacer->set_layout(std::make_shared<vertical_squeeze_layout>());
     spacer->add_component(spacer0);
@@ -433,7 +416,7 @@ dropdown_list::~dropdown_list()
 // ==========================================================================
 // SET_ITEMS
 // ==========================================================================
-void dropdown_list::set_items(std::vector<std::vector<element_type>> const &items)
+void dropdown_list::set_items(std::vector<terminalpp::string> const &items)
 {
     pimpl_->list_->set_items(items);
 }
@@ -457,7 +440,7 @@ odin::s32 dropdown_list::get_item_index() const
 // ==========================================================================
 // GET_ITEM
 // ==========================================================================
-std::vector<element_type> dropdown_list::get_item() const
+terminalpp::string dropdown_list::get_item() const
 {
     return pimpl_->list_->get_item();
 }
@@ -469,27 +452,19 @@ void dropdown_list::do_event(boost::any const &event)
 {
     bool handled = false;
 
-    char const *ch = boost::any_cast<char>(&event);
-
-    if (ch != nullptr)
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        handled = pimpl_->do_character_event(*ch);
+        handled = pimpl_->do_vk_event(*vk);
     }
 
-    odin::ansi::control_sequence const *sequence =
-        boost::any_cast<odin::ansi::control_sequence>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (sequence != nullptr)
+    if (report)
     {
-        handled = pimpl_->do_ansi_control_sequence_event(*sequence);
-    }
-
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != nullptr)
-    {
-        handled = pimpl_->do_ansi_mouse_report_event(*report);
+        handled = pimpl_->do_mouse_event(*report);
     }
 
     if (!handled)

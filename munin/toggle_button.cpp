@@ -30,8 +30,9 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -50,8 +51,7 @@ struct toggle_button::impl
 toggle_button::toggle_button(bool default_state)
   : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = std::make_shared<image>(munin::ansi::elements_from_string(
-        default_state ? "X" : " "));
+    pimpl_->image_ = std::make_shared<image>(default_state ? "X" : " ");
     pimpl_->image_->set_can_focus(true);
 
     pimpl_->state_ = default_state;
@@ -78,12 +78,13 @@ toggle_button::~toggle_button()
 // ==========================================================================
 void toggle_button::set_toggle(bool toggle)
 {
+    using namespace terminalpp::literals;
+    
     if (toggle != pimpl_->state_)
     {
         pimpl_->state_ = toggle;
 
-        pimpl_->image_->set_image(
-            munin::ansi::elements_from_string(toggle ? "X" : " "));
+        pimpl_->image_->set_image(toggle ? "X" : " ");
     }
 }
 
@@ -100,26 +101,25 @@ bool toggle_button::get_toggle() const
 // ==========================================================================
 void toggle_button::do_event(boost::any const &event)
 {
-    auto ch = boost::any_cast<char>(&event);
-
-    if (ch != nullptr)
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        if (*ch == ' ' || *ch == '\n')
+        if (vk->key == terminalpp::vk::space
+         || vk->key == terminalpp::vk::enter)
         {
             set_toggle(!get_toggle());
             set_focus();
         }
     }
-
-    auto report = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != nullptr)
+    
+    auto report = boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+    
+    if (report
+     && report->button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
     {
-        if (report->button_ == 0)
-        {
-            set_toggle(!get_toggle());
-            set_focus();
-        }
+        set_toggle(!get_toggle());
+        set_focus();
     }
 }
 

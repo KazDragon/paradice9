@@ -1,5 +1,4 @@
 set (odin_SOURCES
-    ansi/ansi_parser.cpp
     net/server.cpp
     net/socket.cpp
     tokenise.cpp

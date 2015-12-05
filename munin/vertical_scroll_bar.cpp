@@ -25,10 +25,10 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/vertical_scroll_bar.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
 #include "munin/algorithm.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "munin/sco_glyphs.hpp"
+#include <terminalpp/canvas_view.hpp>
 #include <boost/optional.hpp>
 #include <utility>
 
@@ -52,7 +52,7 @@ struct vertical_scroll_bar::impl
     // DO_DRAW
     // ======================================================================
     void do_draw(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         draw_beam(cvs, region);
@@ -68,7 +68,7 @@ struct vertical_scroll_bar::impl
     // DRAW_BEAM
     // ======================================================================
     void draw_beam(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         // Draws the beam on which the slider is placed.
@@ -80,8 +80,7 @@ struct vertical_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] =
-                    element_type(double_lined_vertical_beam, pen_);
+                cvs[x_coord][y_coord] = {double_lined_vertical_beam, pen_};
             }
         }
     }
@@ -129,25 +128,27 @@ struct vertical_scroll_bar::impl
     // DRAW_SLIDER
     // ======================================================================
     void draw_slider(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         // Now that we know precisely where the slider is, check that it is
         // within the redraw region.
         if (intersection(
             region
-          , rectangle(point(0, slider_position_), extent(1, 1))))
+          , rectangle(
+                terminalpp::point(0, slider_position_)
+              , terminalpp::extent(1, 1))))
         {
-            cvs[0][slider_position_] = element_type(mix_lined_hcross, pen_);
+            cvs[0][slider_position_] = {mix_lined_hcross, pen_};
         }
     }
 
     // ======================================================================
     // ON_MOUSE_EVENT
     // ======================================================================
-    void on_mouse_event(odin::ansi::mouse_report const &report)
+    void on_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (report.button_ == odin::ansi::mouse_report::LEFT_BUTTON_DOWN)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
             if (report.y_position_ < slider_position_)
             {
@@ -161,7 +162,7 @@ struct vertical_scroll_bar::impl
     }
 
     vertical_scroll_bar       &self_;
-    attribute                  pen_;
+    terminalpp::attribute      pen_;
     odin::s32                  slider_position_;
     boost::optional<odin::u8>  percentage_;
 };
@@ -207,29 +208,35 @@ void vertical_scroll_bar::set_slider_position(boost::optional<odin::u8> percenta
         // Therefore, we need to redraw both where the slider was, and
         // where the slider now is.
         on_redraw({
-            rectangle(point(0, old_slider_position), extent(1, 1)),
-            rectangle(point(0, pimpl_->slider_position_), extent(1, 1))});
+            rectangle(
+                terminalpp::point(0, old_slider_position)
+              , terminalpp::extent(1, 1))
+          , rectangle(
+                terminalpp::point(0, pimpl_->slider_position_)
+              , terminalpp::extent(1, 1))});
     }
     else if (old_percentage.is_initialized() == percentage.is_initialized())
     {
         // The slider has been turned either on or off.  Redraw it.
         on_redraw({
-            rectangle(point(pimpl_->slider_position_, 0), extent(1, 1))});
+            rectangle(
+                terminalpp::point(pimpl_->slider_position_, 0)
+              , terminalpp::extent(1, 1))});
     }
 }
 
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent vertical_scroll_bar::do_get_preferred_size() const
+terminalpp::extent vertical_scroll_bar::do_get_preferred_size() const
 {
-    return extent(1, get_size().height);
+    return terminalpp::extent(1, get_size().height);
 }
 
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void vertical_scroll_bar::do_set_size(extent const &size)
+void vertical_scroll_bar::do_set_size(terminalpp::extent const &size)
 {
     basic_component::do_set_size(size);
     pimpl_->calculate_slider_position();
@@ -250,10 +257,10 @@ void vertical_scroll_bar::do_draw(
 // ==========================================================================
 void vertical_scroll_bar::do_event(boost::any const &event)
 {
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
         pimpl_->on_mouse_event(*report);
     }
@@ -268,14 +275,14 @@ void vertical_scroll_bar::do_set_attribute(
 {
     if (name == ATTRIBUTE_PEN)
     {
-        auto pen = boost::any_cast<attribute>(&attr);
+        auto pen = boost::any_cast<terminalpp::attribute>(&attr);
 
-        if (pen != nullptr)
+        if (pen)
         {
             pimpl_->pen_ = *pen;
         }
 
-        on_redraw({rectangle(point(), get_size())});
+        on_redraw({rectangle({}, get_size())});
     }
 }
 

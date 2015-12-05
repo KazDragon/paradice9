@@ -25,15 +25,17 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/tabbed_frame.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
-#include "munin/canvas.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/context.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
+#include "munin/sco_glyphs.hpp"
 #include "munin/vertical_strip_layout.hpp"
+#include <terminalpp/canvas.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <algorithm>
 
 namespace munin {
@@ -50,9 +52,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     tabbed_frame_header_rivet()
-      : top_element_(std::make_shared<filled_box>(element_type(' ')))
-      , middle_element_(std::make_shared<filled_box>(element_type(' ')))
-      , bottom_element_(std::make_shared<filled_box>(element_type(' ')))
+      : top_element_(std::make_shared<filled_box>(' '))
+      , middle_element_(std::make_shared<filled_box>(' '))
+      , bottom_element_(std::make_shared<filled_box>(' '))
     {
         auto content = get_container();
         content->set_layout(std::make_shared<grid_layout>(3, 1));
@@ -64,7 +66,7 @@ public :
     // ======================================================================
     // SET_TOP_ELEMENT
     // ======================================================================
-    void set_top_element(element_type const &top_element)
+    void set_top_element(terminalpp::element const &top_element)
     {
         top_element_->set_fill(top_element);
     }
@@ -72,7 +74,7 @@ public :
     // ======================================================================
     // SET_MIDDLE_ELEMENT
     // ======================================================================
-    void set_middle_element(element_type const &middle_element)
+    void set_middle_element(terminalpp::element const &middle_element)
     {
         middle_element_->set_fill(middle_element);
     }
@@ -80,7 +82,7 @@ public :
     // ======================================================================
     // SET_BOTTOM_ELEMENT
     // ======================================================================
-    void set_bottom_element(element_type const &bottom_element)
+    void set_bottom_element(terminalpp::element const &bottom_element)
     {
         bottom_element_->set_fill(bottom_element);
     }
@@ -100,10 +102,10 @@ public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    tabbed_frame_header_label(std::vector<element_type> const &label)
-      : top_box_(std::make_shared<filled_box>(element_type(' '))),
+    tabbed_frame_header_label(terminalpp::string const &label)
+      : top_box_(std::make_shared<filled_box>(' ')),
         label_(std::make_shared<image>(label)),
-        bottom_box_(std::make_shared<filled_box>(element_type(' ')))
+        bottom_box_(std::make_shared<filled_box>(' '))
     {
         auto content = get_container();
         content->set_layout(std::make_shared<compass_layout>());
@@ -117,7 +119,7 @@ public :
     // ======================================================================
     // SET_TOP_ELEMENT
     // ======================================================================
-    void set_top_element(element_type const &element)
+    void set_top_element(terminalpp::element const &element)
     {
         top_box_->set_fill(element);
     }
@@ -125,7 +127,7 @@ public :
     // ======================================================================
     // SET_LABEL
     // ======================================================================
-    void set_label(std::vector<element_type> const &text)
+    void set_label(terminalpp::string const &text)
     {
         label_->set_image(text);
     }
@@ -133,7 +135,7 @@ public :
     // ======================================================================
     // SET_BOTTOM_ELEMENT
     // ======================================================================
-    void set_bottom_element(element_type const &element)
+    void set_bottom_element(terminalpp::element const &element)
     {
         bottom_box_->set_fill(element);
     }
@@ -146,10 +148,13 @@ protected :
     // ======================================================================
     void do_event(boost::any const &event)
     {
-        auto mouse = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-        if (mouse)
+        auto *report = 
+            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+            
+        if (report
+         && report->button_ != terminalpp::ansi::mouse::report::BUTTON_UP)
         {
+            
             on_click();
         }
     }
@@ -250,31 +255,36 @@ protected :
     // ======================================================================
     void do_event(boost::any const &event)
     {
-        auto sequence = boost::any_cast<odin::ansi::control_sequence>(&event);
-
         bool handled = false;
+        auto *vk = boost::any_cast<terminalpp::virtual_key>(&event);
 
-        if (sequence)
+        if (vk)
         {
-            if (sequence->command_ == odin::ansi::CURSOR_FORWARD)
+            switch (vk->key)
             {
-                if (selected_ + 1 < tabs_.size())
-                {
-                    ++selected_;
-                    update_highlights();
-                    on_tab_selected(tabs_[selected_]);
-                    handled = true;
-                }
-            }
-            else if (sequence->command_ == odin::ansi::CURSOR_BACKWARD)
-            {
-                if (selected_ != 0)
-                {
-                    --selected_;
-                    update_highlights();
-                    on_tab_selected(tabs_[selected_]);
-                    handled = true;
-                }
+                case terminalpp::vk::cursor_right :
+                    if (selected_ + 1 < tabs_.size())
+                    {
+                        ++selected_;
+                        update_highlights();
+                        on_tab_selected(tabs_[selected_]);
+                        handled = true;
+                    }
+                    break;
+                    
+                case terminalpp::vk::cursor_left :
+                    if (selected_ != 0)
+                    {
+                        --selected_;
+                        update_highlights();
+                        on_tab_selected(tabs_[selected_]);
+                        handled = true;
+                    }
+                    break;
+                    
+                default :
+                    // Do nothing.
+                    break;
             }
         }
 
@@ -328,12 +338,12 @@ private :
         auto filler = std::make_shared<basic_container>();
         filler->set_layout(std::make_shared<compass_layout>());
         filler->add_component(
-            std::make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_NORTH);
         filler->add_component(
-            std::make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_CENTRE);
-        filler_ = std::make_shared<filled_box>(element_type(double_lined_horizontal_beam));
+        filler_ = std::make_shared<filled_box>(double_lined_horizontal_beam);
         filler->add_component(filler_, COMPASS_LAYOUT_SOUTH);
 
         // To create the middle section, use a vertical strip layout and
@@ -346,8 +356,8 @@ private :
              index < tabs_.size();
              ++index)
         {
-            auto label = std::make_shared<tabbed_frame_header_label>(
-                munin::ansi::elements_from_string(tabs_[index]));
+            auto label = 
+                std::make_shared<tabbed_frame_header_label>(tabs_[index]);
             labels_.push_back(label);
 
             label->on_click.connect(
@@ -391,68 +401,63 @@ private :
         // and also whether the framed component is focussed (todo).
         odin::u32 index = 0;
 
-        attribute selected_item_pen;
+        terminalpp::attribute selected_item_pen;
 
         if (highlight_)
         {
             selected_item_pen.foreground_colour_ =
-                attribute::high_colour(1, 4, 5);
+                terminalpp::high_colour(1, 4, 5);
         }
 
         for (auto &rivet : rivets_)
         {
             // We want a highlight if this wraps the selected item.
-            attribute pen = index == selected_ || index == selected_ + 1
-                          ? selected_item_pen
-                          : attribute();
+            auto pen = index == selected_ || index == selected_ + 1
+                     ? selected_item_pen
+                     : terminalpp::attribute();
 
             if (index <= selected_)
             {
-                rivet->set_top_element(element_type(
-                    double_lined_top_left_corner, pen));
-
-                rivet->set_middle_element(element_type(
-                    double_lined_vertical_beam, pen));
+                rivet->set_top_element({double_lined_top_left_corner, pen});
+                rivet->set_middle_element({double_lined_vertical_beam, pen});
 
             }
             else if (index == rivets_.size() - 1)
             {
-                rivet->set_top_element(element_type(' '));
-                rivet->set_middle_element(element_type(' '));
+                rivet->set_top_element({' '});
+                rivet->set_middle_element({' '});
             }
             else
             {
-                rivet->set_top_element(element_type(
-                    double_lined_top_right_corner, pen));
+                rivet->set_top_element({double_lined_top_right_corner, pen});
 
-                rivet->set_middle_element(element_type(
-                    double_lined_vertical_beam, pen));
+                rivet->set_middle_element({double_lined_vertical_beam, pen});
             }
 
             if (index == 0)
             {
-                rivet->set_bottom_element(element_type(
+                rivet->set_bottom_element({
                     selected_ == 0
                       ? double_lined_left_tee
                       : double_lined_top_left_corner
-                  , selected_item_pen));
+                  , selected_item_pen});
             }
             else if (index == rivets_.size() - 1)
             {
-                rivet->set_bottom_element(element_type(
-                    double_lined_top_right_corner, selected_item_pen));
+                rivet->set_bottom_element(
+                    {double_lined_top_right_corner, selected_item_pen});
             }
             else
             {
                 if (index == selected_ || index == selected_ + 1)
                 {
-                    rivet->set_bottom_element(element_type(
-                        double_lined_bottom_tee, selected_item_pen));
+                    rivet->set_bottom_element(
+                        {double_lined_bottom_tee, selected_item_pen});
                 }
                 else
                 {
-                    rivet->set_bottom_element(element_type(
-                        double_lined_horizontal_beam, selected_item_pen));
+                    rivet->set_bottom_element(
+                        {double_lined_horizontal_beam, selected_item_pen});
                 }
             }
 
@@ -463,19 +468,18 @@ private :
 
         for (auto &label : labels_)
         {
-            label->set_top_element(element_type(
+            label->set_top_element({
                 double_lined_horizontal_beam
-              , index == selected_ ? selected_item_pen : attribute()));
-            label->set_bottom_element(element_type(
-                double_lined_horizontal_beam, selected_item_pen));
+              , index == selected_ ? selected_item_pen : terminalpp::attribute()});
+            label->set_bottom_element(
+                {double_lined_horizontal_beam, selected_item_pen});
 
             ++index;
         }
 
         if (filler_)
         {
-            filler_->set_fill(
-                element_type(filler_->get_fill().glyph_, selected_item_pen));
+            filler_->set_fill({filler_->get_fill().glyph_, selected_item_pen});
         }
     }
 
@@ -485,21 +489,19 @@ private :
     void assemble_default()
     {
         auto left_rivet = std::make_shared<tabbed_frame_header_rivet>();
-        auto label = std::make_shared<tabbed_frame_header_label>(
-            munin::ansi::elements_from_string(""));
-
+        auto label = std::make_shared<tabbed_frame_header_label>("");
         auto right_rivet = std::make_shared<tabbed_frame_header_rivet>();
 
         auto filler = std::make_shared<basic_container>();
         filler->set_layout(std::make_shared<compass_layout>());
         filler->add_component(
-            std::make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_NORTH);
         filler->add_component(
-            std::make_shared<filled_box>(element_type(' '))
+            std::make_shared<filled_box>(' ')
           , COMPASS_LAYOUT_CENTRE);
         filler->add_component(
-            std::make_shared<filled_box>(element_type(double_lined_horizontal_beam))
+            std::make_shared<filled_box>(double_lined_horizontal_beam)
           , COMPASS_LAYOUT_SOUTH);
 
         auto rightmost = std::make_shared<tabbed_frame_header_rivet>();
@@ -558,24 +560,24 @@ struct tabbed_frame::impl
     // ======================================================================
     void set_highlight(bool highlight)
     {
-        attribute pen;
+        terminalpp::attribute pen;
 
         if (highlight)
         {
-            pen.foreground_colour_ = attribute::high_colour(1, 4, 5);
+            pen.foreground_colour_ = terminalpp::high_colour(1, 4, 5);
         }
 
         header_->set_highlight(highlight);
         left_border_->set_fill(
-            element_type(left_border_->get_fill().glyph_, pen));
+            {left_border_->get_fill().glyph_, pen});
         bottom_left_corner_->set_fill(
-            element_type(bottom_left_corner_->get_fill().glyph_, pen));
+            {bottom_left_corner_->get_fill().glyph_, pen});
         bottom_border_->set_fill(
-            element_type(bottom_border_->get_fill().glyph_, pen));
+            {bottom_border_->get_fill().glyph_, pen});
         bottom_right_corner_->set_fill(
-            element_type(bottom_right_corner_->get_fill().glyph_, pen));
+            {bottom_right_corner_->get_fill().glyph_, pen});
         right_border_->set_fill(
-            element_type(right_border_->get_fill().glyph_, pen));
+            {right_border_->get_fill().glyph_, pen});
     }
 
     tabbed_frame                         &self_;
@@ -616,25 +618,25 @@ tabbed_frame::tabbed_frame()
     auto west = std::make_shared<basic_container>();
     west->set_layout(std::make_shared<grid_layout>(1, 1));
     pimpl_->left_border_ = std::make_shared<filled_box>(
-        element_type(double_lined_vertical_beam));
+        double_lined_vertical_beam);
     west->add_component(pimpl_->left_border_);
 
     // East Container
     auto east = std::make_shared<basic_container>();
     east->set_layout(std::make_shared<grid_layout>(1, 1));
     pimpl_->right_border_ = std::make_shared<filled_box>(
-        element_type(double_lined_vertical_beam));
+        double_lined_vertical_beam);
     east->add_component(pimpl_->right_border_);
 
     // South Container
     auto south = std::make_shared<basic_container>();
     south->set_layout(std::make_shared<compass_layout>());
     pimpl_->bottom_left_corner_ = std::make_shared<filled_box>(
-        element_type(double_lined_bottom_left_corner));
+        double_lined_bottom_left_corner);
     pimpl_->bottom_border_ = std::make_shared<filled_box>(
-        element_type(double_lined_horizontal_beam));
+        double_lined_horizontal_beam);
     pimpl_->bottom_right_corner_ = std::make_shared<filled_box>(
-        element_type(double_lined_bottom_right_corner));
+        double_lined_bottom_right_corner);
 
     south->add_component(pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST);
     south->add_component(pimpl_->bottom_border_, COMPASS_LAYOUT_CENTRE);

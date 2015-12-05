@@ -31,6 +31,10 @@
 #include "paradice/active_encounter.hpp"
 #include <string>
 
+namespace terminalpp {
+    class string;
+}
+
 namespace hugin {
 
 //* =========================================================================
@@ -61,14 +65,12 @@ public :
     //* =====================================================================
     /// \brief Adds output to the output text area on the main screen.
     //* =====================================================================
-    void add_output_text(
-        std::vector<munin::element_type> const &text);
+    void add_output_text(terminalpp::string const &text);
     
     //* =====================================================================
     /// \brief Updates the who list on the main screen.
     //* =====================================================================
-    void update_wholist(
-        std::vector<std::string> const &names);
+    void update_wholist(std::vector<std::string> const &names);
     
     //* =====================================================================
     /// \brief Adds a line of command history to the input pane.
@@ -105,7 +107,7 @@ public :
     /// \brief Sets the text contained in the Help window.
     //* =====================================================================
     void set_help_window_text(
-        std::vector<munin::element_type> const &text);
+        terminalpp::string const &text);
 
     //* =====================================================================
     /// \brief Register a callback for when the close button on the help

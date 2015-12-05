@@ -32,6 +32,10 @@
 #include "paradice/active_encounter.hpp"
 #include <boost/asio/strand.hpp>
 
+namespace terminalpp {
+    class string;
+}
+
 namespace paradice {
     class beast;
     class encounter;
@@ -249,12 +253,12 @@ public :
     //* =====================================================================
     /// \brief Adds output to the output text area on the main screen.
     //* =====================================================================
-    void add_output_text(std::vector<munin::element_type> const &text);
+    void add_output_text(terminalpp::string const &text);
 
     //* =====================================================================
     /// \brief Sets the content of the status bar on the intro screen.
     //* =====================================================================
-    void set_statusbar_text(std::vector<munin::element_type> const &text);
+    void set_statusbar_text(terminalpp::string const &text);
 
     //* =====================================================================
     /// \brief Updates the who list on the main screen.
@@ -285,7 +289,7 @@ public :
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.
     //* =====================================================================
-    void set_help_window_text(std::vector<munin::element_type> const &text);
+    void set_help_window_text(terminalpp::string const &text);
 
 private :
     struct impl;

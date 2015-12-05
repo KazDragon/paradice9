@@ -34,6 +34,7 @@
 #include "who.hpp"
 #include "munin/algorithm.hpp"
 #include "odin/tokenise.hpp"
+#include "terminalpp/string.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
@@ -169,7 +170,7 @@ PARADICE_COMMAND_IMPL(admin_shutdown)
 
                 send_to_player(
                     ctx
-                  , munin::string_to_elements(boost::str(boost::format(
+                  , terminalpp::string(boost::str(boost::format(
                         "\\[1Error saving character: %s.")
                             % ch->get_name()))
                   , player);

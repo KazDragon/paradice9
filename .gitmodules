@@ -1,3 +1,6 @@
 [submodule "telnetpp"]
 	path = telnetpp
 	url = https://github.com/KazDragon/telnetpp
+[submodule "terminalpp"]
+	path = terminalpp
+	url = https://github.com/KazDragon/terminalpp

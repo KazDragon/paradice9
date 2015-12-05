@@ -54,9 +54,9 @@ protected :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size(
+    virtual terminalpp::extent do_get_preferred_size(
         std::vector<std::shared_ptr<component>> const &components
-      , std::vector<boost::any>                 const &hints) const;
+      , std::vector<boost::any>                 const &hints) const override;
 
     //* =====================================================================
     /// \brief Called by operator().  Derived classes must override this
@@ -66,7 +66,7 @@ protected :
     virtual void do_layout(
         std::vector<std::shared_ptr<component>> const &components
       , std::vector<boost::any>                 const &hints
-      , extent                                         size);
+      , terminalpp::extent                             size) override;
 };
 
 }

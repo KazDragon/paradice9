@@ -25,14 +25,13 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/named_frame.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "munin/sco_glyphs.hpp"
+#include <terminalpp/canvas_view.hpp>
 #include <utility>
 
 namespace munin {
@@ -47,9 +46,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     title_bar(
-        std::vector<element_type>  title
-      , element_type const        &filler_element)
-        : title_(std::move(title))
+        terminalpp::string const &title
+      , terminalpp::element const &filler_element)
+        : title_(title)
         , filler_element_(filler_element)
     {
         set_can_focus(false);
@@ -58,21 +57,21 @@ public :
     // ======================================================================
     // SET_TITLE
     // ======================================================================
-    void set_title(std::vector<element_type> const &title)
+    void set_title(terminalpp::string const &title)
     {
         title_ = title;
-        on_redraw({rectangle(point(), get_size())});
+        on_redraw({rectangle({}, get_size())});
     }
 
     // ======================================================================
     // DO_GET_PREFERRED_SIZE
     // ======================================================================
-    extent do_get_preferred_size() const
+    terminalpp::extent do_get_preferred_size() const
     {
         // The preferred width is the title's width, plus two blank either
         // side, plus at least one filler either side for an additional 2;
         // and a height of 1.
-        return extent(title_.size() + 4, 1);
+        return terminalpp::extent(title_.size() + 4, 1);
     }
 
     // ======================================================================
@@ -94,7 +93,7 @@ protected :
     {
         if (name == ATTRIBUTE_PEN)
         {
-            auto pen = boost::any_cast<attribute>(&attr);
+            auto pen = boost::any_cast<terminalpp::attribute>(&attr);
 
             if (pen != nullptr)
             {
@@ -102,7 +101,7 @@ protected :
             }
         }
 
-        on_redraw({rectangle(point(), get_size())});
+        on_redraw({rectangle({}, get_size())});
     }
 
 private :
@@ -110,7 +109,7 @@ private :
     // DRAW_FILLER
     // ======================================================================
     void draw_filler(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         for (odin::s32 y_coord = region.origin.y;
@@ -130,10 +129,10 @@ private :
     // DRAW_TITLE
     // ======================================================================
     void draw_title(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
-        static element_type const default_element(' ');
+        static terminalpp::element const default_element(' ');
 
         for (odin::s32 y_coord = region.origin.y;
              y_coord < region.origin.y + region.size.height;
@@ -157,8 +156,8 @@ private :
         }
     }
 
-    std::vector<element_type> title_;
-    element_type              filler_element_;
+    terminalpp::string  title_;
+    terminalpp::element filler_element_;
 };
 
 // ==========================================================================
@@ -176,7 +175,7 @@ public :
     // ======================================================================
     // SET_NAME
     // ======================================================================
-    void set_name(std::vector<element_type> const &name)
+    void set_name(terminalpp::string const &name)
     {
         title_bar_->set_title(name);
     }
@@ -190,9 +189,9 @@ public :
 
         if (closeable_)
         {
-            attribute pen;
-            pen.foreground_colour_ = odin::ansi::graphics::colour::red;
-            pen.intensity_ = odin::ansi::graphics::intensity::bold;
+            terminalpp::attribute pen;
+            pen.foreground_colour_ = terminalpp::ansi::graphics::colour::red;
+            pen.intensity_ = terminalpp::ansi::graphics::intensity::bold;
 
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, single_lined_top_right_corner);
@@ -203,17 +202,24 @@ public :
         {
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, double_lined_top_right_corner);
-            top_right_->set_attribute(ATTRIBUTE_PEN,   attribute());
+            top_right_->set_attribute(ATTRIBUTE_PEN,   terminalpp::attribute());
         }
     }
 
     // ======================================================================
-    // HANDLE_MOUSE_CLICK
+    // HANDLE_MOUSE_EVENT
     // ======================================================================
-    bool handle_mouse_click(odin::ansi::mouse_report const *report)
+    bool handle_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
         bool handled = false;
 
+        // If this is not a mouse click, then ignore the event.
+        if (report.button_ != terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN
+         && report.button_ != terminalpp::ansi::mouse::report::RIGHT_BUTTON_DOWN)
+        {
+            return false;
+        }
+        
         // If we're closeable, then check to see if the close button has been
         // pressed.  If so, fire the close signal.
         if (closeable_)
@@ -221,10 +227,10 @@ public :
             auto position = self_.get_position();
             auto size =     self_.get_size();
 
-            point close_button((position.x + size.width) - 1, 0);
+            terminalpp::point close_button((position.x + size.width) - 1, 0);
 
-            if (report->x_position_ == close_button.x
-             && report->y_position_ == close_button.y)
+            if (report.x_position_ == close_button.x
+             && report.y_position_ == close_button.y)
             {
                 self_.on_close();
                 handled = true;
@@ -245,16 +251,14 @@ public :
 // ==========================================================================
 named_frame::named_frame()
   : basic_frame(
-        std::make_shared<filled_box>(element_type(double_lined_top_left_corner)),
-        std::make_shared<title_bar>(
-              munin::ansi::elements_from_string(""),
-              element_type(double_lined_horizontal_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_top_right_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_bottom_left_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_horizontal_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
+        std::make_shared<filled_box>(double_lined_top_left_corner),
+        std::make_shared<title_bar>("", double_lined_horizontal_beam),
+        std::make_shared<filled_box>(double_lined_top_right_corner),
+        std::make_shared<filled_box>(double_lined_vertical_beam),
+        std::make_shared<filled_box>(double_lined_vertical_beam),
+        std::make_shared<filled_box>(double_lined_bottom_left_corner),
+        std::make_shared<filled_box>(double_lined_horizontal_beam),
+        std::make_shared<filled_box>(double_lined_bottom_right_corner))
 {
     pimpl_ = std::make_shared<impl>(std::ref(*this));
     pimpl_->title_bar_ = std::dynamic_pointer_cast<title_bar>(get_top_component());
@@ -273,16 +277,16 @@ named_frame::~named_frame()
 // ==========================================================================
 void named_frame::set_name(std::string const &name)
 {
-    set_name(munin::ansi::elements_from_string(name));
+    set_name(terminalpp::string(name));
 }
 
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void named_frame::set_name(std::vector<element_type> name)
+void named_frame::set_name(terminalpp::string const &name)
 {
-    pimpl_->set_name(std::move(name));
-    on_redraw({rectangle(point(), extent(get_size().width, 1))});
+    pimpl_->set_name(name);
+    on_redraw({rectangle({}, terminalpp::extent(get_size().width, 1))});
 }
 
 // ==========================================================================
@@ -300,12 +304,12 @@ void named_frame::do_event(boost::any const &event)
 {
     bool handled = false;
 
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
-        handled = pimpl_->handle_mouse_click(report);
+        handled = pimpl_->handle_mouse_event(*report);
     }
 
     if (!handled)

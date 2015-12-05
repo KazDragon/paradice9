@@ -28,6 +28,7 @@
 #define MUNIN_VERTICAL_SCROLL_BAR_HPP_
 
 #include "munin/basic_component.hpp"
+#include "odin/core.hpp"
 #include <boost/optional.hpp>
 
 namespace munin {
@@ -90,14 +91,14 @@ protected :
     /// this function in order to get the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual extent do_get_preferred_size() const;
+    virtual terminalpp::extent do_get_preferred_size() const override;
 
     //* =====================================================================
     /// \brief Called by set_size().  Derived classes must override this
     /// function in order to set the size of the component in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_size(extent const &size);
+    virtual void do_set_size(terminalpp::extent const &size) override;
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -110,20 +111,20 @@ protected :
     //* =====================================================================
     virtual void do_draw(
         context         &ctx
-      , rectangle const &region);
+      , rectangle const &region) override;
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
-    virtual void do_event(boost::any const &event);
+    virtual void do_event(boost::any const &event) override;
 
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this
     /// function in order to set an attribute in a custom manner.
     //* =====================================================================
     virtual void do_set_attribute(
-        std::string const &name, boost::any const &attr);
+        std::string const &name, boost::any const &attr) override;
 
 private :
     struct impl;

@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/text/document.hpp"
+#include "terminalpp/string.hpp"
 
 namespace munin { namespace text {
 
@@ -38,7 +39,7 @@ document::~document()
 // ==========================================================================
 // SET_SIZE
 // ==========================================================================
-void document::set_size(munin::extent size)
+void document::set_size(terminalpp::extent size)
 {
     do_set_size(size);
     on_caret_position_changed();
@@ -47,7 +48,7 @@ void document::set_size(munin::extent size)
 // ==========================================================================
 // GET_SIZE
 // ==========================================================================
-munin::extent document::get_size() const
+terminalpp::extent document::get_size() const
 {
     return do_get_size();
 }
@@ -55,7 +56,7 @@ munin::extent document::get_size() const
 // ==========================================================================
 // SET_CARET_POSITION
 // ==========================================================================
-void document::set_caret_position(munin::point const& pt)
+void document::set_caret_position(terminalpp::point const& pt)
 {
     do_set_caret_position(pt);
     on_caret_position_changed();
@@ -64,7 +65,7 @@ void document::set_caret_position(munin::point const& pt)
 // ==========================================================================
 // GET_CARET_POSITION
 // ==========================================================================
-munin::point document::get_caret_position() const
+terminalpp::point document::get_caret_position() const
 {
     return do_get_caret_position();
 }
@@ -98,8 +99,8 @@ odin::u32 document::get_text_size() const
 // INSERT_TEXT
 // ==========================================================================
 void document::insert_text(
-    std::vector<element_type> const &text
-  , boost::optional<odin::u32>       index)
+    terminalpp::string const  &text
+  , boost::optional<odin::u32> index)
 {
     do_insert_text(text, index);
 }
@@ -115,7 +116,7 @@ void document::delete_text(std::pair<odin::u32, odin::u32> range)
 // ==========================================================================
 // SET_TEXT
 // ==========================================================================
-void document::set_text(std::vector<element_type> const &text)
+void document::set_text(terminalpp::string const &text)
 {
     do_set_text(text);
 }
@@ -131,7 +132,7 @@ odin::u32 document::get_number_of_lines() const
 // ==========================================================================
 // GET_LINE
 // ==========================================================================
-std::vector<element_type> document::get_line(odin::u32 index) const
+terminalpp::string document::get_line(odin::u32 index) const
 {
     return do_get_line(index);
 }

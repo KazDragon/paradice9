@@ -30,7 +30,8 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -50,7 +51,7 @@ struct button::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-button::button(std::vector<element_type> const &caption)
+button::button(terminalpp::string const &caption)
     : pimpl_(std::make_shared<impl>())
 {
     auto img = std::make_shared<image>(caption);
@@ -77,24 +78,23 @@ button::~button()
 // ==========================================================================
 void button::do_event(boost::any const &event)
 {
-    auto ch = boost::any_cast<char>(&event);
-
-    if (ch != NULL)
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        if (*ch == ' ' || *ch == '\n')
+        if (vk->key == terminalpp::vk::space
+         || vk->key == terminalpp::vk::enter)
         {
             on_click();
         }
     }
-
-    auto report = boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != NULL)
+    
+    auto report = boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+    
+    if (report
+     && report->button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
     {
-        if (report->button_ == 0)
-        {
-            on_click();
-        }
+        on_click();
     }
 }
 

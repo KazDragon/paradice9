@@ -27,7 +27,6 @@
 #include "hugin/beast_editor.hpp"
 #include <munin/algorithm.hpp>
 #include <munin/aligned_layout.hpp>
-#include <munin/ansi/protocol.hpp>
 #include <munin/basic_container.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
@@ -40,6 +39,7 @@
 #include <munin/scroll_pane.hpp>
 #include <munin/solid_frame.hpp>
 #include <munin/text_area.hpp>
+#include <terminalpp/string.hpp>
 
 namespace hugin {
 
@@ -61,32 +61,34 @@ struct beast_editor::impl
 beast_editor::beast_editor()
     : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+    
     // Initialise all the viewable components.
     auto name_label = 
-        std::make_shared<munin::image>(munin::string_to_elements("       Name: "));
+        std::make_shared<munin::image>("       Name: "_ts);
 
     auto description_label = 
-        std::make_shared<munin::image>(munin::string_to_elements("Description: "));
+        std::make_shared<munin::image>("Description: "_ts);
 
     auto alignment_label = 
-        std::make_shared<munin::image>(munin::string_to_elements("  Alignment: "));
+        std::make_shared<munin::image>("  Alignment: "_ts);
 
     pimpl_->name_field_ = std::make_shared<munin::edit>();
     pimpl_->description_area_ = std::make_shared<munin::text_area>();
     pimpl_->alignment_dropdown_ = std::make_shared<munin::dropdown_list>();
 
-    std::vector<std::vector<munin::element_type>> dropdown_items;
-    dropdown_items.push_back(munin::ansi::elements_from_string("Hostile"));
-    dropdown_items.push_back(munin::ansi::elements_from_string("Neutral"));
-    dropdown_items.push_back(munin::ansi::elements_from_string("Friendly"));
+    std::vector<terminalpp::string> dropdown_items;
+    dropdown_items.push_back("Hostile"_ts);
+    dropdown_items.push_back("Neutral"_ts);
+    dropdown_items.push_back("Friendly"_ts);
 
     pimpl_->alignment_dropdown_->set_items(dropdown_items);
     pimpl_->alignment_dropdown_->set_item_index(1);
     
     pimpl_->save_button_ = 
-        std::make_shared<munin::button>(munin::string_to_elements(" Save "));
+        std::make_shared<munin::button>(" Save "_ts);
     pimpl_->revert_button_ = 
-        std::make_shared<munin::button>(munin::string_to_elements("Revert"));
+        std::make_shared<munin::button>("Revert"_ts);
 
     // Set up callbacks
     pimpl_->save_button_->on_click.connect([this]{on_save();});
@@ -112,7 +114,7 @@ beast_editor::beast_editor()
     name_container->set_layout(
         std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
     name_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 
@@ -120,7 +122,7 @@ beast_editor::beast_editor()
     auto description_label_container = std::make_shared<munin::basic_container>();
     description_label_container->set_layout(std::make_shared<munin::compass_layout>());
     description_label_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_NORTH);
     description_label_container->add_component(
         description_label,
@@ -154,7 +156,7 @@ beast_editor::beast_editor()
     alignment_container->set_layout(
         std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
     alignment_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')),
+        std::make_shared<munin::filled_box>(' '),
         {},
         munin::LOWEST_LAYER);
 
@@ -170,7 +172,7 @@ beast_editor::beast_editor()
     button_container->set_layout(std::make_shared<munin::compass_layout>());
     button_container->add_component(pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST);
     button_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
     button_container->add_component(pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);
 
@@ -191,47 +193,47 @@ beast_editor::~beast_editor()
 // ==========================================================================
 // SET_BEAST_NAME
 // ==========================================================================
-void beast_editor::set_beast_name(std::string const &name)
+void beast_editor::set_beast_name(terminalpp::string const &name)
 {
     auto doc = pimpl_->name_field_->get_document();
     doc->delete_text({0, doc->get_text_size()});
-    doc->insert_text(munin::string_to_elements(name));
+    doc->insert_text(name);
 }
 
 // ==========================================================================
 // GET_BEAST_NAME
 // ==========================================================================
-std::string beast_editor::get_beast_name() const
+terminalpp::string beast_editor::get_beast_name() const
 {
     auto doc = pimpl_->name_field_->get_document();
     auto name = doc->get_line(0);
     
-    return munin::ansi::string_from_elements(name);
+    return name;
 }
 
 // ==========================================================================
 // SET_BEAST_DESCRIPTION
 // ==========================================================================
-void beast_editor::set_beast_description(std::string const &description)
+void beast_editor::set_beast_description(terminalpp::string const &description)
 {
     auto doc = pimpl_->description_area_->get_document();
     doc->delete_text({0, doc->get_text_size()});
-    doc->insert_text(munin::string_to_elements(description));
+    doc->insert_text(description);
 }
 
 // ==========================================================================
 // GET_BEAST_DESCRIPTION
 // ==========================================================================
-std::string beast_editor::get_beast_description() const
+terminalpp::string beast_editor::get_beast_description() const
 {
-    std::string result;
+    terminalpp::string result;
 
     auto doc = pimpl_->description_area_->get_document();
     auto document_size = doc->get_size();
 
     for (odin::s32 index = 0; index < document_size.height; ++index)
     {
-        result += munin::ansi::string_from_elements(doc->get_line(index));
+        result += doc->get_line(index);
         result += "\n";
     }
 

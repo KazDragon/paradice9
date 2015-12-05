@@ -32,18 +32,18 @@ namespace munin {
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent vertical_squeeze_layout::do_get_preferred_size(
+terminalpp::extent vertical_squeeze_layout::do_get_preferred_size(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints) const
 {
     // The preferred size of the whole component is the maximum preferred
     // height, and the maximum preferred width multiplied by the number
     // of components.
-    extent maximum_preferred_size(0, 0);
+    terminalpp::extent maximum_preferred_size(0, 0);
 
     for (auto comp : components)
     {
-        extent preferred_size = comp->get_preferred_size();
+        terminalpp::extent preferred_size = comp->get_preferred_size();
 
         maximum_preferred_size.width = (std::max)(
             maximum_preferred_size.width
@@ -65,7 +65,7 @@ extent vertical_squeeze_layout::do_get_preferred_size(
 void vertical_squeeze_layout::do_layout(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints,
-    extent                                         size)
+    terminalpp::extent                             size)
 {
     auto amount = components.size();
 
@@ -79,7 +79,7 @@ void vertical_squeeze_layout::do_layout(
         {
             auto comp = components[index];
 
-            comp->set_position(point(
+            comp->set_position(terminalpp::point(
                 (width_per_component * index) + width_remainder_used
                 , odin::u32(0)));
 
@@ -91,7 +91,7 @@ void vertical_squeeze_layout::do_layout(
                 ++width_remainder_used;
             }
 
-            comp->set_size(extent(width, size.height));
+            comp->set_size(terminalpp::extent(width, size.height));
         }
     }
 }

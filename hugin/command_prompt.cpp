@@ -25,15 +25,14 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "command_prompt.hpp"
-#include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/edit.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/string.hpp> 
 #include <boost/optional.hpp>
 #include <algorithm>
 #include <deque>
+#include <terminalpp/virtual_key.hpp>
 
 BOOST_STATIC_CONSTANT(odin::u32, MAX_HISTORY = 50);
 
@@ -50,7 +49,7 @@ struct command_prompt::impl
     std::deque<std::string>          history_;
 
     // Text to remember while running through the history.
-    std::vector<munin::element_type> current_text_;
+    terminalpp::string               current_text_;
 };
 
 // ==========================================================================
@@ -102,22 +101,17 @@ void command_prompt::clear_history()
 // ==========================================================================
 void command_prompt::do_event(boost::any const &ev)
 {
-    auto const *sequence = 
-        boost::any_cast<odin::ansi::control_sequence>(&ev);
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
+    bool handled = false;
 
-    if (sequence != NULL)
+    if (vk)
     {
-        if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-         && sequence->command_ == odin::ansi::CURSOR_UP)
+        if (vk->key == terminalpp::vk::cursor_up)
         {
             if (!pimpl_->history_.empty())
             {
-                odin::u32 amount = sequence->arguments_.empty()
-                           ? 1
-                           : atoi(sequence->arguments_.c_str());
-
                 odin::u32 index = (std::min)(
-                    pimpl_->current_history_ + amount
+                    pimpl_->current_history_ + vk->repeat_count
                   , odin::u32(pimpl_->history_.size()));
 
                 if (index != pimpl_->current_history_)
@@ -135,23 +129,19 @@ void command_prompt::do_event(boost::any const &ev)
                     document->delete_text(
                         {0, document->get_text_size()});
 
-                    document->insert_text(munin::ansi::elements_from_string(
-                        pimpl_->history_[index - 1]));
+                    document->insert_text(pimpl_->history_[index - 1]);
                 }
             }
+            
+            handled = true;
         }
-        else if (sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-            && sequence->command_ == odin::ansi::CURSOR_DOWN)
+        else if (vk->key == terminalpp::vk::cursor_down)
         {
             if (!pimpl_->history_.empty())
             {
-                odin::u32 amount = sequence->arguments_.empty()
-                           ? 1
-                           : atoi(sequence->arguments_.c_str());
-
-                odin::u32 index = amount > pimpl_->current_history_
+                odin::u32 index = vk->repeat_count > pimpl_->current_history_
                           ? 0
-                          : pimpl_->current_history_ - amount;
+                          : pimpl_->current_history_ - vk->repeat_count;
 
                 if (index != pimpl_->current_history_)
                 {
@@ -168,19 +158,16 @@ void command_prompt::do_event(boost::any const &ev)
                     }
                     else
                     {
-                        document->insert_text(
-                            munin::ansi::elements_from_string(
-                                pimpl_->history_[index - 1]));
+                        document->insert_text(pimpl_->history_[index - 1]);
                     }
                 }
             }
-        }
-        else
-        {
-            composite_component::do_event(ev);
+
+            handled = true;
         }
     }
-    else
+    
+    if (!handled)
     {
         composite_component::do_event(ev);
     }

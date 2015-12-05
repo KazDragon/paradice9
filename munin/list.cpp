@@ -25,9 +25,10 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/list.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
+#include <terminalpp/canvas_view.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace munin {
 
@@ -42,17 +43,6 @@ struct list::impl
     impl(list &self)
         : self_(self)
     {
-    }
-
-    // ======================================================================
-    // DO_CHARACTER_EVENT
-    // ======================================================================
-    void do_character_event(char ch)
-    {
-        if (ch == '\b' || ch == odin::ascii::DEL)
-        {
-            self_.set_item_index(-1);
-        }
     }
 
     // ======================================================================
@@ -93,60 +83,49 @@ struct list::impl
     {
         self_.set_item_index(items_.size() - 1);
     }
-
+    
     // ======================================================================
-    // DO_ANSI_CONTROL_SEQUENCE_EVENT
+    // DO_VK_EVENT
     // ======================================================================
-    void do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    void do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        switch (vk.key)
         {
-            // Check for the up arrow key
-            if (sequence.command_ == odin::ansi::CURSOR_UP)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_up_key_event(times);
-            }
-            // Check for the down arrow key
-            else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_down_key_event(times);
-            }
-            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
-            {
-                // Check for the HOME key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '1')
-                {
-                    do_home_key_event();
-                }
-                // Check for the END key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '4')
-                {
-                    do_end_key_event();
-                }
-            }
+            case terminalpp::vk::cursor_up :
+                do_cursor_up_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_down :
+                do_cursor_down_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::home :
+                do_home_key_event();
+                break;
+                
+            case terminalpp::vk::end :
+                do_end_key_event();
+                break;
+                
+            case terminalpp::vk::bs : // fall-through
+            case terminalpp::vk::del :
+                self_.set_item_index(-1);
+                break;
+                
+            default :
+                // Do nothing.
+                break;
         }
     }
 
     // ======================================================================
-    // DO_ANSI_MOUSE_REPORT_EVENT
+    // DO_MOUSE_EVENT
     // ======================================================================
-    void do_ansi_mouse_report_event(
-        odin::ansi::mouse_report const &mouse_report)
+    void do_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (mouse_report.button_ == odin::ansi::mouse_report::LEFT_BUTTON_DOWN)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
-            auto item_selected = mouse_report.y_position_;
+            auto item_selected = report.y_position_;
 
             if (odin::u32(item_selected) <= items_.size())
             {
@@ -164,9 +143,9 @@ struct list::impl
         }
     }
 
-    list                                   &self_;
-    std::vector<std::vector<element_type>>  items_;
-    odin::s32                               item_index_;
+    list                            &self_;
+    std::vector<terminalpp::string>  items_;
+    odin::s32                        item_index_;
 };
 
 // ==========================================================================
@@ -188,7 +167,7 @@ list::~list()
 // ==========================================================================
 // SET_ITEMS
 // ==========================================================================
-void list::set_items(std::vector<std::vector<element_type>> items)
+void list::set_items(std::vector<terminalpp::string> const &items)
 {
     auto old_items_size = pimpl_->items_.size();
     auto size = get_size();
@@ -203,7 +182,7 @@ void list::set_items(std::vector<std::vector<element_type>> items)
     }
 
     // We will probably require redrawing the entire component.
-    on_redraw({rectangle(point(), size)});
+    on_redraw({rectangle({}, size)});
 
     // This may well change the preferred size of this component.
     on_preferred_size_changed();
@@ -229,12 +208,18 @@ void list::set_item_index(odin::s32 index)
 
     if (old_index >= 0)
     {
-        on_redraw({rectangle(point(0, old_index), extent(size.width, 1))});
+        on_redraw({
+            rectangle(
+                terminalpp::point(0, old_index)
+              , terminalpp::extent(size.width, 1))});
     }
 
     if (index >= 0)
     {
-        on_redraw({rectangle(point(0, index), extent(size.width, 1))});
+        on_redraw({
+            rectangle(
+                terminalpp::point(0, index)
+              , terminalpp::extent(size.width, 1))});
     }
 
     on_item_changed(old_index);
@@ -252,17 +237,17 @@ odin::s32 list::get_item_index() const
 // ==========================================================================
 // GET_ITEM
 // ==========================================================================
-std::vector<element_type> list::get_item() const
+terminalpp::string list::get_item() const
 {
     return pimpl_->item_index_ < 0
-      ? std::vector<element_type>()
+      ? terminalpp::string()
       : pimpl_->items_[pimpl_->item_index_];
 }
 
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent list::do_get_preferred_size() const
+terminalpp::extent list::do_get_preferred_size() const
 {
     // The preferred size of this component is the widest item wide, and
     // the number of components high.
@@ -273,16 +258,16 @@ extent list::do_get_preferred_size() const
         max_width = (std::max)(max_width, odin::u32(item.size()));
     }
 
-    return extent(max_width, pimpl_->items_.size());
+    return terminalpp::extent(max_width, pimpl_->items_.size());
 }
 
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point list::do_get_cursor_position() const
+terminalpp::point list::do_get_cursor_position() const
 {
     // The 'cursor' is the selected element, or (0,0) if none is selected.
-    return point(
+    return terminalpp::point(
         0
       , pimpl_->item_index_ == -1 ? 0 : pimpl_->item_index_);
 }
@@ -290,7 +275,7 @@ point list::do_get_cursor_position() const
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void list::do_set_cursor_position(point const &position)
+void list::do_set_cursor_position(terminalpp::point const &position)
 {
     set_item_index(position.y);
 }
@@ -302,8 +287,8 @@ void list::do_draw(
     context         &ctx
   , rectangle const &region)
 {
-    static element_type const default_element(' ');
-    canvas &cvs = ctx.get_canvas();
+    static terminalpp::element const default_element(' ');
+    auto &cvs = ctx.get_canvas();
 
     for (odin::s32 y_coord = region.origin.y;
         y_coord < region.origin.y + region.size.height;
@@ -321,16 +306,16 @@ void list::do_draw(
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                element_type element = x_coord < odin::s32(item.size())
-                                     ? item[x_coord]
-                                     : default_element;
+                auto element = x_coord < odin::s32(item.size())
+                             ? item[x_coord]
+                             : default_element;
 
                 if (is_selected_item)
                 {
                     element.attribute_.polarity_ =
-                        element.attribute_.polarity_ == odin::ansi::graphics::polarity::negative
-                                                      ? odin::ansi::graphics::polarity::positive
-                                                      : odin::ansi::graphics::polarity::negative;
+                        element.attribute_.polarity_ == terminalpp::ansi::graphics::polarity::negative
+                                                      ? terminalpp::ansi::graphics::polarity::positive
+                                                      : terminalpp::ansi::graphics::polarity::negative;
                 }
 
                 cvs[x_coord][y_coord] = element;
@@ -353,27 +338,19 @@ void list::do_draw(
 // ==========================================================================
 void list::do_event(boost::any const &event)
 {
-    char const *ch = boost::any_cast<char>(&event);
-
-    if (ch != nullptr)
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&event);
+    
+    if (vk)
     {
-        pimpl_->do_character_event(*ch);
+        pimpl_->do_vk_event(*vk);
     }
-
-    odin::ansi::control_sequence const *sequence =
-        boost::any_cast<odin::ansi::control_sequence>(&event);
-
-    if (sequence != nullptr)
+    
+    auto const *report = 
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+        
+    if (report)
     {
-        pimpl_->do_ansi_control_sequence_event(*sequence);
-    }
-
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
-
-    if (report != nullptr)
-    {
-        pimpl_->do_ansi_mouse_report_event(*report);
+        pimpl_->do_mouse_event(*report);
     }
 }
 

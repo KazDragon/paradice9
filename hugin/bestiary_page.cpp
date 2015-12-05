@@ -26,7 +26,6 @@
 // ==========================================================================
 #include "hugin/bestiary_page.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
 #include "munin/compass_layout.hpp"
@@ -40,6 +39,7 @@
 #include "munin/text_area.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include "munin/vertical_strip_layout.hpp"
+#include <terminalpp/string.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <vector>
 
@@ -65,7 +65,7 @@ struct bestiary_page::impl
     std::shared_ptr<munin::container> details_container_;
 
     std::vector<std::shared_ptr<paradice::beast>> beasts_;
-    std::vector<std::vector<munin::element_type>> names_;
+    std::vector<terminalpp::string>   names_;
 
     std::vector<boost::signals::connection> connections_;
 
@@ -92,8 +92,7 @@ struct bestiary_page::impl
             name_field_->get_document()->set_text(names_[index]);
 
             auto description = beasts_[index]->get_description();
-            description_area_->get_document()->set_text(
-                munin::string_to_elements(description));
+            description_area_->get_document()->set_text(description);
         }
     }
 
@@ -163,21 +162,18 @@ struct bestiary_page::impl
 // ==========================================================================
 bestiary_page::bestiary_page()
 {
+    using namespace terminalpp::literals;
+
     pimpl_ = std::make_shared<impl>(boost::ref(*this));
 
     pimpl_->beast_list_       = std::make_shared<munin::list>();
     pimpl_->name_field_       = std::make_shared<munin::edit>();
     pimpl_->description_area_ = std::make_shared<munin::text_area>();
-    pimpl_->new_button_       = std::make_shared<munin::button>(
-        munin::string_to_elements("New"));
-    pimpl_->clone_button_     = std::make_shared<munin::button>(
-        munin::string_to_elements("Clone"));
-    pimpl_->edit_button_      = std::make_shared<munin::button>(
-        munin::string_to_elements("Edit"));
-    pimpl_->fight_button_     = std::make_shared<munin::button>(
-        munin::string_to_elements("Fight!"));
-    pimpl_->delete_button_    = std::make_shared<munin::button>(
-        munin::string_to_elements("Delete"));
+    pimpl_->new_button_       = std::make_shared<munin::button>("New"_ts);
+    pimpl_->clone_button_     = std::make_shared<munin::button>("Clone"_ts);
+    pimpl_->edit_button_      = std::make_shared<munin::button>("Edit"_ts);
+    pimpl_->fight_button_     = std::make_shared<munin::button>("Fight!"_ts);
+    pimpl_->delete_button_    = std::make_shared<munin::button>("Delete"_ts);
 
     // Set up event callbacks.
     pimpl_->connections_.push_back(
@@ -245,7 +241,7 @@ bestiary_page::bestiary_page()
     buttons_container->add_component(
         safe_buttons_container, munin::COMPASS_LAYOUT_WEST);
     buttons_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')), munin::COMPASS_LAYOUT_CENTRE);
+        std::make_shared<munin::filled_box>(' '), munin::COMPASS_LAYOUT_CENTRE);
     buttons_container->add_component(
         dangerous_buttons_container, munin::COMPASS_LAYOUT_EAST);
 
@@ -280,8 +276,7 @@ void bestiary_page::set_beasts(
 
     for (auto &current_beast : beasts)
     {
-        pimpl_->names_.push_back(
-            munin::string_to_elements(current_beast->get_name()));
+        pimpl_->names_.push_back(current_beast->get_name());
     }
 
     // Set this as the current list of beasts and ensure it is de-selected.

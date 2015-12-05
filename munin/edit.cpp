@@ -27,10 +27,10 @@
 #include "munin/edit.hpp"
 #include "munin/text/default_singleline_document.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
-#include "odin/ansi/protocol.hpp"
-#include "odin/ascii/protocol.hpp"
+#include <terminalpp/canvas_view.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <algorithm>
 #include <cctype>
 #include <vector>
@@ -76,7 +76,7 @@ struct edit::impl
     //* =====================================================================
     /// \brief Returns the preferred size of this component.
     //* =====================================================================
-    extent get_preferred_size() const
+    terminalpp::extent get_preferred_size() const
     {
         return document_->get_size();
     }
@@ -92,7 +92,7 @@ struct edit::impl
     //* =====================================================================
     /// \brief Returns the cursor position
     //* =====================================================================
-    point get_cursor_position() const
+    terminalpp::point get_cursor_position() const
     {
         return cursor_position_;
     }
@@ -101,7 +101,7 @@ struct edit::impl
     /// \brief Draws the component
     //* =====================================================================
     void draw(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         auto document_size = document_->get_size();
@@ -135,7 +135,7 @@ struct edit::impl
         }
 
         // Pad the rest with blanks.
-        static element_type const blank_element(' ');
+        static terminalpp::element const blank_element(' ');
         for (;
              index < region.size.width;
              ++index)
@@ -150,35 +150,28 @@ struct edit::impl
     //* =====================================================================
     void do_event(boost::any const &event)
     {
-        char const *ch = boost::any_cast<char>(&event);
-
-        if (ch != nullptr)
+        auto const *vk = boost::any_cast<terminalpp::virtual_key>(&event);
+        
+        if (vk)
         {
-            do_character_event(*ch);
+            do_vk_event(*vk);
         }
-
-        odin::ansi::control_sequence const *sequence =
-            boost::any_cast<odin::ansi::control_sequence>(&event);
-
-        if (sequence != nullptr)
+        
+        auto const *report = 
+            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+            
+        if (report)
         {
-            do_ansi_control_sequence_event(*sequence);
+            do_mouse_event(*report);
         }
-
-        odin::ansi::mouse_report const *report =
-            boost::any_cast<odin::ansi::mouse_report>(&event);
-
-        if (report != nullptr)
-        {
-            do_ansi_mouse_report_event(*report);
-        }
+        
     }
 
     //* =====================================================================
     /// \brief Sets the edit field to password mode, where every character
     /// is replaced by the specified element.
     //* =====================================================================
-    void set_password_element(element_type const &element)
+    void set_password_element(terminalpp::element const &element)
     {
         password_element_ = element;
 
@@ -200,8 +193,8 @@ private :
 
         // Determine the rectangle of the document that we are displaying.
         rectangle display_rectangle(
-            point(document_base_, 0)
-          , extent(self_.get_size().width, 1));
+            terminalpp::point(document_base_, 0)
+          , terminalpp::extent(self_.get_size().width, 1));
 
         for (auto const &region : regions)
         {
@@ -239,7 +232,7 @@ private :
             // the base.
             document_base_ = new_index;
             redraw();
-            cursor_position_ = point();
+            cursor_position_ = {};
             self_.on_cursor_position_changed(cursor_position_);
         }
         else if (new_index + 1 > (document_base_ + self_.get_size().width))
@@ -249,13 +242,13 @@ private :
             // Also set the cursor position to the rightmost.
             document_base_ = (new_index + 1) - self_.get_size().width;
             redraw();
-            cursor_position_ = point(self_.get_size().width - 1, 0);
+            cursor_position_ = terminalpp::point(self_.get_size().width - 1, 0);
             self_.on_cursor_position_changed(cursor_position_);
         }
         else
         {
             // Simply set the caret position.
-            cursor_position_ = point(new_index - document_base_, 0);
+            cursor_position_ = terminalpp::point(new_index - document_base_, 0);
             self_.on_cursor_position_changed(cursor_position_);
         }
     }
@@ -265,7 +258,7 @@ private :
     //* =====================================================================
     void redraw()
     {
-        self_.on_redraw({rectangle(point(), self_.get_size())});
+        self_.on_redraw({rectangle({}, self_.get_size())});
     }
 
     //* =====================================================================
@@ -318,68 +311,60 @@ private :
     /// \brief Called by do_event when an ANSI control sequence has been
     /// received.
     //* =====================================================================
-    void do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    void do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        auto amount = vk.repeat_count;
+        
+        switch (vk.key)
         {
-            // Check for the <- key
-            if (sequence.command_ == odin::ansi::CURSOR_BACKWARD)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_backward_key_event(times);
-            }
-            // Check for the -> key
-            else if (sequence.command_ == odin::ansi::CURSOR_FORWARD)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_forward_key_event(times);
-            }
-            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
-            {
-                // Check for the HOME key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '1')
+            case terminalpp::vk::cursor_left :
+                do_cursor_backward_key_event(amount);
+                break;
+                
+            case terminalpp::vk::cursor_right :
+                do_cursor_forward_key_event(amount);
+                break;
+                
+            case terminalpp::vk::home :
+                do_home_key_event();
+                break;
+                
+            case terminalpp::vk::end :
+                do_end_key_event();
+                break;
+                
+            case terminalpp::vk::f12 :
+                if (self_.is_enabled())
                 {
-                    do_home_key_event();
+                    get_document()->delete_text(
+                        std::make_pair(0, get_document()->get_text_size()));
                 }
-                // Check for the END key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '4')
+                break;
+
+            case terminalpp::vk::bs : // fall-through
+            case terminalpp::vk::del :
+                if (self_.is_enabled())
                 {
-                    do_end_key_event();
-                }
-                // Check for F12 key
-                if (sequence.arguments_.size() >= 2
-                 && sequence.arguments_[0] == '2'
-                 && sequence.arguments_[1] == '4')
-                {
-                    if (self_.is_enabled())
+                    auto caret_index = document_->get_caret_index();
+    
+                    if (caret_index != 0)
                     {
-                        get_document()->delete_text(
-                            std::make_pair(0, get_document()->get_text_size()));
+                        document_->delete_text(
+                            std::make_pair(caret_index - 1, caret_index));
                     }
                 }
-            }
-        }
-        else if (sequence.initiator_ == odin::ansi::SINGLE_SHIFT_SELECT_G3)
-        {
-            // Check for the alternative HOME key
-            if (sequence.command_ == odin::ansi::ss3::HOME)
-            {
-                do_home_key_event();
-            }
-            // Check for the alternative END key
-            if (sequence.command_ == odin::ansi::ss3::END)
-            {
-                do_end_key_event();
-            }
+                break;
+            
+            default :
+                if (self_.is_enabled())
+                {
+                    terminalpp::glyph gly(char(vk.key));
+    
+                    if (is_printable(gly))
+                    {
+                        document_->insert_text({gly});
+                    }
+                }
         }
     }
 
@@ -387,9 +372,9 @@ private :
     /// \brief Called by do_event when an ANSI mouse report has been
     /// received.
     //* =====================================================================
-    void do_ansi_mouse_report_event(odin::ansi::mouse_report const &report)
+    void do_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (report.button_ == 0)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
             if (self_.can_focus())
             {
@@ -398,50 +383,21 @@ private :
                     self_.set_focus();
                 }
 
-                self_.get_document()->set_caret_position(point(
+                self_.get_document()->set_caret_position(terminalpp::point(
                     report.x_position_
                   , report.y_position_));
             }
         }
     }
 
-    //* =====================================================================
-    /// \brief Called by do_event when a character event has occurred.
-    //* =====================================================================
-    void do_character_event(char ch)
-    {
-        if (self_.is_enabled())
-        {
-            if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
-            {
-                auto caret_index = document_->get_caret_index();
-
-                if (caret_index != 0)
-                {
-                    document_->delete_text(
-                        std::make_pair(caret_index - 1, caret_index));
-                }
-            }
-            else
-            {
-                glyph gly(ch);
-
-                if (is_printable(gly))
-                {
-                    document_->insert_text({element_type(gly)});
-                }
-            }
-        }
-    }
-
     edit                                   &self_;
     std::shared_ptr<munin::text::document>  document_;
-    point                                   cursor_position_;
+    terminalpp::point                       cursor_position_;
     bool                                    cursor_state_;
 
     odin::u32                               document_base_;
 
-    boost::optional<element_type>           password_element_;
+    boost::optional<terminalpp::element>    password_element_;
 };
 
 // ==========================================================================
@@ -470,7 +426,7 @@ std::shared_ptr<munin::text::document> edit::get_document()
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent edit::do_get_preferred_size() const
+terminalpp::extent edit::do_get_preferred_size() const
 {
     return pimpl_->get_preferred_size();
 }
@@ -487,7 +443,7 @@ bool edit::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point edit::do_get_cursor_position() const
+terminalpp::point edit::do_get_cursor_position() const
 {
     return pimpl_->get_cursor_position();
 }
@@ -517,7 +473,8 @@ void edit::do_set_attribute(std::string const &name, boost::any const &attr)
 {
     if (name == EDIT_PASSWORD_ELEMENT)
     {
-        element_type const *element = boost::any_cast<element_type>(&attr);
+        terminalpp::element const *element = 
+            boost::any_cast<terminalpp::element>(&attr);
 
         if (element != nullptr)
         {

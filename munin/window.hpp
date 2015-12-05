@@ -27,7 +27,9 @@
 #ifndef MUNIN_ANSI_WINDOW_HPP_
 #define MUNIN_ANSI_WINDOW_HPP_
 
-#include "munin/types.hpp"
+#include "munin/export.hpp"
+#include <terminalpp/extent.hpp>
+#include <terminalpp/terminal.hpp>
 #include <boost/any.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/signal.hpp>
@@ -48,7 +50,7 @@ public :
     /// \param strand A boost::asio::strand in which all asynchronous calls
     /// will be run.
     //* =====================================================================
-    window(boost::asio::strand &strand);
+    window(boost::asio::strand &strand, terminalpp::terminal::behaviour const &behaviour);
 
     //* =====================================================================
     /// \brief Destructor
@@ -58,13 +60,13 @@ public :
     //* =====================================================================
     /// \brief Gets the size of the window.
     //* =====================================================================
-    munin::extent get_size() const;
+    terminalpp::extent get_size() const;
 
     //* =====================================================================
     /// \brief Sets the size of the window.  Following this, the contents
     /// of the window are re-laid out.
     //* =====================================================================
-    void set_size(munin::extent size);
+    void set_size(terminalpp::extent size);
 
     //* =====================================================================
     /// \brief Sets the title of the window.
@@ -83,11 +85,11 @@ public :
     std::shared_ptr<container> get_content();
 
     //* =====================================================================
-    /// \brief Send an event to the window.  This will be passed down to the
-    /// focused component, who should interpret it according to its
-    /// specifications.
+    /// \brief Sends data that has been received from the client.  This is
+    /// expected to be in ANSI format, and will be converted to events that
+    /// are passed down into the focussed component.
     //* =====================================================================
-    void event(boost::any const &event);
+    void data(std::string const &data);
 
     //* =====================================================================
     /// \fn on_repaint

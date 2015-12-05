@@ -34,7 +34,7 @@ namespace munin {
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent compass_layout::do_get_preferred_size(
+terminalpp::extent compass_layout::do_get_preferred_size(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any >                const &hints) const
 {
@@ -96,7 +96,7 @@ extent compass_layout::do_get_preferred_size(
         }
     }
 
-    extent preferred_size;
+    terminalpp::extent preferred_size;
 
     preferred_size.width = north_widths;
     preferred_size.width = (std::max)(odin::u32(preferred_size.width), centre_widths);
@@ -117,7 +117,7 @@ extent compass_layout::do_get_preferred_size(
 void compass_layout::do_layout(
     std::vector<std::shared_ptr<component>> const &components,
     std::vector<boost::any>                 const &hints
-  , extent                                         size)
+  , terminalpp::extent                             size)
 {
     std::vector<std::shared_ptr<component>> centre_components;
     odin::u32 west_used = 0;
@@ -147,8 +147,8 @@ void compass_layout::do_layout(
 
             auto comp_height = (size.height - north_used) - south_used;
 
-            comp->set_position(point(0, north_used));
-            comp->set_size(extent(west_used, comp_height));
+            comp->set_position(terminalpp::point(0, north_used));
+            comp->set_size(terminalpp::extent(west_used, comp_height));
         }
         else if (*direction == COMPASS_LAYOUT_EAST)
         {
@@ -160,10 +160,10 @@ void compass_layout::do_layout(
 
             auto comp_height = (size.height - north_used) - south_used;
 
-            comp->set_position(point(
+            comp->set_position(terminalpp::point(
                 size.width - east_used
               , north_used));
-            comp->set_size(extent(east_used, comp_height));
+            comp->set_size(terminalpp::extent(east_used, comp_height));
         }
         else if (*direction == COMPASS_LAYOUT_NORTH)
         {
@@ -175,8 +175,8 @@ void compass_layout::do_layout(
 
             auto comp_width = (size.width - west_used) - east_used;
 
-            comp->set_position(point(west_used, 0));
-            comp->set_size(extent(comp_width, north_used));
+            comp->set_position(terminalpp::point(west_used, 0));
+            comp->set_size(terminalpp::extent(comp_width, north_used));
         }
         else if (*direction == COMPASS_LAYOUT_SOUTH)
         {
@@ -188,10 +188,10 @@ void compass_layout::do_layout(
 
             auto comp_width = (size.width - west_used) - east_used;
 
-            comp->set_position(point(
+            comp->set_position(terminalpp::point(
                 west_used
               , size.height - south_used));
-            comp->set_size(extent(comp_width, south_used));
+            comp->set_size(terminalpp::extent(comp_width, south_used));
         }
         else
         {
@@ -201,8 +201,8 @@ void compass_layout::do_layout(
 
     for (auto comp : centre_components)
     {
-        comp->set_position(point(west_used, north_used));
-        comp->set_size(extent(
+        comp->set_position(terminalpp::point(west_used, north_used));
+        comp->set_size(terminalpp::extent(
             (size.width - west_used) - east_used
           , (size.height - north_used) - south_used));
     }

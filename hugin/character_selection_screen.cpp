@@ -25,19 +25,18 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/character_selection_screen.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "munin/algorithm.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
+#include <terminalpp/encoder.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <boost/format.hpp>
 
 namespace hugin {
 
-    
 // ==========================================================================
 // CHARACTER_SELECTION_SCREEN::IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -58,17 +57,19 @@ struct character_selection_screen::impl
 
     std::shared_ptr<munin::image> create_character_list()
     {
+        using namespace terminalpp::literals;
+
         // Create an array of element 'strings' big enough to hold all the
         // character names, and also the "create new character" option.
-        std::vector<std::vector<munin::element_type>> text(characters_.size() + 1);
+        std::vector<terminalpp::string> text(characters_.size() + 1);
         
         // Fill the first element with the "create new character" text.
-        text[0] = munin::string_to_elements("+. <Create new character>");
+        text[0] = "+. <Create new character>"_ts;
         
         // Fill the remainder with the names of the characters.
         for (size_t index = 0; index < characters_.size(); ++index)
         {
-            text[index + 1] = munin::string_to_elements(
+            text[index + 1] = terminalpp::encode(
                 boost::str(boost::format("%d. %s")
                 % index
                 % characters_[index].second));
@@ -86,6 +87,8 @@ struct character_selection_screen::impl
 character_selection_screen::character_selection_screen()
   : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+
     pimpl_->character_list_ = pimpl_->create_character_list();
     pimpl_->inner_content_  = pimpl_->create_inner_content();
     
@@ -93,7 +96,7 @@ character_selection_screen::character_selection_screen()
     pimpl_->inner_content_->add_component(pimpl_->character_list_);
     
     auto border = std::make_shared<munin::named_frame>();
-    border->set_name("CHARACTER SELECTION");
+    border->set_name("CHARACTER SELECTION"_ts);
 
     auto content = get_container();
     content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
@@ -106,7 +109,7 @@ character_selection_screen::character_selection_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }
@@ -160,11 +163,11 @@ void character_selection_screen::on_character_selected(
 // ==========================================================================
 void character_selection_screen::do_event(boost::any const &event)
 {
-    char const *ch = boost::any_cast<char>(&event);
+    auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
     
-    if (ch != NULL)
+    if (vk)
     {
-        if (*ch == '+')
+        if (vk->key == terminalpp::vk::plus)
         {
             if (pimpl_->on_new_character_)
             {
@@ -173,7 +176,7 @@ void character_selection_screen::do_event(boost::any const &event)
         }
         else
         {
-            unsigned int selection = *ch - '0';
+            unsigned int selection = char(vk->key) - '0';
             
             if (selection < pimpl_->characters_.size()
              && pimpl_->on_character_selected_ != NULL)

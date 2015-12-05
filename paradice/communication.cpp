@@ -31,10 +31,10 @@
 #include "context.hpp"
 #include "utility.hpp"
 #include "hugin/user_interface.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
 #include "odin/tokenise.hpp"
 #include "odin/core.hpp"
+#include "terminalpp/encoder.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 
@@ -47,15 +47,15 @@ void send_to_all(
     std::shared_ptr<context> &ctx,
     std::string const        &text)
 {
-    send_to_all(ctx, munin::string_to_elements(text));
+    send_to_all(ctx, terminalpp::encode(text));
 }
 
 // ==========================================================================
 // SEND_TO_ALL
 // ==========================================================================
 void send_to_all(
-    std::shared_ptr<context>               &ctx,
-    std::vector<munin::element_type> const &text)
+    std::shared_ptr<context> &ctx,
+    terminalpp::string const &text)
 {
     for (auto cur_client : ctx->get_clients())
     {
@@ -71,16 +71,27 @@ void send_to_player(
     std::string const        &text,
     std::shared_ptr<client>  &conn)
 {
-    send_to_player(ctx, munin::string_to_elements(text), conn);
+    send_to_player(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
 // SEND_TO_PLAYER
 // ==========================================================================
 void send_to_player(
-    std::shared_ptr<context>               &ctx,
-    std::vector<munin::element_type> const &text,
-    std::shared_ptr<client>                &conn)
+    std::shared_ptr<context> &ctx, 
+    char const *text, 
+    std::shared_ptr<client> &conn)
+{
+    send_to_player(ctx, terminalpp::encode(text), conn);
+}
+
+// ==========================================================================
+// SEND_TO_PLAYER
+// ==========================================================================
+void send_to_player(
+    std::shared_ptr<context> &ctx,
+    terminalpp::string const &text,
+    std::shared_ptr<client>  &conn)
 {
     conn->get_user_interface()->add_output_text(text);
 }
@@ -93,16 +104,16 @@ void send_to_room(
     std::string const        &text,
     std::shared_ptr<client>  &conn)
 {
-    send_to_room(ctx, munin::string_to_elements(text), conn);
+    send_to_room(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
 // SEND_TO_ROOM
 // ==========================================================================
 void send_to_room(
-    std::shared_ptr<context>               &ctx,
-    std::vector<munin::element_type> const &text,
-    std::shared_ptr<client>                &conn)
+    std::shared_ptr<context> &ctx,
+    terminalpp::string const &text,
+    std::shared_ptr<client>  &conn)
 {
     for (auto cur_client : ctx->get_clients())
     {

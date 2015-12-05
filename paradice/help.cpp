@@ -27,9 +27,8 @@
 #include "communication.hpp"
 #include "connection.hpp"
 #include "odin/tokenise.hpp"
-#include "odin/ansi/protocol.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "hugin/user_interface.hpp"
+#include "terminalpp/encoder.hpp"
 #include <boost/format.hpp>
 
 namespace {
@@ -229,7 +228,7 @@ PARADICE_COMMAND_IMPL(help)
             if (argument == help_table[index].command)
             {
                 user_interface->set_help_window_text(
-                    munin::ansi::elements_from_string(
+                    terminalpp::encode(
                         help_header
                       + help_table[index].text));
                 user_interface->show_help_window();
@@ -249,8 +248,7 @@ PARADICE_COMMAND_IMPL(help)
             text += " ";
         }
         
-        user_interface->set_help_window_text(
-            munin::ansi::elements_from_string(text));
+        user_interface->set_help_window_text(terminalpp::encode(text));
         user_interface->show_help_window();
     }
 }

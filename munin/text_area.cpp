@@ -27,10 +27,11 @@
 #include "munin/text_area.hpp"
 #include "munin/text/default_multiline_document.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/context.hpp"
-#include "odin/ansi/protocol.hpp"
-#include "odin/ascii/protocol.hpp"
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/canvas_view.hpp>
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <cctype>
 #include <vector>
 
@@ -71,7 +72,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Gets the size of the document.
     //* =====================================================================
-    extent get_size() const
+    terminalpp::extent get_size() const
     {
         return document_->get_size();
     }
@@ -79,7 +80,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Sets the size of the document.
     //* =====================================================================
-    void set_size(extent const &size)
+    void set_size(terminalpp::extent const &size)
     {
         document_->set_size(size);
     }
@@ -87,7 +88,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Gets the preferred size of the document.
     //* =====================================================================
-    extent get_preferred_size() const
+    terminalpp::extent get_preferred_size() const
     {
         return document_->get_size();
     }
@@ -103,7 +104,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Returns the cursor position.
     //* =====================================================================
-    point get_cursor_position() const
+    terminalpp::point get_cursor_position() const
     {
         return document_->get_caret_position();
     }
@@ -111,7 +112,7 @@ struct text_area::impl
     //* =====================================================================
     /// \brief Sets the cursor position.
     //* =====================================================================
-    void set_cursor_position(point const &position)
+    void set_cursor_position(terminalpp::point const &position)
     {
         document_->set_caret_position(position);
     }
@@ -120,7 +121,7 @@ struct text_area::impl
     /// \brief Draws the document onto the canvas.
     //* =====================================================================
     void draw(
-        canvas          &cvs
+        terminalpp::canvas_view &cvs
       , rectangle const &region)
     {
         for (odin::u32 row_index = region.origin.y;
@@ -140,7 +141,7 @@ struct text_area::impl
             }
 
             // Pad the rest with blanks
-            static element_type const default_element(' ');
+            static terminalpp::element const default_element(' ');
             for (;
                 column_index < odin::u32(region.size.width);
                 ++column_index)
@@ -155,27 +156,19 @@ struct text_area::impl
     //* =====================================================================
     void do_event(boost::any const &event)
     {
-        char const *ch = boost::any_cast<char>(&event);
-
-        if (ch != nullptr)
+        auto vk = boost::any_cast<terminalpp::virtual_key>(&event);
+        
+        if (vk)
         {
-            do_character_event(*ch);
+            do_vk_event(*vk);
         }
 
-        odin::ansi::control_sequence const *sequence =
-            boost::any_cast<odin::ansi::control_sequence>(&event);
+        auto report =
+            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-        if (sequence != nullptr)
+        if (report)
         {
-            do_ansi_control_sequence_event(*sequence);
-        }
-
-        odin::ansi::mouse_report const *report =
-            boost::any_cast<odin::ansi::mouse_report>(&event);
-
-        if (report != nullptr)
-        {
-            do_ansi_mouse_report_event(*report);
+            do_mouse_event(*report);
         }
     }
 
@@ -203,12 +196,11 @@ private :
     //* =====================================================================
     void repaint()
     {
-        self_.on_redraw({rectangle(point(), self_.get_size())});
+        self_.on_redraw({rectangle({}, self_.get_size())});
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the up arrow
-    /// key has been pressed.
+    /// \brief Called by when the up arrow key has been pressed.
     //* =====================================================================
     void do_cursor_up_key_event(odin::u32 times)
     {
@@ -219,25 +211,24 @@ private :
             times = position.y;
         }
 
-        document_->set_caret_position(point(position.x, position.y - times));
+        document_->set_caret_position(
+            terminalpp::point(position.x, position.y - times));
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the down arrow
-    /// key has been pressed.
+    /// \brief Called when the down arrow key has been pressed.
     //* =====================================================================
     void do_cursor_down_key_event(odin::u32 times)
     {
         auto position = document_->get_caret_position();
 
-        document_->set_caret_position(point(
+        document_->set_caret_position(terminalpp::point(
             position.x
           , position.y + times));
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the <- key
-    /// has been pressed.
+    /// \brief Called when the <- key has been pressed.
     //* =====================================================================
     void do_cursor_backward_key_event(odin::u32 times)
     {
@@ -248,8 +239,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the -> key
-    /// has been pressed.
+    /// \brief Called when the -> key has been pressed.
     //* =====================================================================
     void do_cursor_forward_key_event(odin::u32 times)
     {
@@ -257,8 +247,21 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the DEL key
-    /// has been pressed.
+    /// \brief Called when the BS key has been pressed.
+    //* =====================================================================
+    void do_bs_key_event()
+    {
+        auto caret_index = document_->get_caret_index();
+
+        if (caret_index != 0)
+        {
+            document_->delete_text(
+                std::make_pair(caret_index - 1, caret_index));
+        }
+    }
+    
+    //* =====================================================================
+    /// \brief Called when the DEL key has been pressed.
     //* =====================================================================
     void do_del_key_event()
     {
@@ -271,8 +274,7 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the META+HOME
-    /// key combination has been pressed.
+    /// \brief Called when the META+HOME key combination has been pressed.
     //* =====================================================================
     void do_meta_home_key_event()
     {
@@ -284,19 +286,17 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the HOME key
-    /// has been pressed.
+    /// \brief Called when the HOME key has been pressed.
     //* =====================================================================
     void do_home_key_event()
     {
         // The HOME key goes to the first character of the current line.
         auto position = document_->get_caret_position();
-        document_->set_caret_position(point(0, position.y));
+        document_->set_caret_position(terminalpp::point(0, position.y));
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the META+END
-    /// key combination has been pressed.
+    /// \brief Called when the META+END key combination has been pressed.
     //* =====================================================================
     void do_meta_end_key_event()
     {
@@ -310,151 +310,90 @@ private :
     }
 
     //* =====================================================================
-    /// \brief Called by do_ansi_control_sequence_event when the END key
-    /// has been pressed.
+    /// \brief Called when the END key has been pressed.
     //* =====================================================================
     void do_end_key_event()
     {
         // The END key goes to the last character of the current line.
         auto position = document_->get_caret_position();
-        document_->set_caret_position(point(
+        document_->set_caret_position(terminalpp::point(
             document_->get_size().width - 1
           , position.y));
     }
 
     //* =====================================================================
-    /// \brief Called by do_event when an ANSI control sequence has been
-    /// received.
+    /// \brief Called when a virtual key sequence is received
     //* =====================================================================
-    void do_ansi_control_sequence_event(
-        odin::ansi::control_sequence const &sequence)
+    void do_vk_event(terminalpp::virtual_key const &vk)
     {
-        if (sequence.initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER)
+        switch (vk.key)
         {
-            // Check for the <- key
-            if (sequence.command_ == odin::ansi::CURSOR_BACKWARD)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_backward_key_event(times);
-            }
-            // Check for the -> key
-            else if (sequence.command_ == odin::ansi::CURSOR_FORWARD)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_forward_key_event(times);
-            }
-            // Check for the up arrow key
-            else if (sequence.command_ == odin::ansi::CURSOR_UP)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_up_key_event(times);
-            }
-            // Check for the down arrow key
-            else if (sequence.command_ == odin::ansi::CURSOR_DOWN)
-            {
-                odin::u32 times = sequence.arguments_.empty()
-                          ? 1
-                          : atoi(sequence.arguments_.c_str());
-
-                do_cursor_down_key_event(times);
-            }
-            else if (sequence.command_ == odin::ansi::KEYPAD_FUNCTION)
-            {
-                // Check for the HOME key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '1')
+            case terminalpp::vk::cursor_left :
+                do_cursor_backward_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_right :
+                do_cursor_forward_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_up :
+                do_cursor_up_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::cursor_down :
+                do_cursor_down_key_event(vk.repeat_count);
+                break;
+                
+            case terminalpp::vk::home :
+                if ((vk.modifiers & terminalpp::vk_modifier::meta) 
+                  != terminalpp::vk_modifier::none)
                 {
-                    if (sequence.meta_)
-                    {
-                        do_meta_home_key_event();
-                    }
-                    else
-                    {
-                        do_home_key_event();
-                    }
+                    do_meta_home_key_event();
                 }
-                // Check for the END key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '4')
+                else
                 {
-                    if (sequence.meta_)
-                    {
-                        do_meta_end_key_event();
-                    }
-                    else
-                    {
-                        do_end_key_event();
-                    }
+                    do_home_key_event();
                 }
-                // Check for the DEL key
-                if (sequence.arguments_.size() == 1
-                 && sequence.arguments_[0] == '3')
+                break;
+
+            case terminalpp::vk::end :
+                if ((vk.modifiers & terminalpp::vk_modifier::meta) 
+                  != terminalpp::vk_modifier::none)
                 {
-                    do_del_key_event();
+                    do_meta_end_key_event();
                 }
-                // Check for F12 key
-                if (sequence.arguments_.size() >= 2
-                 && sequence.arguments_[0] == '2'
-                 && sequence.arguments_[1] == '4')
+                else
                 {
-                    if (self_.is_enabled())
+                    do_end_key_event();
+                }
+                break;
+                
+            case terminalpp::vk::bs :
+                do_bs_key_event();
+                break;
+
+            case terminalpp::vk::del :
+                do_del_key_event();
+                break;
+                
+            case terminalpp::vk::f12 :
+                if (self_.is_enabled())
+                {
+                    get_document()->delete_text(
+                        std::make_pair(0, get_document()->get_text_size()));
+                }
+                break;
+                
+            default :
+                if (self_.is_enabled())
+                {
+                    terminalpp::glyph gly(char(vk.key));
+                    
+                    if (is_printable(gly))
                     {
-                        get_document()->delete_text(
-                            std::make_pair(0, get_document()->get_text_size()));
+                        document_->insert_text({gly});
                     }
                 }
-            }
-        }
-        else if (sequence.initiator_ == odin::ansi::SINGLE_SHIFT_SELECT_G3)
-        {
-            // Check for the alternative HOME key
-            if (sequence.command_ == odin::ansi::ss3::HOME)
-            {
-                do_home_key_event();
-            }
-            // Check for the alternative END key
-            if (sequence.command_ == odin::ansi::ss3::END)
-            {
-                do_end_key_event();
-            }
-        }
-    }
-
-    //* =====================================================================
-    /// \brief Called by do_event when a character event has occurred.
-    //* =====================================================================
-    void do_character_event(char ch)
-    {
-        if (self_.is_enabled())
-        {
-            if (ch == odin::ascii::BS || ch == odin::ascii::DEL)
-            {
-                auto caret_index = document_->get_caret_index();
-
-                if (caret_index != 0)
-                {
-                    document_->delete_text(
-                        std::make_pair(caret_index - 1, caret_index));
-                }
-            }
-            else
-            {
-                glyph gly(ch);
-
-                if (is_printable(gly))
-                {
-                    document_->insert_text({element_type(gly)});
-                }
-            }
         }
     }
 
@@ -462,9 +401,9 @@ private :
     /// \brief Called by do_event when an ANSI mouse report has been
     /// received.
     //* =====================================================================
-    void do_ansi_mouse_report_event(odin::ansi::mouse_report const &report)
+    void do_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
-        if (report.button_ == 0)
+        if (report.button_ == terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN)
         {
             if (self_.can_focus())
             {
@@ -473,7 +412,7 @@ private :
                     self_.set_focus();
                 }
 
-                self_.set_cursor_position(point(
+                self_.set_cursor_position(terminalpp::point(
                     report.x_position_
                   , report.y_position_));
             }
@@ -511,7 +450,7 @@ std::shared_ptr<munin::text::document> text_area::get_document()
 // ==========================================================================
 // DO_GET_SIZE
 // ==========================================================================
-extent text_area::do_get_size() const
+terminalpp::extent text_area::do_get_size() const
 {
     return pimpl_->get_size();
 }
@@ -519,7 +458,7 @@ extent text_area::do_get_size() const
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void text_area::do_set_size(extent const &size)
+void text_area::do_set_size(terminalpp::extent const &size)
 {
     // The size is a property owned by the document, not this area.
     pimpl_->set_size(size);
@@ -528,7 +467,7 @@ void text_area::do_set_size(extent const &size)
 // ==========================================================================
 // DO_GET_PREFERRED_SIZE
 // ==========================================================================
-extent text_area::do_get_preferred_size() const
+terminalpp::extent text_area::do_get_preferred_size() const
 {
     return pimpl_->get_preferred_size();
 }
@@ -544,7 +483,7 @@ bool text_area::do_get_cursor_state() const
 // ==========================================================================
 // DO_GET_CURSOR_POSITION
 // ==========================================================================
-point text_area::do_get_cursor_position() const
+terminalpp::point text_area::do_get_cursor_position() const
 {
     return pimpl_->get_cursor_position();
 }
@@ -552,7 +491,7 @@ point text_area::do_get_cursor_position() const
 // ==========================================================================
 // DO_SET_CURSOR_POSITION
 // ==========================================================================
-void text_area::do_set_cursor_position(point const &position)
+void text_area::do_set_cursor_position(terminalpp::point const &position)
 {
     pimpl_->set_cursor_position(position);
 }

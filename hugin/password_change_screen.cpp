@@ -25,8 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "password_change_screen.hpp"
-#include "munin/ansi/protocol.hpp"
-#include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/button.hpp"
@@ -38,7 +36,8 @@
 #include "munin/image.hpp"
 #include "munin/named_frame.hpp"
 #include "munin/solid_frame.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 
 namespace hugin {
 
@@ -56,17 +55,17 @@ struct password_change_screen::impl
         {
             auto document = old_password_field_->get_document();
             auto elements = document->get_line(0);
-            auto old_password = munin::ansi::string_from_elements(elements);
+            auto old_password = to_string(elements);
             
             document = new_password_field_->get_document();
             elements = document->get_line(0);
             
-            auto new_password = munin::ansi::string_from_elements(elements);
+            auto new_password = to_string(elements);
             
             document = new_password_verify_field_->get_document();
             elements = document->get_line(0);
             
-            auto new_password_verify = munin::ansi::string_from_elements(elements);
+            auto new_password_verify = to_string(elements);
             
             on_password_changed_(
                 old_password, new_password, new_password_verify);
@@ -105,11 +104,13 @@ struct password_change_screen::impl
 password_change_screen::password_change_screen()
     : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+
     auto content = get_container();
     content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
     
     auto screen_frame = std::make_shared<munin::named_frame>();
-    screen_frame->set_name("PASSWORD CHANGE");
+    screen_frame->set_name("PASSWORD CHANGE"_ts);
     
     // Create the Old Password, Password and Password (verify) labels.
     munin::alignment_data alignment;
@@ -119,19 +120,19 @@ password_change_screen::password_change_screen()
     auto old_password_container = std::make_shared<munin::basic_container>();
     old_password_container->set_layout(std::make_shared<munin::aligned_layout>());
     old_password_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("Old Password: "))
+        std::make_shared<munin::image>("Old Password: "_ts)
       , alignment);
     
     auto password0_container = std::make_shared<munin::basic_container>();
     password0_container->set_layout(std::make_shared<munin::aligned_layout>());
     password0_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("New Password: "))
+        std::make_shared<munin::image>("New Password: "_ts)
       , alignment);
     
     auto password1_container = std::make_shared<munin::basic_container>();
     password1_container->set_layout(std::make_shared<munin::aligned_layout>());
     password1_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("New Password (verify): "))
+        std::make_shared<munin::image>("New Password (verify): "_ts)
       , alignment);
 
     auto labels_container = std::make_shared<munin::basic_container>();
@@ -145,10 +146,10 @@ password_change_screen::password_change_screen()
     pimpl_->new_password_field_        = std::make_shared<munin::edit>();
     pimpl_->new_password_verify_field_ = std::make_shared<munin::edit>();
     
-    munin::element_type password_element;
+    terminalpp::element password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        odin::ansi::graphics::colour::red;
+        terminalpp::ansi::graphics::colour::red;
     pimpl_->old_password_field_->set_attribute(
         munin::EDIT_PASSWORD_ELEMENT
       , password_element);
@@ -190,13 +191,11 @@ password_change_screen::password_change_screen()
         , munin::COMPASS_LAYOUT_NORTH);
 
     // Create the OK and Cancel buttons.
-    pimpl_->ok_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements("  OK  "));
+    pimpl_->ok_button_ = std::make_shared<munin::button>("  OK  "_ts);
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
         [this]{pimpl_->on_password_change_ok();}));
     
-    pimpl_->cancel_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements("Cancel"));
+    pimpl_->cancel_button_ = std::make_shared<munin::button>("Cancel"_ts);
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
         [this]{pimpl_->on_password_change_cancelled();}));
     
@@ -234,7 +233,7 @@ password_change_screen::password_change_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }
@@ -292,15 +291,12 @@ void password_change_screen::on_password_change_cancelled(
 // ==========================================================================
 void password_change_screen::do_event(boost::any const &ev)
 {
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
     bool handled = false;
     
-    auto *ch = boost::any_cast<char>(&ev);
-    auto *control_sequence = 
-        boost::any_cast<odin::ansi::control_sequence>(&ev);
-
-    if (ch)
+    if (vk)
     {
-        if (*ch == '\t')
+        if (vk->key == terminalpp::vk::ht)
         {
             focus_next();
             
@@ -311,21 +307,19 @@ void password_change_screen::do_event(boost::any const &ev)
             
             handled = true;
         }
-    }
-    else if (control_sequence != NULL
-          && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-          && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
-    {
-        focus_previous();
-
-        if (!has_focus())
+        else if (vk->key == terminalpp::vk::bt)
         {
             focus_previous();
-        }
-        
-        handled = true;
-    }
 
+            if (!has_focus())
+            {
+                focus_previous();
+            }
+            
+            handled = true;
+        }
+    }
+    
     if (!handled)
     {
         composite_component::do_event(ev);

@@ -25,7 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "intro_screen.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/aligned_layout.hpp"
 #include "munin/basic_container.hpp"
@@ -37,7 +36,8 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/string.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <vector>
 
 namespace hugin {
@@ -58,21 +58,27 @@ static vector<string> const main_image = list_of
 */  
 // Attempt at a palm tree with the new colour codes:
 
-static std::vector<std::string> const main_image = {
- "       \\[2__ _.--..--._ _\\x                  _",
- "    \\[2.-' _/   _/\\\\_   \\\\_'-._\\x     |/ _._  | \\\\.__. _  _ ._ /_",
- "    \\[2|__ /   _/\\[3\\\\__/\\[2\\\\_   \\\\__|\\x    |\\\\(_|/_ |_/|(_|(_|(_)| |_>",
- "       \\[2|___/\\[3\\\\_\\\\__/\\[2  \\\\___|\\x                      _|",
- "              \\[3\\\\__/\\x         ___                   ___           \\i>___",
- "              \\[3\\\\__/\\x        / _ \\\\___ ________ ____/ (_)______   \\i>/ _ \\\\",
- "               \\[3\\\\__/\\x      / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\i>\\\\_, /",
- "                \\[3\\\\__/\\x    /_/   \\\\_,_/_/  \\\\_,_/\\\\_,_/_/\\\\__/\\\\__/  \\i>/___/",
- "             \\[3____\\\\__/___\\x                              v1.1",
- "       \\[3. - '             ' -.",
- "      \\[3/                      \\\\",
- "\\[4~~~~~~~  ~~~~~ ~~~~~  ~~~ ~~~  ~~~~~",
- "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~",
+namespace {
+    
+using namespace terminalpp::literals;
+
+static std::vector<terminalpp::string> const main_image = {
+ "       \\[2__ _.--..--._ _\\x                  _"_ets,
+ "    \\[2.-' _/   _/\\\\_   \\\\_'-._\\x     |/ _._  | \\\\.__. _  _ ._ /_"_ets,
+ "    \\[2|__ /   _/\\[3\\\\__/\\[2\\\\_   \\\\__|\\x    |\\\\(_|/_ |_/|(_|(_|(_)| |_>"_ets,
+ "       \\[2|___/\\[3\\\\_\\\\__/\\[2  \\\\___|\\x                      _|"_ets,
+ "              \\[3\\\\__/\\x         ___                   ___           \\i>___"_ets,
+ "              \\[3\\\\__/\\x        / _ \\\\___ ________ ____/ (_)______   \\i>/ _ \\\\"_ets,
+ "               \\[3\\\\__/\\x      / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\i>\\\\_, /"_ets,
+ "                \\[3\\\\__/\\x    /_/   \\\\_,_/_/  \\\\_,_/\\\\_,_/_/\\\\__/\\\\__/  \\i>/___/"_ets,
+ "             \\[3____\\\\__/___\\x                              v1.1"_ets,
+ "       \\[3. - '             ' -."_ets,
+ "      \\[3/                      \\\\"_ets,
+ "\\[4~~~~~~~  ~~~~~ ~~~~~  ~~~ ~~~  ~~~~~"_ets,
+ "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~"_ets,
 };
+
+}
 
 // ==========================================================================
 // INTRO_SCREEN::IMPLEMENTATION STRUCTURE
@@ -94,12 +100,12 @@ struct intro_screen::impl
     {
         auto document = intro_name_field_->get_document();
         auto elements = document->get_line(0);
-        auto username = munin::ansi::string_from_elements(elements);
+        auto username = to_string(elements);
 
         document = intro_password_field_->get_document();
         elements = document->get_line(0);
         
-        auto password = munin::ansi::string_from_elements(elements);
+        auto password = to_string(elements);
             
         self_.on_login(username, password);
     }
@@ -116,6 +122,7 @@ struct intro_screen::impl
 // ==========================================================================
 intro_screen::intro_screen()
 {
+    using namespace terminalpp::literals;
     pimpl_ = std::make_shared<impl>(boost::ref(*this));
 
     auto content = get_container();
@@ -124,8 +131,7 @@ intro_screen::intro_screen()
     auto image_container = std::make_shared<munin::basic_container>();
     image_container->set_layout(std::make_shared<munin::aligned_layout>());
 
-    auto greetings_image = std::make_shared<munin::image>(
-        munin::strings_to_elements(main_image));
+    auto greetings_image = std::make_shared<munin::image>(main_image);
     image_container->add_component(greetings_image);
 
     content->add_component(image_container, munin::COMPASS_LAYOUT_CENTRE);
@@ -137,13 +143,13 @@ intro_screen::intro_screen()
     auto name_container = std::make_shared<munin::basic_container>();
     name_container->set_layout(std::make_shared<munin::aligned_layout>());
     name_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("Name: "))
+        std::make_shared<munin::image>("Name: "_ts)
       , alignment);
 
     auto password_container = std::make_shared<munin::basic_container>();
     password_container->set_layout(std::make_shared<munin::aligned_layout>());
     password_container->add_component(
-        std::make_shared<munin::image>(munin::string_to_elements("Password: "))
+        std::make_shared<munin::image>("Password: "_ts)
       , alignment);
     
     auto labels_container = std::make_shared<munin::basic_container>();
@@ -155,21 +161,19 @@ intro_screen::intro_screen()
     pimpl_->intro_name_field_     = std::make_shared<munin::edit>();
     pimpl_->intro_password_field_ = std::make_shared<munin::edit>();
     
-    munin::element_type password_element;
+    terminalpp::element password_element;
     password_element.glyph_ = '*';
     password_element.attribute_.foreground_colour_ =
-        odin::ansi::graphics::colour::red;
+        terminalpp::ansi::graphics::colour::red;
     pimpl_->intro_password_field_->set_attribute(
         munin::EDIT_PASSWORD_ELEMENT
       , password_element);
     
-    pimpl_->login_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements(" Login "));
+    pimpl_->login_button_ = std::make_shared<munin::button>(" Login "_ts);
     pimpl_->login_button_->on_click.connect(
         [this]{pimpl_->on_login_clicked();});
 
-    pimpl_->new_account_button_ = std::make_shared<munin::button>(
-        munin::string_to_elements(" New "));
+    pimpl_->new_account_button_ = std::make_shared<munin::button>(" New "_ts);
     pimpl_->new_account_button_->on_click.connect(on_new_account);
 
     auto buttons_container = std::make_shared<munin::basic_container>();
@@ -182,7 +186,7 @@ intro_screen::intro_screen()
     auto outer_buttons_container = std::make_shared<munin::basic_container>();
     outer_buttons_container->set_layout(std::make_shared<munin::compass_layout>());
     outer_buttons_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')), 
+        std::make_shared<munin::filled_box>(' '), 
         munin::COMPASS_LAYOUT_CENTRE);
     outer_buttons_container->add_component(
         buttons_container, munin::COMPASS_LAYOUT_EAST);
@@ -214,7 +218,7 @@ intro_screen::intro_screen()
         std::make_shared<munin::grid_layout>(1, 1)
       , munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }
@@ -238,15 +242,12 @@ void intro_screen::clear()
 // ==========================================================================
 void intro_screen::do_event(boost::any const &ev)
 {
+    auto const *vk = boost::any_cast<terminalpp::virtual_key>(&ev);
     bool handled = false;
     
-    auto const *ch = boost::any_cast<char>(&ev);
-    auto const *control_sequence = 
-        boost::any_cast<odin::ansi::control_sequence>(&ev);
-
-    if (ch)
+    if (vk)
     {
-        if (*ch == '\t')
+        if (vk->key == terminalpp::vk::ht)
         {
             focus_next();
             
@@ -257,19 +258,17 @@ void intro_screen::do_event(boost::any const &ev)
             
             handled = true;
         }
-    }
-    else if (control_sequence != NULL
-          && control_sequence->initiator_ == odin::ansi::CONTROL_SEQUENCE_INTRODUCER
-          && control_sequence->command_   == odin::ansi::CURSOR_BACKWARD_TABULATION)
-    {
-        focus_previous();
-
-        if (!has_focus())
+        else if (vk->key == terminalpp::vk::bt)
         {
             focus_previous();
+
+            if (!has_focus())
+            {
+                focus_previous();
+            }
+            
+            handled = true;
         }
-        
-        handled = true;
     }
     
     if (!handled)

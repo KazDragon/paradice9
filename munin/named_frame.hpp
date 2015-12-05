@@ -28,6 +28,7 @@
 #define MUNIN_NAMED_FRAME_HPP_
 
 #include "munin/basic_frame.hpp"
+#include "terminalpp/string.hpp"
 #include <string>
 #include <vector>
 
@@ -58,7 +59,7 @@ public :
     //* =====================================================================
     /// \brief Sets the name displayed on the top border of the frame.
     //* =====================================================================
-    void set_name(std::vector<element_type> name);
+    void set_name(terminalpp::string const &name);
 
     //* =====================================================================
     /// \brief Sets whether the frame is 'closeable' or not.  That is,

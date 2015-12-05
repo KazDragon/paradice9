@@ -36,6 +36,7 @@
 #include "munin/vertical_strip_layout.hpp"
 #include "munin/list.hpp"
 #include "munin/scroll_pane.hpp"
+#include <terminalpp/string.hpp>
 
 namespace hugin {
 
@@ -76,7 +77,7 @@ struct encounters_page::impl
     {
         split_container_->remove_component(details_container_);
 
-        std::vector<std::vector<munin::element_type>> beast_names;
+        std::vector<terminalpp::string> beast_names;
 
         auto index = encounters_list_->get_item_index();
 
@@ -86,8 +87,7 @@ struct encounters_page::impl
 
             for (auto const &beast : beasts)
             {
-                beast_names.push_back(
-                    munin::string_to_elements(beast->get_name()));
+                beast_names.push_back(beast->get_name());
             }
 
             beasts_list_->set_items(beast_names);
@@ -161,20 +161,17 @@ struct encounters_page::impl
 // ==========================================================================
 encounters_page::encounters_page()
 {
-    pimpl_ = std::make_shared<impl>(boost::ref(*this));
+    using namespace terminalpp::literals;
+
+    pimpl_ = std::make_shared<impl>(std::ref(*this));
     pimpl_->encounters_list_ = std::make_shared<munin::list>();
     pimpl_->beasts_list_     = std::make_shared<munin::list>();
 
-    pimpl_->new_button_       = std::make_shared<munin::button>(
-        munin::string_to_elements("New"));
-    pimpl_->clone_button_     = std::make_shared<munin::button>(
-        munin::string_to_elements("Clone"));
-    pimpl_->edit_button_      = std::make_shared<munin::button>(
-        munin::string_to_elements("Edit"));
-    pimpl_->fight_button_     = std::make_shared<munin::button>(
-        munin::string_to_elements("Fight!"));
-    pimpl_->delete_button_    = std::make_shared<munin::button>(
-        munin::string_to_elements("Delete"));
+    pimpl_->new_button_       = std::make_shared<munin::button>("New"_ts);
+    pimpl_->clone_button_     = std::make_shared<munin::button>("Clone"_ts);
+    pimpl_->edit_button_      = std::make_shared<munin::button>("Edit"_ts);
+    pimpl_->fight_button_     = std::make_shared<munin::button>("Fight!"_ts);
+    pimpl_->delete_button_    = std::make_shared<munin::button>("Delete"_ts);
 
     pimpl_->connections_.push_back(
         pimpl_->encounters_list_->on_item_changed.connect(
@@ -234,7 +231,7 @@ encounters_page::encounters_page()
     buttons_container->add_component(
         safe_buttons_container, munin::COMPASS_LAYOUT_WEST);
     buttons_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')), munin::COMPASS_LAYOUT_CENTRE);
+        std::make_shared<munin::filled_box>(' '), munin::COMPASS_LAYOUT_CENTRE);
     buttons_container->add_component(
         dangerous_buttons_container, munin::COMPASS_LAYOUT_EAST);
 
@@ -263,12 +260,11 @@ void encounters_page::set_encounters(
 {
     pimpl_->encounters_ = encounters;
 
-    std::vector<std::vector<munin::element_type>> encounter_names;
+    std::vector<terminalpp::string> encounter_names;
 
     for (auto const &enc : pimpl_->encounters_)
     {
-        encounter_names.push_back(
-            munin::string_to_elements(enc->get_name()));
+        encounter_names.push_back(enc->get_name());
     }
 
     pimpl_->encounters_list_->set_items(encounter_names);

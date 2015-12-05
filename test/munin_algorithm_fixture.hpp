@@ -17,10 +17,6 @@ public :
         CPPUNIT_TEST(test_rectangle_intersection_enclose_right);
         CPPUNIT_TEST(test_rectangle_intersection_contain);
         
-        CPPUNIT_TEST(test_point_point_arithmetic);
-        CPPUNIT_TEST(test_extent_extent_arithmetic);
-        CPPUNIT_TEST(test_point_extent_arithmetic);
-        
         CPPUNIT_TEST(test_rectangular_slice);
     CPPUNIT_TEST_SUITE_END();
 
@@ -36,10 +32,6 @@ private :
     void test_rectangle_intersection_enclose_bottom();
     void test_rectangle_intersection_enclose_right();
     void test_rectangle_intersection_contain();
-    
-    void test_point_point_arithmetic();
-    void test_extent_extent_arithmetic();
-    void test_point_extent_arithmetic();
     
     void test_rectangular_slice();
 };

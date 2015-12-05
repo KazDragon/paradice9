@@ -29,7 +29,9 @@
 
 #include "paradice/export.hpp"
 #include "odin/core.hpp"
-#include "odin/ansi/protocol.hpp"
+#include <terminalpp/ansi/control_sequence.hpp>
+#include <terminalpp/ansi/mouse.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <memory>
 #include <string>
 #include <utility>
@@ -72,31 +74,17 @@ public :
     void write(std::vector<odin::u8> const &data);
 
     //* =====================================================================
+    /// \brief Set a function to be called when data arrives from the
+    /// connection.
+    //* =====================================================================
+    void on_data_read(
+        std::function<void (std::string const &)> const &callback);
+    
+    //* =====================================================================
     /// \brief Set a function to be called when the window size changes.
     //* =====================================================================
     void on_window_size_changed(
         std::function<void (odin::u16, odin::u16)> const &callback);
-
-    //* =====================================================================
-    /// \brief Set a function to be called when text is received from the
-    /// connection.
-    //* =====================================================================
-    void on_text(
-        std::function<void (char)> const &callback);
-
-    //* =====================================================================
-    /// \brief Set a function to be called when a mouse report is received
-    /// from the connection.
-    //* =====================================================================
-    void on_mouse_report(
-        std::function<void (odin::ansi::mouse_report const &)> const &callback);
-
-    //* =====================================================================
-    /// \brief Set a function to be called when an ANSI control sequence
-    /// is received from the client.
-    //* =====================================================================
-    void on_control_sequence(
-        std::function<void (odin::ansi::control_sequence const &)> const &callback);
 
     //* =====================================================================
     /// \brief Set up a callback to be called when the underlying socket

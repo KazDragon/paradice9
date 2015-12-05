@@ -25,8 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/encounter_editor.hpp"
-#include <munin/algorithm.hpp>
-#include <munin/ansi/protocol.hpp>
 #include <munin/basic_container.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
@@ -40,6 +38,7 @@
 #include <munin/solid_frame.hpp>
 #include <munin/text_area.hpp>
 #include <paradice/beast.hpp>
+#include <terminalpp/string.hpp>
 
 namespace hugin {
 
@@ -61,11 +60,11 @@ private :
     /// this function in order to retrieve the preferred size of the layout
     /// in a custom manner.
     //* =====================================================================
-    virtual munin::extent do_get_preferred_size(
+    virtual terminalpp::extent do_get_preferred_size(
         std::vector<std::shared_ptr<munin::component>> const &components,
         std::vector<boost::any>                        const &hints) const
     {
-        munin::extent preferred_size(0, 0);
+        terminalpp::extent preferred_size(0, 0);
 
         for (auto const &comp : components)
         {
@@ -86,7 +85,7 @@ private :
     virtual void do_layout(
         std::vector<std::shared_ptr<munin::component>> const &components,
         std::vector<boost::any>                        const &hints,
-        munin::extent                                         size)
+        terminalpp::extent                                    size)
     {
         odin::u32 shared_components = 0;
         auto shared_width = size.width;
@@ -141,8 +140,8 @@ private :
             if (size_hint == BALANCED_LAYOUT_PREFERRED)
             {
                 auto width = comp->get_preferred_size().width;
-                comp->set_position(munin::point(current_x, 0));
-                comp->set_size(munin::extent(width, size.height));
+                comp->set_position(terminalpp::point(current_x, 0));
+                comp->set_size(terminalpp::extent(width, size.height));
 
                 current_x += width;
             }
@@ -157,8 +156,8 @@ private :
                 }
 
                 auto width = shared_component_width + extras;
-                comp->set_position(munin::point(current_x, 0));
-                comp->set_size(munin::extent(width, size.height));
+                comp->set_position(terminalpp::point(current_x, 0));
+                comp->set_size(terminalpp::extent(width, size.height));
 
                 current_x += width;
             }
@@ -202,12 +201,11 @@ struct encounter_editor::impl
 
     void update_bestiary_list()
     {
-        std::vector<std::vector<munin::element_type>> beast_names;
+        std::vector<terminalpp::string> beast_names;
 
         for (auto const &current_beast : bestiary_)
         {
-            beast_names.push_back(munin::string_to_elements(
-                current_beast->get_name()));
+            beast_names.push_back(current_beast->get_name());
         }
 
         encounter_bestiary_list_->set_items(beast_names);
@@ -216,12 +214,11 @@ struct encounter_editor::impl
 
     void update_beasts_list()
     {
-        std::vector<std::vector<munin::element_type>> beast_names;
+        std::vector<terminalpp::string> beast_names;
 
         for (auto const &beast : beasts_)
         {
-            beast_names.push_back(munin::string_to_elements(
-                beast->get_name()));
+            beast_names.push_back(beast->get_name());
         }
 
         encounter_beasts_list_->set_items(beast_names);
@@ -264,8 +261,7 @@ struct encounter_editor::impl
             // selected beast.
             auto doc = beast_description_area_->get_document();
             doc->delete_text({0, doc->get_text_size()});
-            doc->insert_text(
-                munin::string_to_elements(beasts_[index]->get_description()));
+            doc->insert_text(beasts_[index]->get_description());
             doc->set_caret_index(0);
 
             // Also show the text area if we aren't already, and switch the
@@ -339,6 +335,8 @@ struct encounter_editor::impl
 encounter_editor::encounter_editor()
     : pimpl_(std::make_shared<impl>())
 {
+    using namespace terminalpp::literals;
+
     // Initialise all the viewable components and connect the events.
     pimpl_->encounter_name_field_ = std::make_shared<munin::edit>();
 
@@ -352,23 +350,23 @@ encounter_editor::encounter_editor()
 
     pimpl_->beast_description_area_ = std::make_shared<munin::text_area>();
 
-    pimpl_->insert_button_ = std::make_shared<munin::button>(munin::string_to_elements(" + "));
+    pimpl_->insert_button_ = std::make_shared<munin::button>(" + "_ts);
     pimpl_->insert_button_->on_click.connect([this]{pimpl_->on_insert();});
 
-    pimpl_->delete_button_ = std::make_shared<munin::button>(munin::string_to_elements(" - "));
+    pimpl_->delete_button_ = std::make_shared<munin::button>(" - "_ts);
     pimpl_->delete_button_->on_click.connect([this]{pimpl_->on_delete();});
 
-    pimpl_->edit_button_ = std::make_shared<munin::button>(munin::string_to_elements("Edit"));
+    pimpl_->edit_button_ = std::make_shared<munin::button>("Edit"_ts);
     pimpl_->edit_button_->on_click.connect([this]{pimpl_->on_edit();});
 
-    pimpl_->up_button_ = std::make_shared<munin::button>(munin::string_to_elements(" ^ "));
+    pimpl_->up_button_ = std::make_shared<munin::button>(" ^ "_ts);
     pimpl_->up_button_->on_click.connect([this]{pimpl_->on_up();});
 
-    pimpl_->down_button_ = std::make_shared<munin::button>(munin::string_to_elements(" v "));
+    pimpl_->down_button_ = std::make_shared<munin::button>(" v "_ts);
     pimpl_->down_button_->on_click.connect([this]{pimpl_->on_down();});
 
-    pimpl_->save_button_ = std::make_shared<munin::button>(munin::string_to_elements(" Save "));
-    pimpl_->revert_button_ = std::make_shared<munin::button>(munin::string_to_elements(" Revert "));
+    pimpl_->save_button_ = std::make_shared<munin::button>(" Save "_ts);
+    pimpl_->revert_button_ = std::make_shared<munin::button>(" Revert "_ts);
 
     pimpl_->save_button_->on_click.connect([this]{on_save();});
     pimpl_->revert_button_->on_click.connect([this]{on_revert();});
@@ -388,7 +386,7 @@ encounter_editor::encounter_editor()
         pimpl_->insert_button_,
         munin::COMPASS_LAYOUT_NORTH);
     pimpl_->bestiary_button_container_->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
 
     auto inner_beast_button_container = std::make_shared<munin::basic_container>();
@@ -397,7 +395,7 @@ encounter_editor::encounter_editor()
         pimpl_->down_button_,
         munin::COMPASS_LAYOUT_NORTH);
     inner_beast_button_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
 
     pimpl_->beast_button_container_->set_layout(std::make_shared<munin::compass_layout>());
@@ -445,7 +443,7 @@ encounter_editor::encounter_editor()
     auto edit_button_container = std::make_shared<munin::basic_container>();
     edit_button_container->set_layout(std::make_shared<munin::compass_layout>());
     edit_button_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')),
+        std::make_shared<munin::filled_box>(' '),
         munin::COMPASS_LAYOUT_CENTRE);
     edit_button_container->add_component(
         pimpl_->edit_button_,
@@ -466,7 +464,7 @@ encounter_editor::encounter_editor()
     lower_buttons_container->add_component(
         pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST);
     lower_buttons_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' ')), 
+        std::make_shared<munin::filled_box>(' '), 
         munin::COMPASS_LAYOUT_CENTRE);
     lower_buttons_container->add_component(
         pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);
@@ -518,22 +516,22 @@ std::vector<std::shared_ptr<paradice::beast>>
 // ==========================================================================
 // SET_ENCOUNTER_NAME
 // ==========================================================================
-void encounter_editor::set_encounter_name(std::string const &name)
+void encounter_editor::set_encounter_name(terminalpp::string const &name)
 {
     auto doc = pimpl_->encounter_name_field_->get_document();
     doc->delete_text({0, doc->get_text_size()});
-    doc->insert_text(munin::string_to_elements(name));
+    doc->insert_text(name);
 }
 
 // ==========================================================================
 // GET_ENCOUNTER_NAME
 // ==========================================================================
-std::string encounter_editor::get_encounter_name() const
+terminalpp::string encounter_editor::get_encounter_name() const
 {
     auto doc = pimpl_->encounter_name_field_->get_document();
     auto name = doc->get_line(0);
     
-    return munin::ansi::string_from_elements(name);
+    return name;
 }
 
 }

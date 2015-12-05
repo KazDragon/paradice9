@@ -26,11 +26,11 @@
 // ==========================================================================
 #include "munin/solid_frame.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/canvas.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
-#include "odin/ansi/protocol.hpp"
+#include "munin/sco_glyphs.hpp"
+#include "terminalpp/canvas.hpp"
 
 namespace munin {
 
@@ -56,9 +56,9 @@ public :
 
         if (closeable_)
         {
-            attribute pen;
-            pen.foreground_colour_ = odin::ansi::graphics::colour::red;
-            pen.intensity_ = odin::ansi::graphics::intensity::bold;
+            terminalpp::attribute pen;
+            pen.foreground_colour_ = terminalpp::ansi::graphics::colour::red;
+            pen.intensity_ = terminalpp::ansi::graphics::intensity::bold;
 
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, single_lined_top_right_corner);
@@ -69,17 +69,24 @@ public :
         {
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
             top_right_->set_attribute(ATTRIBUTE_GLYPH, double_lined_top_right_corner);
-            top_right_->set_attribute(ATTRIBUTE_PEN,   attribute());
+            top_right_->set_attribute(ATTRIBUTE_PEN,   terminalpp::attribute());
         }
     }
 
     // ======================================================================
-    // HANDLE_MOUSE_CLICK
+    // HANDLE_MOUSE_EVENT
     // ======================================================================
-    bool handle_mouse_click(odin::ansi::mouse_report const *report)
+    bool handle_mouse_event(terminalpp::ansi::mouse::report const &report)
     {
         bool handled = false;
 
+        // If this is not a mouse click, then ignore the event.
+        if (report.button_ != terminalpp::ansi::mouse::report::LEFT_BUTTON_DOWN
+         && report.button_ != terminalpp::ansi::mouse::report::RIGHT_BUTTON_DOWN)
+        {
+            return false;
+        }
+        
         // If we're closeable, then check to see if the close button has been
         // pressed.  If so, fire the close signal.
         if (closeable_)
@@ -87,10 +94,10 @@ public :
             auto position = self_.get_position();
             auto size =     self_.get_size();
 
-            point close_button((position.x + size.width) - 1, 0);
+            terminalpp::point close_button((position.x + size.width) - 1, 0);
 
-            if (report->x_position_ == close_button.x
-             && report->y_position_ == close_button.y)
+            if (report.x_position_ == close_button.x
+             && report.y_position_ == close_button.y)
             {
                 self_.on_close();
                 handled = true;
@@ -110,14 +117,14 @@ public :
 // ==========================================================================
 solid_frame::solid_frame()
   : basic_frame(
-        std::make_shared<filled_box>(element_type(double_lined_top_left_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_horizontal_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_top_right_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_vertical_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_bottom_left_corner)),
-        std::make_shared<filled_box>(element_type(double_lined_horizontal_beam)),
-        std::make_shared<filled_box>(element_type(double_lined_bottom_right_corner)))
+        std::make_shared<filled_box>(double_lined_top_left_corner),
+        std::make_shared<filled_box>(double_lined_horizontal_beam),
+        std::make_shared<filled_box>(double_lined_top_right_corner),
+        std::make_shared<filled_box>(double_lined_vertical_beam),
+        std::make_shared<filled_box>(double_lined_vertical_beam),
+        std::make_shared<filled_box>(double_lined_bottom_left_corner),
+        std::make_shared<filled_box>(double_lined_horizontal_beam),
+        std::make_shared<filled_box>(double_lined_bottom_right_corner))
 {
     pimpl_ = std::make_shared<impl>(std::ref(*this), get_top_right_component());
 }
@@ -144,12 +151,12 @@ void solid_frame::do_event(boost::any const &event)
 {
     bool handled = false;
 
-    odin::ansi::mouse_report const *report =
-        boost::any_cast<odin::ansi::mouse_report>(&event);
+    auto report =
+        boost::any_cast<terminalpp::ansi::mouse::report>(&event);
 
-    if (report != nullptr)
+    if (report)
     {
-        handled = pimpl_->handle_mouse_click(report);
+        handled = pimpl_->handle_mouse_event(*report);
     }
 
     if (!handled)

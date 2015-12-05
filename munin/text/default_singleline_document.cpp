@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/text/default_singleline_document.hpp"
+#include "terminalpp/string.hpp"
 #include <algorithm>
 #include <functional>
 #include <vector>
@@ -38,7 +39,7 @@ struct default_singleline_document::impl
     {
     }
 
-    std::vector<munin::element_type> text_;
+    std::vector<terminalpp::element> text_;
     odin::u32                        caret_index_;
 };
 
@@ -60,7 +61,7 @@ default_singleline_document::~default_singleline_document()
 // ==========================================================================
 // DO_SET_SIZE
 // ==========================================================================
-void default_singleline_document::do_set_size(munin::extent)
+void default_singleline_document::do_set_size(terminalpp::extent)
 {
     // This is ignored.
 }
@@ -68,15 +69,16 @@ void default_singleline_document::do_set_size(munin::extent)
 // ==========================================================================
 // DO_GET_SIZE
 // ==========================================================================
-munin::extent default_singleline_document::do_get_size() const
+terminalpp::extent default_singleline_document::do_get_size() const
 {
-    return munin::extent(odin::u32(pimpl_->text_.size()), odin::u32(1));
+    return terminalpp::extent(odin::u32(pimpl_->text_.size()), odin::u32(1));
 }
 
 // ==========================================================================
 // DO_SET_CARET_POSITION
 // ==========================================================================
-void default_singleline_document::do_set_caret_position(munin::point const& pt)
+void default_singleline_document::do_set_caret_position(
+    terminalpp::point const& pt)
 {
     pimpl_->caret_index_ = (std::min)(
         odin::u32(pimpl_->text_.size()), odin::u32(pt.x));
@@ -85,9 +87,9 @@ void default_singleline_document::do_set_caret_position(munin::point const& pt)
 // ==========================================================================
 // DO_GET_CARET_POSITION
 // ==========================================================================
-munin::point default_singleline_document::do_get_caret_position() const
+terminalpp::point default_singleline_document::do_get_caret_position() const
 {
-    return munin::point(pimpl_->caret_index_, 0);
+    return terminalpp::point(pimpl_->caret_index_, 0);
 }
 
 // ==========================================================================
@@ -119,13 +121,13 @@ odin::u32 default_singleline_document::do_get_text_size() const
 // DO_INSERT_TEXT
 // ==========================================================================
 void default_singleline_document::do_insert_text(
-    std::vector<munin::element_type> const &text
-  , boost::optional<odin::u32>              index)
+    terminalpp::string const  &text
+  , boost::optional<odin::u32> index)
 {
     auto old_index = pimpl_->caret_index_;
 
     // This is a single-line control, so we remove any \ns first.
-    std::vector<munin::element_type> stripped_text;
+    std::vector<terminalpp::element> stripped_text;
     stripped_text.reserve(text.size());
 
     for (auto const &elem : text)
@@ -144,8 +146,8 @@ void default_singleline_document::do_insert_text(
     set_caret_index(get_caret_index() + stripped_text.size());
 
     on_redraw({rectangle(
-        munin::point(old_index, 0)
-      , munin::extent(odin::s32(text.size()), 0))});
+        terminalpp::point(old_index, 0)
+      , terminalpp::extent(odin::s32(text.size()), 0))});
 }
 
 // ==========================================================================
@@ -186,21 +188,20 @@ void default_singleline_document::do_delete_text(std::pair<odin::u32, odin::u32>
 
     // Finally, notify that the document has changed.
     on_redraw({rectangle(
-        munin::point(range.first, 0)
-      , munin::extent(pimpl_->text_.size() - range.first, 1))});
+        terminalpp::point(range.first, 0)
+      , terminalpp::extent(pimpl_->text_.size() - range.first, 1))});
 }
 
 // ==========================================================================
 // DO_SET_TEXT
 // ==========================================================================
-void default_singleline_document::do_set_text(
-    std::vector<element_type> const &text)
+void default_singleline_document::do_set_text(terminalpp::string const &text)
 {
     // We are going to need to redraw a square that is the max of the two
     // document sizes.
     auto old_size = pimpl_->text_.size();
 
-    pimpl_->text_ = text;
+    pimpl_->text_ = {text.begin(), text.end()};
 
     // If the caret index has gone off the end, this will cause it to shrink
     // back to where it's sensible.
@@ -208,8 +209,8 @@ void default_singleline_document::do_set_text(
 
     // Finally, notify that the document has changed.
     on_redraw({rectangle(
-        munin::point(0, 0)
-      , munin::extent((std::max)(old_size, text.size()), 1))});
+        terminalpp::point(0, 0)
+      , terminalpp::extent((std::max)(old_size, text.size()), 1))});
 }
 
 // ==========================================================================
@@ -223,10 +224,10 @@ odin::u32 default_singleline_document::do_get_number_of_lines() const
 // ==========================================================================
 // DO_GET_LINE
 // ==========================================================================
-std::vector<munin::element_type>
-    default_singleline_document::do_get_line(odin::u32 index) const
+terminalpp::string default_singleline_document::do_get_line(
+    odin::u32 index) const
 {
-    return pimpl_->text_;
+    return {pimpl_->text_.begin(), pimpl_->text_.end()};
 }
 
 }}

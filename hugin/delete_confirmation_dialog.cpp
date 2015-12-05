@@ -35,6 +35,7 @@
 #include "munin/horizontal_squeeze_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
+#include <terminalpp/string.hpp>
 
 namespace hugin {
 
@@ -52,16 +53,16 @@ struct delete_confirmation_dialog::impl
 delete_confirmation_dialog::delete_confirmation_dialog()
     : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->delete_text_ = std::make_shared<munin::image>(
-        munin::string_to_elements("..."));
+    using namespace terminalpp::literals;
+    
+    pimpl_->delete_text_ = std::make_shared<munin::image>("..."_ts);
 
     munin::alignment_data central_alignment;
     central_alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_CENTRE;
     central_alignment.vertical_alignment = munin::VERTICAL_ALIGNMENT_CENTRE;
 
     // The upper half comprises the confirmation about the deletion
-    auto confirmation_text = std::make_shared<munin::image>(
-        munin::string_to_elements("Really delete"));
+    auto confirmation_text = std::make_shared<munin::image>("Really delete"_ts);
 
     auto confirmation_text_container = std::make_shared<munin::basic_container>();
     confirmation_text_container->set_layout(std::make_shared<munin::aligned_layout>());
@@ -83,21 +84,19 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     auto upper_container = std::make_shared<munin::basic_container>();
     upper_container->set_layout(std::make_shared<munin::compass_layout>());
     upper_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
         , munin::COMPASS_LAYOUT_CENTRE);
     upper_container->add_component(text_container, munin::COMPASS_LAYOUT_SOUTH);
 
     // The lower half comprises the yes and no buttons.
-    auto yes_button = std::make_shared<munin::button>(
-        munin::string_to_elements("Yes"));
+    auto yes_button = std::make_shared<munin::button>("Yes"_ts);
     yes_button->on_click.connect([this]{on_delete_confirmation();});
 
     auto yes_container = std::make_shared<munin::basic_container>();
     yes_container->set_layout(std::make_shared<munin::aligned_layout>());
     yes_container->add_component(yes_button, central_alignment);
 
-    auto no_button = std::make_shared<munin::button>(
-        munin::string_to_elements("No"));
+    auto no_button = std::make_shared<munin::button>("No"_ts);
     no_button->on_click.connect([this]{on_delete_rejection();});
 
     auto no_container = std::make_shared<munin::basic_container>();
@@ -107,7 +106,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     auto west_button_container = std::make_shared<munin::basic_container>();
     west_button_container->set_layout(std::make_shared<munin::compass_layout>());
     west_button_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , munin::COMPASS_LAYOUT_CENTRE);
     west_button_container->add_component(yes_container, munin::COMPASS_LAYOUT_EAST);
         
@@ -115,7 +114,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     east_button_container->set_layout(std::make_shared<munin::compass_layout>());
     east_button_container->add_component(no_container, munin::COMPASS_LAYOUT_WEST);
     east_button_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , munin::COMPASS_LAYOUT_CENTRE);
 
     auto button_container = std::make_shared<munin::basic_container>();
@@ -127,7 +126,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     lower_container->set_layout(std::make_shared<munin::compass_layout>());
     lower_container->add_component(button_container, munin::COMPASS_LAYOUT_NORTH);
     lower_container->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , munin::COMPASS_LAYOUT_CENTRE);
 
     auto content = get_container();
@@ -137,7 +136,7 @@ delete_confirmation_dialog::delete_confirmation_dialog()
 
     content->set_layout(std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(munin::element_type(' '))
+        std::make_shared<munin::filled_box>(' ')
       , {}
       , munin::LOWEST_LAYER);
 }
@@ -152,9 +151,10 @@ delete_confirmation_dialog::~delete_confirmation_dialog()
 // ==========================================================================
 // SET_DELETION_TARGET_TEXT
 // ==========================================================================
-void delete_confirmation_dialog::set_deletion_target_text(std::string const &text)
+void delete_confirmation_dialog::set_deletion_target_text(
+    terminalpp::string const &text)
 {
-    pimpl_->delete_text_->set_image(munin::string_to_elements(text + "?"));
+    pimpl_->delete_text_->set_image(text + "?");
     get_container()->layout();
 }
 

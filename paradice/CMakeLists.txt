@@ -30,6 +30,7 @@ target_include_directories(paradice
     PRIVATE 
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/telnetpp/include
+        ${CMAKE_SOURCE_DIR}/terminalpp/include
     PUBLIC 
         ${Boost_INCLUDE_DIRS}
 )

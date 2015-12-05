@@ -29,6 +29,10 @@
 
 #include "munin/composite_component.hpp"
 
+namespace terminalpp {
+    class string;
+}
+
 namespace hugin {
 
 //* =========================================================================
@@ -50,25 +54,25 @@ public :
     //* =====================================================================
     /// \brief Sets the name of the beast that the editor is working with.
     //* =====================================================================
-    void set_beast_name(std::string const &name);
+    void set_beast_name(terminalpp::string const &name);
 
     //* =====================================================================
     /// \brief Retrieves the name of the beast that the editor is working 
     /// with.
     //* =====================================================================
-    std::string get_beast_name() const;
+    terminalpp::string get_beast_name() const;
 
     //* =====================================================================
     /// \brief Sets the description of the beast that the editor is working
     /// with.
     //* =====================================================================
-    void set_beast_description(std::string const &description);
+    void set_beast_description(terminalpp::string const &description);
 
     //* =====================================================================
     /// \brief Retrieves the description of the beast that the editor is
     /// working with.
     //* =====================================================================
-    std::string get_beast_description() const;
+    terminalpp::string get_beast_description() const;
 
     //* =====================================================================
     /// \fn on_revert

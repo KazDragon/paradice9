@@ -29,8 +29,11 @@
 
 #include "paradice/export.hpp"
 #include "command.hpp"
-#include "munin/ansi/protocol.hpp"
 #include <string>
+
+namespace terminalpp {
+    class string;
+}
 
 namespace paradice {
 
@@ -50,8 +53,16 @@ void send_to_all(
 //* =========================================================================
 PARADICE_EXPORT 
 void send_to_all(
-    std::shared_ptr<context>               &ctx
-  , std::vector<munin::element_type> const &text);
+    std::shared_ptr<context> &ctx
+  , terminalpp::string const &text);
+
+//* =========================================================================
+/// \brief Send a text message to a single player.
+//* =========================================================================
+void send_to_player(
+    std::shared_ptr<context> &ctx
+  , char const *text
+  , std::shared_ptr< client >& player);
 
 //* =========================================================================
 /// \brief Send a text message to a single player.
@@ -67,9 +78,9 @@ void send_to_player(
 //* =========================================================================
 PARADICE_EXPORT 
 void send_to_player(
-    std::shared_ptr<context>               &ctx
-  , std::vector<munin::element_type> const &text
-  , std::shared_ptr<client>                &player);
+    std::shared_ptr<context> &ctx
+  , terminalpp::string const &text
+  , std::shared_ptr<client>  &player);
 
 //* =========================================================================
 /// \brief Send a text message to all players in the same room as player,
@@ -87,9 +98,9 @@ void send_to_room(
 //* =========================================================================
 PARADICE_EXPORT 
 void send_to_room(
-    std::shared_ptr<context>               &ctx
-  , std::vector<munin::element_type> const &text
-  , std::shared_ptr<client>                &player);
+    std::shared_ptr<context> &ctx
+  , terminalpp::string const &text
+  , std::shared_ptr<client>  &player);
 
 PARADICE_COMMAND_DECL(say);
 PARADICE_COMMAND_DECL(whisper);

@@ -1,16 +1,13 @@
 set (munin_SOURCES
-    ansi/protocol.cpp
     text/default_multiline_document.cpp
     text/default_singleline_document.cpp
     text/document.cpp
     algorithm.cpp
     aligned_layout.cpp
-    attribute.cpp
     basic_component.cpp
     basic_container.cpp
     basic_frame.cpp
     button.cpp
-    canvas.cpp
     card.cpp
     clock.cpp
     compass_layout.cpp
@@ -23,7 +20,6 @@ set (munin_SOURCES
     filled_box.cpp
     frame.cpp
     framed_component.cpp
-    glyph.cpp
     grid_layout.cpp
     horizontal_scroll_bar.cpp
     horizontal_squeeze_layout.cpp
@@ -32,6 +28,7 @@ set (munin_SOURCES
     layout.cpp
     list.cpp
     named_frame.cpp
+    rectangle.cpp
     scroll_pane.cpp
     solid_frame.cpp
     status_bar.cpp
@@ -39,7 +36,6 @@ set (munin_SOURCES
     tabbed_panel.cpp
     text_area.cpp
     toggle_button.cpp
-    types.cpp
     vertical_scroll_bar.cpp
     vertical_squeeze_layout.cpp
     vertical_strip_layout.cpp
@@ -56,10 +52,11 @@ set_target_properties(munin
 target_include_directories(munin
     PRIVATE ${CMAKE_SOURCE_DIR}
     PUBLIC ${Boost_INCLUDE_DIRS}
+           ${CMAKE_SOURCE_DIR}/terminalpp/include
 )
 
 target_link_libraries(munin
-    INTERFACE ${Boost_SIGNALS_LIBRARY}
+    INTERFACE terminalpp ${Boost_SIGNALS_LIBRARY}
 )
 
 #Remove when we move to signals2 or some other mechanism.

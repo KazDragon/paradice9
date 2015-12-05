@@ -25,12 +25,12 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/clock.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/context.hpp"
 #include "munin/container.hpp"
 #include "munin/image.hpp"
 #include "munin/grid_layout.hpp"
+#include <terminalpp/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -54,7 +54,7 @@ struct clock::impl : public std::enable_shared_from_this<impl>
         long hours   = time.hours();
         long minutes = time.minutes();
 
-        image_->set_image(munin::ansi::elements_from_string(boost::str(
+        image_->set_image(terminalpp::string(boost::str(
             boost::format("%02d:%02d") % hours % minutes)));
 
         schedule_next_update();
@@ -98,8 +98,7 @@ private :
 clock::clock()
     : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = std::make_shared<image>(
-        munin::ansi::elements_from_string("00:00"));
+    pimpl_->image_ = std::make_shared<image>("00:00");
 
     get_container()->set_layout(std::make_shared<compass_layout>());
     get_container()->add_component(pimpl_->image_, COMPASS_LAYOUT_SOUTH);

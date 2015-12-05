@@ -37,12 +37,13 @@
 #include "rules.hpp"
 #include "who.hpp"
 #include "hugin/user_interface.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/container.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/window.hpp"
 #include "odin/tokenise.hpp"
+#include "terminalpp/encoder.hpp"
+#include "terminalpp/string.hpp"
 #include <boost/asio/strand.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
@@ -154,6 +155,16 @@ namespace {
 class client::impl
     : public std::enable_shared_from_this<client::impl>
 {
+    static terminalpp::terminal::behaviour create_behaviour()
+    {
+        terminalpp::terminal::behaviour behaviour;
+        behaviour.can_use_eight_bit_control_codes = true;
+        behaviour.supports_basic_mouse_tracking = true;
+        behaviour.supports_window_title_bel = true;
+        
+        return behaviour;
+    }
+    
 public :
     // ======================================================================
     // CONSTRUCTOR
@@ -165,10 +176,11 @@ public :
       : self_(self),
         strand_(io_service),
         context_(ctx),
-        window_(std::make_shared<munin::window>(std::ref(strand_))),
+        window_(std::make_shared<munin::window>(
+            std::ref(strand_), create_behaviour())),
         user_interface_(std::make_shared<hugin::user_interface>(std::ref(strand_)))
     {
-        window_->set_size(munin::extent(80, 24));
+        window_->set_size(terminalpp::extent(80, 24));
     }
 
     // ======================================================================
@@ -179,18 +191,19 @@ public :
         connection_ = cnx;
 
         // CONNECTION CALLBACKS
-        connection_->on_text(
-            [this](auto const &text){on_text(text);});
-
-        connection_->on_mouse_report(
-            [this](auto const &rpt){on_mouse_report(rpt);});
-
-        connection_->on_control_sequence(
-            [this](auto const &seq){on_control_sequence(seq);});
+        connection_->on_data_read(
+            [this](std::string const &data)
+            {
+                std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+                dispatch_queue_.push_back(
+                    bind(&munin::window::data, window_, data));
+                strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+            });
 
         connection_->on_window_size_changed(
             [this](auto const &width, auto const &height)
             {
+                std::cout << "WINDOW SIZE = " << width << ", " << height << "\n";
                 on_window_size_changed(width, height);
             });
 
@@ -263,8 +276,6 @@ public :
         content->set_focus();
 
         window_->enable_mouse_tracking();
-        window_->on_repaint(munin::ansi::clear_screen());
-        window_->on_repaint(munin::ansi::set_normal_cursor_keys());
     }
 
     // ======================================================================
@@ -337,7 +348,7 @@ public :
         {
             std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
             dispatch_queue_.push_back(bind(
-                &munin::window::set_size, window_, munin::extent(width, height)));
+                &munin::window::set_size, window_, terminalpp::extent(width, height)));
         }
 
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
@@ -361,48 +372,13 @@ public :
 
 private :
     // ======================================================================
-    // ON_TEXT
-    // ======================================================================
-    void on_text(char text)
-    {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-
-        dispatch_queue_.push_back(
-            bind(&munin::window::event, window_, text));
-
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-    }
-
-    // ======================================================================
-    // ON_MOUSE_REPORT
-    // ======================================================================
-    void on_mouse_report(odin::ansi::mouse_report const &report)
-    {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        dispatch_queue_.push_back(bind(&munin::window::event, window_, report));
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-    }
-
-    // ======================================================================
-    // ON_CONTROL_SEQUENCE
-    // ======================================================================
-    void on_control_sequence(
-        odin::ansi::control_sequence const &control_sequence)
-    {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        dispatch_queue_.push_back(
-            bind(&munin::window::event, window_, control_sequence));
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-    }
-
-    // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
     void on_window_size_changed(odin::u16 width, odin::u16 height)
     {
         std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
         dispatch_queue_.push_back(
-            bind(&munin::window::set_size, window_, munin::extent(width, height)));
+            bind(&munin::window::set_size, window_, terminalpp::extent(width, height)));
         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
 
@@ -486,6 +462,8 @@ private :
         std::string const &username,
         std::string const &password)
     {
+        using namespace terminalpp::literals;
+        
         std::string account_name(username);
         capitalise(account_name);
 
@@ -499,22 +477,22 @@ private :
         {
             // TODO: Use an actual logging library for this message.
             printf("Error loading account: %s\n", ex.what());
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Invalid username/password combination"));
+            user_interface_->set_statusbar_text(
+                "\\[1Invalid username/password combination"_ets);
             return;
         }
 
         if (account == NULL)
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Invalid username/password combination"));
+            user_interface_->set_statusbar_text(
+                "\\[1Invalid username/password combination"_ets);
             return;
         }
 
         if (!account->password_match(password))
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Invalid username/password combination"));
+            user_interface_->set_statusbar_text(
+                "\\[1Invalid username/password combination"_ets);
             return;
         }
 
@@ -547,15 +525,17 @@ private :
         std::string const &password,
         std::string const &password_verify)
     {
+        using namespace terminalpp::literals;
+
         // Check that the account name is valid.  If not, report an
         // error message and return.  This also removes cases where the
         // account name could have filesystem characters in it such as
         // * or ../, which could potentially wreck the system.
         if (!is_acceptible_name(account_name))
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
+            user_interface_->set_statusbar_text(
                 "\\[1Name must be alphabetic only and at least three "
-                "characters long"));
+                "characters long"_ets);
             return;
         }
 
@@ -575,16 +555,16 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error loading account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
+            user_interface_->set_statusbar_text(
                 "\\1[That account name is unavailable.  Please try with "
-                "a different name"));
+                "a different name"_ets);
             return;
         }
 
         if (test_account != NULL)
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1An account with that name already exists"));
+            user_interface_->set_statusbar_text(
+                "\\[1An account with that name already exists"_ets);
             return;
         }
 
@@ -592,8 +572,8 @@ private :
         // message and return.
         if (password != password_verify)
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Passwords do not match"));
+            user_interface_->set_statusbar_text(
+                "\\[1Passwords do not match"_ets);
             return;
         }
 
@@ -611,9 +591,9 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
+            user_interface_->set_statusbar_text(
                 "\\[1Unexpected error setting saving your account.  "
-                "Please try again."));
+                "Please try again."_ets);
             return;
         }
 
@@ -647,6 +627,8 @@ private :
     // ======================================================================
     void on_character_selected(std::string const &character_name)
     {
+        using namespace terminalpp::literals;
+
         std::shared_ptr<character> ch;
 
         try
@@ -658,8 +640,8 @@ private :
             printf("Error loading character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Error loading character file."));
+            user_interface_->set_statusbar_text(
+                "\\[1Error loading character file."_ets);
 
             return;
         }
@@ -677,8 +659,7 @@ private :
                     if (other_ch && other_ch->get_gm_level() != 0)
                     {
                         user_interface_->set_statusbar_text(
-                            munin::string_to_elements(
-                                "\\[1There is already a GM character online."));
+                            "\\[1There is already a GM character online."_ets);
                         return;
                     }
                 }
@@ -711,14 +692,16 @@ private :
     // ======================================================================
     void on_character_created(std::string character_name, bool is_gm)
     {
+        using namespace terminalpp::literals;
+
         capitalise(character_name);
 
         // Check that the name is appropriate.
         if (!is_acceptible_name(character_name))
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
+            user_interface_->set_statusbar_text(
                 "\\[1Name must be alphabetic only and at least three "
-                "characters long"));
+                "characters long"_ets);
             return;
         }
 
@@ -738,15 +721,15 @@ private :
             printf("Error reading character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Error testing for that character."));
+            user_interface_->set_statusbar_text(
+                "\\[1Error testing for that character."_ets);
             return;
         }
 
         if (test_character != NULL)
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1A character with that name already exists"));
+            user_interface_->set_statusbar_text(
+                "\\[1A character with that name already exists"_ets);
             return;
         }
 
@@ -767,8 +750,8 @@ private :
             printf("Error saving character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1There was an error saving the character."));
+            user_interface_->set_statusbar_text(
+                "\\[1There was an error saving the character."_ets);
             return;
         }
 
@@ -783,9 +766,9 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
+            user_interface_->set_statusbar_text(
                 "\\[1Unexpected error saving your account.  "
-                "Please try again."));
+                "Please try again."_ets);
 
             account_->remove_character(character_name);
             return;
@@ -825,7 +808,7 @@ private :
         add_beast(context_->get_active_encounter(), beast);
         context_->update_active_encounter();
 
-        user_interface_->set_statusbar_text(munin::string_to_elements(
+        user_interface_->set_statusbar_text(terminalpp::encode(
             boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter")
                 % beast->get_name())));
     }
@@ -844,7 +827,7 @@ private :
 
         context_->update_active_encounter();
 
-        user_interface_->set_statusbar_text(munin::string_to_elements(
+        user_interface_->set_statusbar_text(terminalpp::encode(
             boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter!")
                 % encounter->get_name())));
     }
@@ -865,17 +848,19 @@ private :
         std::string const &new_password,
         std::string const &new_password_verify)
     {
+        using namespace terminalpp::literals;
+
         if (!account_->password_match(old_password))
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1Old password did not match."));
+            user_interface_->set_statusbar_text(
+                "\\[1Old password did not match."_ets);
             return;
         }
 
         if (new_password != new_password_verify)
         {
-            user_interface_->set_statusbar_text(munin::string_to_elements(
-                "\\[1New passwords did not match."));
+            user_interface_->set_statusbar_text(
+                "\\[1New passwords did not match."_ets);
             return;
         }
 
@@ -890,9 +875,9 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(munin::string_to_elements(
+            user_interface_->set_statusbar_text(
                 "\\[1Unexpected error saving your account.  "
-                "Please try again."));
+                "Please try again."_ets);
 
             return;
         }

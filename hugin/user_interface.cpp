@@ -32,7 +32,6 @@
 #include "hugin/intro_screen.hpp"
 #include "hugin/main_screen.hpp"
 #include "hugin/password_change_screen.hpp"
-#include "munin/ansi/protocol.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/card.hpp"
 #include "munin/clock.hpp"
@@ -40,6 +39,7 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/status_bar.hpp"
+#include <terminalpp/string.hpp>
 #include <deque>
 #include <mutex>
 #include <thread>
@@ -87,7 +87,7 @@ struct user_interface::impl
     // ======================================================================
     // SET_STATUSBAR_TEXT
     // ======================================================================
-    void set_statusbar_text(std::vector<munin::element_type> const &text)
+    void set_statusbar_text(terminalpp::string const &text)
     {
         status_bar_->set_message(text);
     }
@@ -135,6 +135,8 @@ private:
 user_interface::user_interface(boost::asio::strand &strand)
   : pimpl_(std::make_shared<impl>(std::ref(strand)))
 {
+    using namespace terminalpp::literals;
+
     pimpl_->active_screen_              = std::make_shared<munin::card>();
     pimpl_->intro_screen_               = std::make_shared<intro_screen>();
     pimpl_->account_creation_screen_    = std::make_shared<account_creation_screen>();
@@ -167,7 +169,7 @@ user_interface::user_interface(boost::asio::strand &strand)
     auto clock_container = std::make_shared<munin::basic_container>();
     clock_container->set_layout(std::make_shared<munin::compass_layout>());
     clock_container->add_component(
-        std::make_shared<munin::image>(munin::ansi::elements_from_string(" "))
+        std::make_shared<munin::image>(" "_ts)
         , munin::COMPASS_LAYOUT_WEST);
     clock_container->add_component(
         std::make_shared<munin::clock>()
@@ -453,7 +455,7 @@ void user_interface::select_face(std::string const &face_name)
 // ==========================================================================
 // ADD_OUTPUT_TEXT
 // ==========================================================================
-void user_interface::add_output_text(std::vector<munin::element_type> const &text)
+void user_interface::add_output_text(terminalpp::string const &text)
 {
     pimpl_->async([pimpl_=pimpl_, text]{
         pimpl_->main_screen_->add_output_text(text);
@@ -463,7 +465,7 @@ void user_interface::add_output_text(std::vector<munin::element_type> const &tex
 // ==========================================================================
 // SET_STATUSBAR_TEXT
 // ==========================================================================
-void user_interface::set_statusbar_text(std::vector<munin::element_type> const &text)
+void user_interface::set_statusbar_text(terminalpp::string const &text)
 {
     pimpl_->async([pimpl_=pimpl_, text]{pimpl_->set_statusbar_text(text);});
 }
@@ -513,7 +515,7 @@ void user_interface::on_help_closed(std::function<void ()> const &callback)
 // ==========================================================================
 // SET_HELP_WINDOW_TEXT
 // ==========================================================================
-void user_interface::set_help_window_text(std::vector<munin::element_type> const &text)
+void user_interface::set_help_window_text(terminalpp::string const &text)
 {
     pimpl_->main_screen_->set_help_window_text(text);
 }

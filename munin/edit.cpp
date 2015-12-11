@@ -55,13 +55,13 @@ struct edit::impl
         document_->on_redraw.connect(
             [this](auto const &region)
             {
-                on_document_changed(region);
+                this->on_document_changed(region);
             });
 
         document_->on_caret_position_changed.connect(
             [this]()
             {
-                on_caret_position_changed();
+                this->on_caret_position_changed();
             });
     }
 

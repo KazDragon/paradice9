@@ -26,6 +26,58 @@ addons:
 # Note: libcrypto++-dev is not yet whitelisted, nor usable in the packaged
 # version in Clang without editing a file (see below)
 
+matrix:
+  include:
+
+    # g++-5.2
+    - compiler: g++
+      env: CONFIG=Release SHARED=1 CCOMPILE=gcc-5 CXXCOMPILE=g++-5
+      addons:
+        apt:
+          sources: *sources
+          packages:
+            - clang
+            - gcc-5
+            - g++-5
+            - libcppunit-dev
+            - libboost1.55-all-dev
+
+    - compiler: g++
+      env: CONFIG=Release SHARED=0 CCOMPILE=gcc-5 CXXCOMPILE=g++-5
+      addons:
+        apt:
+          sources: *sources
+          packages:
+            - clang
+            - gcc-5
+            - g++-5
+            - libcppunit-dev
+            - libboost1.55-all-dev
+
+    - compiler: g++
+      env: CONFIG=Debug SHARED=1 CCOMPILE=gcc-5 CXXCOMPILE=g++-5
+      addons:
+        apt:
+          sources: *sources
+          packages:
+            - clang
+            - gcc-5
+            - g++-5
+            - libcppunit-dev
+            - libboost1.55-all-dev
+
+    - compiler: g++
+      env: CONFIG=Debug SHARED=0 CCOMPILE=gcc-5 CXXCOMPILE=g++-5
+      addons:
+        apt:
+          sources: *sources
+          packages:
+            - clang
+            - gcc-5
+            - g++-5
+            - libcppunit-dev
+            - libboost1.55-all-dev
+
 cache:
   - apt: true
   - directories:

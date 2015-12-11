@@ -72,7 +72,7 @@ struct connection::impl
         telnet_session_ = std::make_shared<telnetpp::session>(
             [this](auto &&text) -> std::vector<telnetpp::token>
             {
-                on_text(text);
+                this->on_text(text);
                 return {};
             });
 
@@ -92,7 +92,7 @@ struct connection::impl
         telnet_naws_client_->on_window_size_changed.connect(
             [this](auto &&width, auto &&height) -> std::vector<telnetpp::token>
             {
-                on_window_size_changed(width, height);
+                this->on_window_size_changed(width, height);
                 return {};
             });
         telnet_session_->install(*telnet_naws_client_);
@@ -103,7 +103,7 @@ struct connection::impl
         telnet_terminal_type_client_->on_terminal_type.connect(
             [this](auto &&type) -> std::vector<telnetpp::token>
             {
-                on_terminal_type_detected(type);
+                this->on_terminal_type_detected(type);
                 return {};
             });
         telnet_terminal_type_client_->on_state_changed.connect(
@@ -165,7 +165,7 @@ struct connection::impl
             amount,
             [this](auto &&data)
             {
-                on_data(data);
+                this->on_data(data);
             });
     }
 
@@ -204,7 +204,7 @@ struct connection::impl
         keepalive_timer_->async_wait(
             [this](auto const &error_code)
             {
-                on_keepalive(error_code);
+                this->on_keepalive(error_code);
             });
     }
 

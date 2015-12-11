@@ -209,52 +209,89 @@ public :
 
         // WINDOW CALLBACKS
         window_->on_repaint.connect(
-            [this](auto const &regions){on_repaint(regions);});
+            [this](auto const &regions)
+            {
+                this->on_repaint(regions);
+            });
 
         // USER INTERFACE CALLBACKS
         user_interface_->on_input_entered(
-            [this](auto const &input){on_input_entered(input);});
+            [this](auto const &input)
+            {
+                this->on_input_entered(input);
+            });
 
         user_interface_->on_login(
             [this](auto const &name, auto const &pwd)
             {
-                on_login(name, pwd);
+                this->on_login(name, pwd);
             });
 
-        user_interface_->on_new_account([this]{on_new_account();});
+        user_interface_->on_new_account(
+            [this]
+            {
+                this->on_new_account();
+            });
 
         user_interface_->on_account_created(
             [this](auto const &name, auto const &pwd, auto const &pwd_verify)
             {
-                on_account_created(name, pwd, pwd_verify);
+                this->on_account_created(name, pwd, pwd_verify);
             });
 
         user_interface_->on_account_creation_cancelled(
-            [this]{on_account_creation_cancelled();});
+            [this]
+            {
+                this->on_account_creation_cancelled();
+            });
 
-        user_interface_->on_new_character([this]{on_new_character();});
+        user_interface_->on_new_character(
+            [this]
+            {
+                this->on_new_character();
+            });
 
         user_interface_->on_character_selected(
-            [this](auto const &idx){on_character_selected(idx);});
+            [this](auto const &idx)
+            {
+                this->on_character_selected(idx);
+            });
 
         user_interface_->on_character_created(
             [this](auto const &name, auto const &is_gm)
             {
-                on_character_created(name, is_gm);
+                this->on_character_created(name, is_gm);
             });
 
         user_interface_->on_character_creation_cancelled(
-            [this]{on_character_creation_cancelled();});
+            [this]
+            {
+                this->on_character_creation_cancelled();
+            });
 
-        user_interface_->on_gm_tools_back([this]{on_gm_tools_back();});
+        user_interface_->on_gm_tools_back(
+            [this]
+            {
+                this->on_gm_tools_back();
+            });
 
         user_interface_->on_gm_fight_beast(
-            [this](auto const &beast){on_gm_fight_beast(beast);});
+            [this](auto const &beast)
+            {
+                this->on_gm_fight_beast(beast);
+            });
 
         user_interface_->on_gm_fight_encounter(
-            [this](auto const &encounter){on_gm_fight_encounter(encounter);});
+            [this](auto const &encounter)
+            {
+                this->on_gm_fight_encounter(encounter);
+            });
 
-        user_interface_->on_help_closed([this]{on_help_closed();});
+        user_interface_->on_help_closed(
+            [this]
+            {
+                this->on_help_closed();
+            });
 
         user_interface_->on_password_changed(
             [this](
@@ -262,11 +299,14 @@ public :
                 auto const &new_pwd,
                 auto const &new_pwd_verify)
             {
-                on_password_changed(old_pwd, new_pwd, new_pwd_verify);
+                this->on_password_changed(old_pwd, new_pwd, new_pwd_verify);
             });
 
         user_interface_->on_password_change_cancelled(
-            [this]{on_password_change_cancelled();});
+            [this]
+            {
+                this->on_password_change_cancelled();
+            });
 
         set_window_title("Paradice9");
 

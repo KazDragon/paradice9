@@ -80,19 +80,34 @@ public :
         , newline_char_('\0')
     {
         connections_.push_back(content_->on_redraw.connect(
-            [this](auto const &regions){redraw_handler(regions);}));
+            [this](auto const &regions)
+            {
+                this->redraw_handler(regions);
+            }));
 
         connections_.push_back(content_->on_cursor_state_changed.connect(
-            [this](auto const &){schedule_repaint();}));
+            [this](auto const &)
+            {
+                this->schedule_repaint();
+            }));
 
         connections_.push_back(content_->on_cursor_position_changed.connect(
-            [this](auto const &){schedule_repaint();}));
+            [this](auto const &)
+            {
+                this->schedule_repaint();
+            }));
 
         connections_.push_back(content_->on_preferred_size_changed.connect(
-            [this]{preferred_size_change_handler();}));
+            [this]
+            {
+                this->preferred_size_change_handler();
+            }));
 
         connections_.push_back(content_->on_layout_change.connect(
-            [this]{schedule_layout();}));
+            [this]
+            {
+                this->schedule_layout();
+            }));
     }
 
     // ======================================================================

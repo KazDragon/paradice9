@@ -3,20 +3,17 @@ language: cpp
 sudo: false
 
 compiler:
-#  - gcc
   - clang
 
-#os:
-#  - linux
-#  - osx
-
 env:
-  - CONFIG=Release
-  - CONFIG=Debug
+  - CONFIG=Release SHARED=1 CCOMPILE=clang CXXCOMPILE=clang++
+  - CONFIG=Release SHARED=0 CCOMPILE=clang CXXCOMPILE=clang++
+  - CONFIG=Debug SHARED=1 CCOMPILE=clang CXXCOMPILE=clang++
+  - CONFIG=Debug SHARED=0 CCOMPILE=clang CXXCOMPILE=clang++
 
 addons:
   apt:
-    sources:
+    sources: &sources
       - ubuntu-toolchain-r-test
       - boost-latest
     packages:
@@ -36,7 +33,7 @@ cache:
 
 
 before_install:
-# workaround for not having CMake 3.2
+# workaround for not having CMake 3.4
   - if [ ! -d "cmake-3.4.0-Linux-x86_64/bin" ]; then
       wget --no-check-certificate http://www.cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz;
       tar -xzf cmake-3.4.0-Linux-x86_64.tar.gz;
@@ -48,7 +45,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - ../cmake-3.4.0-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=$CONFIG ..
+  - CC=$CCOMPILE CXX=$CXXCOMPILE ../cmake-3.4.0-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=$CONFIG -DBUILD_SHARED_LIBS=$SHARED ..
 
 script:
   - make -j2

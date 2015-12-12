@@ -55,7 +55,7 @@ public :
     /// a communications point, and calls the passed function whenever data
     /// is received.
     //* =====================================================================
-    connection(std::shared_ptr<odin::net::socket> socket);
+    connection(std::shared_ptr<odin::net::socket> const &socket);
 
     //* =====================================================================
     /// \brief Destructor.
@@ -96,11 +96,6 @@ public :
     /// \brief Disconnects the socket.
     //* =====================================================================
     void disconnect();
-
-    //* =====================================================================
-    /// \brief Reconnects a new socket to this connection.
-    //* =====================================================================
-    void reconnect(std::shared_ptr<odin::net::socket> const &socket);
 
     //* =====================================================================
     /// \brief Asynchronously retrieves the terminal type of the connection.

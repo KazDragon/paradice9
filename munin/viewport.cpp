@@ -619,7 +619,10 @@ void viewport::do_event(boost::any const &event)
         subreport.x_position_ += origin.x;
         subreport.y_position_ += origin.y;
 
-        pimpl_->component_->event(subreport);
+        if (!pimpl_->do_event(event))
+        {
+            pimpl_->component_->event(subreport);
+        }
     }
     else if (!pimpl_->do_event(event))
     {

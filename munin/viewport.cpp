@@ -277,6 +277,26 @@ struct viewport::impl
     }
 
     // ======================================================================
+    // DO_MOUSE_EVENT
+    // ======================================================================
+    bool do_mouse_event(terminalpp::ansi::mouse::report const &report)
+    {
+        switch (report.button_)
+        {
+            case terminalpp::ansi::mouse::report::SCROLLWHEEL_UP :
+                do_pgup_key_event();
+                return true;
+                
+            case terminalpp::ansi::mouse::report::SCROLLWHEEL_DOWN :
+                do_pgdn_key_event();
+                return true;
+                
+            default :
+                return false;
+        }
+    }
+
+    // ======================================================================
     // DO_EVENT
     // ======================================================================
     bool do_event(boost::any const &event)
@@ -286,6 +306,13 @@ struct viewport::impl
         if (vk)
         {
             return do_vk_event(*vk);
+        }
+        
+        auto report = boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+        
+        if (report)
+        {
+            return do_mouse_event(*report);    
         }
         
         return false;
@@ -592,7 +619,10 @@ void viewport::do_event(boost::any const &event)
         subreport.x_position_ += origin.x;
         subreport.y_position_ += origin.y;
 
-        pimpl_->component_->event(subreport);
+        if (!pimpl_->do_event(event))
+        {
+            pimpl_->component_->event(subreport);
+        }
     }
     else if (!pimpl_->do_event(event))
     {

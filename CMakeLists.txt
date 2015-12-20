@@ -24,15 +24,27 @@ find_package(Boost
 # required.
 find_package(Crypto++)
 
-# CppUnit is required for the unit testing.
-find_package(CppUnit)
-
 # When building shared objects, etc., we only want to export certain symbols.
 # Therefore, we need to generate headers suitable for declaring which symbols
 # should be included.
 include(GenerateExportHeader)
 
-if (CPPUNIT_FOUND)
+# Due to the strange requirements for Google Test, it is assumed to have been
+# built in the "gtest" directory.  For this, it is required to run the moral
+# equivalent of the following script before building Telnet++:
+#
+#  mkdir gtest
+#  cd gtest
+#  cmake /usr/src/gtest && make
+#  export GTEST_ROOT=$PWD
+#  cd ..
+find_package(GTest)
+
+# For GTest, it is necessary to link with the appropriate local threading 
+# library.
+find_package(Threads)
+
+if (GTEST_FOUND)
     enable_testing()
 endif()
 

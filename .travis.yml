@@ -21,6 +21,7 @@ addons:
       - gcc-4.8
       - g++-4.8
       - libcppunit-dev
+      - libgtest-dev
       - libboost1.55-all-dev
 #      - libcrypto++-dev
 # Note: libcrypto++-dev is not yet whitelisted, nor usable in the packaged
@@ -40,6 +41,7 @@ matrix:
             - gcc-5
             - g++-5
             - libcppunit-dev
+            - libgtest-dev
             - libboost1.55-all-dev
 
     - compiler: g++
@@ -52,6 +54,7 @@ matrix:
             - gcc-5
             - g++-5
             - libcppunit-dev
+            - libgtest-dev
             - libboost1.55-all-dev
 
     - compiler: g++
@@ -64,6 +67,7 @@ matrix:
             - gcc-5
             - g++-5
             - libcppunit-dev
+            - libgtest-dev
             - libboost1.55-all-dev
 
     - compiler: g++
@@ -76,6 +80,7 @@ matrix:
             - gcc-5
             - g++-5
             - libcppunit-dev
+            - libgtest-dev
             - libboost1.55-all-dev
 
 cache:
@@ -83,21 +88,27 @@ cache:
   - directories:
       - cmake-3.4.0-Linux-x86_64
 
-
 before_install:
 # workaround for not having CMake 3.4
   - if [ ! -d "cmake-3.4.0-Linux-x86_64/bin" ]; then
       wget --no-check-certificate http://www.cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz;
       tar -xzf cmake-3.4.0-Linux-x86_64.tar.gz;
     fi
+  - export CMAKE=../cmake-3.4.0-Linux-x86_64/bin/cmake
 # Install Crypto++, and fix the dependant-name bug
 #  - sudo apt-get install -y libcrypto++-dev
 #  - sudo sed -i 's/\tCheckSize/\tthis->CheckSize/g' /usr/include/cryptopp/secblock.h
+# workaround for gtest not providing its own libraries (sigh)
+  - mkdir gtest
+  - cd gtest
+  - CC=$CCOMPILE CXX=$CXXCOMPILE $CMAKE /usr/src/gtest && make
+  - export GTEST_ROOT=$PWD
+  - cd ..
 
 before_script:
   - mkdir build
   - cd build
-  - CC=$CCOMPILE CXX=$CXXCOMPILE ../cmake-3.4.0-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=$CONFIG -DBUILD_SHARED_LIBS=$SHARED ..
+  - CC=$CCOMPILE CXX=$CXXCOMPILE $CMAKE -DCMAKE_BUILD_TYPE=$CONFIG -DBUILD_SHARED_LIBS=$SHARED ..
 
 script:
   - make -j2

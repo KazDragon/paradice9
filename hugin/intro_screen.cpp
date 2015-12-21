@@ -269,6 +269,10 @@ void intro_screen::do_event(boost::any const &ev)
             
             handled = true;
         }
+        else if (vk->key == terminalpp::vk::enter)
+        {
+            pimpl_->on_login_clicked();
+        }
     }
     
     if (!handled)

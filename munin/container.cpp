@@ -98,39 +98,44 @@ struct container::impl
     }
 
     // ======================================================================
-    // GET_COMPONENTS_SORTED
+    // ENSURE_COMPONENTS_SORTED
     // ======================================================================
-    std::vector<std::shared_ptr<component>> get_components_sorted() const
+    void ensure_components_sorted()
     {
-        std::vector<std::shared_ptr<component>> components;
-        std::vector<odin::u32                 > layers;
-
-        auto number_of_components = self_.get_number_of_components();
-
-        for (odin::u32 index = 0; index < number_of_components; ++index)
+        if (dirty_)
         {
-            auto comp       = self_.get_component(index);
-            auto comp_layer = self_.get_component_layer(index);
+            components_.clear();
+            std::vector<odin::u32> layers;
 
-            auto component_insert_position = components.begin();
-            auto layer_insert_position =     layers.begin();
+            auto number_of_components = self_.get_number_of_components();
 
-            while (component_insert_position != components.end()
-                && layer_insert_position != layers.end()
-                && comp_layer >= *layer_insert_position)
+            for (odin::u32 index = 0; index < number_of_components; ++index)
             {
-                ++component_insert_position;
-                ++layer_insert_position;
+                auto comp       = self_.get_component(index);
+                auto comp_layer = self_.get_component_layer(index);
+
+                auto component_insert_position = components_.begin();
+                auto layer_insert_position =     layers.begin();
+
+                while (component_insert_position != components_.end()
+                    && layer_insert_position != layers.end()
+                    && comp_layer >= *layer_insert_position)
+                {
+                    ++component_insert_position;
+                    ++layer_insert_position;
+                }
+
+                components_.insert(component_insert_position, comp);
+                layers.insert(layer_insert_position, comp_layer);
             }
 
-            components.insert(component_insert_position, comp);
-            layers.insert(layer_insert_position, comp_layer);
+            dirty_ = false;
         }
-
-        return components;
     }
 
     container                               &self_;
+    bool                                     dirty_ = true;
+    std::vector<std::shared_ptr<component>>  components_;
     std::vector<component_connections_type>  component_connections_;
 };
 
@@ -173,6 +178,7 @@ void container::add_component(
   , odin::u32                         layer)
 {
     do_add_component(comp, layout_hint, layer);
+    pimpl_->dirty_ = true;
 
     component_connections_type component_connections;
     component_connections.first = comp;
@@ -209,6 +215,8 @@ void container::add_component(
 // ==========================================================================
 void container::remove_component(std::shared_ptr<component> const &comp)
 {
+    pimpl_->dirty_ = true;
+
     // Disconnect any signals for the component.
     for (auto cur = std::begin(pimpl_->component_connections_);
          cur != std::end(pimpl_->component_connections_);
@@ -297,9 +305,9 @@ void container::do_draw(
 
     // First, we obtain a list of components sorted by layer from lowest
     // to highest.
-    auto components = pimpl_->get_components_sorted();
+    pimpl_->ensure_components_sorted();
 
-    for (auto const &current_component : components)
+    for (auto const &current_component : pimpl_->components_)
     {
         // The area we want to draw is the intersection of the region
         // passed in above and the region of space that the component

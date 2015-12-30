@@ -48,6 +48,14 @@ namespace hugin {
 struct account_creation_screen::impl
 {
     // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl(account_creation_screen &self)
+      : self_(self)
+    {
+    }
+     
+    // ======================================================================
     // ON_ACCOUNT_CREATION_OK
     // ======================================================================
     void on_account_creation_ok()
@@ -83,6 +91,8 @@ struct account_creation_screen::impl
         }
     }
     
+    account_creation_screen                  &self_;
+    
     // Account Creation components
     std::shared_ptr<munin::edit>              name_field_;
     std::shared_ptr<munin::edit>              password_field_;
@@ -100,7 +110,7 @@ struct account_creation_screen::impl
 // CONSTRUCTOR
 // ==========================================================================
 account_creation_screen::account_creation_screen()
-    : pimpl_(std::make_shared<impl>())
+    : pimpl_(std::make_shared<impl>(std::ref(*this)))
 {
     using namespace terminalpp::literals;
     
@@ -256,27 +266,6 @@ void account_creation_screen::clear()
     
     document = pimpl_->password_verify_field_->get_document();
     document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
-}
-
-// ==========================================================================
-// ON_ACCOUNT_CREATED
-// ==========================================================================
-void account_creation_screen::on_account_created(
-    std::function<
-        void (std::string const &, 
-              std::string const &, 
-              std::string const &)> const &callback)
-{
-    pimpl_->on_account_created_ = callback;
-}
-
-// ==========================================================================
-// ON_ACCOUNT_CREATION_CANCELLED
-// ==========================================================================
-void account_creation_screen::on_account_creation_cancelled(
-    std::function<void ()> const &callback)
-{
-    pimpl_->on_account_creation_cancelled_ = callback;
 }
 
 // ==========================================================================

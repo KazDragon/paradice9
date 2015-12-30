@@ -233,13 +233,13 @@ public :
                 this->on_new_account();
             });
 
-        user_interface_->on_account_created(
+        user_interface_->on_account_created.connect(
             [this](auto const &name, auto const &pwd, auto const &pwd_verify)
             {
                 this->on_account_created(name, pwd, pwd_verify);
             });
 
-        user_interface_->on_account_creation_cancelled(
+        user_interface_->on_account_creation_cancelled.connect(
             [this]
             {
                 this->on_account_creation_cancelled();

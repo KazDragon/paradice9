@@ -146,6 +146,11 @@ private:
         {
             create_intro_screen();
         }
+        else if (face_name == hugin::FACE_ACCOUNT_CREATION
+         && !account_creation_screen_)
+        {
+            create_account_creation_screen();
+        }
     }
     
     // ======================================================================
@@ -158,6 +163,21 @@ private:
         intro_screen_->on_new_account.connect(self_.on_new_account);
 
         active_screen_->add_face(intro_screen_, hugin::FACE_INTRO);
+    }
+
+    // ======================================================================
+    // CREATE_ACCOUNT_CREATION_SCREEN
+    // ======================================================================
+    void create_account_creation_screen()
+    {
+        account_creation_screen_ = std::make_shared<account_creation_screen>();
+        account_creation_screen_->on_account_created.connect(
+            self_.on_account_created);
+        account_creation_screen_->on_account_creation_cancelled.connect(
+            self_.on_account_creation_cancelled);
+            
+        active_screen_->add_face(
+            account_creation_screen_, hugin::FACE_ACCOUNT_CREATION);
     }
 
     // ======================================================================
@@ -185,15 +205,12 @@ user_interface::user_interface(boost::asio::strand &strand)
     using namespace terminalpp::literals;
 
     pimpl_->active_screen_              = std::make_shared<munin::card>();
-    pimpl_->account_creation_screen_    = std::make_shared<account_creation_screen>();
     pimpl_->character_creation_screen_  = std::make_shared<character_creation_screen>();
     pimpl_->character_selection_screen_ = std::make_shared<character_selection_screen>();
     pimpl_->main_screen_                = std::make_shared<main_screen>();
     pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
-    pimpl_->active_screen_->add_face(
-        pimpl_->account_creation_screen_, hugin::FACE_ACCOUNT_CREATION);
     pimpl_->active_screen_->add_face(
         pimpl_->character_selection_screen_, hugin::FACE_CHAR_SELECTION);
     pimpl_->active_screen_->add_face(
@@ -255,7 +272,14 @@ void user_interface::clear_intro_screen()
 // ==========================================================================
 void user_interface::clear_account_creation_screen()
 {
-    pimpl_->async([pimpl_=pimpl_]{pimpl_->account_creation_screen_->clear();});
+    pimpl_->async(
+        [pimpl_=pimpl_]
+        {
+            if (pimpl_->account_creation_screen_)
+            {
+                pimpl_->account_creation_screen_->clear();
+            }
+        });
 }
 
 // ==========================================================================
@@ -295,27 +319,6 @@ void user_interface::clear_password_change_screen()
                 pimpl_->password_change_screen_->clear();
             }
         });
-}
-
-// ==========================================================================
-// ON_ACCOUNT_CREATED
-// ==========================================================================
-void user_interface::on_account_created(
-    std::function<
-        void (std::string const &, 
-              std::string const &, 
-              std::string const &)> const &callback)
-{
-    pimpl_->account_creation_screen_->on_account_created(callback);
-}
-
-// ==========================================================================
-// ON_ACCOUNT_CREATION_CANCELLED
-// ==========================================================================
-void user_interface::on_account_creation_cancelled(
-    std::function<void ()> const &callback)
-{
-    pimpl_->account_creation_screen_->on_account_creation_cancelled(callback);
 }
 
 // ==========================================================================

@@ -215,7 +215,7 @@ public :
             });
 
         // USER INTERFACE CALLBACKS
-        user_interface_->on_input_entered(
+        user_interface_->on_input_entered.connect(
             [this](auto const &input)
             {
                 this->on_input_entered(input);
@@ -287,7 +287,7 @@ public :
                 this->on_gm_fight_encounter(encounter);
             });
 
-        user_interface_->on_help_closed(
+        user_interface_->on_help_closed.connect(
             [this]
             {
                 this->on_help_closed();

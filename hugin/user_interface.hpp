@@ -142,12 +142,11 @@ public :
     /// \brief Set a function to be called when the user inputs a command
     /// on the main screen.
     //* =====================================================================
-    void on_input_entered(
-        std::function<void (std::string const &)> const &callback);
+    boost::signal<void (std::string const &input)> on_input_entered;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to create
-    /// a new character.
+    /// a new character.o
     //* =====================================================================
     void on_new_character(
         std::function<void ()> const &callback);
@@ -282,7 +281,7 @@ public :
     /// \brief Set up a callback for when the close icon on the help
     /// window is clicked.
     //* =====================================================================
-    void on_help_closed(std::function<void ()> const &callback);
+    boost::signal<void ()> on_help_closed;
 
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.

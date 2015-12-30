@@ -151,6 +151,11 @@ private:
         {
             create_account_creation_screen();
         }
+        else if (face_name == hugin::FACE_MAIN
+         && !main_screen_)
+        {
+            create_main_screen();
+        }
     }
     
     // ======================================================================
@@ -181,6 +186,18 @@ private:
     }
 
     // ======================================================================
+    // CREATE_MAIN_SCREEN
+    // ======================================================================
+    void create_main_screen()
+    {
+        main_screen_ = std::make_shared<main_screen>();
+        main_screen_->on_input_entered.connect(self_.on_input_entered);
+        main_screen_->on_help_closed.connect(self_.on_help_closed);
+        
+        active_screen_->add_face(main_screen_, hugin::FACE_MAIN);
+    }
+
+    // ======================================================================
     // CREATE_PASSWORD_CHANGE_SCREEN
     // ======================================================================
     void create_password_change_screen()
@@ -207,7 +224,6 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->active_screen_              = std::make_shared<munin::card>();
     pimpl_->character_creation_screen_  = std::make_shared<character_creation_screen>();
     pimpl_->character_selection_screen_ = std::make_shared<character_selection_screen>();
-    pimpl_->main_screen_                = std::make_shared<main_screen>();
     pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
@@ -216,12 +232,9 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->active_screen_->add_face(
         pimpl_->character_creation_screen_, hugin::FACE_CHAR_CREATION);
     pimpl_->active_screen_->add_face(
-        pimpl_->main_screen_, hugin::FACE_MAIN);
-    pimpl_->active_screen_->add_face(
         pimpl_->gm_tools_screen_, hugin::FACE_GM_TOOLS);
-    
-    pimpl_->active_screen_->select_face(hugin::FACE_INTRO);
-    pimpl_->active_face_ = hugin::FACE_INTRO;
+
+    pimpl_->select_face(hugin::FACE_INTRO);    
 
     // Create a container that has a single spacer element and ... A CLOCK!
     auto clock_container = std::make_shared<munin::basic_container>();
@@ -287,7 +300,14 @@ void user_interface::clear_account_creation_screen()
 // ==========================================================================
 void user_interface::clear_character_selection_screen()
 {
-    pimpl_->async([pimpl_=pimpl_]{pimpl_->character_selection_screen_->clear();});
+    pimpl_->async(
+        [pimpl_=pimpl_]
+        {
+            if (pimpl_->character_selection_screen_)
+            {
+                pimpl_->character_selection_screen_->clear();
+            }
+        });
 }
 
 // ==========================================================================
@@ -295,7 +315,14 @@ void user_interface::clear_character_selection_screen()
 // ==========================================================================
 void user_interface::clear_character_creation_screen()
 {
-    pimpl_->async([pimpl_=pimpl_]{pimpl_->character_creation_screen_->clear();});
+    pimpl_->async(
+        [pimpl_=pimpl_]
+        {
+            if (pimpl_->character_creation_screen_)
+            {
+                pimpl_->character_creation_screen_->clear();
+            }
+        });
 }
 
 // ==========================================================================
@@ -303,7 +330,14 @@ void user_interface::clear_character_creation_screen()
 // ==========================================================================
 void user_interface::clear_main_screen()
 {
-    pimpl_->async([pimpl_=pimpl_]{pimpl_->main_screen_->clear();});
+    pimpl_->async(
+        [pimpl_=pimpl_]
+        {
+            if (pimpl_->main_screen_)
+            {
+                pimpl_->main_screen_->clear();
+            }
+        });
 }
 
 // ==========================================================================
@@ -319,15 +353,6 @@ void user_interface::clear_password_change_screen()
                 pimpl_->password_change_screen_->clear();
             }
         });
-}
-
-// ==========================================================================
-// ON_INPUT_ENTERED
-// ==========================================================================
-void user_interface::on_input_entered(
-    std::function<void (std::string const &)> const &callback)
-{
-    pimpl_->main_screen_->on_input_entered(callback);
 }
 
 // ==========================================================================
@@ -521,14 +546,6 @@ void user_interface::show_help_window()
 void user_interface::hide_help_window()
 {
     pimpl_->async([pimpl_=pimpl_]{pimpl_->main_screen_->hide_help_window();});
-}
-
-// ==========================================================================
-// ON_HELP_CLOSED
-// ==========================================================================
-void user_interface::on_help_closed(std::function<void ()> const &callback)
-{
-    pimpl_->main_screen_->on_help_closed(callback);
 }
 
 // ==========================================================================

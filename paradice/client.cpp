@@ -293,7 +293,7 @@ public :
                 this->on_help_closed();
             });
 
-        user_interface_->on_password_changed(
+        user_interface_->on_password_changed.connect(
             [this](
                 auto const &old_pwd,
                 auto const &new_pwd,
@@ -302,7 +302,7 @@ public :
                 this->on_password_changed(old_pwd, new_pwd, new_pwd_verify);
             });
 
-        user_interface_->on_password_change_cancelled(
+        user_interface_->on_password_change_cancelled.connect(
             [this]
             {
                 this->on_password_change_cancelled();

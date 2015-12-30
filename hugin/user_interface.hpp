@@ -98,17 +98,16 @@ public :
     /// \brief Set a function to be called when the user inputs the details
     /// for the change of a password.
     //* =====================================================================
-    void on_password_changed(
-        std::function<
-            void (std::string const &old_password
-                , std::string const &new_password
-                , std::string const &new_password_verify)> const &callback);
+    boost::signal<
+        void (std::string const &old_password,
+              std::string const &new_password,
+              std::string const &new_password_verify)> on_password_changed;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the change
     /// of a password.
     //* =====================================================================
-    void on_password_change_cancelled(std::function<void ()> const &callback);
+    boost::signal<void ()> on_password_change_cancelled;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a name

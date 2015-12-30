@@ -52,11 +52,13 @@ namespace hugin {
 struct user_interface::impl
     : public std::enable_shared_from_this<impl>
 {
-    impl(boost::asio::strand &strand)
-        : strand_(strand)
+    impl(user_interface &self, boost::asio::strand &strand)
+        : self_(self),
+          strand_(strand)
     {
     }
     
+    user_interface                             &self_;
     boost::asio::strand                        &strand_;
     std::shared_ptr<munin::card>                active_screen_;
     std::string                                 active_face_;                  
@@ -79,6 +81,7 @@ struct user_interface::impl
     // ======================================================================
     void select_face(std::string const &face_name)
     {
+        ensure_face_created(face_name);
         active_screen_->select_face(face_name);
         active_screen_->set_focus();
         active_face_ = face_name;
@@ -127,13 +130,37 @@ private:
             lock.lock();
         }
     }
+
+    // ======================================================================
+    // ENSURE_FACE_CREATED
+    // ======================================================================
+    void ensure_face_created(std::string const &face_name)
+    {
+        if (face_name == hugin::FACE_PASSWORD_CHANGE
+         && !password_change_screen_)
+        {
+            create_password_change_screen();
+        }
+    }
+    
+    // ======================================================================
+    // CREATE_PASSWORD_CHANGE_SCREEN
+    // ======================================================================
+    void create_password_change_screen()
+    {
+        password_change_screen_ = std::make_shared<password_change_screen>();
+        password_change_screen_->on_password_changed.connect(
+            self_.on_password_changed);
+        password_change_screen_->on_password_change_cancelled.connect(
+            self_.on_password_change_cancelled);
+    }
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 user_interface::user_interface(boost::asio::strand &strand)
-  : pimpl_(std::make_shared<impl>(std::ref(strand)))
+  : pimpl_(std::make_shared<impl>(std::ref(*this), std::ref(strand)))
 {
     using namespace terminalpp::literals;
 
@@ -143,7 +170,6 @@ user_interface::user_interface(boost::asio::strand &strand)
     pimpl_->character_creation_screen_  = std::make_shared<character_creation_screen>();
     pimpl_->character_selection_screen_ = std::make_shared<character_selection_screen>();
     pimpl_->main_screen_                = std::make_shared<main_screen>();
-    pimpl_->password_change_screen_     = std::make_shared<password_change_screen>();
     pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
@@ -157,8 +183,6 @@ user_interface::user_interface(boost::asio::strand &strand)
         pimpl_->character_creation_screen_, hugin::FACE_CHAR_CREATION);
     pimpl_->active_screen_->add_face(
         pimpl_->main_screen_, hugin::FACE_MAIN);
-    pimpl_->active_screen_->add_face(
-        pimpl_->password_change_screen_, hugin::FACE_PASSWORD_CHANGE);
     pimpl_->active_screen_->add_face(
         pimpl_->gm_tools_screen_, hugin::FACE_GM_TOOLS);
     
@@ -239,29 +263,14 @@ void user_interface::clear_main_screen()
 // ==========================================================================
 void user_interface::clear_password_change_screen()
 {
-    pimpl_->async([pimpl_=pimpl_]{pimpl_->password_change_screen_->clear();});
-}
-
-// ==========================================================================
-// ON_PASSWORD_CHANGED
-// ==========================================================================
-void user_interface::on_password_changed(
-    std::function<
-        void (
-            std::string const &, 
-            std::string const &, 
-            std::string const &)> const &callback)
-{
-    pimpl_->password_change_screen_->on_password_changed(callback);
-}
-
-// ==========================================================================
-// ON_PASSWORD_CHANGE_CANCELLED
-// ==========================================================================
-void user_interface::on_password_change_cancelled(
-    std::function<void ()> const &callback)
-{
-    pimpl_->password_change_screen_->on_password_change_cancelled(callback);
+    pimpl_->async(
+        [pimpl_=pimpl_]
+        {
+            if (pimpl_->password_change_screen_)
+            {
+                pimpl_->password_change_screen_->clear();
+            }
+        });
 }
 
 // ==========================================================================

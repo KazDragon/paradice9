@@ -221,13 +221,13 @@ public :
                 this->on_input_entered(input);
             });
 
-        user_interface_->on_login(
+        user_interface_->on_login.connect(
             [this](auto const &name, auto const &pwd)
             {
                 this->on_login(name, pwd);
             });
 
-        user_interface_->on_new_account(
+        user_interface_->on_new_account.connect(
             [this]
             {
                 this->on_new_account();

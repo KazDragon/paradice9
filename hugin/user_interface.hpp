@@ -113,15 +113,15 @@ public :
     /// \brief Set a function to be called when the user inputs a name
     /// and password on the intro screen.
     //* =====================================================================
-    void on_login(
-        std::function<
-            void (std::string const &, std::string const &)> const &callback);
+    boost::signal<
+        void (std::string const &username,
+              std::string const &hashed_password)> on_login;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user wants to create
     /// a new account.
     //* =====================================================================
-    void on_new_account(std::function<void ()> const &callback);
+    boost::signal<void ()> on_new_account;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs the details

@@ -493,7 +493,10 @@ terminalpp::point text_area::do_get_cursor_position() const
 // ==========================================================================
 void text_area::do_set_cursor_position(terminalpp::point const &position)
 {
-    pimpl_->set_cursor_position(position);
+    if (position != get_cursor_position())
+    {
+        pimpl_->set_cursor_position(position);
+    }        
 }
 
 // ==========================================================================

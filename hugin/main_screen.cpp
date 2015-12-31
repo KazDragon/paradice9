@@ -75,14 +75,6 @@ struct main_screen::impl
         }
     }
 
-    // ======================================================================
-    // FIRE_HELP_CLOSED
-    // ======================================================================
-    void fire_help_closed()
-    {
-        self_.on_help_closed();
-    }
-    
     main_screen                           &self_;
     
     std::shared_ptr<wholist>               wholist_;

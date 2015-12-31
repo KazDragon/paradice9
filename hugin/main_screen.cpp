@@ -95,9 +95,6 @@ struct main_screen::impl
     bool                                   help_field_visible_;
     std::shared_ptr<active_encounter_view> active_encounter_view_;
     bool                                   active_encounter_view_visible_;
-    
-    std::function<void (std::string const &)> on_input_entered_;
-    std::function<void ()>                 on_help_closed_;
 };
 
 // ==========================================================================

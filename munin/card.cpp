@@ -109,6 +109,10 @@ void card::add_face(
         {
             on_cursor_position_changed(pos);
         });
+    
+    // As the component has just been added to this, it will need to be
+    // laid out.
+    comp->layout();
 }
 
 // ==========================================================================

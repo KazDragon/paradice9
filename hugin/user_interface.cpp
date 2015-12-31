@@ -61,7 +61,6 @@ struct user_interface::impl
     user_interface                             &self_;
     boost::asio::strand                        &strand_;
     std::shared_ptr<munin::card>                active_screen_;
-    std::string                                 active_face_;                  
     
     std::shared_ptr<intro_screen>               intro_screen_;   
     std::shared_ptr<account_creation_screen>    account_creation_screen_;
@@ -84,7 +83,6 @@ struct user_interface::impl
         ensure_face_created(face_name);
         active_screen_->select_face(face_name);
         active_screen_->set_focus();
-        active_face_ = face_name;
     }
     
     // ======================================================================
@@ -107,28 +105,6 @@ struct user_interface::impl
         }
         
         strand_.post([pthis=shared_from_this()]{pthis->dispatch_queue();});
-    }
-
-private:
-    // ======================================================================
-    // DISPATCH_QUEUE
-    // ======================================================================
-    void dispatch_queue()
-    {
-        std::function<void ()> fn;
-
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        
-        while (!dispatch_queue_.empty())
-        {
-            fn = dispatch_queue_.front();
-            dispatch_queue_.pop_front();
-            lock.unlock();
-
-            fn();
-            
-            lock.lock();
-        }
     }
 
     // ======================================================================
@@ -161,6 +137,33 @@ private:
         {
             create_character_selection_screen();
         }
+        else if (face_name == hugin::FACE_CHAR_CREATION
+         && !character_creation_screen_)
+        {
+            create_character_creation_screen();
+        }
+    }
+
+private:
+    // ======================================================================
+    // DISPATCH_QUEUE
+    // ======================================================================
+    void dispatch_queue()
+    {
+        std::function<void ()> fn;
+
+        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+        
+        while (!dispatch_queue_.empty())
+        {
+            fn = dispatch_queue_.front();
+            dispatch_queue_.pop_front();
+            lock.unlock();
+
+            fn();
+            
+            lock.lock();
+        }
     }
     
     // ======================================================================
@@ -168,8 +171,8 @@ private:
     // ======================================================================
     void create_intro_screen()
     {
-        intro_screen_->on_login.connect(self_.on_login);
         intro_screen_ = std::make_shared<intro_screen>();
+        intro_screen_->on_login.connect(self_.on_login);
         intro_screen_->on_new_account.connect(self_.on_new_account);
 
         active_screen_->add_face(intro_screen_, hugin::FACE_INTRO);
@@ -204,6 +207,22 @@ private:
             
         active_screen_->add_face(
             character_selection_screen_, hugin::FACE_CHAR_SELECTION);
+    }
+
+    // ======================================================================
+    // CREATE_CHARACTER_CREATION_SCREEN
+    // ======================================================================
+    void create_character_creation_screen()
+    {
+        character_creation_screen_ =
+            std::make_shared<character_creation_screen>();
+        character_creation_screen_->on_character_created.connect(
+            self_.on_character_created);
+        character_creation_screen_->on_character_creation_cancelled.connect(
+            self_.on_character_creation_cancelled);
+        
+        active_screen_->add_face(
+            character_creation_screen_, hugin::FACE_CHAR_CREATION);
     }
 
     // ======================================================================
@@ -243,12 +262,9 @@ user_interface::user_interface(boost::asio::strand &strand)
     using namespace terminalpp::literals;
 
     pimpl_->active_screen_              = std::make_shared<munin::card>();
-    pimpl_->character_creation_screen_  = std::make_shared<character_creation_screen>();
     pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
-    pimpl_->active_screen_->add_face(
-        pimpl_->character_creation_screen_, hugin::FACE_CHAR_CREATION);
     pimpl_->active_screen_->add_face(
         pimpl_->gm_tools_screen_, hugin::FACE_GM_TOOLS);
 
@@ -374,25 +390,6 @@ void user_interface::clear_password_change_screen()
 }
 
 // ==========================================================================
-// ON_CHARACTER_CREATED
-// ==========================================================================
-void user_interface::on_character_created(
-    std::function<void (std::string const &, bool)> const &callback)
-{
-    pimpl_->character_creation_screen_->on_character_created(callback);
-}
-
-// ==========================================================================
-// ON_CHARACTER_CREATION_CANCELLED
-// ==========================================================================
-void user_interface::on_character_creation_cancelled(
-    std::function<void ()> const &callback)
-{
-    pimpl_->character_creation_screen_->on_character_creation_cancelled(
-        callback);
-}
-
-// ==========================================================================
 // ON_GM_TOOLS_BACK
 // ==========================================================================
 void user_interface::on_gm_tools_back(std::function<void ()> const &callback)
@@ -449,9 +446,12 @@ void user_interface::set_active_encounter(
 void user_interface::set_character_names(        
     std::vector<std::pair<std::string, std::string>> const &names)
 {
-    pimpl_->async([pimpl_=pimpl_, names]{
-        pimpl_->character_selection_screen_->set_character_names(names);
-    });
+    pimpl_->async(
+        [pimpl_=pimpl_, names]
+        {
+            pimpl_->ensure_face_created(hugin::FACE_CHAR_SELECTION);
+            pimpl_->character_selection_screen_->set_character_names(names);
+        });
 }
 
 // ==========================================================================
@@ -520,7 +520,12 @@ void user_interface::set_statusbar_text(terminalpp::string const &text)
 // ==========================================================================
 void user_interface::update_wholist(std::vector<std::string> const &names)
 {
-    pimpl_->async([pimpl_=pimpl_, names]{pimpl_->main_screen_->update_wholist(names);});
+    pimpl_->async(
+        [pimpl_=pimpl_, names]
+        {
+            pimpl_->ensure_face_created(hugin::FACE_MAIN);
+            pimpl_->main_screen_->update_wholist(names);
+        });
 }
 
 // ==========================================================================

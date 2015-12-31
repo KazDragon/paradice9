@@ -160,15 +160,14 @@ public :
     /// \brief Provide a function to be called if the user creates a new
     /// character.
     //* =====================================================================
-    void on_character_created(
-        std::function<void (std::string const &, bool)> const &callback);
+    boost::signal<
+        void (std::string const &name, bool is_gm)> on_character_created;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user decides to cancel
     /// the creation of a character.
     //* =====================================================================
-    void on_character_creation_cancelled(
-        std::function<void ()> const &callback);
+    boost::signal<void ()> on_character_creation_cancelled;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user hits the 'back'

@@ -60,24 +60,21 @@ struct account_creation_screen::impl
     // ======================================================================
     void on_account_creation_ok()
     {
-        if (on_account_created_)
-        {
-            auto document = name_field_->get_document();
-            auto elements = document->get_line(0);
-            auto name = to_string(elements);
-            
-            document = password_field_->get_document();
-            elements = document->get_line(0);
-            
-            auto password = to_string(elements);
-            
-            document = password_verify_field_->get_document();
-            elements = document->get_line(0);
-            
-            auto password_verify = to_string(elements);
-            
-            on_account_created_(name, password, password_verify);
-        }
+        auto document = name_field_->get_document();
+        auto elements = document->get_line(0);
+        auto name = to_string(elements);
+        
+        document = password_field_->get_document();
+        elements = document->get_line(0);
+        
+        auto password = to_string(elements);
+        
+        document = password_verify_field_->get_document();
+        elements = document->get_line(0);
+        
+        auto password_verify = to_string(elements);
+        
+        self_.on_account_created(name, password, password_verify);
     }
     
     // ======================================================================
@@ -85,10 +82,7 @@ struct account_creation_screen::impl
     // ======================================================================
     void on_account_creation_cancelled()
     {
-        if (on_account_creation_cancelled_)
-        {
-            on_account_creation_cancelled_();
-        }
+        self_.on_account_creation_cancelled();
     }
     
     account_creation_screen                  &self_;
@@ -99,10 +93,7 @@ struct account_creation_screen::impl
     std::shared_ptr<munin::edit>              password_verify_field_;
     std::shared_ptr<munin::button>            ok_button_;
     std::shared_ptr<munin::button>            cancel_button_;
-    std::function<void (std::string const &, 
-                        std::string const &, 
-                        std::string const &)> on_account_created_;
-    std::function<void ()>                    on_account_creation_cancelled_;
+
     std::vector<boost::signals::connection>   connections_;
 };
 

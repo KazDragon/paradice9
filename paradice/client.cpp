@@ -257,13 +257,13 @@ public :
                 this->on_character_selected(idx);
             });
 
-        user_interface_->on_character_created(
+        user_interface_->on_character_created.connect(
             [this](auto const &name, auto const &is_gm)
             {
                 this->on_character_created(name, is_gm);
             });
 
-        user_interface_->on_character_creation_cancelled(
+        user_interface_->on_character_creation_cancelled.connect(
             [this]
             {
                 this->on_character_creation_cancelled();

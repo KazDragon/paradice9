@@ -148,15 +148,13 @@ public :
     /// \brief Provide a function to be called if the user opts to create
     /// a new character.o
     //* =====================================================================
-    void on_new_character(
-        std::function<void ()> const &callback);
-
+    boost::signal<void ()> on_new_character;
+    
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to use an
     /// existing character.
     //* =====================================================================
-    void on_character_selected(
-        std::function<void (std::string const &)> const &callback);
+    boost::signal<void (std::string const &name)> on_character_selected;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user creates a new

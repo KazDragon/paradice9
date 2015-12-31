@@ -156,6 +156,11 @@ private:
         {
             create_main_screen();
         }
+        else if (face_name == hugin::FACE_CHAR_SELECTION
+         && !character_selection_screen_)
+        {
+            create_character_selection_screen();
+        }
     }
     
     // ======================================================================
@@ -163,8 +168,8 @@ private:
     // ======================================================================
     void create_intro_screen()
     {
-        intro_screen_ = std::make_shared<intro_screen>();
         intro_screen_->on_login.connect(self_.on_login);
+        intro_screen_ = std::make_shared<intro_screen>();
         intro_screen_->on_new_account.connect(self_.on_new_account);
 
         active_screen_->add_face(intro_screen_, hugin::FACE_INTRO);
@@ -183,6 +188,22 @@ private:
             
         active_screen_->add_face(
             account_creation_screen_, hugin::FACE_ACCOUNT_CREATION);
+    }
+
+    // ======================================================================
+    // CREATE_CHARACTER_SELECTION_SCREEN
+    // ======================================================================
+    void create_character_selection_screen()
+    {
+        character_selection_screen_ = 
+            std::make_shared<character_selection_screen>();
+        character_selection_screen_->on_new_character.connect(
+            self_.on_new_character);
+        character_selection_screen_->on_character_selected.connect(
+            self_.on_character_selected);
+            
+        active_screen_->add_face(
+            character_selection_screen_, hugin::FACE_CHAR_SELECTION);
     }
 
     // ======================================================================
@@ -223,12 +244,9 @@ user_interface::user_interface(boost::asio::strand &strand)
 
     pimpl_->active_screen_              = std::make_shared<munin::card>();
     pimpl_->character_creation_screen_  = std::make_shared<character_creation_screen>();
-    pimpl_->character_selection_screen_ = std::make_shared<character_selection_screen>();
     pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
-    pimpl_->active_screen_->add_face(
-        pimpl_->character_selection_screen_, hugin::FACE_CHAR_SELECTION);
     pimpl_->active_screen_->add_face(
         pimpl_->character_creation_screen_, hugin::FACE_CHAR_CREATION);
     pimpl_->active_screen_->add_face(
@@ -353,23 +371,6 @@ void user_interface::clear_password_change_screen()
                 pimpl_->password_change_screen_->clear();
             }
         });
-}
-
-// ==========================================================================
-// ON_NEW_CHARACTER
-// ==========================================================================
-void user_interface::on_new_character(std::function<void ()> const &callback)
-{
-    pimpl_->character_selection_screen_->on_new_character(callback);
-}
-
-// ==========================================================================
-// ON_CHARACTER_SELECTED
-// ==========================================================================
-void user_interface::on_character_selected(
-    std::function<void (std::string const &)> const &callback)
-{
-    pimpl_->character_selection_screen_->on_character_selected(callback);
 }
 
 // ==========================================================================

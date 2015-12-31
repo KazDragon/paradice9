@@ -245,13 +245,13 @@ public :
                 this->on_account_creation_cancelled();
             });
 
-        user_interface_->on_new_character(
+        user_interface_->on_new_character.connect(
             [this]
             {
                 this->on_new_character();
             });
 
-        user_interface_->on_character_selected(
+        user_interface_->on_character_selected.connect(
             [this](auto const &idx)
             {
                 this->on_character_selected(idx);

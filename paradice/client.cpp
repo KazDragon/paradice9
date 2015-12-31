@@ -269,19 +269,19 @@ public :
                 this->on_character_creation_cancelled();
             });
 
-        user_interface_->on_gm_tools_back(
+        user_interface_->on_gm_tools_back.connect(
             [this]
             {
                 this->on_gm_tools_back();
             });
 
-        user_interface_->on_gm_fight_beast(
+        user_interface_->on_gm_fight_beast.connect(
             [this](auto const &beast)
             {
                 this->on_gm_fight_beast(beast);
             });
 
-        user_interface_->on_gm_fight_encounter(
+        user_interface_->on_gm_fight_encounter.connect(
             [this](auto const &encounter)
             {
                 this->on_gm_fight_encounter(encounter);

@@ -142,6 +142,11 @@ struct user_interface::impl
         {
             create_character_creation_screen();
         }
+        else if (face_name == hugin::FACE_GM_TOOLS
+         && !gm_tools_screen_)
+        {
+            create_gm_tools_screen();
+        }
     }
 
 private:
@@ -251,6 +256,21 @@ private:
         active_screen_->add_face(
             password_change_screen_, hugin::FACE_PASSWORD_CHANGE);
     }
+
+    // ======================================================================
+    // CREATE_GM_TOOLS_SCREEN
+    // ======================================================================
+    void create_gm_tools_screen()
+    {
+        gm_tools_screen_ = std::make_shared<gm_tools_screen>();
+        gm_tools_screen_->on_back.connect(self_.on_gm_tools_back);
+        gm_tools_screen_->on_fight_beast.connect(self_.on_gm_fight_beast);
+        gm_tools_screen_->on_fight_encounter.connect(
+            self_.on_gm_fight_encounter);
+        
+        active_screen_->add_face(
+            gm_tools_screen_, hugin::FACE_GM_TOOLS);
+    }
 };
 
 // ==========================================================================
@@ -262,11 +282,7 @@ user_interface::user_interface(boost::asio::strand &strand)
     using namespace terminalpp::literals;
 
     pimpl_->active_screen_              = std::make_shared<munin::card>();
-    pimpl_->gm_tools_screen_            = std::make_shared<gm_tools_screen>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
-
-    pimpl_->active_screen_->add_face(
-        pimpl_->gm_tools_screen_, hugin::FACE_GM_TOOLS);
 
     pimpl_->select_face(hugin::FACE_INTRO);    
 
@@ -390,32 +406,6 @@ void user_interface::clear_password_change_screen()
 }
 
 // ==========================================================================
-// ON_GM_TOOLS_BACK
-// ==========================================================================
-void user_interface::on_gm_tools_back(std::function<void ()> const &callback)
-{
-    pimpl_->gm_tools_screen_->on_back.connect(callback);
-}
-
-// ==========================================================================
-// ON_GM_FIGHT_BEAST
-// ==========================================================================
-void user_interface::on_gm_fight_beast(
-    std::function<void (std::shared_ptr<paradice::beast> const &)> const &callback)
-{
-    pimpl_->gm_tools_screen_->on_fight_beast.connect(callback);
-}
-
-// ==========================================================================
-// ON_GM_FIGHT_ENCOUNTER
-// ==========================================================================
-void user_interface::on_gm_fight_encounter(
-    std::function<void (std::shared_ptr<paradice::encounter> const &)> const &callback)
-{
-    pimpl_->gm_tools_screen_->on_fight_encounter.connect(callback);
-}
-
-// ==========================================================================
 // SHOW_ACTIVE_ENCOUNTER_WINDOW
 // ==========================================================================
 void user_interface::show_active_encounter_window()
@@ -460,6 +450,7 @@ void user_interface::set_character_names(
 void user_interface::set_beasts(
     std::vector<std::shared_ptr<paradice::beast>> const &beasts)
 {
+    pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     pimpl_->gm_tools_screen_->set_beasts(beasts);
 }
 
@@ -468,6 +459,7 @@ void user_interface::set_beasts(
 // ==========================================================================
 std::vector<std::shared_ptr<paradice::beast>> user_interface::get_beasts() const
 {
+    pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     return pimpl_->gm_tools_screen_->get_beasts();
 }
 
@@ -477,6 +469,7 @@ std::vector<std::shared_ptr<paradice::beast>> user_interface::get_beasts() const
 void user_interface::set_encounters(
     std::vector<std::shared_ptr<paradice::encounter>> const &encounters)
 {
+    pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     pimpl_->gm_tools_screen_->set_encounters(encounters);
 }
 
@@ -486,6 +479,7 @@ void user_interface::set_encounters(
 std::vector<std::shared_ptr<paradice::encounter>> 
 user_interface::get_encounters() const
 {
+    pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     return pimpl_->gm_tools_screen_->get_encounters();
 }
 

@@ -173,25 +173,22 @@ public :
     /// \brief Provide a function to be called if the user hits the 'back'
     /// button on the GM Tools screen
     //* =====================================================================
-    void on_gm_tools_back(std::function<void ()> const &callback);
+    boost::signal<void ()> on_gm_tools_back;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts a
     /// beast into the current encounter.
     //* =====================================================================
-    void on_gm_fight_beast(
-        std::function<
-            void (std::shared_ptr<paradice::beast> const &)
-        > const &callback);
+    boost::signal<
+        void (std::shared_ptr<paradice::beast> const &)> on_gm_fight_beast;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts an
     /// encounter into the current encounter.
     //* =====================================================================
-    void on_gm_fight_encounter(
-        std::function<
-            void (std::shared_ptr<paradice::encounter> const &)
-        > const &callback);
+    boost::signal<
+        void (std::shared_ptr<paradice::encounter> const &)
+    > on_gm_fight_encounter;
 
     //* =====================================================================
     /// \brief Shows the active encounter window.

@@ -98,106 +98,97 @@ public :
     /// \brief Set a function to be called when the user inputs the details
     /// for the change of a password.
     //* =====================================================================
-    void on_password_changed(
-        std::function<
-            void (std::string const &old_password
-                , std::string const &new_password
-                , std::string const &new_password_verify)> const &callback);
+    boost::signal<
+        void (std::string const &old_password,
+              std::string const &new_password,
+              std::string const &new_password_verify)> on_password_changed;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the change
     /// of a password.
     //* =====================================================================
-    void on_password_change_cancelled(std::function<void ()> const &callback);
+    boost::signal<void ()> on_password_change_cancelled;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a name
     /// and password on the intro screen.
     //* =====================================================================
-    void on_login(
-        std::function<
-            void (std::string const &, std::string const &)> const &callback);
+    boost::signal<
+        void (std::string const &username,
+              std::string const &hashed_password)> on_login;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user wants to create
     /// a new account.
     //* =====================================================================
-    void on_new_account(std::function<void ()> const &callback);
+    boost::signal<void ()> on_new_account;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs the details
     /// for the creation of an account.
     //* =====================================================================
-    void on_account_created(
-        std::function<
-            void (std::string const &account_name
-                , std::string const &password
-                , std::string const &password_verify)> const &callback);
-
+    boost::signal<
+        void (std::string const &account_name,
+              std::string const &password,
+              std::string const &password_verify)> on_account_created;
+              
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation
     /// of an account.
     //* =====================================================================
-    void on_account_creation_cancelled(std::function<void ()> const &callback);
+    boost::signal<void ()> on_account_creation_cancelled;
 
     //* =====================================================================
     /// \brief Set a function to be called when the user inputs a command
     /// on the main screen.
     //* =====================================================================
-    void on_input_entered(
-        std::function<void (std::string const &)> const &callback);
+    boost::signal<void (std::string const &input)> on_input_entered;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to create
-    /// a new character.
+    /// a new character.o
     //* =====================================================================
-    void on_new_character(
-        std::function<void ()> const &callback);
-
+    boost::signal<void ()> on_new_character;
+    
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to use an
     /// existing character.
     //* =====================================================================
-    void on_character_selected(
-        std::function<void (std::string const &)> const &callback);
+    boost::signal<void (std::string const &name)> on_character_selected;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user creates a new
     /// character.
     //* =====================================================================
-    void on_character_created(
-        std::function<void (std::string const &, bool)> const &callback);
+    boost::signal<
+        void (std::string const &name, bool is_gm)> on_character_created;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user decides to cancel
     /// the creation of a character.
     //* =====================================================================
-    void on_character_creation_cancelled(
-        std::function<void ()> const &callback);
+    boost::signal<void ()> on_character_creation_cancelled;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user hits the 'back'
     /// button on the GM Tools screen
     //* =====================================================================
-    void on_gm_tools_back(std::function<void ()> const &callback);
+    boost::signal<void ()> on_gm_tools_back;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts a
     /// beast into the current encounter.
     //* =====================================================================
-    void on_gm_fight_beast(
-        std::function<
-            void (std::shared_ptr<paradice::beast> const &)
-        > const &callback);
+    boost::signal<
+        void (std::shared_ptr<paradice::beast> const &)> on_gm_fight_beast;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts an
     /// encounter into the current encounter.
     //* =====================================================================
-    void on_gm_fight_encounter(
-        std::function<
-            void (std::shared_ptr<paradice::encounter> const &)
-        > const &callback);
+    boost::signal<
+        void (std::shared_ptr<paradice::encounter> const &)
+    > on_gm_fight_encounter;
 
     //* =====================================================================
     /// \brief Shows the active encounter window.
@@ -284,7 +275,7 @@ public :
     /// \brief Set up a callback for when the close icon on the help
     /// window is clicked.
     //* =====================================================================
-    void on_help_closed(std::function<void ()> const &callback);
+    boost::signal<void ()> on_help_closed;
 
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.

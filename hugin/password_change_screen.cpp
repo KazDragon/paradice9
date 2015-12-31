@@ -47,29 +47,34 @@ namespace hugin {
 struct password_change_screen::impl
 {
     // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl(password_change_screen &self)
+      : self_(self)
+     {
+     }
+
+    // ======================================================================
     // ON_PASSWORD_CHANGE_OK
     // ======================================================================
     void on_password_change_ok()
     {
-        if (on_password_changed_)
-        {
-            auto document = old_password_field_->get_document();
-            auto elements = document->get_line(0);
-            auto old_password = to_string(elements);
-            
-            document = new_password_field_->get_document();
-            elements = document->get_line(0);
-            
-            auto new_password = to_string(elements);
-            
-            document = new_password_verify_field_->get_document();
-            elements = document->get_line(0);
-            
-            auto new_password_verify = to_string(elements);
-            
-            on_password_changed_(
-                old_password, new_password, new_password_verify);
-        }
+        auto document = old_password_field_->get_document();
+        auto elements = document->get_line(0);
+        auto old_password = to_string(elements);
+        
+        document = new_password_field_->get_document();
+        elements = document->get_line(0);
+        
+        auto new_password = to_string(elements);
+        
+        document = new_password_verify_field_->get_document();
+        elements = document->get_line(0);
+        
+        auto new_password_verify = to_string(elements);
+        
+        self_.on_password_changed(
+            old_password, new_password, new_password_verify);
     }
     
     // ======================================================================
@@ -77,11 +82,10 @@ struct password_change_screen::impl
     // ======================================================================
     void on_password_change_cancelled()
     {
-        if (on_password_change_cancelled_)
-        {
-            on_password_change_cancelled_();
-        }
+        self_.on_password_change_cancelled();
     }
+
+    password_change_screen                 &self_;
     
     // Password Change components
     std::shared_ptr<munin::edit>            old_password_field_;
@@ -89,12 +93,6 @@ struct password_change_screen::impl
     std::shared_ptr<munin::edit>            new_password_verify_field_;
     std::shared_ptr<munin::button>          ok_button_;
     std::shared_ptr<munin::button>          cancel_button_;
-    std::function<
-        void (
-            std::string const &, 
-            std::string const &, 
-            std::string const &)>           on_password_changed_;
-    std::function<void ()>                  on_password_change_cancelled_;
     std::vector<boost::signals::connection> connections_;
 };
 
@@ -102,7 +100,7 @@ struct password_change_screen::impl
 // CONSTRUCTOR
 // ==========================================================================
 password_change_screen::password_change_screen()
-    : pimpl_(std::make_shared<impl>())
+    : pimpl_(std::make_shared<impl>(std::ref(*this)))
 {
     using namespace terminalpp::literals;
 
@@ -262,28 +260,6 @@ void password_change_screen::clear()
     
     document = pimpl_->new_password_verify_field_->get_document();
     document->delete_text({odin::u32(0), document->get_text_size()});
-}
-
-// ==========================================================================
-// ON_PASSWORD_CHANGED
-// ==========================================================================
-void password_change_screen::on_password_changed(
-    std::function<
-        void (
-            std::string const &, 
-            std::string const &, 
-            std::string const &)> const &callback)
-{
-    pimpl_->on_password_changed_ = callback;
-}
-
-// ==========================================================================
-// ON_PASSWORD_CHANGE_CANCELLED
-// ==========================================================================
-void password_change_screen::on_password_change_cancelled(
-    std::function<void ()> const &callback)
-{
-    pimpl_->on_password_change_cancelled_ = callback;
 }
 
 // ==========================================================================

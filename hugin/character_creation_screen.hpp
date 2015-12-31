@@ -59,18 +59,15 @@ public :
     /// \brief Set a function to be called when the user inputs the details
     /// for the creation of an character.
     //* =====================================================================
-    void on_character_created(
-        std::function<void (
-            std::string const &character_name,
-            bool               is_gm)> const &callback);
+    boost::signal<
+        void (std::string const &name, bool is_gm)> on_character_created;
     
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation
     /// of an character.
     //* =====================================================================
-    void on_character_creation_cancelled(
-        std::function<void ()> const &callback);
-    
+    boost::signal<void ()> on_character_creation_cancelled;
+
 protected :
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

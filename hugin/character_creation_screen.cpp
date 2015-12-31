@@ -48,18 +48,23 @@ namespace hugin {
 struct character_creation_screen::impl
 {
     // ======================================================================
+    // CONSTRUCTOR
+    // ======================================================================
+    impl(character_creation_screen &self)
+      : self_(self)
+    {
+    }
+    
+    // ======================================================================
     // ON_CHARACTER_CREATION_OK
     // ======================================================================
     void on_character_creation_ok()
     {
-        if (on_character_created_)
-        {
-            auto document = name_field_->get_document();
-            auto elements = document->get_line(0);
-            auto name = to_string(elements);
-            
-            on_character_created_(name, gm_toggle_->get_toggle());
-        }
+        auto document = name_field_->get_document();
+        auto elements = document->get_line(0);
+        auto name = to_string(elements);
+        
+        self_.on_character_created(name, gm_toggle_->get_toggle());
     }
     
     // ======================================================================
@@ -67,27 +72,24 @@ struct character_creation_screen::impl
     // ======================================================================
     void on_character_creation_cancelled()
     {
-        if (on_character_creation_cancelled_)
-        {
-            on_character_creation_cancelled_();
-        }
+        self_.on_character_creation_cancelled();
     }
     
+    character_creation_screen              &self_;
+
     // Character Creation components
-    std::shared_ptr<munin::edit>                    name_field_;
-    std::shared_ptr<munin::toggle_button>           gm_toggle_;
-    std::shared_ptr<munin::button>                  ok_button_;
-    std::shared_ptr<munin::button>                  cancel_button_;
-    std::function<void (std::string const &, bool)> on_character_created_;
-    std::function<void ()>                          on_character_creation_cancelled_;
-    std::vector<boost::signals::connection>         connections_;
+    std::shared_ptr<munin::edit>            name_field_;
+    std::shared_ptr<munin::toggle_button>   gm_toggle_;
+    std::shared_ptr<munin::button>          ok_button_;
+    std::shared_ptr<munin::button>          cancel_button_;
+    std::vector<boost::signals::connection> connections_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 character_creation_screen::character_creation_screen()
-    : pimpl_(std::make_shared<impl>())
+    : pimpl_(std::make_shared<impl>(std::ref(*this)))
 {
     using namespace terminalpp::literals;
     
@@ -217,24 +219,6 @@ void character_creation_screen::clear()
     document->delete_text({odin::u32(0), document->get_text_size()});
     
     pimpl_->gm_toggle_->set_toggle(false);
-}
-
-// ==========================================================================
-// ON_CHARACTER_CREATED
-// ==========================================================================
-void character_creation_screen::on_character_created(
-    std::function<void (std::string const &, bool)> const &callback)
-{
-    pimpl_->on_character_created_ = callback;
-}
-
-// ==========================================================================
-// ON_CHARACTER_CREATION_CANCELLED
-// ==========================================================================
-void character_creation_screen::on_character_creation_cancelled(
-    std::function<void ()> const &callback)
-{
-    pimpl_->on_character_creation_cancelled_ = callback;
 }
 
 // ==========================================================================

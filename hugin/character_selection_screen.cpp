@@ -42,9 +42,6 @@ namespace hugin {
 // ==========================================================================
 struct character_selection_screen::impl
 {
-    std::function<void ()>                           on_new_character_;
-    std::function<void (std::string const &)>        on_character_selected_;
-    
     std::vector<std::pair<std::string, std::string>> characters_;
     
     std::shared_ptr<munin::image>                    character_list_;
@@ -141,24 +138,6 @@ void character_selection_screen::set_character_names(
 }
 
 // ==========================================================================
-// ON_NEW_CHARACTER
-// ==========================================================================
-void character_selection_screen::on_new_character(
-    std::function<void ()> const &callback)
-{
-    pimpl_->on_new_character_ = callback;
-}
-
-// ==========================================================================
-// ON_CHARACTER_SELECTED
-// ==========================================================================
-void character_selection_screen::on_character_selected(
-    std::function<void (std::string const &)> const &callback)
-{
-    pimpl_->on_character_selected_ = callback;
-}
-
-// ==========================================================================
 // DO_EVENT
 // ==========================================================================
 void character_selection_screen::do_event(boost::any const &event)
@@ -169,19 +148,15 @@ void character_selection_screen::do_event(boost::any const &event)
     {
         if (vk->key == terminalpp::vk::plus)
         {
-            if (pimpl_->on_new_character_)
-            {
-                pimpl_->on_new_character_();
-            }
+            on_new_character();
         }
         else
         {
             unsigned int selection = char(vk->key) - '0';
             
-            if (selection < pimpl_->characters_.size()
-             && pimpl_->on_character_selected_ != NULL)
+            if (selection < pimpl_->characters_.size())
             {
-                pimpl_->on_character_selected_(
+                on_character_selected(
                     pimpl_->characters_[selection].first);
             }
         }

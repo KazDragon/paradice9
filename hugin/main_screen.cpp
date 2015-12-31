@@ -51,8 +51,9 @@ struct main_screen::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl()
-        : help_field_visible_(false)
+    impl(main_screen &self)
+        : self_(self)
+        , help_field_visible_(false)
         , active_encounter_view_visible_(false)
     {
     } 
@@ -62,31 +63,19 @@ struct main_screen::impl
     // ======================================================================
     void on_input_entered()
     {
-        if (on_input_entered_)
+        auto document = input_field_->get_document();
+        auto elements = document->get_line(0);
+        auto input = to_string(elements); 
+
+        document->delete_text({odin::u32(0), document->get_text_size()});
+
+        if (!input.empty())
         {
-            auto document = input_field_->get_document();
-            auto elements = document->get_line(0);
-            auto input = to_string(elements); 
-
-            document->delete_text({odin::u32(0), document->get_text_size()});
-
-            if (!input.empty())
-            {
-                on_input_entered_(input);
-            }
+            self_.on_input_entered(input);
         }
     }
 
-    // ======================================================================
-    // FIRE_HELP_CLOSED
-    // ======================================================================
-    void fire_help_closed()
-    {
-        if (on_help_closed_)
-        {
-            on_help_closed_();
-        }
-    }
+    main_screen                           &self_;
     
     std::shared_ptr<wholist>               wholist_;
     std::shared_ptr<command_prompt>        input_field_;
@@ -98,16 +87,13 @@ struct main_screen::impl
     bool                                   help_field_visible_;
     std::shared_ptr<active_encounter_view> active_encounter_view_;
     bool                                   active_encounter_view_visible_;
-    
-    std::function<void (std::string const &)> on_input_entered_;
-    std::function<void ()>                 on_help_closed_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 main_screen::main_screen()
-  : pimpl_(std::make_shared<impl>())
+  : pimpl_(std::make_shared<impl>(std::ref(*this)))
 {
     using namespace terminalpp::literals;
 
@@ -173,15 +159,6 @@ void main_screen::clear()
     update_wholist({});
     hide_help_window();
     pimpl_->input_field_->clear_history();
-}
-
-// ==========================================================================
-// ON_INPUT_ENTERED
-// ==========================================================================
-void main_screen::on_input_entered(
-    std::function<void (std::string const &)> const &callback)
-{
-    pimpl_->on_input_entered_ = callback;
 }
 
 // ==========================================================================
@@ -287,14 +264,6 @@ void main_screen::set_help_window_text(terminalpp::string const &text)
     auto document = pimpl_->help_field_->get_document();
     document->delete_text({odin::u32(0), document->get_text_size()});
     document->insert_text(text);
-}
-
-// ==========================================================================
-// ON_HELP_CLOSED
-// ==========================================================================
-void main_screen::on_help_closed(std::function<void ()> const &callback)
-{
-    pimpl_->on_help_closed_ = callback;
 }
 
 // ==========================================================================

@@ -59,8 +59,7 @@ public :
     /// \brief Set a function to be called when the user inputs a command
     /// on the main screen.
     //* =====================================================================
-    void on_input_entered(
-        std::function<void (std::string const &)> const &callback);
+    boost::signal<void (std::string const &input)> on_input_entered;
     
     //* =====================================================================
     /// \brief Adds output to the output text area on the main screen.
@@ -113,8 +112,8 @@ public :
     /// \brief Register a callback for when the close button on the help
     /// screen is called.
     //* =====================================================================
-    void on_help_closed(std::function<void ()> const &callback);
-    
+    boost::signal<void ()> on_help_closed;
+
 protected :
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

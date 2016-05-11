@@ -9,7 +9,7 @@ if (GTEST_FOUND)
 
     target_include_directories(paradice_tester
         PRIVATE
-            ${CMAKE_SOURCE_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
     target_compile_features(paradice_tester
@@ -17,15 +17,15 @@ if (GTEST_FOUND)
             cxx_generic_lambdas
     )
 
-    target_link_libraries(
-        paradice_tester
-        paradice
-        munin
-        odin
-        ${GTEST_LIBRARY}
-        ${GTEST_MAIN_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
-        ${CMAKE_THREAD_LIBS_INIT}
+    target_link_libraries(paradice_tester
+        PRIVATE
+            paradice
+            munin
+            odin
+            ${GTEST_LIBRARY}
+            ${GTEST_MAIN_LIBRARY}
+#            ${Boost_SYSTEM_LIBRARY}
+            ${CMAKE_THREAD_LIBS_INIT}
     )
 
     add_test(paradice_test paradice_tester)

@@ -1,16 +1,19 @@
 set (paradice9_SOURCES
-    context_impl.cpp
-    main.cpp
-    paradice9.cpp
+    src/context_impl.cpp
+    src/main.cpp
+    src/paradice9.cpp
 )
 
 add_executable(paradice9 ${paradice9_SOURCES})
 
 target_include_directories(paradice9
-    PRIVATE 
-        ${CMAKE_SOURCE_DIR}
-        ${Boost_INCLUDE_DIRS}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+#    PRIVATE 
+#        ${CMAKE_SOURCE_DIR}
+#        ${Boost_INCLUDE_DIRS}
+#)
 
 target_compile_definitions(paradice9
     PRIVATE
@@ -23,10 +26,10 @@ target_compile_features(paradice9
 )
 
 target_link_libraries(paradice9
-    odin
-    paradice
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SERIALIZATION_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
+    PRIVATE
+        paradice
+        hugin
+        ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_PROGRAM_OPTIONS_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
 )

@@ -1,46 +1,46 @@
 set (munin_SOURCES
-    text/default_multiline_document.cpp
-    text/default_singleline_document.cpp
-    text/document.cpp
-    algorithm.cpp
-    aligned_layout.cpp
-    basic_component.cpp
-    basic_container.cpp
-    basic_frame.cpp
-    button.cpp
-    card.cpp
-    clock.cpp
-    compass_layout.cpp
-    component.cpp
-    composite_component.cpp
-    container.cpp
-    context.cpp
-    dropdown_list.cpp
-    edit.cpp
-    filled_box.cpp
-    frame.cpp
-    framed_component.cpp
-    grid_layout.cpp
-    horizontal_scroll_bar.cpp
-    horizontal_squeeze_layout.cpp
-    horizontal_strip_layout.cpp
-    image.cpp
-    layout.cpp
-    list.cpp
-    named_frame.cpp
-    rectangle.cpp
-    scroll_pane.cpp
-    solid_frame.cpp
-    status_bar.cpp
-    tabbed_frame.cpp
-    tabbed_panel.cpp
-    text_area.cpp
-    toggle_button.cpp
-    vertical_scroll_bar.cpp
-    vertical_squeeze_layout.cpp
-    vertical_strip_layout.cpp
-    viewport.cpp
-    window.cpp
+    src/text/default_multiline_document.cpp
+    src/text/default_singleline_document.cpp
+    src/text/document.cpp
+    src/algorithm.cpp
+    src/aligned_layout.cpp
+    src/basic_component.cpp
+    src/basic_container.cpp
+    src/basic_frame.cpp
+    src/button.cpp
+    src/card.cpp
+    src/clock.cpp
+    src/compass_layout.cpp
+    src/component.cpp
+    src/composite_component.cpp
+    src/container.cpp
+    src/context.cpp
+    src/dropdown_list.cpp
+    src/edit.cpp
+    src/filled_box.cpp
+    src/frame.cpp
+    src/framed_component.cpp
+    src/grid_layout.cpp
+    src/horizontal_scroll_bar.cpp
+    src/horizontal_squeeze_layout.cpp
+    src/horizontal_strip_layout.cpp
+    src/image.cpp
+    src/layout.cpp
+    src/list.cpp
+    src/named_frame.cpp
+    src/rectangle.cpp
+    src/scroll_pane.cpp
+    src/solid_frame.cpp
+    src/status_bar.cpp
+    src/tabbed_frame.cpp
+    src/tabbed_panel.cpp
+    src/text_area.cpp
+    src/toggle_button.cpp
+    src/vertical_scroll_bar.cpp
+    src/vertical_squeeze_layout.cpp
+    src/vertical_strip_layout.cpp
+    src/viewport.cpp
+    src/window.cpp
 )
 
 add_library(munin ${munin_SOURCES})
@@ -50,13 +50,16 @@ set_target_properties(munin
         CXX_VISIBILITY_PRESET hidden)
 
 target_include_directories(munin
-    PRIVATE ${CMAKE_SOURCE_DIR}
-    PUBLIC ${Boost_INCLUDE_DIRS}
-           ${CMAKE_SOURCE_DIR}/terminalpp/include
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(munin
-    INTERFACE terminalpp ${Boost_SIGNALS_LIBRARY}
+    PUBLIC
+        odin
+        terminalpp
+        ${Boost_SIGNALS_LIBRARY}
 )
 
 #Remove when we move to signals2 or some other mechanism.
@@ -72,5 +75,5 @@ target_compile_features(munin
 )
 
 generate_export_header(munin
-    EXPORT_FILE_NAME "${PROJECT_SOURCE_DIR}/munin/export.hpp"
+    EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/munin/export.hpp"
 )

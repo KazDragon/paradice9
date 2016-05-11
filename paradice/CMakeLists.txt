@@ -1,22 +1,22 @@
 set (paradice_SOURCES
-    account.cpp
-    active_encounter.cpp
-    admin.cpp
-    beast.cpp
-    character.cpp
-    client.cpp
-    communication.cpp
-    configuration.cpp
-    connection.cpp
-    cryptography.cpp
-    dice_roll_parser.cpp
-    encounter.cpp
-    gm.cpp
-    help.cpp
-    random.cpp
-    rules.cpp
-    utility.cpp
-    who.cpp
+    src/account.cpp
+    src/active_encounter.cpp
+    src/admin.cpp
+    src/beast.cpp
+    src/character.cpp
+    src/client.cpp
+    src/communication.cpp
+    src/configuration.cpp
+    src/connection.cpp
+    src/cryptography.cpp
+    src/dice_roll_parser.cpp
+    src/encounter.cpp
+    src/gm.cpp
+    src/help.cpp
+    src/random.cpp
+    src/rules.cpp
+    src/utility.cpp
+    src/who.cpp
 )
 
 add_library(paradice ${paradice_SOURCES})
@@ -27,12 +27,8 @@ set_target_properties(paradice
 )
 
 target_include_directories(paradice
-    PRIVATE 
-        ${CMAKE_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/telnetpp/include
-        ${CMAKE_SOURCE_DIR}/terminalpp/include
-    PUBLIC 
-        ${Boost_INCLUDE_DIRS}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # Select the best cryptography available.
@@ -42,7 +38,8 @@ if (CRYPTO++_FOUND)
             PARADICE_USE_CRYPTOPP)
             
     target_link_libraries(paradice
-        INTERFACE cryptopp)
+        PRIVATE 
+            cryptopp)
 else()
     target_compile_definitions(paradice
         PRIVATE
@@ -60,11 +57,21 @@ target_compile_features(paradice
         cxx_generic_lambdas
 )
 
-generate_export_header(paradice
-    EXPORT_FILE_NAME "${PROJECT_SOURCE_DIR}/paradice/export.hpp"
+target_link_libraries(paradice
+    PUBLIC
+        odin
+        terminalpp
+        ${Boost_SERIALIZATION_LIBRARY}
+    PRIVATE
+        munin
+        hugin
+        telnetpp
+        ${Boost_RANDOM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
 )
 
-target_link_libraries(paradice
-    INTERFACE odin hugin telnetpp ${Boost_RANDOM_LIBRARY}
+
+generate_export_header(paradice
+    EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/paradice/export.hpp"
 )
 

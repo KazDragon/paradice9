@@ -69,9 +69,9 @@ public :
     void start();
 
     //* =====================================================================
-    /// \brief Writes raw data to the connection.
+    /// \brief Writes data to the connection.
     //* =====================================================================
-    void write(std::vector<odin::u8> const &data);
+    void write(std::string const &data);
 
     //* =====================================================================
     /// \brief Set a function to be called when data arrives from the

@@ -27,7 +27,12 @@
 #include "paradice/connection.hpp"
 #include "odin/net/socket.hpp"
 #include <telnetpp/telnetpp.hpp>
+#include <telnetpp/byte_converter.hpp>
 #include <telnetpp/options/echo/server.hpp>
+#include <telnetpp/options/mccp/codec.hpp>
+#include <telnetpp/options/mccp/server.hpp>
+#include <telnetpp/options/mccp/zlib/compressor.hpp>
+#include <telnetpp/options/mccp/zlib/decompressor.hpp>
 #include <telnetpp/options/naws/client.hpp>
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
@@ -55,7 +60,10 @@ struct connection::impl
             {
                 this->on_text(text);
                 return {};
-            })
+            }),
+        telnet_mccp_codec_(
+            std::make_shared<telnetpp::options::mccp::zlib::compressor>(),
+            std::make_shared<telnetpp::options::mccp::zlib::decompressor>())
     {
         telnet_echo_server_.set_activatable();
         telnet_session_.install(telnet_echo_server_);
@@ -91,6 +99,10 @@ struct connection::impl
             });
         telnet_session_.install(telnet_terminal_type_client_);
 
+        telnet_mccp_server_.set_activatable();
+        write(telnet_session_.send(telnet_mccp_server_.begin_compression()));
+        telnet_session_.install(telnet_mccp_server_);
+        
         // Begin the keepalive process.  This sends regular heartbeats to the
         // client to help guard against his network settings timing him out
         // due to lack of activity.
@@ -104,6 +116,7 @@ struct connection::impl
         write(telnet_session_.send(telnet_suppress_ga_server_.activate()));
         write(telnet_session_.send(telnet_naws_client_.activate()));
         write(telnet_session_.send(telnet_terminal_type_client_.activate()));
+        write(telnet_session_.send(telnet_mccp_server_.activate()));
     }
 
     // ======================================================================
@@ -117,16 +130,13 @@ struct connection::impl
     // ======================================================================
     // WRITE
     // ======================================================================
-    void write(
-        std::vector<boost::variant<telnetpp::u8stream, boost::any>> const &data)
+    void write(std::vector<telnetpp::stream_token> const &data)
     {
-        // We currently talk directly to a socket type that expects a
-        // straightforward stream of bytes -- no user-defined data.  This may
-        // change in the future, in which case we will get a nice exception 
-        // thrown here during testing of the new feature.
-        for (auto &&datum : data)
+        auto const &compressed_data = telnet_mccp_codec_.send(data);
+        auto const &stream = telnet_byte_converter_.send(compressed_data);
+        
+        if (stream.size() != 0)
         {
-            auto &&stream = boost::get<telnetpp::u8stream>(datum);
             socket_->async_write({stream.begin(), stream.end()}, nullptr);
         }
         
@@ -245,8 +255,12 @@ struct connection::impl
     telnetpp::session                                    telnet_session_;
     telnetpp::options::echo::server                      telnet_echo_server_;
     telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_;
+    telnetpp::options::mccp::server                      telnet_mccp_server_;
+    telnetpp::options::mccp::codec                       telnet_mccp_codec_;
     telnetpp::options::naws::client                      telnet_naws_client_;
     telnetpp::options::terminal_type::client             telnet_terminal_type_client_;
+    
+    telnetpp::byte_converter                             telnet_byte_converter_;
     
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     std::shared_ptr<boost::asio::deadline_timer>         keepalive_timer_;
@@ -282,9 +296,11 @@ void connection::start()
 // ==========================================================================
 // WRITE
 // ==========================================================================
-void connection::write(std::vector<odin::u8> const &data)
+void connection::write(std::string const &data)
 {
-    pimpl_->socket_->async_write(data, NULL);
+    pimpl_->write(pimpl_->telnet_session_.send({
+        telnetpp::element(data)
+    }));
 }
 
 // ==========================================================================

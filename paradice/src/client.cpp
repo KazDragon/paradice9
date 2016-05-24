@@ -427,10 +427,7 @@ private :
     // ======================================================================
     void on_repaint(std::string const &paint_data)
     {
-        std::vector<odin::u8> data(paint_data.size());
-        std::copy(paint_data.begin(), paint_data.end(), data.begin());
-
-        connection_->write(data);
+        connection_->write(paint_data);
     }
 
     // ======================================================================

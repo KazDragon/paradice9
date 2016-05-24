@@ -80,7 +80,7 @@ struct connection::impl
                 return {};
             });
         telnet_terminal_type_client_.on_state_changed.connect(
-            [this]() -> std::vector<telnetpp::token>
+            [this](auto &&state) -> std::vector<telnetpp::token>
             {
                 if (telnet_terminal_type_client_.is_active())
                 {

@@ -165,5 +165,13 @@ void solid_frame::do_event(boost::any const &event)
     }
 }
 
+// ==========================================================================
+// MAKE_SOLID_FRAME
+// ==========================================================================
+std::shared_ptr<frame> make_solid_frame()
+{
+    return std::make_shared<solid_frame>();
+}
+
 }
 

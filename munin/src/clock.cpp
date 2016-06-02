@@ -98,9 +98,9 @@ private :
 clock::clock()
     : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = std::make_shared<image>("00:00");
+    pimpl_->image_ = make_image("00:00");
 
-    get_container()->set_layout(std::make_shared<compass_layout>());
+    get_container()->set_layout(make_compass_layout());
     get_container()->add_component(pimpl_->image_, COMPASS_LAYOUT_SOUTH);
 }
 
@@ -130,5 +130,12 @@ void clock::do_draw(
     composite_component::do_draw(ctx, region);
 }
 
+// ==========================================================================
+// MAKE_CLOCK
+// ==========================================================================
+std::shared_ptr<component> make_clock()
+{
+    return std::make_shared<clock>();
 }
 
+}

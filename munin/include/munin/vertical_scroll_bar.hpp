@@ -131,6 +131,12 @@ private :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created vertical scroll bar
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<vertical_scroll_bar> make_vertical_scroll_bar();
+
 }
 
 #endif

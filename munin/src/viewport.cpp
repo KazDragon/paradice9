@@ -45,7 +45,9 @@ struct viewport::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(viewport &self, std::shared_ptr<component> underlying_component)
+    impl(
+        viewport &self, 
+        std::shared_ptr<component> const &underlying_component)
       : self_(self),
         component_(std::move(underlying_component))
     {
@@ -322,7 +324,7 @@ struct viewport::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-viewport::viewport(std::shared_ptr<component> underlying_component)
+viewport::viewport(std::shared_ptr<component> const &underlying_component)
     : pimpl_(std::make_shared<impl>(std::ref(*this), underlying_component))
 {
     get_component()->on_redraw.connect(
@@ -636,6 +638,15 @@ void viewport::do_event(boost::any const &event)
 void viewport::do_set_attribute(std::string const &name, boost::any const &attr)
 {
     pimpl_->component_->set_attribute(name, attr);
+}
+
+// ==========================================================================
+// MAKE_VIEWPORT
+// ==========================================================================
+std::shared_ptr<viewport> make_viewport(
+    std::shared_ptr<component> const &underlying_component)
+{
+    return std::make_shared<viewport>(underlying_component);
 }
 
 }

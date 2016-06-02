@@ -43,8 +43,8 @@ public :
     /// \brief Constructor
     //* =====================================================================
     scroll_pane(
-        std::shared_ptr<component> underlying_component
-      , bool                       top_border = true);
+        std::shared_ptr<component> const &underlying_component
+      , bool                              top_border = true);
 
     //* =====================================================================
     /// \brief Destructor
@@ -55,6 +55,14 @@ private :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+//* =========================================================================
+/// \brief Returns a newly created scroll pane
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<component> make_scroll_pane(
+    std::shared_ptr<component> const &underlying_component,
+    bool                              top_border = true);
 
 }
 

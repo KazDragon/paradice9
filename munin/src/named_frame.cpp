@@ -275,14 +275,6 @@ named_frame::~named_frame()
 // ==========================================================================
 // SET_NAME
 // ==========================================================================
-void named_frame::set_name(std::string const &name)
-{
-    set_name(terminalpp::string(name));
-}
-
-// ==========================================================================
-// SET_NAME
-// ==========================================================================
 void named_frame::set_name(terminalpp::string const &name)
 {
     pimpl_->set_name(name);
@@ -316,6 +308,16 @@ void named_frame::do_event(boost::any const &event)
     {
         composite_component::do_event(event);
     }
+}
+
+// ==========================================================================
+// NAMED_FRAME
+// ==========================================================================
+std::shared_ptr<named_frame> make_named_frame(terminalpp::string const &name)
+{
+    auto frame = std::make_shared<named_frame>();
+    frame->set_name(name);
+    return frame;
 }
 
 }

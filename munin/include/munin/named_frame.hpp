@@ -54,11 +54,6 @@ public :
     //* =====================================================================
     /// \brief Sets the name displayed on the top border of the frame.
     //* =====================================================================
-    void set_name(std::string const &name);
-
-    //* =====================================================================
-    /// \brief Sets the name displayed on the top border of the frame.
-    //* =====================================================================
     void set_name(terminalpp::string const &name);
 
     //* =====================================================================
@@ -86,6 +81,12 @@ private :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+//* =========================================================================
+/// \brief Returns a newly created named frame
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<named_frame> make_named_frame(terminalpp::string const &name);
 
 }
 

@@ -50,7 +50,7 @@ struct active_encounter_view::impl
 
     struct active_encounter_entry_visitor : boost::static_visitor<std::string>
     {
-        std::string operator()(paradice::active_encounter::player ply)
+        std::string operator()(paradice::active_encounter::player const &ply) const
         {
             std::shared_ptr<paradice::character> ch = ply.character_.lock();
 
@@ -64,7 +64,7 @@ struct active_encounter_view::impl
             }
         }
 
-        std::string operator()(std::shared_ptr<paradice::beast> beast)
+        std::string operator()(std::shared_ptr<paradice::beast> const &beast) const
         {
             return beast->get_name();
         }
@@ -136,12 +136,11 @@ active_encounter_view::active_encounter_view()
     : pimpl_(std::make_shared<impl>())
 {
     pimpl_->gm_mode_ = false;
-    pimpl_->participant_list_ = std::make_shared<munin::list>();
+    pimpl_->participant_list_ = munin::make_list();
 
     auto content = get_container();
-    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
-    content->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->participant_list_));
+    content->set_layout(munin::make_grid_layout(1, 1));
+    content->add_component(munin::make_scroll_pane(pimpl_->participant_list_));
 }
 
 // ==========================================================================

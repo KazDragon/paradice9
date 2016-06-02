@@ -25,18 +25,19 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/character_creation_screen.hpp"
-#include "munin/aligned_layout.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/button.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/edit.hpp"
-#include "munin/filled_box.hpp"
-#include "munin/framed_component.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/image.hpp"
-#include "munin/named_frame.hpp"
-#include "munin/solid_frame.hpp"
-#include "munin/toggle_button.hpp"
+#include <munin/aligned_layout.hpp>
+#include <munin/background_fill.hpp>
+#include <munin/button.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/edit.hpp>
+#include <munin/filled_box.hpp>
+#include <munin/framed_component.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/image.hpp>
+#include <munin/named_frame.hpp>
+#include <munin/solid_frame.hpp>
+#include <munin/toggle_button.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 
@@ -91,112 +92,65 @@ struct character_creation_screen::impl
 character_creation_screen::character_creation_screen()
     : pimpl_(std::make_shared<impl>(std::ref(*this)))
 {
-    using namespace terminalpp::literals;
-    
-    auto content = get_container();
-    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
-    
-    auto screen_frame = std::make_shared<munin::named_frame>();
-    screen_frame->set_name("CHARACTER CREATION"_ts);
-    
-    // Create the Name, Password and Password (verify) labels.
-    munin::alignment_data alignment;
-    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
-    alignment.vertical_alignment   = munin::VERTICAL_ALIGNMENT_CENTRE;
-    
-    auto name_container = std::make_shared<munin::basic_container>();
-    name_container->set_layout(std::make_shared<munin::aligned_layout>());
-    name_container->add_component(
-        std::make_shared<munin::image>("Name: "_ts)
-      , alignment);
-
-    auto gm_container = std::make_shared<munin::basic_container>();
-    gm_container->set_layout(std::make_shared<munin::aligned_layout>());
-    gm_container->add_component(
-        std::make_shared<munin::image>("GM: "_ts)
-      , alignment);
-    
-    auto labels_container = std::make_shared<munin::basic_container>();
-    labels_container->set_layout(std::make_shared<munin::grid_layout>(2, 1));
-    labels_container->add_component(name_container);
-    labels_container->add_component(gm_container);
-    
-    // Create the Name field and GM toggle button.
     pimpl_->name_field_ = std::make_shared<munin::edit>();
     pimpl_->gm_toggle_  = std::make_shared<munin::toggle_button>(false);
     
-    auto gm_toggle_container = std::make_shared<munin::basic_container>();
-    gm_toggle_container->set_layout(std::make_shared<munin::compass_layout>());
-    gm_toggle_container->add_component(pimpl_->gm_toggle_, munin::COMPASS_LAYOUT_WEST);
-
-    auto fields_container = std::make_shared<munin::basic_container>();
-    fields_container->set_layout(std::make_shared<munin::grid_layout>(2, 1));
-    fields_container->add_component(
-        std::make_shared<munin::framed_component>(
-            std::make_shared<munin::solid_frame>()
-          , pimpl_->name_field_));
-    fields_container->add_component(gm_toggle_container);
-    
-    auto labels_fields_container = std::make_shared<munin::basic_container>();
-    labels_fields_container->set_layout(std::make_shared<munin::compass_layout>());
-    labels_fields_container->add_component(
-        labels_container,
-        munin::COMPASS_LAYOUT_WEST);
-    labels_fields_container->add_component(
-        fields_container,
-        munin::COMPASS_LAYOUT_CENTRE);
-    
-    auto inner_container = std::make_shared<munin::basic_container>();
-    inner_container->set_layout(std::make_shared<munin::compass_layout>());
-    inner_container->add_component(
-        labels_fields_container,
-        munin::COMPASS_LAYOUT_NORTH);
-
-    // Create the OK and Cancel buttons.
-    pimpl_->ok_button_     = std::make_shared<munin::button>("  OK  "_ts);
+    pimpl_->ok_button_     = std::make_shared<munin::button>("  OK  ");
     pimpl_->connections_.push_back(pimpl_->ok_button_->on_click.connect(
         [this]{pimpl_->on_character_creation_ok();}));
     
-    pimpl_->cancel_button_ = std::make_shared<munin::button>("Cancel"_ts);
+    pimpl_->cancel_button_ = std::make_shared<munin::button>("Cancel");
     pimpl_->connections_.push_back(pimpl_->cancel_button_->on_click.connect(
         [this]{pimpl_->on_character_creation_cancelled();}));
     
-    auto buttons_inner_container = std::make_shared<munin::basic_container>();
-    buttons_inner_container->set_layout(std::make_shared<munin::grid_layout>(1, 2));
-    buttons_inner_container->add_component(pimpl_->ok_button_);
-    buttons_inner_container->add_component(pimpl_->cancel_button_);
-    
-    auto buttons_outer_container = std::make_shared<munin::basic_container>();
-    buttons_outer_container->set_layout(std::make_shared<munin::compass_layout>());
-    buttons_outer_container->add_component(
-        buttons_inner_container,
-        munin::COMPASS_LAYOUT_EAST);
-    
-    auto inner_container2 = std::make_shared<munin::basic_container>();
-    inner_container2->set_layout(std::make_shared<munin::compass_layout>());
-    inner_container2->add_component(
-        inner_container,
-        munin::COMPASS_LAYOUT_NORTH);
-    inner_container2->add_component(
-        buttons_outer_container,
-        munin::COMPASS_LAYOUT_CENTRE);
-    
-    auto inner_container3 = std::make_shared<munin::basic_container>();
-    inner_container3->set_layout(std::make_shared<munin::compass_layout>());
-    inner_container3->add_component(inner_container2, munin::COMPASS_LAYOUT_NORTH);
-    // TODO: Coalesce?    
-    content->add_component(std::make_shared<munin::framed_component>(
-        screen_frame
-      , inner_container3));
+    auto labels_fields_container = munin::view(
+        munin::make_compass_layout(),
+        munin::view(
+            munin::make_compass_layout(),
+            munin::view(
+                munin::make_grid_layout(2, 1),
+                munin::view(
+                    munin::make_aligned_layout(),
+                    munin::make_image("Name: "), munin::alignment_hrvc),
+                munin::view(
+                    munin::make_aligned_layout(),
+                    munin::make_image("GM: "), munin::alignment_hrvc)
+            ), munin::COMPASS_LAYOUT_WEST,
+            munin::view(
+                munin::make_grid_layout(2, 1),
+                munin::make_framed_component(
+                    munin::make_solid_frame(),
+                    pimpl_->name_field_),
+                munin::view(
+                    munin::make_compass_layout(),
+                    pimpl_->gm_toggle_, munin::COMPASS_LAYOUT_WEST)
+            ), munin::COMPASS_LAYOUT_CENTRE
+        ), munin::COMPASS_LAYOUT_NORTH);
 
+    auto buttons_container = munin::view(
+        munin::make_compass_layout(),
+        munin::view(
+            munin::make_grid_layout(1, 2),
+            pimpl_->ok_button_,
+            pimpl_->cancel_button_
+        ), munin::COMPASS_LAYOUT_EAST);
+
+    auto content = get_container();
+    content->set_layout(munin::make_grid_layout(1, 1));
+    content->add_component(munin::make_framed_component(
+        munin::make_named_frame("CHARACTER CREATION"),
+        munin::view(
+            munin::make_compass_layout(),
+            munin::view(
+                munin::make_compass_layout(),
+                labels_fields_container, munin::COMPASS_LAYOUT_NORTH,
+                buttons_container, munin::COMPASS_LAYOUT_CENTRE
+            ), munin::COMPASS_LAYOUT_NORTH)));
+    
     // Add a filler to ensure that the background is opaque.
-    content->set_layout(
-        std::make_shared<munin::grid_layout>(1, 1)
-      , munin::LOWEST_LAYER);
+    content->set_layout(munin::make_grid_layout(1, 1), munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(' ')
-      , {}
-      , munin::LOWEST_LAYER);
+        munin::make_background_fill(), {}, munin::LOWEST_LAYER);
 }
 
 // ==========================================================================

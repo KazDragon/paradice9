@@ -299,9 +299,16 @@ private :
             
             names_per_page_ = columns_ * rows_;
             
-            pages_ = 
-                (names_.size() / names_per_page_)
-              + ((names_.size() % names_per_page_) != 0 ? 1 : 0);
+            if (names_per_page_ != 0)
+            {
+                pages_ = 
+                    (names_.size() / names_per_page_)
+                  + ((names_.size() % names_per_page_) != 0 ? 1 : 0);
+            }
+            else
+            {
+                pages_ = 0;
+            }
         }
     }
 

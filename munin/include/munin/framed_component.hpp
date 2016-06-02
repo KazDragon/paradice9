@@ -49,8 +49,8 @@ public :
     /// \brief Constructor
     //* =====================================================================
     framed_component(
-        std::shared_ptr<frame>     border
-      , std::shared_ptr<component> interior);
+        std::shared_ptr<frame>     const &border
+      , std::shared_ptr<component> const &interior);
 
     //* =====================================================================
     /// \brief Destructor
@@ -74,6 +74,14 @@ protected :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+//* =========================================================================
+/// \brief Returns a newly created framed component
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<component> make_framed_component(
+    std::shared_ptr<frame>     const &border,
+    std::shared_ptr<component> const &interior);
 
 }
 

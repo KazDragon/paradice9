@@ -72,6 +72,12 @@ protected :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created button
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<button> make_button(terminalpp::string const &caption);
+
 }
 
 #endif

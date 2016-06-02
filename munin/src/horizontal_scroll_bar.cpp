@@ -284,5 +284,14 @@ void horizontal_scroll_bar::do_set_attribute(std::string const &name, boost::any
     }
 }
 
+// ==========================================================================
+// MAKE_HORIZONTAL_SCROLL_BAR
+// ==========================================================================
+std::shared_ptr<horizontal_scroll_bar> make_horizontal_scroll_bar()
+{
+    return std::make_shared<horizontal_scroll_bar>();
+}
+
+
 }
 

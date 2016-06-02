@@ -135,4 +135,12 @@ void tabbed_panel::remove_tab(odin::u32 index)
     pimpl_->frame_->remove_tab(index);
 }
 
+// ==========================================================================
+// MAKE_TABBED_PANEL
+// ==========================================================================
+std::shared_ptr<tabbed_panel> make_tabbed_panel()
+{
+    return std::make_shared<tabbed_panel>();
+}
+
 }

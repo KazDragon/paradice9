@@ -124,5 +124,13 @@ void grid_layout::do_layout(
     }
 }
 
+// ==========================================================================
+// MAKE_GRID_LAYOUT
+// ==========================================================================
+std::shared_ptr<layout> make_grid_layout(odin::u32 rows, odin::u32 columns)
+{
+    return std::make_shared<grid_layout>(rows, columns);
+}
+
 }
 

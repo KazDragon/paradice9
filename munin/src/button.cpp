@@ -25,11 +25,14 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/button.hpp"
-#include "munin/basic_container.hpp"
+#include "munin/aligned_layout.hpp"
+#include "munin/background_fill.hpp"
+#include "munin/container.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
+#include "munin/view.hpp"
 #include <terminalpp/ansi/mouse.hpp>
 #include <terminalpp/virtual_key.hpp>
 
@@ -54,16 +57,20 @@ struct button::impl
 button::button(terminalpp::string const &caption)
     : pimpl_(std::make_shared<impl>())
 {
-    auto img = std::make_shared<image>(caption);
-    img->set_can_focus(true);
-
-    get_container()->set_layout(
-        std::make_shared<grid_layout>(1, 1));
-
-    get_container()->add_component(
-        std::make_shared<framed_component>(
-            std::make_shared<solid_frame>()
-          , img));
+    auto image = munin::make_image(caption);
+    image->set_can_focus(true);
+    
+    auto content = get_container();
+    content->set_layout(munin::make_grid_layout(1, 1));
+    content->add_component(
+        munin::make_framed_component(
+            munin::make_solid_frame(),
+            munin::view(
+                munin::make_aligned_layout(),
+                image, munin::alignment_hcvc)));
+    content->set_layout(munin::make_grid_layout(1, 1), munin::LOWEST_LAYER);
+    content->add_component(
+        munin::make_background_fill(), {}, munin::LOWEST_LAYER);
 }
 
 // ==========================================================================
@@ -97,6 +104,15 @@ void button::do_event(boost::any const &event)
         on_click();
     }
 }
+
+// ==========================================================================
+// MAKE_BUTTON
+// ==========================================================================
+std::shared_ptr<button> make_button(terminalpp::string const &caption)
+{
+    return std::make_shared<button>(caption);
+}
+
 
 }
 

@@ -97,6 +97,19 @@ private :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created image
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<image> make_image(
+    std::vector<terminalpp::string> const &elements);
+
+//* =========================================================================
+/// \brief Returns a newly created image
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<image> make_image(terminalpp::string const &elements);
+
 }
 
 #endif

@@ -124,6 +124,12 @@ private :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created text area
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<text_area> make_text_area();
+
 }
 
 #endif

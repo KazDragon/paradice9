@@ -26,8 +26,8 @@
 // ==========================================================================
 #include "munin/basic_frame.hpp"
 #include "munin/basic_component.hpp"
-#include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
+#include "munin/view.hpp"
 
 namespace munin {
 
@@ -69,25 +69,25 @@ basic_frame::basic_frame(
     pimpl_->bottom_       = bottom;
     pimpl_->bottom_right_ = bottom_right;
 
-    std::shared_ptr<basic_container> top_container;
+    std::shared_ptr<container> top_container;
 
     if (pimpl_->top_left_ && pimpl_->top_ && pimpl_->top_right_)
     {
-        top_container = std::make_shared<basic_container>();
-        top_container->set_layout(std::make_shared<compass_layout>());
-        top_container->add_component(top_left,  COMPASS_LAYOUT_WEST);
-        top_container->add_component(top,       COMPASS_LAYOUT_CENTRE);
-        top_container->add_component(top_right, COMPASS_LAYOUT_EAST);
+        top_container = view(
+            make_compass_layout(),
+            top_left,  COMPASS_LAYOUT_WEST,
+            top,       COMPASS_LAYOUT_CENTRE,
+            top_right, COMPASS_LAYOUT_EAST);
     }
 
-    auto bottom_container = std::make_shared<basic_container>();
-    bottom_container->set_layout(std::make_shared<compass_layout>());
-    bottom_container->add_component(bottom_left,  COMPASS_LAYOUT_WEST);
-    bottom_container->add_component(bottom,       COMPASS_LAYOUT_CENTRE);
-    bottom_container->add_component(bottom_right, COMPASS_LAYOUT_EAST);
-
+    auto bottom_container = view(
+        make_compass_layout(),
+        bottom_left,  COMPASS_LAYOUT_WEST,
+        bottom,       COMPASS_LAYOUT_CENTRE,
+        bottom_right, COMPASS_LAYOUT_EAST);
+    
     auto content = get_container();
-    content->set_layout(std::make_shared<compass_layout>());
+    content->set_layout(make_compass_layout());
 
     if (top_container)
     {

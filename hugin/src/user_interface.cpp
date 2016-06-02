@@ -32,13 +32,15 @@
 #include "hugin/intro_screen.hpp"
 #include "hugin/main_screen.hpp"
 #include "hugin/password_change_screen.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/card.hpp"
-#include "munin/clock.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/image.hpp"
-#include "munin/status_bar.hpp"
+#include <munin/background_fill.hpp>
+#include <munin/card.hpp>
+#include <munin/clock.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/image.hpp>
+#include <munin/status_bar.hpp>
+#include <munin/vertical_strip_layout.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/string.hpp>
 #include <deque>
 #include <mutex>
@@ -279,40 +281,26 @@ private:
 user_interface::user_interface(boost::asio::strand &strand)
   : pimpl_(std::make_shared<impl>(std::ref(*this), std::ref(strand)))
 {
-    using namespace terminalpp::literals;
-
     pimpl_->active_screen_              = std::make_shared<munin::card>();
     pimpl_->status_bar_                 = std::make_shared<munin::status_bar>();
 
     pimpl_->select_face(hugin::FACE_INTRO);    
 
-    // Create a container that has a single spacer element and ... A CLOCK!
-    auto clock_container = std::make_shared<munin::basic_container>();
-    clock_container->set_layout(std::make_shared<munin::compass_layout>());
-    clock_container->add_component(
-        std::make_shared<munin::image>(" "_ts)
-        , munin::COMPASS_LAYOUT_WEST);
-    clock_container->add_component(
-        std::make_shared<munin::clock>()
-        , munin::COMPASS_LAYOUT_EAST);
-
-    auto status_bar_container = std::make_shared<munin::basic_container>();
-    status_bar_container->set_layout(std::make_shared<munin::compass_layout>());
-    status_bar_container->add_component(
-        pimpl_->status_bar_
-        , munin::COMPASS_LAYOUT_CENTRE);
-    status_bar_container->add_component(
-        clock_container
-        , munin::COMPASS_LAYOUT_EAST);
-
     auto container = get_container();
-    container->set_layout(std::make_shared<munin::compass_layout>());
+    container->set_layout(munin::make_compass_layout());
     container->add_component(
         pimpl_->active_screen_
         , munin::COMPASS_LAYOUT_CENTRE);
     container->add_component(
-        status_bar_container
-        , munin::COMPASS_LAYOUT_SOUTH);
+        munin::view(
+            munin::make_compass_layout(),
+            pimpl_->status_bar_, munin::COMPASS_LAYOUT_CENTRE,
+            munin::view(
+                munin::make_vertical_strip_layout(),
+                munin::make_background_fill(), 
+                munin::make_clock()
+            ), munin::COMPASS_LAYOUT_EAST),
+        munin::COMPASS_LAYOUT_SOUTH);
 }
 
 // ==========================================================================

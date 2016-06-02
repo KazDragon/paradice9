@@ -25,17 +25,18 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/encounters_page.hpp"
-#include "paradice/encounter.hpp"
-#include "munin/algorithm.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/button.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/filled_box.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/vertical_squeeze_layout.hpp"
-#include "munin/vertical_strip_layout.hpp"
-#include "munin/list.hpp"
-#include "munin/scroll_pane.hpp"
+#include <paradice/encounter.hpp>
+#include <munin/algorithm.hpp>
+#include <munin/background_fill.hpp>
+#include <munin/button.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/filled_box.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/vertical_squeeze_layout.hpp>
+#include <munin/vertical_strip_layout.hpp>
+#include <munin/list.hpp>
+#include <munin/scroll_pane.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/string.hpp>
 
 namespace hugin {
@@ -161,17 +162,15 @@ struct encounters_page::impl
 // ==========================================================================
 encounters_page::encounters_page()
 {
-    using namespace terminalpp::literals;
-
     pimpl_ = std::make_shared<impl>(std::ref(*this));
-    pimpl_->encounters_list_ = std::make_shared<munin::list>();
-    pimpl_->beasts_list_     = std::make_shared<munin::list>();
+    pimpl_->encounters_list_ = munin::make_list();
+    pimpl_->beasts_list_     = munin::make_list();
 
-    pimpl_->new_button_       = std::make_shared<munin::button>("New"_ts);
-    pimpl_->clone_button_     = std::make_shared<munin::button>("Clone"_ts);
-    pimpl_->edit_button_      = std::make_shared<munin::button>("Edit"_ts);
-    pimpl_->fight_button_     = std::make_shared<munin::button>("Fight!"_ts);
-    pimpl_->delete_button_    = std::make_shared<munin::button>("Delete"_ts);
+    pimpl_->new_button_       = munin::make_button("New");
+    pimpl_->clone_button_     = munin::make_button("Clone");
+    pimpl_->edit_button_      = munin::make_button("Edit");
+    pimpl_->fight_button_     = munin::make_button("Fight!");
+    pimpl_->delete_button_    = munin::make_button("Delete");
 
     pimpl_->connections_.push_back(
         pimpl_->encounters_list_->on_item_changed.connect(
@@ -200,45 +199,35 @@ encounters_page::encounters_page()
     // The split container will house both the encounter list and the details
     // for the currently selected encounter.  However, the details panel will
     // remain hidden until there are items in the list and one is selected.
-    pimpl_->split_container_ = std::make_shared<munin::basic_container>();
-    pimpl_->split_container_->set_layout(
-        std:: make_shared<munin::vertical_squeeze_layout>());
-    pimpl_->split_container_->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->encounters_list_));
+    pimpl_->split_container_ = munin::view(
+        munin::make_vertical_squeeze_layout(),
+        munin::make_scroll_pane(pimpl_->encounters_list_));
 
     // The details container will be pre-made so that it can be just 
     // added/removed to/from the split container as appropriate.
-    pimpl_->details_container_ = std::make_shared<munin::basic_container>();
-    pimpl_->details_container_->set_layout(std::make_shared<munin::grid_layout>(1, 1));
-    pimpl_->details_container_->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->beasts_list_));
-
-    // The New, Clone, and Edit buttons sit together on the left; a group of
-    // "safe" buttons.  At the far right is the dangerous Delete button.
-    auto safe_buttons_container = std::make_shared<munin::basic_container>();
-    safe_buttons_container->set_layout(std::make_shared<munin::vertical_strip_layout>());
-    safe_buttons_container->add_component(pimpl_->edit_button_);
-    safe_buttons_container->add_component(pimpl_->new_button_);
-    safe_buttons_container->add_component(pimpl_->clone_button_);
-    safe_buttons_container->add_component(pimpl_->fight_button_);
-
-    auto dangerous_buttons_container = std::make_shared<munin::basic_container>();
-    dangerous_buttons_container->set_layout(std::make_shared<munin::vertical_strip_layout>());
-    dangerous_buttons_container->add_component(pimpl_->delete_button_);
-
-    auto buttons_container = std::make_shared<munin::basic_container>();
-    buttons_container->set_layout(std::make_shared<munin::compass_layout>());
-    buttons_container->add_component(
-        safe_buttons_container, munin::COMPASS_LAYOUT_WEST);
-    buttons_container->add_component(
-        std::make_shared<munin::filled_box>(' '), munin::COMPASS_LAYOUT_CENTRE);
-    buttons_container->add_component(
-        dangerous_buttons_container, munin::COMPASS_LAYOUT_EAST);
+    pimpl_->details_container_ = munin::view(
+        munin::make_grid_layout(1, 1),
+        munin::make_scroll_pane(pimpl_->beasts_list_));
 
     auto content = get_container();
-    content->set_layout(std::make_shared<munin::compass_layout>());
+    content->set_layout(munin::make_compass_layout());
     content->add_component(pimpl_->split_container_, munin::COMPASS_LAYOUT_CENTRE);
-    content->add_component(buttons_container, munin::COMPASS_LAYOUT_SOUTH);
+    content->add_component(
+        munin::view(
+            munin::make_compass_layout(),
+            // "Safe" buttons
+            munin::view(
+                munin::make_vertical_strip_layout(),
+                pimpl_->edit_button_,
+                pimpl_->new_button_,
+                pimpl_->clone_button_,
+                pimpl_->fight_button_
+            ), munin::COMPASS_LAYOUT_WEST,
+            // Spacer
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE,
+            // "Dangerous" buttons
+            pimpl_->delete_button_, munin::COMPASS_LAYOUT_EAST),
+        munin::COMPASS_LAYOUT_SOUTH);
 }
     
 // ==========================================================================

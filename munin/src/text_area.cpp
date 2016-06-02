@@ -517,5 +517,15 @@ void text_area::do_event(boost::any const &event)
     pimpl_->do_event(event);
 }
 
+// ==========================================================================
+// MAKE_TEXT_AREA
+// ==========================================================================
+std::shared_ptr<text_area> make_text_area()
+{
+    return std::make_shared<text_area>();
+
+}
+
+    
 }
 

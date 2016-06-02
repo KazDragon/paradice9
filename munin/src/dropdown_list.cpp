@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/dropdown_list.hpp"
-#include "munin/basic_container.hpp"
+#include "munin/background_fill.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/filled_box.hpp"
 #include "munin/grid_layout.hpp"
@@ -36,6 +36,7 @@
 #include "munin/sco_glyphs.hpp"
 #include "munin/scroll_pane.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
+#include "munin/view.hpp"
 #include <terminalpp/ansi/mouse.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
@@ -284,82 +285,49 @@ dropdown_list::dropdown_list()
     on_focus_set.connect([this]{pimpl_->update_pen();});
     on_focus_lost.connect([this]{pimpl_->update_pen();});
 
-    // Construct the top right part of the dropdown +-+
-    auto dropdown_top_left = std::make_shared<filled_box>(
-        double_lined_top_tee);
-    auto dropdown_top_centre = std::make_shared<filled_box>(
-        double_lined_horizontal_beam);
-    auto dropdown_top_right = std::make_shared<filled_box>(
-        double_lined_top_right_corner);
-
-    auto dropdown_top_row = std::make_shared<basic_container>();
-    dropdown_top_row->set_layout(std::make_shared<compass_layout>());
-    dropdown_top_row->add_component(dropdown_top_left,   COMPASS_LAYOUT_WEST);
-    dropdown_top_row->add_component(dropdown_top_centre, COMPASS_LAYOUT_CENTRE);
-    dropdown_top_row->add_component(dropdown_top_right,  COMPASS_LAYOUT_EAST);
-
     // Construct the top bar +----+-+
-    auto top_left = std::make_shared<filled_box>(
-        double_lined_top_left_corner);
-    auto top_centre = std::make_shared<filled_box>(
-        double_lined_horizontal_beam);
-
-    auto top_row = std::make_shared<basic_container>();
-    top_row->set_layout(std::make_shared<compass_layout>());
-    top_row->add_component(top_left,   COMPASS_LAYOUT_WEST);
-    top_row->add_component(top_centre, COMPASS_LAYOUT_CENTRE);
-    top_row->add_component(dropdown_top_row,  COMPASS_LAYOUT_EAST);
-
-    // Construct the middle-right part of the dropdown |V|
-    auto dropdown_centre_left = std::make_shared<filled_box>(
-        double_lined_vertical_beam);
-    pimpl_->dropdown_button_ = std::make_shared<image>("V");
-    pimpl_->dropdown_button_->set_can_focus(true);
-    auto dropdown_centre_right = std::make_shared<filled_box>(
-        double_lined_vertical_beam);
-
-    auto dropdown_centre_row = std::make_shared<basic_container>();
-    dropdown_centre_row->set_layout(std::make_shared<compass_layout>());
-    dropdown_centre_row->add_component(dropdown_centre_left  ,   COMPASS_LAYOUT_WEST);
-    dropdown_centre_row->add_component(pimpl_->dropdown_button_, COMPASS_LAYOUT_CENTRE);
-    dropdown_centre_row->add_component(dropdown_centre_right,    COMPASS_LAYOUT_EAST);
+    auto top_row = view(
+        make_compass_layout(),
+        make_fill(double_lined_top_left_corner), COMPASS_LAYOUT_WEST,
+        make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
+        view(
+            make_compass_layout(),
+            make_fill(double_lined_top_tee),          COMPASS_LAYOUT_WEST,
+            make_fill(double_lined_horizontal_beam),  COMPASS_LAYOUT_CENTRE,
+            make_fill(double_lined_top_right_corner), COMPASS_LAYOUT_EAST
+        ), COMPASS_LAYOUT_EAST);
 
     // Construct the centre bar |   |V|
-    auto centre_left = std::make_shared<filled_box>(
-        double_lined_vertical_beam);
-    pimpl_->selected_text_ = std::make_shared<image>("");
+    pimpl_->dropdown_button_ = make_image("V");
+    pimpl_->dropdown_button_->set_can_focus(true);
+    pimpl_->selected_text_ = make_image(" ");
 
-    auto centre_row = std::make_shared<basic_container>();
-    centre_row->set_layout(std::make_shared<compass_layout>());
-    centre_row->add_component(centre_left,   COMPASS_LAYOUT_WEST);
-    centre_row->add_component(pimpl_->selected_text_, COMPASS_LAYOUT_CENTRE);
-    centre_row->add_component(dropdown_centre_row,  COMPASS_LAYOUT_EAST);
+    auto centre_row = view(
+        make_compass_layout(),
+        make_fill(double_lined_vertical_beam), COMPASS_LAYOUT_WEST,
+        pimpl_->selected_text_,                COMPASS_LAYOUT_CENTRE,
+        view(
+            make_compass_layout(),
+            make_fill(double_lined_vertical_beam), COMPASS_LAYOUT_WEST,
+            pimpl_->dropdown_button_,              COMPASS_LAYOUT_CENTRE,
+            make_fill(double_lined_vertical_beam), COMPASS_LAYOUT_EAST
+        ), COMPASS_LAYOUT_EAST);
+        
+    // Construct the bottom bar +-----+-+
+    pimpl_->bottom_left_corner_  = make_fill(double_lined_bottom_left_corner);
+    pimpl_->bottom_tee_          = make_fill(double_lined_bottom_tee);
+    pimpl_->bottom_right_corner_ = make_fill(double_lined_bottom_right_corner);
 
-    // Construct the bottom-right part of the dropdown +-+
-    pimpl_->bottom_tee_ = std::make_shared<filled_box>(
-        double_lined_bottom_tee);
-    auto dropdown_bottom_centre = std::make_shared<filled_box>(
-        double_lined_horizontal_beam);
-    pimpl_->bottom_right_corner_ = std::make_shared<filled_box>(
-        double_lined_bottom_right_corner);
-
-    auto dropdown_bottom_row = std::make_shared<basic_container>();
-    dropdown_bottom_row->set_layout(std::make_shared<compass_layout>());
-    dropdown_bottom_row->add_component(pimpl_->bottom_tee_,   COMPASS_LAYOUT_WEST);
-    dropdown_bottom_row->add_component(dropdown_bottom_centre, COMPASS_LAYOUT_CENTRE);
-    dropdown_bottom_row->add_component(pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST);
-
-    // Construct the bottom bar +-----+
-    pimpl_->bottom_left_corner_ = std::make_shared<filled_box>(
-        double_lined_bottom_left_corner);
-    auto bottom_centre = std::make_shared<filled_box>(
-        double_lined_horizontal_beam);
-
-    auto bottom_row = std::make_shared<basic_container>();
-    bottom_row->set_layout(std::make_shared<compass_layout>());
-    bottom_row->add_component(pimpl_->bottom_left_corner_,   COMPASS_LAYOUT_WEST);
-    bottom_row->add_component(bottom_centre, COMPASS_LAYOUT_CENTRE);
-    bottom_row->add_component(dropdown_bottom_row,  COMPASS_LAYOUT_EAST);
+    auto bottom_row = view(
+        make_compass_layout(),
+        pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST,
+        make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
+        view(
+            make_compass_layout(),
+            pimpl_->bottom_tee_, COMPASS_LAYOUT_WEST,
+            make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
+            pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST
+        ), COMPASS_LAYOUT_EAST);
 
     // ======================================================================
     // Construct the dropdown list.
@@ -372,37 +340,32 @@ dropdown_list::dropdown_list()
         });
     auto scroller = std::make_shared<scroll_pane>(pimpl_->list_, false);
 
-    // Put the scrollpane in a fixed-height layout so that it doesn't prefer to
-    // take up the entire screen.
-    auto scroll_container = std::make_shared<basic_container>();
-    scroll_container->set_layout(std::make_shared<fixed_height_layout>(7));
-    scroll_container->add_component(scroller);
-
-    // Create a spacer to the right, so that the list is offset by the
-    // width of the dropdown button.
-    auto spacer0 = std::make_shared<filled_box>(' ');
-    auto spacer1 = std::make_shared<filled_box>(' ');
-    auto spacer =  std::make_shared<basic_container>();
-    spacer->set_layout(std::make_shared<vertical_squeeze_layout>());
-    spacer->add_component(spacer0);
-    spacer->add_component(spacer1);
-
     // Now put them together.
-    auto dropdown = std::make_shared<basic_container>();
-    dropdown->set_layout(std::make_shared<compass_layout>());
-    dropdown->add_component(scroll_container, COMPASS_LAYOUT_CENTRE);
-    dropdown->add_component(spacer, COMPASS_LAYOUT_EAST);
-    pimpl_->dropdown_ = dropdown;
+    pimpl_->dropdown_ = view(
+        make_compass_layout(),
+        // Put the scrollpane in a fixed-height layout so that it doesn't 
+        // prefer to take up the entire screen.
+        view(
+            std::make_shared<fixed_height_layout>(7),
+            scroller
+        ), COMPASS_LAYOUT_CENTRE,
+        // Create a spacer to the right, so that the list is offset by the
+        // width of the dropdown button.
+        view(
+            make_vertical_squeeze_layout(),
+            make_background_fill(),
+            make_background_fill()
+        ), COMPASS_LAYOUT_EAST);
 
     /// ...
 
-    auto top_box = std::make_shared<basic_container>();
-    top_box->set_layout(std::make_shared<horizontal_squeeze_layout>());
-    top_box->add_component(top_row);
-    top_box->add_component(centre_row);
-    top_box->add_component(bottom_row);
+    auto top_box = view(
+        make_horizontal_squeeze_layout(),
+        top_row,
+        centre_row,
+        bottom_row);
 
-    content->set_layout(std::make_shared<horizontal_strip_layout>());
+    content->set_layout(make_horizontal_strip_layout());
     content->add_component(top_box);
 }
 
@@ -471,6 +434,15 @@ void dropdown_list::do_event(boost::any const &event)
     {
         composite_component::do_event(event);
     }
+}
+
+// ==========================================================================
+// MAKE_DROPDOWN_LIST
+// ==========================================================================
+std::shared_ptr<dropdown_list> make_dropdown_list()
+{
+    return std::make_shared<dropdown_list>();
+
 }
 
 }

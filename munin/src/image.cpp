@@ -136,5 +136,24 @@ void image::do_draw(
     }
 }
 
+// ==========================================================================
+// MAKE_IMAGE
+// ==========================================================================
+MUNIN_EXPORT
+std::shared_ptr<image> make_image(
+    std::vector<terminalpp::string> const &elements)
+{
+    return std::make_shared<image>(elements);
+}
+
+// ==========================================================================
+// MAKE_IMAGE
+// ==========================================================================
+MUNIN_EXPORT
+std::shared_ptr<image> make_image(terminalpp::string const &elements)
+{
+    return std::make_shared<image>(elements);
+}
+
 }
 

@@ -110,6 +110,12 @@ private :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created edit
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<edit> make_edit();
+
 }
 
 #endif

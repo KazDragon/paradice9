@@ -25,12 +25,13 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/character_selection_screen.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/filled_box.hpp"
-#include "munin/framed_component.hpp"
-#include "munin/image.hpp"
-#include "munin/named_frame.hpp"
+#include <munin/background_fill.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/filled_box.hpp>
+#include <munin/framed_component.hpp>
+#include <munin/image.hpp>
+#include <munin/named_frame.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/encoder.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <boost/format.hpp>
@@ -47,21 +48,14 @@ struct character_selection_screen::impl
     std::shared_ptr<munin::image>                    character_list_;
     std::shared_ptr<munin::container>                inner_content_;
     
-    std::shared_ptr<munin::container> create_inner_content()
-    {
-        return std::make_shared<munin::basic_container>();
-    }
-
     std::shared_ptr<munin::image> create_character_list()
     {
-        using namespace terminalpp::literals;
-
         // Create an array of element 'strings' big enough to hold all the
         // character names, and also the "create new character" option.
         std::vector<terminalpp::string> text(characters_.size() + 1);
         
         // Fill the first element with the "create new character" text.
-        text[0] = "+. <Create new character>"_ts;
+        text[0] = "+. <Create new character>";
         
         // Fill the remainder with the names of the characters.
         for (size_t index = 0; index < characters_.size(); ++index)
@@ -72,7 +66,7 @@ struct character_selection_screen::impl
                 % characters_[index].second));
         }
         
-        auto img = std::make_shared<munin::image>(text);
+        auto img = munin::make_image(text);
         img->set_can_focus(true);
         return img;
     }
@@ -84,31 +78,21 @@ struct character_selection_screen::impl
 character_selection_screen::character_selection_screen()
   : pimpl_(std::make_shared<impl>())
 {
-    using namespace terminalpp::literals;
-
     pimpl_->character_list_ = pimpl_->create_character_list();
-    pimpl_->inner_content_  = pimpl_->create_inner_content();
+    pimpl_->inner_content_  = munin::view(
+        munin::make_grid_layout(1, 1),
+        pimpl_->character_list_);
     
-    pimpl_->inner_content_->set_layout(std::make_shared<munin::grid_layout>(1, 1));
-    pimpl_->inner_content_->add_component(pimpl_->character_list_);
-    
-    auto border = std::make_shared<munin::named_frame>();
-    border->set_name("CHARACTER SELECTION"_ts);
-
     auto content = get_container();
-    content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
-    content->add_component(std::make_shared<munin::framed_component>(
-        border
-      , pimpl_->inner_content_));
+    content->set_layout(munin::make_grid_layout(1, 1));
+    content->add_component(munin::make_framed_component(
+        munin::make_named_frame("CHARACTER_SELECTION"),
+        pimpl_->inner_content_));
 
     // Add a filler to ensure that the background is opaque.
-    content->set_layout(
-        std::make_shared<munin::grid_layout>(1, 1)
-      , munin::LOWEST_LAYER);
+    content->set_layout(munin::make_grid_layout(1, 1), munin::LOWEST_LAYER);
     content->add_component(
-        std::make_shared<munin::filled_box>(' ')
-      , {}
-      , munin::LOWEST_LAYER);
+        munin::make_background_fill(), {}, munin::LOWEST_LAYER);
 }
 
 // ==========================================================================

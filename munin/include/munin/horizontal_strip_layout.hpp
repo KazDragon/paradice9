@@ -70,6 +70,12 @@ protected :
       , terminalpp::extent                             size) override;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created horizontal strip layout
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<layout> make_horizontal_strip_layout();
+
 }
 
 #endif

@@ -28,10 +28,7 @@
 #define MUNIN_FILLED_BOX_HPP_
 
 #include "munin/basic_component.hpp"
-
-namespace terminalpp {
-    class element;
-}
+#include <terminalpp/element.hpp>
 
 namespace munin {
 
@@ -104,6 +101,12 @@ private :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+//* =========================================================================
+/// \brief Returns a newly created filled box.
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<component> make_fill(terminalpp::element const &fill);
 
 }
 

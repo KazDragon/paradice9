@@ -75,5 +75,14 @@ void vertical_strip_layout::do_layout(
     }
 }
 
+// ==========================================================================
+// MAKE_VERTICAL_STRIP_LAYOUT
+// ==========================================================================
+std::shared_ptr<layout> make_vertical_strip_layout()
+{
+    return std::make_shared<vertical_strip_layout>();
+}
+
+
 }
 

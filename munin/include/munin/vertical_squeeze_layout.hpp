@@ -64,6 +64,12 @@ protected :
       , terminalpp::extent                             size) override;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created layout
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<layout> make_vertical_squeeze_layout();
+
 }
 
 #endif

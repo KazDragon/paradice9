@@ -192,8 +192,8 @@ struct framed_component::impl
 // CONSTRUCTOR
 // ==========================================================================
 framed_component::framed_component(
-    std::shared_ptr<frame>     border,
-    std::shared_ptr<component> interior)
+    std::shared_ptr<frame>     const &border,
+    std::shared_ptr<component> const &interior)
   : pimpl_(std::make_shared<impl>())
 {
     pimpl_->border_   = border;
@@ -298,6 +298,16 @@ void framed_component::do_event(boost::any const &event)
     {
         composite_component::do_event(event);
     }
+}
+
+// ==========================================================================
+// MAKE_FRAMED_COMPONENT
+// ==========================================================================
+std::shared_ptr<component> make_framed_component(
+    std::shared_ptr<frame>     const &border,
+    std::shared_ptr<component> const &interior)
+{
+    return std::make_shared<framed_component>(border, interior);
 }
 
 }

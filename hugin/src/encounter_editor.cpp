@@ -25,8 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/encounter_editor.hpp"
-#include <munin/basic_container.hpp>
+#include <munin/background_fill.hpp>
 #include <munin/button.hpp>
+#include <munin/card.hpp>
 #include <munin/compass_layout.hpp>
 #include <munin/edit.hpp>
 #include <munin/filled_box.hpp>
@@ -37,6 +38,7 @@
 #include <munin/scroll_pane.hpp>
 #include <munin/solid_frame.hpp>
 #include <munin/text_area.hpp>
+#include <munin/view.hpp>
 #include <paradice/beast.hpp>
 #include <terminalpp/string.hpp>
 
@@ -45,6 +47,9 @@ namespace hugin {
 namespace {
     BOOST_STATIC_CONSTANT(odin::u32, BALANCED_LAYOUT_PREFERRED = 0);
     BOOST_STATIC_CONSTANT(odin::u32, BALANCED_LAYOUT_SHARED = 1);
+    
+    BOOST_STATIC_CONSTANT(std::string, BESTIARY_BUTTONS = "Bestiary");
+    BOOST_STATIC_CONSTANT(std::string, BEAST_BUTTONS    = "Beast");
 }
 
 // ==========================================================================
@@ -166,35 +171,41 @@ private :
 };
 
 // ==========================================================================
+// MAKE_BALANCED_LAYOUT
+// ==========================================================================
+std::shared_ptr<munin::layout> make_balanced_layout()
+{
+    return std::make_shared<balanced_layout>();
+}
+
+// ==========================================================================
 // ENCOUNTER_EDITOR::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct encounter_editor::impl
 {
-    std::shared_ptr<munin::edit>             encounter_name_field_;
-    std::shared_ptr<munin::list>             encounter_bestiary_list_;
-    std::shared_ptr<munin::list>             encounter_beasts_list_;
+    std::shared_ptr<munin::edit>       encounter_name_field_;
+    std::shared_ptr<munin::list>       encounter_bestiary_list_;
+    std::shared_ptr<munin::list>       encounter_beasts_list_;
 
-    std::shared_ptr<munin::text_area>        beast_description_area_;
+    std::shared_ptr<munin::text_area>  beast_description_area_;
     
-    std::shared_ptr<munin::basic_container>  split_container_;
-    std::shared_ptr<munin::basic_container>  lower_container_;
+    std::shared_ptr<munin::container>  split_container_;
+    std::shared_ptr<munin::container>  lower_container_;
 
-    std::shared_ptr<munin::basic_container>  buttons_container_;
-    std::shared_ptr<munin::basic_container>  bestiary_button_container_;
-    std::shared_ptr<munin::basic_container>  beast_button_container_;
+    std::shared_ptr<munin::card>       buttons_;
     
-    bool                                     beasts_active_;
+    bool                               beasts_active_ = false;
 
-    std::shared_ptr<munin::button>           insert_button_;
-    std::shared_ptr<munin::button>           delete_button_;
+    std::shared_ptr<munin::button>     insert_button_;
+    std::shared_ptr<munin::button>     delete_button_;
 
-    std::shared_ptr<munin::button>           edit_button_;
+    std::shared_ptr<munin::button>     edit_button_;
 
-    std::shared_ptr<munin::button>           save_button_;
-    std::shared_ptr<munin::button>           revert_button_;
+    std::shared_ptr<munin::button>     save_button_;
+    std::shared_ptr<munin::button>     revert_button_;
 
-    std::shared_ptr<munin::button>           up_button_;
-    std::shared_ptr<munin::button>           down_button_;
+    std::shared_ptr<munin::button>     up_button_;
+    std::shared_ptr<munin::button>     down_button_;
 
     std::vector<std::shared_ptr<paradice::beast>>  bestiary_;
     std::vector<std::shared_ptr<paradice::beast>>  beasts_;
@@ -250,8 +261,7 @@ struct encounter_editor::impl
             if (beasts_active_)
             {
                 split_container_->remove_component(lower_container_);
-                buttons_container_->remove_component(beast_button_container_);
-                buttons_container_->add_component(bestiary_button_container_);
+                buttons_->select_face(BESTIARY_BUTTONS);
                 beasts_active_ = false;
             }
         }
@@ -269,9 +279,7 @@ struct encounter_editor::impl
             if (!beasts_active_)
             {
                 split_container_->add_component(lower_container_);
-                buttons_container_->remove_component(
-                    bestiary_button_container_);
-                buttons_container_->add_component(beast_button_container_);
+                buttons_->select_face(BEAST_BUTTONS);
                 beasts_active_ = true;
             }
 
@@ -335,146 +343,102 @@ struct encounter_editor::impl
 encounter_editor::encounter_editor()
     : pimpl_(std::make_shared<impl>())
 {
-    using namespace terminalpp::literals;
-
     // Initialise all the viewable components and connect the events.
-    pimpl_->encounter_name_field_ = std::make_shared<munin::edit>();
+    pimpl_->encounter_name_field_ = munin::make_edit();
 
-    pimpl_->encounter_bestiary_list_ = std::make_shared<munin::list>();
+    pimpl_->encounter_bestiary_list_ = munin::make_list();
     pimpl_->encounter_bestiary_list_->on_item_changed.connect(
         [this](auto idx){pimpl_->on_bestiary_item_changed();});
 
-    pimpl_->encounter_beasts_list_ = std::make_shared<munin::list>();
+    pimpl_->encounter_beasts_list_ = munin::make_list();
     pimpl_->encounter_beasts_list_->on_item_changed.connect(
         [this](auto idx){pimpl_->on_beasts_item_changed();});
 
-    pimpl_->beast_description_area_ = std::make_shared<munin::text_area>();
+    pimpl_->beast_description_area_ = munin::make_text_area();
 
-    pimpl_->insert_button_ = std::make_shared<munin::button>(" + "_ts);
+    pimpl_->insert_button_ = munin::make_button(" + ");
     pimpl_->insert_button_->on_click.connect([this]{pimpl_->on_insert();});
 
-    pimpl_->delete_button_ = std::make_shared<munin::button>(" - "_ts);
+    pimpl_->delete_button_ = munin::make_button(" - ");
     pimpl_->delete_button_->on_click.connect([this]{pimpl_->on_delete();});
 
-    pimpl_->edit_button_ = std::make_shared<munin::button>("Edit"_ts);
+    pimpl_->edit_button_ = munin::make_button("Edit");
     pimpl_->edit_button_->on_click.connect([this]{pimpl_->on_edit();});
 
-    pimpl_->up_button_ = std::make_shared<munin::button>(" ^ "_ts);
+    pimpl_->up_button_ = munin::make_button(" ^ ");
     pimpl_->up_button_->on_click.connect([this]{pimpl_->on_up();});
 
-    pimpl_->down_button_ = std::make_shared<munin::button>(" v "_ts);
+    pimpl_->down_button_ = munin::make_button(" v ");
     pimpl_->down_button_->on_click.connect([this]{pimpl_->on_down();});
 
-    pimpl_->save_button_ = std::make_shared<munin::button>(" Save "_ts);
-    pimpl_->revert_button_ = std::make_shared<munin::button>(" Revert "_ts);
+    pimpl_->save_button_ = munin::make_button(" Save ");
+    pimpl_->revert_button_ = munin::make_button(" Revert ");
 
     pimpl_->save_button_->on_click.connect([this]{on_save();});
     pimpl_->revert_button_->on_click.connect([this]{on_revert();});
 
-    // Initialise the dynamic containers
-    pimpl_->split_container_           = std::make_shared<munin::basic_container>();
-    pimpl_->lower_container_           = std::make_shared<munin::basic_container>();
-    pimpl_->buttons_container_         = std::make_shared<munin::basic_container>();
-    pimpl_->bestiary_button_container_ = std::make_shared<munin::basic_container>();
-    pimpl_->beast_button_container_    = std::make_shared<munin::basic_container>();
-    pimpl_->beasts_active_ = false;
-
     // Now lay out the containers.
-    pimpl_->bestiary_button_container_->set_layout(
-        std::make_shared<munin::compass_layout>());
-    pimpl_->bestiary_button_container_->add_component(
-        pimpl_->insert_button_,
-        munin::COMPASS_LAYOUT_NORTH);
-    pimpl_->bestiary_button_container_->add_component(
-        std::make_shared<munin::filled_box>(' '),
-        munin::COMPASS_LAYOUT_CENTRE);
+    pimpl_->buttons_= munin::make_card();
+    pimpl_->buttons_->add_face(
+        munin::view(
+            munin::make_compass_layout(),
+            munin::view(
+                munin::make_compass_layout(),
+                pimpl_->up_button_, munin::COMPASS_LAYOUT_NORTH,
+                pimpl_->down_button_, munin::COMPASS_LAYOUT_SOUTH
+            ), munin::COMPASS_LAYOUT_NORTH,
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE,
+            pimpl_->delete_button_, munin::COMPASS_LAYOUT_SOUTH),
+       BEAST_BUTTONS);
+    pimpl_->buttons_->add_face(
+        munin::view(
+            munin::make_compass_layout(),
+            pimpl_->insert_button_, munin::COMPASS_LAYOUT_NORTH,
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE),
+        BESTIARY_BUTTONS);
+    pimpl_->buttons_->select_face(BESTIARY_BUTTONS);
 
-    auto inner_beast_button_container = std::make_shared<munin::basic_container>();
-    inner_beast_button_container->set_layout(std::make_shared<munin::compass_layout>());
-    inner_beast_button_container->add_component(
-        pimpl_->down_button_,
-        munin::COMPASS_LAYOUT_NORTH);
-    inner_beast_button_container->add_component(
-        std::make_shared<munin::filled_box>(' '),
-        munin::COMPASS_LAYOUT_CENTRE);
+    pimpl_->split_container_ = munin::view(
+        munin::make_horizontal_squeeze_layout(),
+        munin::view(
+            munin::make_compass_layout(),
+            munin::make_framed_component(
+                munin::make_solid_frame(),
+                pimpl_->encounter_name_field_
+            ), munin::COMPASS_LAYOUT_NORTH,
+            munin::view(
+                make_balanced_layout(),
+                munin::make_scroll_pane(
+                    pimpl_->encounter_bestiary_list_
+                ), BALANCED_LAYOUT_SHARED,
+                pimpl_->buttons_, BALANCED_LAYOUT_PREFERRED,
+                munin::make_scroll_pane(
+                    pimpl_->encounter_beasts_list_
+                ), BALANCED_LAYOUT_SHARED
+            ), munin::COMPASS_LAYOUT_CENTRE));
 
-    pimpl_->beast_button_container_->set_layout(std::make_shared<munin::compass_layout>());
-    pimpl_->beast_button_container_->add_component(
-        pimpl_->up_button_,
-        munin::COMPASS_LAYOUT_NORTH);
-    pimpl_->beast_button_container_->add_component(
-        inner_beast_button_container,
-        munin::COMPASS_LAYOUT_CENTRE);
-    pimpl_->beast_button_container_->add_component(
-        pimpl_->delete_button_
-        ,munin:: COMPASS_LAYOUT_SOUTH);
-
-    pimpl_->buttons_container_->set_layout(std::make_shared<munin::grid_layout>(1, 1));
-    pimpl_->buttons_container_->add_component(
-        pimpl_->bestiary_button_container_);
-
-    auto outer_container = std::make_shared<munin::basic_container>();
-    outer_container->set_layout(std::make_shared<balanced_layout>());
-    outer_container->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->encounter_bestiary_list_)
-      , BALANCED_LAYOUT_SHARED);
-    outer_container->add_component(
-        pimpl_->buttons_container_
-      , BALANCED_LAYOUT_PREFERRED);
-    outer_container->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->encounter_beasts_list_)
-      , BALANCED_LAYOUT_SHARED);
-
-    auto upper_container = std::make_shared<munin::basic_container>();
-    upper_container->set_layout(std::make_shared<munin::compass_layout>());
-    upper_container->add_component(
-        std::make_shared<munin::framed_component>(
-            std::make_shared<munin::solid_frame>()
-          , pimpl_->encounter_name_field_),
-        munin::COMPASS_LAYOUT_NORTH);
-    upper_container->add_component(
-        outer_container,
-        munin::COMPASS_LAYOUT_CENTRE);
-
-    pimpl_->split_container_->set_layout(
-        std::make_shared<munin::horizontal_squeeze_layout>());
-    pimpl_->split_container_->add_component(upper_container);
-
-    auto edit_button_container = std::make_shared<munin::basic_container>();
-    edit_button_container->set_layout(std::make_shared<munin::compass_layout>());
-    edit_button_container->add_component(
-        std::make_shared<munin::filled_box>(' '),
-        munin::COMPASS_LAYOUT_CENTRE);
-    edit_button_container->add_component(
-        pimpl_->edit_button_,
-        munin::COMPASS_LAYOUT_EAST);
-
-    pimpl_->beasts_active_ = false;
-
-    pimpl_->lower_container_->set_layout(std::make_shared<munin::compass_layout>());
-    pimpl_->lower_container_->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->beast_description_area_),
-        munin::COMPASS_LAYOUT_CENTRE);
-    pimpl_->lower_container_->add_component(
-        edit_button_container,
-        munin::COMPASS_LAYOUT_SOUTH);
-
-    auto lower_buttons_container = std::make_shared<munin::basic_container>();
-    lower_buttons_container->set_layout(std::make_shared<munin::compass_layout>());
-    lower_buttons_container->add_component(
-        pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST);
-    lower_buttons_container->add_component(
-        std::make_shared<munin::filled_box>(' '), 
-        munin::COMPASS_LAYOUT_CENTRE);
-    lower_buttons_container->add_component(
-        pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);
-
+    pimpl_->lower_container_ = munin::view(
+        munin::make_compass_layout(),
+        munin::make_scroll_pane(
+            pimpl_->beast_description_area_
+        ), munin::COMPASS_LAYOUT_CENTRE,
+        munin::view(
+            munin::make_compass_layout(),
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE,
+            pimpl_->edit_button_, munin::COMPASS_LAYOUT_EAST
+        ), munin::COMPASS_LAYOUT_SOUTH);
+        
     auto content = get_container();
-    content->set_layout(std::make_shared<munin::compass_layout>());
+    content->set_layout(munin::make_compass_layout());
     content->add_component(
         pimpl_->split_container_, munin::COMPASS_LAYOUT_CENTRE);
     content->add_component(
-        lower_buttons_container, munin::COMPASS_LAYOUT_SOUTH);
+        munin::view(
+            munin::make_compass_layout(),
+            pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST,
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE,
+            pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST
+        ), munin::COMPASS_LAYOUT_SOUTH);
 }
     
 // ==========================================================================

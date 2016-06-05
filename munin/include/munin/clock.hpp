@@ -66,6 +66,12 @@ protected :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created clock
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<component> make_clock();
+
 }
 
 #endif

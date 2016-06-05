@@ -183,6 +183,8 @@ void card::select_face(std::string const &name)
 
         on_cursor_position_changed(cursor_position);
 
+        on_preferred_size_changed();
+        
         // The face of the card has changed.  Fire an on_redraw event for
         // the entire component.
         on_redraw({{{}, get_size()}});
@@ -237,6 +239,13 @@ void card::do_set_focus()
 // ==========================================================================
 terminalpp::extent card::do_get_preferred_size() const
 {
+    auto current_face = pimpl_->get_current_face();
+    
+    if (current_face.is_initialized())
+    {
+        return current_face.get()->get_preferred_size();
+    }
+    
     return {};
 }
 
@@ -437,6 +446,14 @@ void card::do_set_attribute(
     {
         current_face.get()->set_attribute(name, attr);
     }
+}
+
+// ==========================================================================
+// MAKE_CARD
+// ==========================================================================
+std::shared_ptr<card> make_card()
+{
+    return std::make_shared<card>();
 }
 
 }

@@ -133,4 +133,12 @@ void aligned_layout::do_layout(
     }
 }
 
+// ==========================================================================
+// MAKE_ALIGNED_LAYOUT
+// ==========================================================================
+std::shared_ptr<layout> make_aligned_layout()
+{
+    return std::make_shared<aligned_layout>();
+}
+
 }

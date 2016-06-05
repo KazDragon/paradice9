@@ -483,5 +483,13 @@ void edit::do_set_attribute(std::string const &name, boost::any const &attr)
     }
 }
 
+// ==========================================================================
+// MAKE_EDIT
+// ==========================================================================
+std::shared_ptr<edit> make_edit()
+{
+    return std::make_shared<edit>();
+
 }
 
+}

@@ -69,6 +69,12 @@ protected :
       , terminalpp::extent                             size) override;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created vertical strip layout
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<layout> make_vertical_strip_layout();
+
 }
 
 #endif

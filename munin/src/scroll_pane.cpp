@@ -48,24 +48,24 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     scroll_frame(
-        std::shared_ptr<horizontal_scroll_bar> hscroll_bar,
-        std::shared_ptr<vertical_scroll_bar>   vscroll_bar,
+        std::shared_ptr<horizontal_scroll_bar> const &hscroll_bar,
+        std::shared_ptr<vertical_scroll_bar>   const &vscroll_bar,
         bool                                   top_border)
       : basic_frame(
             top_border
-          ? std::make_shared<filled_box>(double_lined_top_left_corner)
+          ? make_fill(double_lined_top_left_corner)
           : std::shared_ptr<filled_box>(),
             top_border
-          ? std::make_shared<filled_box>(double_lined_horizontal_beam)
+          ? make_fill(double_lined_horizontal_beam)
           : std::shared_ptr<filled_box>(),
             top_border
-          ? std::make_shared<filled_box>(double_lined_top_right_corner)
+          ? make_fill(double_lined_top_right_corner)
           : std::shared_ptr<filled_box>(),
-            std::make_shared<filled_box>(double_lined_vertical_beam),
+            make_fill(double_lined_vertical_beam),
             vscroll_bar,
-            std::make_shared<filled_box>(double_lined_bottom_left_corner),
+            make_fill(double_lined_bottom_left_corner),
             hscroll_bar,
-            std::make_shared<filled_box>(double_lined_bottom_right_corner))
+            make_fill(double_lined_bottom_right_corner))
     {
     }
 
@@ -316,14 +316,14 @@ struct scroll_pane::impl
 // CONSTRUCTOR
 // ==========================================================================
 scroll_pane::scroll_pane(
-    std::shared_ptr<component> underlying_component
-  , bool                       top_border)
+    std::shared_ptr<component> const &underlying_component
+  , bool                              top_border)
 {
     pimpl_ = std::make_shared<impl>(std::ref(*this));
 
     pimpl_->underlying_component_ = underlying_component;
 
-    pimpl_->viewport_ = std::make_shared<viewport>(pimpl_->underlying_component_);
+    pimpl_->viewport_ = make_viewport(pimpl_->underlying_component_);
     pimpl_->viewport_->on_size_changed.connect(
         [this]{pimpl_->calculate_scrollbars();});
     pimpl_->viewport_->on_subcomponent_size_changed.connect(
@@ -331,13 +331,13 @@ scroll_pane::scroll_pane(
     pimpl_->viewport_->on_origin_changed.connect(
         [this]{pimpl_->calculate_scrollbars();});
 
-    pimpl_->horizontal_scroll_bar_ = std::make_shared<horizontal_scroll_bar>();
+    pimpl_->horizontal_scroll_bar_ = make_horizontal_scroll_bar();
     pimpl_->horizontal_scroll_bar_->on_page_left.connect(
         [this]{pimpl_->on_page_left();});
     pimpl_->horizontal_scroll_bar_->on_page_right.connect(
         [this]{pimpl_->on_page_right();});
 
-    pimpl_->vertical_scroll_bar_ = std::make_shared<vertical_scroll_bar>();
+    pimpl_->vertical_scroll_bar_ = make_vertical_scroll_bar();
     pimpl_->vertical_scroll_bar_->on_page_up.connect(
         [this]{pimpl_->on_page_up();});
     pimpl_->vertical_scroll_bar_->on_page_down.connect(
@@ -349,9 +349,9 @@ scroll_pane::scroll_pane(
       , top_border);
 
     auto content = get_container();
-    content->set_layout(std::make_shared<grid_layout>(1, 1));
+    content->set_layout(make_grid_layout(1, 1));
 
-    content->add_component(std::make_shared<framed_component>(
+    content->add_component(make_framed_component(
         pimpl_->scroll_frame_
       , pimpl_->viewport_));
 }
@@ -361,6 +361,16 @@ scroll_pane::scroll_pane(
 // ==========================================================================
 scroll_pane::~scroll_pane()
 {
+}
+
+// ==========================================================================
+// MAKE_SCROLL_PANE
+// ==========================================================================
+std::shared_ptr<component> make_scroll_pane(
+    std::shared_ptr<component> const &underlying_component, 
+    bool                              top_border)
+{
+    return std::make_shared<scroll_pane>(underlying_component, top_border);
 }
 
 }

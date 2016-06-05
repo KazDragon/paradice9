@@ -68,6 +68,12 @@ protected :
       , terminalpp::extent                             size) override;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created compass layout
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<layout> make_compass_layout();
+
 }
 
 #endif

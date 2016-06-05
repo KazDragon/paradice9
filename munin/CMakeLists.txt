@@ -4,6 +4,7 @@ set (munin_SOURCES
     src/text/document.cpp
     src/algorithm.cpp
     src/aligned_layout.cpp
+    src/background_fill.cpp
     src/basic_component.cpp
     src/basic_container.cpp
     src/basic_frame.cpp

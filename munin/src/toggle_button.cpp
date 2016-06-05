@@ -51,19 +51,15 @@ struct toggle_button::impl
 toggle_button::toggle_button(bool default_state)
   : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = std::make_shared<image>(default_state ? "X" : " ");
+    pimpl_->image_ = make_image(default_state ? "X" : " ");
     pimpl_->image_->set_can_focus(true);
 
     pimpl_->state_ = default_state;
 
-
-    get_container()->set_layout(
-        std::make_shared<grid_layout>(1, 1));
+    get_container()->set_layout(make_grid_layout(1, 1));
 
     get_container()->add_component(
-        std::make_shared<framed_component>(
-            std::make_shared<solid_frame>()
-          , pimpl_->image_));
+        make_framed_component(make_solid_frame(), pimpl_->image_));
 }
 
 // ==========================================================================

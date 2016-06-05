@@ -28,16 +28,17 @@
 #include "hugin/active_encounter_view.hpp"
 #include "hugin/command_prompt.hpp"
 #include "hugin/wholist.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/edit.hpp"
-#include "munin/framed_component.hpp"
-#include "munin/horizontal_squeeze_layout.hpp"
-#include "munin/named_frame.hpp"
-#include "munin/solid_frame.hpp"
-#include "munin/scroll_pane.hpp"
-#include "munin/text_area.hpp"
-#include "munin/vertical_squeeze_layout.hpp"
+#include <munin/background_fill.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/edit.hpp>
+#include <munin/framed_component.hpp>
+#include <munin/horizontal_squeeze_layout.hpp>
+#include <munin/named_frame.hpp>
+#include <munin/solid_frame.hpp>
+#include <munin/scroll_pane.hpp>
+#include <munin/text_area.hpp>
+#include <munin/vertical_squeeze_layout.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 
@@ -83,7 +84,7 @@ struct main_screen::impl
     std::shared_ptr<munin::container>      output_container_;
     std::shared_ptr<munin::text_area>      output_field_;
     std::shared_ptr<munin::text_area>      help_field_;
-    std::shared_ptr<munin::scroll_pane>    help_field_frame_;
+    std::shared_ptr<munin::component>      help_field_frame_;
     bool                                   help_field_visible_;
     std::shared_ptr<active_encounter_view> active_encounter_view_;
     bool                                   active_encounter_view_visible_;
@@ -95,49 +96,40 @@ struct main_screen::impl
 main_screen::main_screen()
   : pimpl_(std::make_shared<impl>(std::ref(*this)))
 {
-    using namespace terminalpp::literals;
-
-    auto content = get_container();
-    content->set_layout(std::make_shared<munin::compass_layout>());
-    
     pimpl_->input_field_ = std::make_shared<command_prompt>();
-    content->add_component(
-        std::make_shared<munin::framed_component>(
-            std::make_shared<munin::solid_frame>()
-          , pimpl_->input_field_)
-        , munin::COMPASS_LAYOUT_SOUTH);
+    
+    pimpl_->output_field_ = munin::make_text_area();
+    pimpl_->output_field_->disable();
+    
+    pimpl_->help_field_ = munin::make_text_area();
+    pimpl_->help_field_->disable();
+    
+    pimpl_->help_field_frame_ = munin::make_scroll_pane(pimpl_->help_field_);
     
     pimpl_->wholist_ = std::make_shared<wholist>();
     
-    auto wholist_frame = std::make_shared<munin::named_frame>();
-    wholist_frame->set_name("CURRENTLY PLAYING"_ts);
-    
-    content->add_component(
-        std::make_shared<munin::framed_component>(wholist_frame, pimpl_->wholist_)
-        , munin::COMPASS_LAYOUT_NORTH);
-    
-    pimpl_->output_container_ = std::make_shared<munin::basic_container>();
-    pimpl_->output_container_->set_layout(
-        std::make_shared<munin::vertical_squeeze_layout>());
-    
-    pimpl_->output_field_ = std::make_shared<munin::text_area>();
-    pimpl_->output_field_->disable();
-    pimpl_->output_container_->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->output_field_));
-    
-    pimpl_->help_field_ = std::make_shared<munin::text_area>();
-    pimpl_->help_field_->disable();
-    
-    pimpl_->help_field_frame_ = std::make_shared<munin::scroll_pane>(pimpl_->help_field_);
+    pimpl_->output_container_ = munin::view(
+        munin::make_vertical_squeeze_layout(),
+        munin::make_scroll_pane(pimpl_->output_field_));
 
-    pimpl_->output_encounter_container_ = std::make_shared<munin::basic_container>();
-    pimpl_->output_encounter_container_->set_layout(
-        std::make_shared<munin::horizontal_squeeze_layout>());
-
-    pimpl_->output_encounter_container_->add_component(
+    pimpl_->output_encounter_container_ = munin::view(
+        munin::make_horizontal_squeeze_layout(),
         pimpl_->output_container_);
 
     pimpl_->active_encounter_view_ = std::make_shared<active_encounter_view>();
+
+    auto content = get_container();
+    content->set_layout(munin::make_compass_layout());
+    content->add_component(
+        munin::make_framed_component(
+            munin::make_solid_frame(),
+            pimpl_->input_field_),
+        munin::COMPASS_LAYOUT_SOUTH);
+    content->add_component(
+        munin::make_framed_component(
+            munin::make_named_frame("CURRENTLY PLAYING"),
+            pimpl_->wholist_),
+        munin::COMPASS_LAYOUT_NORTH);
 
     content->add_component(pimpl_->output_encounter_container_, munin::COMPASS_LAYOUT_CENTRE);
 }

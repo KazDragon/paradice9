@@ -286,5 +286,13 @@ void vertical_scroll_bar::do_set_attribute(
     }
 }
 
+// ==========================================================================
+// MAKE_VERTICAL_SCROLL_BAR
+// ==========================================================================
+std::shared_ptr<vertical_scroll_bar> make_vertical_scroll_bar()
+{
+    return std::make_shared<vertical_scroll_bar>();
+}
+
 }
 

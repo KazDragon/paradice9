@@ -74,6 +74,58 @@ protected :
       , terminalpp::extent                             size) override;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created aligned layout
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<layout> make_aligned_layout();
+
+// Now a selection of alignment constants that you can use.
+
+static alignment_data const alignment_hlvt = {
+    HORIZONTAL_ALIGNMENT_LEFT,
+    VERTICAL_ALIGNMENT_TOP
+};
+
+static alignment_data const alignment_hcvt = {
+    HORIZONTAL_ALIGNMENT_CENTRE,
+    VERTICAL_ALIGNMENT_TOP
+};
+static alignment_data const alignment_hrvt = {
+    HORIZONTAL_ALIGNMENT_RIGHT,
+    VERTICAL_ALIGNMENT_TOP
+};
+
+static alignment_data const alignment_hlvc = {
+    HORIZONTAL_ALIGNMENT_LEFT,
+    VERTICAL_ALIGNMENT_CENTRE
+};
+
+static alignment_data const alignment_hcvc = {
+    HORIZONTAL_ALIGNMENT_CENTRE,
+    VERTICAL_ALIGNMENT_CENTRE
+};
+
+static alignment_data const alignment_hrvc = {
+    HORIZONTAL_ALIGNMENT_RIGHT,
+    VERTICAL_ALIGNMENT_CENTRE
+};
+
+static alignment_data const alignment_hlvb = {
+    HORIZONTAL_ALIGNMENT_LEFT,
+    VERTICAL_ALIGNMENT_BOTTOM
+};
+
+static alignment_data const alignment_hcvb = {
+    HORIZONTAL_ALIGNMENT_CENTRE,
+    VERTICAL_ALIGNMENT_BOTTOM
+};
+
+static alignment_data const alignment_hrvb = {
+    HORIZONTAL_ALIGNMENT_RIGHT,
+    VERTICAL_ALIGNMENT_BOTTOM
+};
+
 }
 
 #endif

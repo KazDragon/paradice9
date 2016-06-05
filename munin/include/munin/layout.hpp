@@ -31,6 +31,7 @@
 #include "odin/core.hpp"
 #include <terminalpp/extent.hpp>
 #include <boost/any.hpp>
+#include <boost/optional.hpp>
 #include <memory>
 
 namespace munin {

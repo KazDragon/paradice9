@@ -132,6 +132,12 @@ private :
     std::shared_ptr<impl> pimpl_;
 };
 
+//* =========================================================================
+/// \brief Returns a newly created horizontal scroll bar
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<horizontal_scroll_bar> make_horizontal_scroll_bar();
+
 }
 
 #endif

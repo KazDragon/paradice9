@@ -65,6 +65,12 @@ protected :
       , terminalpp::extent                             size);
 };
 
+//* =========================================================================
+/// \brief Returns a newly created horizontal squeeze layout layout
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<layout> make_horizontal_squeeze_layout();
+
 }
 
 #endif

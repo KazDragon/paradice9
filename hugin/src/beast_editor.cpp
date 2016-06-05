@@ -27,7 +27,7 @@
 #include "hugin/beast_editor.hpp"
 #include <munin/algorithm.hpp>
 #include <munin/aligned_layout.hpp>
-#include <munin/basic_container.hpp>
+#include <munin/background_fill.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
 #include <munin/dropdown_list.hpp>
@@ -39,6 +39,7 @@
 #include <munin/scroll_pane.hpp>
 #include <munin/solid_frame.hpp>
 #include <munin/text_area.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/string.hpp>
 
 namespace hugin {
@@ -61,126 +62,89 @@ struct beast_editor::impl
 beast_editor::beast_editor()
     : pimpl_(std::make_shared<impl>())
 {
-    using namespace terminalpp::literals;
-    
     // Initialise all the viewable components.
-    auto name_label = 
-        std::make_shared<munin::image>("       Name: "_ts);
+    auto name_label        = munin::make_image("       Name: ");
+    auto description_label = munin::make_image("Description: ");
+    auto alignment_label   = munin::make_image("  Alignment: ");
 
-    auto description_label = 
-        std::make_shared<munin::image>("Description: "_ts);
+    pimpl_->name_field_ = munin::make_edit();
+    pimpl_->description_area_ = munin::make_text_area();
+    pimpl_->alignment_dropdown_ = munin::make_dropdown_list();
 
-    auto alignment_label = 
-        std::make_shared<munin::image>("  Alignment: "_ts);
-
-    pimpl_->name_field_ = std::make_shared<munin::edit>();
-    pimpl_->description_area_ = std::make_shared<munin::text_area>();
-    pimpl_->alignment_dropdown_ = std::make_shared<munin::dropdown_list>();
-
-    std::vector<terminalpp::string> dropdown_items;
-    dropdown_items.push_back("Hostile"_ts);
-    dropdown_items.push_back("Neutral"_ts);
-    dropdown_items.push_back("Friendly"_ts);
+    auto dropdown_items = std::vector<terminalpp::string> {
+        "Hostile",
+        "Neutral",
+        "Friendly"
+    };
 
     pimpl_->alignment_dropdown_->set_items(dropdown_items);
     pimpl_->alignment_dropdown_->set_item_index(1);
     
-    pimpl_->save_button_ = 
-        std::make_shared<munin::button>(" Save "_ts);
-    pimpl_->revert_button_ = 
-        std::make_shared<munin::button>("Revert"_ts);
+    pimpl_->save_button_   = munin::make_button(" Save ");
+    pimpl_->revert_button_ = munin::make_button("Revert");
 
     // Set up callbacks
     pimpl_->save_button_->on_click.connect([this]{on_save();});
     pimpl_->revert_button_->on_click.connect([this]{on_revert();});
 
     // Lay out a container for the name label and field.
-    auto name_label_container = std::make_shared<munin::basic_container>();
-    name_label_container->set_layout(std::make_shared<munin::aligned_layout>());
-
-    munin::alignment_data alignment;
-    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
-    alignment.vertical_alignment = munin::VERTICAL_ALIGNMENT_CENTRE;
-    name_label_container->add_component(name_label, alignment);
-
-    auto name_container = std::make_shared<munin::basic_container>();
-    name_container->set_layout(std::make_shared<munin::compass_layout>());
-    name_container->add_component(name_label_container, munin::COMPASS_LAYOUT_WEST);
-    name_container->add_component(std::make_shared<munin::framed_component>(
-        std::make_shared<munin::solid_frame>()
-      , pimpl_->name_field_)
-      , munin::COMPASS_LAYOUT_CENTRE);
-    // Ensure that the backdrop clears nicely.
-    name_container->set_layout(
-        std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
-    name_container->add_component(
-        std::make_shared<munin::filled_box>(' ')
-      , {}
-      , munin::LOWEST_LAYER);
+    auto name_container = munin::view(
+        munin::make_compass_layout(),
+        munin::view(
+            munin::make_aligned_layout(),
+            name_label, munin::alignment_hrvc
+        ), munin::COMPASS_LAYOUT_WEST,
+        munin::make_framed_component(
+            munin::make_solid_frame(),
+            pimpl_->name_field_
+        ), munin::COMPASS_LAYOUT_CENTRE);
 
     // Lay out a container for the description label and field.
-    auto description_label_container = std::make_shared<munin::basic_container>();
-    description_label_container->set_layout(std::make_shared<munin::compass_layout>());
-    description_label_container->add_component(
-        std::make_shared<munin::filled_box>(' '),
-        munin::COMPASS_LAYOUT_NORTH);
-    description_label_container->add_component(
-        description_label,
-        munin::COMPASS_LAYOUT_CENTRE);
-
-    auto description_container = std::make_shared<munin::basic_container>();
-    description_container->set_layout(std::make_shared<munin::compass_layout>());
-    description_container->add_component(
-        description_label_container,
-        munin::COMPASS_LAYOUT_WEST);
-    description_container->add_component(
-        std::make_shared<munin::scroll_pane>(pimpl_->description_area_),
-        munin::COMPASS_LAYOUT_CENTRE);
-
-    auto alignment_label_container = std::make_shared<munin::basic_container>();
-    alignment_label_container->set_layout(std::make_shared<munin::aligned_layout>());
-
-    alignment.horizontal_alignment = munin::HORIZONTAL_ALIGNMENT_RIGHT;
-    alignment.vertical_alignment = munin::VERTICAL_ALIGNMENT_CENTRE;
-    alignment_label_container->add_component(alignment_label, alignment);
+    auto description_container = munin::view(
+        munin::make_compass_layout(),
+        munin::view(
+            munin::make_compass_layout(),
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_NORTH,
+            description_label, munin::COMPASS_LAYOUT_CENTRE
+        ), munin::COMPASS_LAYOUT_WEST,
+        munin::make_scroll_pane(
+            pimpl_->description_area_
+        ), munin::COMPASS_LAYOUT_CENTRE);
 
     // Lay out a container for the alignment label and dropdown.
-    auto alignment_container = std::make_shared<munin::basic_container>();
-    alignment_container->set_layout(std::make_shared<munin::compass_layout>());
-    alignment_container->add_component(
-        alignment_label_container,
-        munin::COMPASS_LAYOUT_WEST);
-    alignment_container->add_component(
-        pimpl_->alignment_dropdown_,
-        munin::COMPASS_LAYOUT_CENTRE);
-    alignment_container->set_layout(
-        std::make_shared<munin::grid_layout>(1, 1), munin::LOWEST_LAYER);
-    alignment_container->add_component(
-        std::make_shared<munin::filled_box>(' '),
-        {},
-        munin::LOWEST_LAYER);
+    auto alignment_container = munin::view(
+        munin::make_compass_layout(),
+        munin::view(
+            munin::make_aligned_layout(),
+            alignment_label, munin::alignment_hrvc
+        ), munin::COMPASS_LAYOUT_WEST,
+        pimpl_->alignment_dropdown_, munin::COMPASS_LAYOUT_CENTRE);
 
     // Lay out the current set of containers.
-    auto editor_container = std::make_shared<munin::basic_container>();
-    editor_container->set_layout(std::make_shared<munin::compass_layout>());
-    editor_container->add_component(name_container, munin::COMPASS_LAYOUT_NORTH);
-    editor_container->add_component(description_container, munin::COMPASS_LAYOUT_CENTRE);
-    editor_container->add_component(alignment_container, munin::COMPASS_LAYOUT_SOUTH);
+    auto editor_container = munin::view(
+        munin::make_compass_layout(),
+        name_container, munin::COMPASS_LAYOUT_NORTH,
+        description_container, munin::COMPASS_LAYOUT_CENTRE,
+        alignment_container, munin::COMPASS_LAYOUT_SOUTH);
 
     // Lay out a container for the buttons.
-    auto button_container = std::make_shared<munin::basic_container>();
-    button_container->set_layout(std::make_shared<munin::compass_layout>());
-    button_container->add_component(pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST);
-    button_container->add_component(
-        std::make_shared<munin::filled_box>(' '),
-        munin::COMPASS_LAYOUT_CENTRE);
-    button_container->add_component(pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);
-
+    auto button_container = munin::view(
+        munin::make_compass_layout(),
+        pimpl_->save_button_, munin::COMPASS_LAYOUT_WEST,
+        munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE,
+        pimpl_->revert_button_, munin::COMPASS_LAYOUT_EAST);
+    
     // Finally, add the contents to the component.
     auto content = get_container();
-    content->set_layout(std::make_shared<munin::compass_layout>());
+    content->set_layout(munin::make_compass_layout());
     content->add_component(editor_container, munin::COMPASS_LAYOUT_CENTRE);
     content->add_component(button_container, munin::COMPASS_LAYOUT_SOUTH);
+    
+    // Ensure that the background clears nicely - the layouts described above
+    // have a couple of blank areas in them.
+    content->set_layout(munin::make_grid_layout(1, 1), munin::LOWEST_LAYER);
+    content->add_component(
+        munin::make_background_fill(), {}, munin::LOWEST_LAYER);
 }
     
 // ==========================================================================

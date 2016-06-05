@@ -30,13 +30,14 @@
 #include "hugin/encounter_editor.hpp"
 #include "hugin/encounters_page.hpp"
 #include "hugin/delete_confirmation_dialog.hpp"
-#include "munin/algorithm.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/button.hpp"
-#include "munin/card.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/filled_box.hpp"
-#include "munin/tabbed_panel.hpp"
+#include <munin/algorithm.hpp>
+#include <munin/background_fill.hpp>
+#include <munin/button.hpp>
+#include <munin/card.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/filled_box.hpp>
+#include <munin/tabbed_panel.hpp>
+#include <munin/view.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <vector>
@@ -321,8 +322,6 @@ struct gm_tools_screen::impl
 gm_tools_screen::gm_tools_screen()
     : pimpl_(std::make_shared<impl>())
 {
-    using namespace terminalpp::literals;
-
     pimpl_->bestiary_page_           = std::make_shared<bestiary_page>();
     pimpl_->beast_editor_            = std::make_shared<beast_editor>();
     pimpl_->encounters_page_         = std::make_shared<encounters_page>();
@@ -330,13 +329,13 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->delete_beast_dialog_     = std::make_shared<delete_confirmation_dialog>();
     pimpl_->delete_encounter_dialog_ = std::make_shared<delete_confirmation_dialog>();
 
-    pimpl_->bestiary_tab_card_   = std::make_shared<munin::card>();
+    pimpl_->bestiary_tab_card_ = munin::make_card();
     pimpl_->bestiary_tab_card_->add_face(pimpl_->bestiary_page_, bestiary_face);
     pimpl_->bestiary_tab_card_->add_face(pimpl_->beast_editor_, beast_editor_face);
     pimpl_->bestiary_tab_card_->add_face(pimpl_->delete_beast_dialog_, delete_beast_face);
     pimpl_->bestiary_tab_card_->select_face(bestiary_face);
 
-    pimpl_->encounter_tab_card_  = std::make_shared<munin::card>();
+    pimpl_->encounter_tab_card_ = munin::make_card();
     pimpl_->encounter_tab_card_->add_face(pimpl_->encounters_page_, encounters_face);
     pimpl_->encounter_tab_card_->add_face(pimpl_->encounter_editor_, encounter_editor_face);
     pimpl_->encounter_tab_card_->add_face(pimpl_->delete_encounter_dialog_, delete_encounter_face);
@@ -378,24 +377,22 @@ gm_tools_screen::gm_tools_screen()
     pimpl_->delete_encounter_dialog_->on_delete_rejection.connect(
         [this]{pimpl_->on_delete_encounter_rejection();});
     
-    pimpl_->back_button_ = std::make_shared<munin::button>("Back"_ts);
+    pimpl_->back_button_ = munin::make_button("Back");
     pimpl_->back_button_->on_click.connect(on_back);
 
-    pimpl_->tabbed_panel_ = std::make_shared<munin::tabbed_panel>();
+    pimpl_->tabbed_panel_ = munin::make_tabbed_panel();
     pimpl_->tabbed_panel_->insert_tab("Bestiary", pimpl_->bestiary_tab_card_);
     pimpl_->tabbed_panel_->insert_tab("Encounters", pimpl_->encounter_tab_card_);
 
-    auto buttons_panel = std::make_shared<munin::basic_container>();
-    buttons_panel->set_layout(std::make_shared<munin::compass_layout>());
-    buttons_panel->add_component(pimpl_->back_button_, munin::COMPASS_LAYOUT_WEST);
-    buttons_panel->add_component(
-        std::make_shared<munin::filled_box>(' ')
-        , munin::COMPASS_LAYOUT_CENTRE);
-
     auto content = get_container();
-    content->set_layout(std::make_shared<munin::compass_layout>());
+    content->set_layout(munin::make_compass_layout());
     content->add_component(pimpl_->tabbed_panel_, munin::COMPASS_LAYOUT_CENTRE);
-    content->add_component(buttons_panel, munin::COMPASS_LAYOUT_SOUTH);
+    content->add_component(
+        munin::view(
+            munin::make_compass_layout(),
+            pimpl_->back_button_, munin::COMPASS_LAYOUT_WEST,
+            munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE),
+        munin::COMPASS_LAYOUT_SOUTH);
 }
     
 // ==========================================================================

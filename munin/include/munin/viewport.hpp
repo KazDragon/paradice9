@@ -50,7 +50,7 @@ public :
     /// \param underlying_component A component that this component will
     /// wrap.
     //* =====================================================================
-    viewport(std::shared_ptr<component> underlying_component);
+    viewport(std::shared_ptr<component> const &underlying_component);
 
     //* =====================================================================
     /// \brief Destructor
@@ -237,6 +237,13 @@ private :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+//* =========================================================================
+/// \brief Returns a newly created viewport.
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<viewport> make_viewport(
+    std::shared_ptr<component> const &underlying_component);
 
 }
 

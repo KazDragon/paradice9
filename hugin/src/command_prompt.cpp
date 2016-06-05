@@ -25,9 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/command_prompt.hpp"
-#include "munin/basic_container.hpp"
-#include "munin/compass_layout.hpp"
-#include "munin/edit.hpp"
+#include <munin/basic_container.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/edit.hpp>
 #include <terminalpp/string.hpp> 
 #include <terminalpp/virtual_key.hpp>
 #include <boost/optional.hpp>
@@ -43,7 +43,7 @@ namespace hugin {
 // ==========================================================================
 struct command_prompt::impl
 {
-    std::shared_ptr<munin::edit>     edit_;
+    std::shared_ptr<munin::edit>     edit_ = munin::make_edit();
 
     odin::u32                        current_history_;
     std::deque<std::string>          history_;
@@ -58,9 +58,7 @@ struct command_prompt::impl
 command_prompt::command_prompt()
   : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->edit_ = std::make_shared<munin::edit>();
-
-    get_container()->set_layout(std::make_shared<munin::compass_layout>());
+    get_container()->set_layout(munin::make_compass_layout());
     get_container()->add_component(
         pimpl_->edit_, munin::COMPASS_LAYOUT_SOUTH);
 }

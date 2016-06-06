@@ -72,7 +72,7 @@ protected :
 /// \brief Returns a newly created compass layout
 //* =========================================================================
 MUNIN_EXPORT
-std::shared_ptr<layout> make_compass_layout();
+std::unique_ptr<layout> make_compass_layout();
 
 }
 

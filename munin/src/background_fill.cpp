@@ -32,7 +32,7 @@ namespace munin {
 // ==========================================================================
 // MAKE_BACKGROUND_FILL
 // ==========================================================================
-std::shared_ptr<component> make_background_fill()
+std::shared_ptr<filled_box> make_background_fill()
 {
     return make_fill(' ');
 }

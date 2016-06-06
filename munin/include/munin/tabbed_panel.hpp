@@ -60,9 +60,9 @@ public :
     /// If this is not specified, then it is inserted as the right-most tab.
     //* =====================================================================
     void insert_tab(
-        std::string const                 &text,
-        std::shared_ptr<munin::component>  comp,
-        boost::optional<odin::u32>         index = {});
+        std::string                       const &text,
+        std::shared_ptr<munin::component> const &comp,
+        boost::optional<odin::u32>               index = {});
 
     //* =====================================================================
     /// \brief Removes a tab from the frame.

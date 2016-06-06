@@ -68,7 +68,7 @@ protected :
 /// \brief Returns a newly created layout
 //* =========================================================================
 MUNIN_EXPORT
-std::shared_ptr<layout> make_vertical_squeeze_layout();
+std::unique_ptr<layout> make_vertical_squeeze_layout();
 
 }
 

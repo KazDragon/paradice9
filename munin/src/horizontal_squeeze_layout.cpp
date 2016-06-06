@@ -99,9 +99,10 @@ void horizontal_squeeze_layout::do_layout(
 // ==========================================================================
 // MAKE_HORIZONTAL_SQUEEZE_LAYOUT
 // ==========================================================================
-std::shared_ptr<layout> make_horizontal_squeeze_layout()
+std::unique_ptr<layout> make_horizontal_squeeze_layout()
 {
-    return std::make_shared<horizontal_squeeze_layout>();
+    return std::unique_ptr<horizontal_squeeze_layout>(
+        new horizontal_squeeze_layout);
 }
 
 }

@@ -32,7 +32,7 @@
 namespace munin {
 
 namespace {
-    typedef std::map<odin::u32, std::shared_ptr<layout>> layered_layout_map;
+    typedef std::map<odin::u32, std::unique_ptr<layout>> layered_layout_map;
 }
 
 // ==========================================================================
@@ -499,7 +499,7 @@ terminalpp::extent basic_container::do_get_preferred_size() const
 
         auto lyt = get_layout(layer);
 
-        if (lyt == NULL || components.size() == 0)
+        if (!lyt || components.size() == 0)
         {
             // Either there is no layout for this layer, or there are no
             // components in this layer.  Hence no point in laying it out.
@@ -666,22 +666,22 @@ odin::u32 basic_container::do_get_component_layer(odin::u32 index) const
 // DO_SET_LAYOUT
 // ==========================================================================
 void basic_container::do_set_layout(
-    std::shared_ptr<munin::layout> const &lyt
-  , odin::u32                             layer)
+    std::unique_ptr<munin::layout> lyt
+  , odin::u32                      layer)
 {
-    pimpl_->layouts_[layer] = lyt;
+    pimpl_->layouts_[layer] = std::move(lyt);
 }
 
 // ==========================================================================
 // DO_GET_LAYOUT
 // ==========================================================================
-std::shared_ptr<layout> basic_container::do_get_layout(odin::u32 layer) const
+boost::optional<layout &> basic_container::do_get_layout(odin::u32 layer) const
 {
     auto result = pimpl_->layouts_.find(layer);
 
     return result == pimpl_->layouts_.end()
-                   ? std::shared_ptr<munin::layout>()
-                   : result->second;
+                   ? boost::optional<munin::layout &>()
+                   : boost::optional<munin::layout &>(*result->second.get());
 }
 
 // ==========================================================================
@@ -999,7 +999,7 @@ void basic_container::do_layout()
 
         auto lyt = get_layout(layer);
 
-        if (lyt == NULL || components.size() == 0)
+        if (!lyt || components.size() == 0)
         {
             // Either there is no layout for this layer, or there are no
             // components in this layer.  Hence no point in laying it out.

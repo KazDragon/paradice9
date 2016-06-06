@@ -99,9 +99,10 @@ void vertical_squeeze_layout::do_layout(
 // ==========================================================================
 // MAKE_VERTICAL_SQUEEZE_LAYOUT
 // ==========================================================================
-std::shared_ptr<layout> make_vertical_squeeze_layout()
+std::unique_ptr<layout> make_vertical_squeeze_layout()
 {
-    return std::make_shared<vertical_squeeze_layout>();
+    return std::unique_ptr<vertical_squeeze_layout>(
+        new vertical_squeeze_layout);
 }
 
 }

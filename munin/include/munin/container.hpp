@@ -30,6 +30,7 @@
 #include "munin/export.hpp"
 #include "munin/component.hpp"
 #include "odin/core.hpp"
+#include <boost/optional.hpp>
 #include <vector>
 
 namespace munin {
@@ -103,14 +104,14 @@ public :
     /// \brief Sets the container's current layout for a given layer
     //* =====================================================================
     void set_layout(
-        std::shared_ptr<munin::layout> const &lyt
-      , odin::u32                             layer = DEFAULT_LAYER);
+        std::unique_ptr<munin::layout> lyt
+      , odin::u32                      layer = DEFAULT_LAYER);
 
     //* =====================================================================
     /// \brief Retrieves the current layout from the container for a given
     /// layer.
     //* =====================================================================
-    std::shared_ptr<munin::layout> get_layout(
+    boost::optional<munin::layout &> get_layout(
         odin::u32 layer = DEFAULT_LAYER) const;
 
     //* =====================================================================
@@ -170,14 +171,14 @@ protected :
     /// function in order to set a layout in a custom manner.
     //* =====================================================================
     virtual void do_set_layout(
-        std::shared_ptr<munin::layout> const &lyt
-      , odin::u32                             layer) = 0;
+        std::unique_ptr<munin::layout> lyt
+      , odin::u32                      layer) = 0;
 
     //* =====================================================================
     /// \brief Called by get_layout.  Derived classes must override this
     /// function in order to get the container's layout in a custom manner.
     //* =====================================================================
-    virtual std::shared_ptr<munin::layout> do_get_layout(
+    virtual boost::optional<munin::layout &> do_get_layout(
         odin::u32 layer) const = 0;
 
     //* =====================================================================

@@ -99,11 +99,11 @@ inline void view_helper(
 //* =========================================================================
 template <class... Args>
 std::shared_ptr<container> view(
-    std::shared_ptr<layout> const &lyt,
+    std::unique_ptr<layout> lyt,
     Args&&... args)
 {
     auto comp = std::make_shared<basic_container>();
-    comp->set_layout(lyt);
+    comp->set_layout(std::move(lyt));
     detail::view_helper(
         comp, std::shared_ptr<component>{}, std::forward<Args>(args)...);
     

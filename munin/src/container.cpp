@@ -272,16 +272,16 @@ odin::u32 container::get_component_layer(odin::u32 index) const
 // SET_LAYOUT
 // ==========================================================================
 void container::set_layout(
-    std::shared_ptr<munin::layout> const &lyt
-  , odin::u32                             layer /*= DEFAULT_LAYER*/)
+    std::unique_ptr<munin::layout> lyt
+  , odin::u32                      layer /*= DEFAULT_LAYER*/)
 {
-    do_set_layout(lyt, layer);
+    do_set_layout(std::move(lyt), layer);
 }
 
 // ==========================================================================
 // GET_LAYOUT
 // ==========================================================================
-std::shared_ptr<layout> container::get_layout(odin::u32 layer) const
+boost::optional<munin::layout &> container::get_layout(odin::u32 layer) const
 {
     return do_get_layout(layer);
 }

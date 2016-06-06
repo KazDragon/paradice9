@@ -311,7 +311,7 @@ public :
         set_window_title("Paradice9");
 
         auto content = window_->get_content();
-        content->set_layout(std::make_shared<munin::grid_layout>(1, 1));
+        content->set_layout(munin::make_grid_layout(1, 1));
         content->add_component(user_interface_);
         content->set_focus();
 

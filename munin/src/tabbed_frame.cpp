@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "munin/tabbed_frame.hpp"
+#include "munin/background_fill.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/compass_layout.hpp"
 #include "munin/context.hpp"
@@ -33,6 +34,7 @@
 #include "munin/image.hpp"
 #include "munin/sco_glyphs.hpp"
 #include "munin/vertical_strip_layout.hpp"
+#include "munin/view.hpp"
 #include <terminalpp/canvas.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
@@ -52,12 +54,12 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     tabbed_frame_header_rivet()
-      : top_element_(std::make_shared<filled_box>(' '))
-      , middle_element_(std::make_shared<filled_box>(' '))
-      , bottom_element_(std::make_shared<filled_box>(' '))
+      : top_element_(make_background_fill()),
+        middle_element_(make_background_fill()),
+        bottom_element_(make_background_fill())
     {
         auto content = get_container();
-        content->set_layout(std::make_shared<grid_layout>(3, 1));
+        content->set_layout(make_grid_layout(3, 1));
         content->add_component(top_element_);
         content->add_component(middle_element_);
         content->add_component(bottom_element_);
@@ -103,12 +105,12 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     tabbed_frame_header_label(terminalpp::string const &label)
-      : top_box_(std::make_shared<filled_box>(' ')),
-        label_(std::make_shared<image>(label)),
-        bottom_box_(std::make_shared<filled_box>(' '))
+      : top_box_(make_background_fill()),
+        label_(make_image(label)),
+        bottom_box_(make_background_fill())
     {
         auto content = get_container();
-        content->set_layout(std::make_shared<compass_layout>());
+        content->set_layout(make_compass_layout());
         content->add_component(top_box_, COMPASS_LAYOUT_NORTH);
         content->add_component(label_, COMPASS_LAYOUT_CENTRE);
         content->add_component(bottom_box_, COMPASS_LAYOUT_SOUTH);
@@ -180,7 +182,7 @@ public :
       : selected_(0)
       , highlight_(false)
     {
-        get_container()->set_layout(std::make_shared<grid_layout>(1, 1));
+        get_container()->set_layout(make_grid_layout(1, 1));
         assemble_default();
     }
 
@@ -298,7 +300,8 @@ private :
     // ======================================================================
     // ON_LABEL_CLICK
     // ======================================================================
-    void on_label_click(std::shared_ptr<tabbed_frame_header_label> label)
+    void on_label_click(
+        std::shared_ptr<tabbed_frame_header_label> const &label)
     {
         // Find the index of this label and then fire the on_tab_selected
         // signal using the string identifier of the tab of that index.
@@ -333,24 +336,18 @@ private :
         auto left_rivet = std::make_shared<tabbed_frame_header_rivet>();
         rivets_.push_back(left_rivet);
 
-        auto right_rivet = std::make_shared<tabbed_frame_header_rivet>();
-
-        auto filler = std::make_shared<basic_container>();
-        filler->set_layout(std::make_shared<compass_layout>());
-        filler->add_component(
-            std::make_shared<filled_box>(' ')
-          , COMPASS_LAYOUT_NORTH);
-        filler->add_component(
-            std::make_shared<filled_box>(' ')
-          , COMPASS_LAYOUT_CENTRE);
-        filler_ = std::make_shared<filled_box>(double_lined_horizontal_beam);
-        filler->add_component(filler_, COMPASS_LAYOUT_SOUTH);
-
+        filler_ = make_fill(double_lined_horizontal_beam);
+        auto filler = view(
+            make_compass_layout(),
+            make_background_fill(), COMPASS_LAYOUT_NORTH,
+            make_background_fill(), COMPASS_LAYOUT_CENTRE,
+            filler_, COMPASS_LAYOUT_SOUTH);
+            
         // To create the middle section, use a vertical strip layout and
         // alternate label/rivet until complete.
-        auto tab_section = std::make_shared<basic_container>();
-        tab_section->set_layout(std::make_shared<vertical_strip_layout>());
-        tab_section->add_component(left_rivet);
+        auto tab_section = view(
+            make_vertical_strip_layout(),
+            left_rivet);
 
         for (std::vector<std::string>::size_type index = 0;
              index < tabs_.size();
@@ -380,13 +377,15 @@ private :
             rivets_.push_back(rivet);
         }
 
+        auto right_rivet = std::make_shared<tabbed_frame_header_rivet>();
         rivets_.push_back(right_rivet);
 
-        content_ = std::make_shared<basic_container>();
-        content_->set_layout(std::make_shared<compass_layout>());
-        content_->add_component(tab_section, COMPASS_LAYOUT_WEST);
-        content_->add_component(filler, COMPASS_LAYOUT_CENTRE);
-        content_->add_component(right_rivet, COMPASS_LAYOUT_EAST);
+        content_ = view(
+            make_compass_layout(),
+            tab_section, COMPASS_LAYOUT_WEST,
+            filler, COMPASS_LAYOUT_CENTRE,
+            right_rivet, COMPASS_LAYOUT_EAST);
+
         get_container()->add_component(content_);
 
         update_highlights();
@@ -492,31 +491,26 @@ private :
         auto label = std::make_shared<tabbed_frame_header_label>("");
         auto right_rivet = std::make_shared<tabbed_frame_header_rivet>();
 
-        auto filler = std::make_shared<basic_container>();
-        filler->set_layout(std::make_shared<compass_layout>());
-        filler->add_component(
-            std::make_shared<filled_box>(' ')
-          , COMPASS_LAYOUT_NORTH);
-        filler->add_component(
-            std::make_shared<filled_box>(' ')
-          , COMPASS_LAYOUT_CENTRE);
-        filler->add_component(
-            std::make_shared<filled_box>(double_lined_horizontal_beam)
-          , COMPASS_LAYOUT_SOUTH);
+        auto filler = view(
+            make_compass_layout(),
+            make_background_fill(), COMPASS_LAYOUT_NORTH,
+            make_background_fill(), COMPASS_LAYOUT_CENTRE,
+            make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_SOUTH);
 
         auto rightmost = std::make_shared<tabbed_frame_header_rivet>();
 
-        auto tabs = std::make_shared<basic_container>();
-        tabs->set_layout(std::make_shared<vertical_strip_layout>());
-        tabs->add_component(left_rivet);
-        tabs->add_component(label);
-        tabs->add_component(right_rivet);
-
-        content_ = std::make_shared<basic_container>();
-        content_->set_layout(std::make_shared<compass_layout>());
-        content_->add_component(tabs, COMPASS_LAYOUT_WEST);
-        content_->add_component(filler, COMPASS_LAYOUT_CENTRE);
-        content_->add_component(right_rivet, COMPASS_LAYOUT_EAST);
+        auto tabs = view(
+            make_vertical_strip_layout(),
+            left_rivet,
+            label,
+            right_rivet);
+        
+        content_ = view(
+            make_compass_layout(),
+            tabs, COMPASS_LAYOUT_WEST,
+            filler, COMPASS_LAYOUT_CENTRE,
+            right_rivet, COMPASS_LAYOUT_EAST);
+        
         get_container()->add_component(content_);
 
         update_highlights();
@@ -524,7 +518,7 @@ private :
 
 private :
     std::vector<std::string>                                tabs_;
-    std::shared_ptr<basic_container>                        content_;
+    std::shared_ptr<container>                              content_;
     std::shared_ptr<filled_box>                             filler_;
     std::vector<std::shared_ptr<tabbed_frame_header_rivet>> rivets_;
     std::vector<std::shared_ptr<tabbed_frame_header_label>> labels_;
@@ -610,41 +604,36 @@ tabbed_frame::tabbed_frame()
             }
         });
 
-    auto north = std::make_shared<basic_container>();
-    north->set_layout(std::make_shared<grid_layout>(1, 1));
-    north->add_component(pimpl_->header_);
+    pimpl_->left_border_         = make_fill(double_lined_vertical_beam);
+    pimpl_->right_border_        = make_fill(double_lined_vertical_beam);
+    pimpl_->bottom_left_corner_  = make_fill(double_lined_bottom_left_corner);
+    pimpl_->bottom_border_       = make_fill(double_lined_horizontal_beam);
+    pimpl_->bottom_right_corner_ = make_fill(double_lined_bottom_right_corner);
+        
+    auto north = view(
+        make_grid_layout(1, 1),
+        pimpl_->header_);
 
     // West Container
-    auto west = std::make_shared<basic_container>();
-    west->set_layout(std::make_shared<grid_layout>(1, 1));
-    pimpl_->left_border_ = std::make_shared<filled_box>(
-        double_lined_vertical_beam);
-    west->add_component(pimpl_->left_border_);
-
+    auto west = view(
+        make_grid_layout(1, 1),
+        pimpl_->left_border_);
+    
     // East Container
-    auto east = std::make_shared<basic_container>();
-    east->set_layout(std::make_shared<grid_layout>(1, 1));
-    pimpl_->right_border_ = std::make_shared<filled_box>(
-        double_lined_vertical_beam);
-    east->add_component(pimpl_->right_border_);
+    auto east = view(
+        make_grid_layout(1, 1),
+        pimpl_->right_border_);
 
     // South Container
-    auto south = std::make_shared<basic_container>();
-    south->set_layout(std::make_shared<compass_layout>());
-    pimpl_->bottom_left_corner_ = std::make_shared<filled_box>(
-        double_lined_bottom_left_corner);
-    pimpl_->bottom_border_ = std::make_shared<filled_box>(
-        double_lined_horizontal_beam);
-    pimpl_->bottom_right_corner_ = std::make_shared<filled_box>(
-        double_lined_bottom_right_corner);
-
-    south->add_component(pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST);
-    south->add_component(pimpl_->bottom_border_, COMPASS_LAYOUT_CENTRE);
-    south->add_component(pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST);
+    auto south = view(
+        make_compass_layout(),
+        pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST,
+        pimpl_->bottom_border_, COMPASS_LAYOUT_CENTRE,
+        pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST);
 
     // All together.
     auto content = get_container();
-    content->set_layout(std::make_shared<compass_layout>());
+    content->set_layout(make_compass_layout());
     content->add_component(north, COMPASS_LAYOUT_NORTH);
     content->add_component(south, COMPASS_LAYOUT_SOUTH);
     content->add_component(west, COMPASS_LAYOUT_WEST);
@@ -715,6 +704,14 @@ odin::s32 tabbed_frame::do_get_right_border_width() const
 void tabbed_frame::do_set_highlight(bool highlight)
 {
     pimpl_->set_highlight(highlight);
+}
+
+// ==========================================================================
+// MAKE_TABBED_FRAME
+// ==========================================================================
+std::shared_ptr<tabbed_frame> make_tabbed_frame()
+{
+    return std::make_shared<tabbed_frame>();
 }
 
 }

@@ -78,9 +78,10 @@ void horizontal_strip_layout::do_layout(
 // ==========================================================================
 // MAKE_HORIZONTAL_STRIP_LAYOUT
 // ==========================================================================
-std::shared_ptr<layout> make_horizontal_strip_layout()
+std::unique_ptr<layout> make_horizontal_strip_layout()
 {
-    return std::make_shared<horizontal_strip_layout>();
+    return std::unique_ptr<horizontal_strip_layout>(
+        new horizontal_strip_layout);
 }
 
 }

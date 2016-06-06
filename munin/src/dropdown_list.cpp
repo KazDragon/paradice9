@@ -346,7 +346,7 @@ dropdown_list::dropdown_list()
         // Put the scrollpane in a fixed-height layout so that it doesn't 
         // prefer to take up the entire screen.
         view(
-            std::make_shared<fixed_height_layout>(7),
+            std::unique_ptr<fixed_height_layout>(new fixed_height_layout(7)),
             scroller
         ), COMPASS_LAYOUT_CENTRE,
         // Create a spacer to the right, so that the list is offset by the

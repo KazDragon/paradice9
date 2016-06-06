@@ -64,14 +64,13 @@ struct tabbed_panel::impl
 tabbed_panel::tabbed_panel()
     : pimpl_(new impl)
 {
-    pimpl_->card_  = std::make_shared<card>();
-    pimpl_->frame_ = std::make_shared<tabbed_frame>();
+    pimpl_->card_  = make_card();
+    pimpl_->frame_ = make_tabbed_frame();
 
-    auto inner = std::make_shared<framed_component>(
-        pimpl_->frame_, pimpl_->card_);
+    auto inner = make_framed_component(pimpl_->frame_, pimpl_->card_);
 
     auto content = get_container();
-    content->set_layout(std::make_shared<grid_layout>(1, 1));
+    content->set_layout(make_grid_layout(1, 1));
     content->add_component(inner);
 
     pimpl_->frame_->on_tab_selected.connect(
@@ -114,9 +113,9 @@ tabbed_panel::~tabbed_panel()
 // INSERT_TAB
 // ==========================================================================
 void tabbed_panel::insert_tab(
-    std::string const          &text,
-    std::shared_ptr<component>  comp,
-    boost::optional<odin::u32>  index /*= optional<u32>()*/)
+    std::string                const &text,
+    std::shared_ptr<component> const &comp,
+    boost::optional<odin::u32>        index /*= optional<u32>()*/)
 {
     pimpl_->card_->add_face(comp, text);
     pimpl_->frame_->insert_tab(text, index);

@@ -74,7 +74,7 @@ protected :
 /// \brief Returns a newly created horizontal strip layout
 //* =========================================================================
 MUNIN_EXPORT
-std::shared_ptr<layout> make_horizontal_strip_layout();
+std::unique_ptr<layout> make_horizontal_strip_layout();
 
 }
 

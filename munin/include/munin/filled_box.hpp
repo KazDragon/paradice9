@@ -106,7 +106,7 @@ private :
 /// \brief Returns a newly created filled box.
 //* =========================================================================
 MUNIN_EXPORT
-std::shared_ptr<component> make_fill(terminalpp::element const &fill);
+std::shared_ptr<filled_box> make_fill(terminalpp::element const &fill);
 
 }
 

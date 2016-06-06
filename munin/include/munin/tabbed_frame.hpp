@@ -54,7 +54,7 @@ public :
     //* =====================================================================
     void insert_tab(
         std::string const &text,
-        boost::optional<odin::u32>  index = {});
+        boost::optional<odin::u32> index = {});
 
     //* =====================================================================
     /// \brief Removes a tab from the frame.
@@ -113,6 +113,12 @@ private :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+//* =========================================================================
+/// \brief Returns a newly created tabbed frame
+//* =========================================================================
+MUNIN_EXPORT
+std::shared_ptr<tabbed_frame> make_tabbed_frame();
 
 }
 

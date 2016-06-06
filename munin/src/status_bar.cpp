@@ -89,10 +89,10 @@ private :
 status_bar::status_bar()
   : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = std::make_shared<image>(pimpl_->message_);
+    pimpl_->image_ = make_image(pimpl_->message_);
     pimpl_->tick_  = 0;
 
-    get_container()->set_layout(std::make_shared<compass_layout>());
+    get_container()->set_layout(make_compass_layout());
     get_container()->add_component(pimpl_->image_, COMPASS_LAYOUT_SOUTH);
 }
 

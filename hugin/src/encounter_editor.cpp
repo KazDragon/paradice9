@@ -173,9 +173,9 @@ private :
 // ==========================================================================
 // MAKE_BALANCED_LAYOUT
 // ==========================================================================
-std::shared_ptr<munin::layout> make_balanced_layout()
+std::unique_ptr<munin::layout> make_balanced_layout()
 {
-    return std::make_shared<balanced_layout>();
+    return std::unique_ptr<balanced_layout>(new balanced_layout);
 }
 
 // ==========================================================================

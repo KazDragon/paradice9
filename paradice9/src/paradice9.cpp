@@ -54,7 +54,9 @@ public :
         , server_(new odin::net::server(
               io_service_
             , port
-            , [this](auto socket){on_accept(socket);}))
+            , [this](auto socket){
+                  this->on_accept(socket);
+              }))
         , context_(std::make_shared<context_impl>(
               std::ref(io_service), server_, std::ref(work)))
     {
@@ -75,14 +77,14 @@ private :
         connection->on_socket_death(
             [this, wp=std::weak_ptr<paradice::connection>(connection)] 
             {
-                on_connection_death(wp);
+                this->on_connection_death(wp);
             });
     
         connection->on_window_size_changed(
             [this, wp=std::weak_ptr<paradice::connection>(connection)]
             (auto w, auto h) 
             {
-                on_window_size_changed(wp, w, h);
+                this->on_window_size_changed(wp, w, h);
             });
 
         connection->async_get_terminal_type(
@@ -91,7 +93,7 @@ private :
              wc=std::weak_ptr<paradice::connection>(connection)]
             (auto const &type)
             {
-                on_terminal_type(ws, wc, type);
+                this->on_terminal_type(ws, wc, type);
             });
 
         connection->start();

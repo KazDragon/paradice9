@@ -204,7 +204,7 @@ public :
             [this](auto const &width, auto const &height)
             {
                 std::cout << "WINDOW SIZE = " << width << ", " << height << "\n";
-                on_window_size_changed(width, height);
+                this->on_window_size_changed(width, height);
             });
 
         // WINDOW CALLBACKS

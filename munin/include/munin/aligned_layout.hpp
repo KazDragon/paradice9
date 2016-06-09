@@ -78,7 +78,7 @@ protected :
 /// \brief Returns a newly created aligned layout
 //* =========================================================================
 MUNIN_EXPORT
-std::shared_ptr<layout> make_aligned_layout();
+std::unique_ptr<layout> make_aligned_layout();
 
 // Now a selection of alignment constants that you can use.
 

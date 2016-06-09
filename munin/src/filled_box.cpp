@@ -168,7 +168,7 @@ void filled_box::do_draw(
 // ==========================================================================
 // MAKE_FILLED_BOX
 // ==========================================================================
-std::shared_ptr<component> make_fill(terminalpp::element const &fill)
+std::shared_ptr<filled_box> make_fill(terminalpp::element const &fill)
 {
     return std::make_shared<filled_box>(fill);
 }

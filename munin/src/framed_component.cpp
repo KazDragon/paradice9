@@ -201,7 +201,8 @@ framed_component::framed_component(
 
     auto container = get_container();
 
-    container->set_layout(std::make_shared<framed_component_layout>());
+    container->set_layout(
+        std::unique_ptr<framed_component_layout>(new framed_component_layout()));
     container->add_component(
         border, framed_component_layout::hint_border);
     container->add_component(

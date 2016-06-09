@@ -148,15 +148,16 @@ protected :
     /// function in order to set a layout in a custom manner.
     //* =====================================================================
     virtual void do_set_layout(
-        std::shared_ptr<munin::layout> const &lyt
-      , odin::u32                             layer) override;
+        std::unique_ptr<munin::layout> lyt
+      , odin::u32                      layer) override;
 
     //* =====================================================================
     /// \brief Called by get_layout.  Derived classes must override this
     /// function in order to get the basic_container's layout in a custom
     /// manner.
     //* =====================================================================
-    virtual std::shared_ptr<munin::layout> do_get_layout(odin::u32 layer) const override;
+    virtual boost::optional<munin::layout &> do_get_layout(
+        odin::u32 layer) const override;
 
     //* =====================================================================
     /// \brief Called by get_layout_layers.  Derived classes must override

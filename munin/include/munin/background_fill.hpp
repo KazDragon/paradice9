@@ -26,7 +26,7 @@
 // ==========================================================================
 #pragma once
 
-#include "munin/component.hpp"
+#include "munin/filled_box.hpp"
 
 namespace munin {
 
@@ -34,6 +34,6 @@ namespace munin {
 /// \brief Returns a component that is filled with background elements.
 //* =========================================================================
 MUNIN_EXPORT    
-std::shared_ptr<component> make_background_fill();
+std::shared_ptr<filled_box> make_background_fill();
 
 }

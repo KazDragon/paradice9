@@ -60,12 +60,12 @@ delete_confirmation_dialog::delete_confirmation_dialog()
     auto confirmation_text = munin::make_image("Really delete");
     
     auto text_container = munin::view(
-        std::make_shared<munin::horizontal_squeeze_layout>(),
+        munin::make_horizontal_squeeze_layout(),
         munin::view(
-            std::make_shared<munin::aligned_layout>(),
+            munin::make_aligned_layout(),
             confirmation_text, munin::alignment_hcvc),
         munin::view(
-            std::make_shared<munin::aligned_layout>(),
+            munin::make_aligned_layout(),
             pimpl_->delete_text_, munin::alignment_hcvc));
 
     auto upper_container = munin::view(
@@ -88,14 +88,14 @@ delete_confirmation_dialog::delete_confirmation_dialog()
                 munin::make_compass_layout(),
                 munin::make_background_fill(), munin::COMPASS_LAYOUT_CENTRE,
                 munin::view(
-                    std::make_shared<munin::aligned_layout>(),
+                    munin::make_aligned_layout(),
                     yes_button, munin::alignment_hcvc
                 ), munin::COMPASS_LAYOUT_EAST
             ), munin::COMPASS_LAYOUT_CENTRE,
             munin::view(
                 munin::make_compass_layout(),
                 munin::view(
-                    std::make_shared<munin::aligned_layout>(),
+                    munin::make_aligned_layout(),
                     no_button, munin::alignment_hcvc
                 ), munin::COMPASS_LAYOUT_WEST)
             ), munin::COMPASS_LAYOUT_NORTH,

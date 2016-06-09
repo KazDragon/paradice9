@@ -211,9 +211,9 @@ void compass_layout::do_layout(
 // ==========================================================================
 // MAKE_COMPASS_LAYOUT
 // ==========================================================================
-std::shared_ptr<layout> make_compass_layout()
+std::unique_ptr<layout> make_compass_layout()
 {
-    return std::make_shared<compass_layout>();
+    return std::unique_ptr<layout>(new compass_layout);
 }
 
 }

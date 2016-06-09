@@ -81,7 +81,7 @@ private :
 /// \brief Returns a newly created grid layout
 //* =========================================================================
 MUNIN_EXPORT
-std::shared_ptr<layout> make_grid_layout(
+std::unique_ptr<layout> make_grid_layout(
     odin::u32 rows, odin::u32 columns);
 
 }

@@ -28,17 +28,12 @@
 #define HUGIN_USER_INTERFACE_HPP_
 
 #include "hugin/export.hpp"
+#include "hugin/model/encounter.hpp"
 #include "munin/composite_component.hpp"
-#include "paradice/active_encounter.hpp"
 #include <boost/asio/strand.hpp>
 
 namespace terminalpp {
     class string;
-}
-
-namespace paradice {
-    class beast;
-    class encounter;
 }
 
 namespace hugin {
@@ -179,15 +174,14 @@ public :
     /// \brief Provide a function to be called if the user inserts a
     /// beast into the current encounter.
     //* =====================================================================
-    boost::signal<
-        void (std::shared_ptr<paradice::beast> const &)> on_gm_fight_beast;
+    boost::signal<void (hugin::model::beast const &)> on_gm_fight_beast;
 
     //* =====================================================================
     /// \brief Provide a function to be called if the user inserts an
     /// encounter into the current encounter.
     //* =====================================================================
     boost::signal<
-        void (std::shared_ptr<paradice::encounter> const &)
+        void (hugin::model::encounter const &)
     > on_gm_fight_encounter;
 
     //* =====================================================================
@@ -203,8 +197,8 @@ public :
     //* =====================================================================
     /// \brief Sets the Active Encounter.
     //* =====================================================================
-    void set_active_encounter(
-        std::shared_ptr<paradice::active_encounter> const &active_encounter);
+    // TODO: need a model for active encounter?
+    //void set_active_encounter(hugin::model::encounter const &active_encounter);
 
     //* =====================================================================
     /// \brief Sets the character names belonging to this account.
@@ -217,24 +211,23 @@ public :
     //* =====================================================================
     /// \brief Sets the beasts to be used by the user interface
     //* =====================================================================
-    void set_beasts(
-        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
+    void set_beasts(std::vector<hugin::model::beast> const &beasts);
 
     //* =====================================================================
     /// \brief Returns the beasts used by the user interface
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::beast>> get_beasts() const;
+    std::vector<hugin::model::beast> get_beasts() const;
 
     //* =====================================================================
     /// \brief Sets the encounters to be used by the user interface
     //* =====================================================================
     void set_encounters(
-        std::vector<std::shared_ptr<paradice::encounter>> const &encounters);
+        std::vector<hugin::model::encounter> const &encounters);
 
     //* =====================================================================
     /// \brief Returns the encounters used by the user interface
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::encounter>> get_encounters() const;
+    std::vector<hugin::model::encounter> get_encounters() const;
 
     //* =====================================================================
     /// \brief Select a user interface screen to be shown.

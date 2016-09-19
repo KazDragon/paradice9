@@ -30,6 +30,7 @@
 #include "hugin/encounter_editor.hpp"
 #include "hugin/encounters_page.hpp"
 #include "hugin/delete_confirmation_dialog.hpp"
+#include "hugin/model/encounter.hpp"
 #include <munin/algorithm.hpp>
 #include <munin/background_fill.hpp>
 #include <munin/button.hpp>
@@ -70,20 +71,18 @@ struct gm_tools_screen::impl
     std::shared_ptr<delete_confirmation_dialog> delete_encounter_dialog_;
     std::shared_ptr<munin::button>              back_button_;
 
-    std::shared_ptr<paradice::beast>            current_beast_;
-    std::shared_ptr<paradice::encounter>        current_encounter_;
+    hugin::model::beast                         current_beast_;
+    hugin::model::encounter                     current_encounter_;
 
     void on_edit_beast()
     {
-        auto selected_beast = bestiary_page_->get_selected_beast();
+        auto const &selected_beast = bestiary_page_->get_selected_beast();
 
         if (selected_beast)
         {
-            current_beast_ = selected_beast;
-            beast_editor_->set_beast_name(
-                selected_beast->get_name());
-            beast_editor_->set_beast_description(
-                selected_beast->get_description());
+            current_beast_ = *selected_beast;
+            beast_editor_->set_beast_name(current_beast_.name);
+            beast_editor_->set_beast_description(current_beast_.description);
 
             bestiary_tab_card_->select_face(beast_editor_face);
             bestiary_tab_card_->set_focus();
@@ -92,7 +91,7 @@ struct gm_tools_screen::impl
 
     void on_new_beast()
     {
-        current_beast_ = std::make_shared<paradice::beast>();
+        current_beast_ = hugin::model::beast {};
 
         beast_editor_->set_beast_name("New Beast");
         beast_editor_->set_beast_description("");
@@ -103,15 +102,15 @@ struct gm_tools_screen::impl
 
     void on_clone_beast()
     {
-        auto selected_beast = bestiary_page_->get_selected_beast();
+        auto const &selected_beast = bestiary_page_->get_selected_beast();
 
         if (selected_beast)
         {
-            current_beast_ = std::make_shared<paradice::beast>();
-            beast_editor_->set_beast_name(
-                "Clone of " + selected_beast->get_name());
-            beast_editor_->set_beast_description(
-                selected_beast->get_description());
+            current_beast_ = clone(*selected_beast);
+            current_beast_.name = "Clone of " + current_beast_.name;
+
+            beast_editor_->set_beast_name(current_beast_.name);
+            beast_editor_->set_beast_description(current_beast_.description);
 
             bestiary_tab_card_->select_face(beast_editor_face);
             bestiary_tab_card_->set_focus();
@@ -120,8 +119,9 @@ struct gm_tools_screen::impl
 
     void on_save_beast()
     {
-        current_beast_->set_name(to_string(beast_editor_->get_beast_name()));
-        current_beast_->set_description(to_string(beast_editor_->get_beast_description()));
+        current_beast_.name = to_string(beast_editor_->get_beast_name());
+        current_beast_.description = 
+            to_string(beast_editor_->get_beast_description());
 
         // If it's not in the beast list, then add it and make it selected.
         auto beasts = bestiary_page_->get_beasts();
@@ -129,7 +129,7 @@ struct gm_tools_screen::impl
 
         for (auto const &beast : beasts)
         {
-            if (beast == current_beast_)
+            if (beast.id == current_beast_.id)
             {
                 found = true;
                 break;
@@ -154,12 +154,11 @@ struct gm_tools_screen::impl
 
     void on_new_encounter()
     {
-        current_encounter_ = std::make_shared<paradice::encounter>();
+        current_encounter_ = hugin::model::encounter {};
 
         encounter_editor_->set_encounter_name("New Encounter");
         encounter_editor_->set_bestiary(bestiary_page_->get_beasts());
-        encounter_editor_->set_encounter_beasts(
-            current_encounter_->get_beasts());
+        encounter_editor_->set_encounter_beasts({});
 
         encounter_tab_card_->select_face(encounter_editor_face);
         encounter_tab_card_->set_focus();
@@ -171,13 +170,11 @@ struct gm_tools_screen::impl
 
         if (selected_encounter)
         {
-            current_encounter_ = selected_encounter;
-            encounter_editor_->set_encounter_name(
-                current_encounter_->get_name());
-            encounter_editor_->set_encounter_beasts(
-                current_encounter_->get_beasts());
-            encounter_editor_->set_bestiary(
-                bestiary_page_->get_beasts());
+            current_encounter_ = *selected_encounter;
+            
+            encounter_editor_->set_encounter_name(current_encounter_.name);
+            encounter_editor_->set_encounter_beasts(current_encounter_.beasts);
+            encounter_editor_->set_bestiary(bestiary_page_->get_beasts());
 
             encounter_tab_card_->select_face(encounter_editor_face);
             encounter_tab_card_->set_focus();
@@ -190,23 +187,11 @@ struct gm_tools_screen::impl
 
         if (selected_encounter)
         {
-            current_encounter_ = std::make_shared<paradice::encounter>();
-            encounter_editor_->set_encounter_name(
-                "Clone of " + selected_encounter->get_name());
-
-            // Deep copy the beasts.
-            std::vector<std::shared_ptr<paradice::beast>> beasts;
-
-            for (auto const &original_beast : selected_encounter->get_beasts())
-            {
-                auto new_beast = std::make_shared<paradice::beast>();
-
-                new_beast->set_name(original_beast->get_name());
-                new_beast->set_description(original_beast->get_description());
-                beasts.push_back(new_beast);
-            }
-
-            encounter_editor_->set_encounter_beasts(beasts);
+            current_encounter_ = clone(*selected_encounter);
+            current_encounter_.name = "Clone of " + current_encounter_.name;
+            
+            encounter_editor_->set_encounter_name(current_encounter_.name);
+            encounter_editor_->set_encounter_beasts(current_encounter_.beasts);
             encounter_editor_->set_bestiary(bestiary_page_->get_beasts());
 
             encounter_tab_card_->select_face(encounter_editor_face);
@@ -221,7 +206,7 @@ struct gm_tools_screen::impl
         if (selected_encounter)
         {
             delete_encounter_dialog_->set_deletion_target_text(
-                selected_encounter->get_name());
+                selected_encounter->name);
             encounter_tab_card_->select_face(delete_encounter_face);
             encounter_tab_card_->set_focus();
         }
@@ -230,15 +215,19 @@ struct gm_tools_screen::impl
     void on_save_encounter()
     {
         // Copy encounter attributess to current_encounter_
-        current_encounter_->set_name(to_string(encounter_editor_->get_encounter_name()));
-        current_encounter_->set_beasts(
-            encounter_editor_->get_encounter_beasts());
+        current_encounter_.name =
+            to_string(encounter_editor_->get_encounter_name());
+        current_encounter_.beasts = 
+            encounter_editor_->get_encounter_beasts();
 
         // If it's not in the encounter list, then add it and make it selected.
         auto encounters = encounters_page_->get_encounters();
 
-        if (std::find(encounters.begin(), encounters.end(), current_encounter_)
-            == encounters.end())
+        if (std::find_if(encounters.begin(), encounters.end(), 
+            [this](auto const &encounter)
+            {
+                return encounter.id == current_encounter_.id;
+            }) == encounters.end())
         {
             encounters.push_back(current_encounter_);
         }
@@ -261,7 +250,7 @@ struct gm_tools_screen::impl
         if (selected_beast)
         {
             delete_beast_dialog_->set_deletion_target_text(
-                selected_beast->get_name());
+                selected_beast->name);
             bestiary_tab_card_->select_face(delete_beast_face);
             bestiary_tab_card_->set_focus();
         }
@@ -274,10 +263,13 @@ struct gm_tools_screen::impl
         if (selected_beast)
         {
             auto beasts = bestiary_page_->get_beasts();
-            beasts.erase(std::remove(
-                beasts.begin()
-              , beasts.end()
-              , selected_beast));
+            beasts.erase(std::remove_if(
+                beasts.begin(),
+                beasts.end(),
+                [selected_beast=*selected_beast](auto const &beast)
+                {
+                    return selected_beast.id == beast.id;
+                }));
             bestiary_page_->set_beasts(beasts);
         }
 
@@ -298,10 +290,13 @@ struct gm_tools_screen::impl
         if (selected_encounter)
         {
             auto encounters = encounters_page_->get_encounters();
-            encounters.erase(remove(
-                encounters.begin()
-              , encounters.end()
-              , selected_encounter));
+            encounters.erase(remove_if(
+                encounters.begin(),
+                encounters.end(),
+                [selected_encounter=*selected_encounter](auto const &encounter)
+                {
+                    return selected_encounter.id == encounter.id;
+                }));
             encounters_page_->set_encounters(encounters);
         }
 
@@ -405,8 +400,7 @@ gm_tools_screen::~gm_tools_screen()
 // ==========================================================================
 // SET_BEASTS
 // ==========================================================================
-void gm_tools_screen::set_beasts(
-    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
+void gm_tools_screen::set_beasts(std::vector<hugin::model::beast> const &beasts)
 {
     pimpl_->bestiary_page_->set_beasts(beasts);
 }
@@ -414,7 +408,7 @@ void gm_tools_screen::set_beasts(
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-std::vector< std::shared_ptr<paradice::beast> > gm_tools_screen::get_beasts() const
+std::vector<hugin::model::beast> gm_tools_screen::get_beasts() const
 {
     return pimpl_->bestiary_page_->get_beasts();
 }
@@ -423,7 +417,7 @@ std::vector< std::shared_ptr<paradice::beast> > gm_tools_screen::get_beasts() co
 // SET_ENCOUNTERS
 // ==========================================================================
 void gm_tools_screen::set_encounters(
-    std::vector<std::shared_ptr<paradice::encounter>> const &encounters)
+    std::vector<hugin::model::encounter> const &encounters)
 {
     pimpl_->encounters_page_->set_encounters(encounters);
 }
@@ -431,7 +425,7 @@ void gm_tools_screen::set_encounters(
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-std::vector< std::shared_ptr<paradice::encounter> > gm_tools_screen::get_encounters() const
+std::vector<hugin::model::encounter> gm_tools_screen::get_encounters() const
 {
     return pimpl_->encounters_page_->get_encounters();
 }

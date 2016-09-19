@@ -28,13 +28,10 @@
 #define HUGIN_ENCOUNTER_EDITOR_HPP_
 
 #include "munin/composite_component.hpp"
+#include "hugin/model/beast.hpp"
 
 namespace terminalpp {
     class string;
-}
-
-namespace paradice {
-    class beast;
 }
 
 namespace hugin {
@@ -69,21 +66,19 @@ public :
     //* =====================================================================
     /// \brief Sets the bestiary that the editor is working with.
     //* =====================================================================
-    void set_bestiary(
-        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
+    void set_bestiary(std::vector<hugin::model::beast> const &beasts);
 
     //* =====================================================================
     /// \brief Sets the beasts of the encounter that the editor is working
     /// with.
     //* =====================================================================
-    void set_encounter_beasts(
-        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
+    void set_encounter_beasts(std::vector<hugin::model::beast> const &beasts);
 
     //* =====================================================================
     /// \brief Retrieves the beasts of the encounter that the editor is
     /// working with.
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::beast>> get_encounter_beasts() const;
+    std::vector<hugin::model::beast> get_encounter_beasts() const;
 
     //* =====================================================================
     /// \fn on_revert

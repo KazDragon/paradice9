@@ -1,4 +1,6 @@
 set (hugin_SOURCES
+    src/model/beast.cpp
+    src/model/encounter.cpp
     src/account_creation_screen.cpp
     src/active_encounter_view.cpp
     src/beast_editor.cpp

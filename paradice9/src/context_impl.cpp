@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "paradice9/context_impl.hpp"
 #include "paradice/account.hpp"
+#include "paradice/active_encounter.hpp"
 #include "paradice/character.hpp"
 #include "paradice/client.hpp"
 #include "hugin/user_interface.hpp"
@@ -429,7 +430,7 @@ void context_impl::update_active_encounter()
     {
         if (cli)
         {
-            cli->get_user_interface()->set_active_encounter(gm_encounter);
+            // TODO: cli->get_user_interface()->set_active_encounter(gm_encounter);
         }
     }
 }

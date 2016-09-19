@@ -27,8 +27,9 @@
 #ifndef HUGIN_BESTIARY_PAGE_HPP_
 #define HUGIN_BESTIARY_PAGE_HPP_
 
+#include "hugin/model/beast.hpp"
 #include "munin/composite_component.hpp"
-#include "paradice/beast.hpp"
+#include <boost/optional.hpp>
 #include <vector>
 
 namespace hugin {
@@ -52,18 +53,17 @@ public :
     //* =====================================================================
     /// \brief Sets the beasts to be used in this component.
     //* =====================================================================
-    void set_beasts(
-        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
+    void set_beasts(std::vector<hugin::model::beast> const &beasts);
 
     //* =====================================================================
     /// \brief Retrieves the beasts used in this component.
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::beast>> get_beasts() const;
+    std::vector<hugin::model::beast> get_beasts() const;
 
     //* =====================================================================
     /// \brief Retrieves the currently selected beast.
     //* =====================================================================
-    std::shared_ptr<paradice::beast> get_selected_beast() const;
+    boost::optional<hugin::model::beast> get_selected_beast() const;
 
     //* =====================================================================
     /// \fn on_new
@@ -75,25 +75,25 @@ public :
     /// \fn on_clone
     /// \brief Called when the 'clone' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_clone;
+    boost::signal<void (hugin::model::beast const &)> on_clone;
 
     //* =====================================================================
     /// \fn on_edit
     /// \brief Called when the 'edit' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_edit;
+    boost::signal<void (hugin::model::beast const &)> on_edit;
 
     //* =====================================================================
     /// \fn on_fight
     /// \brief Called when the 'fight!' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_fight;
+    boost::signal<void (hugin::model::beast const &)> on_fight;
 
     //* =====================================================================
     /// \fn on_delete
     /// \brief Called when the 'delete' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::beast> const &)> on_delete;
+    boost::signal<void (hugin::model::beast const &)> on_delete;
 
 private :
     struct impl;

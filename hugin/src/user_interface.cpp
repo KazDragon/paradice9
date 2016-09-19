@@ -412,11 +412,13 @@ void user_interface::hide_active_encounter_window()
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER
 // ==========================================================================
+/*
 void user_interface::set_active_encounter(
     std::shared_ptr<paradice::active_encounter> const &enc)
 {
     pimpl_->main_screen_->set_active_encounter(enc);
 }
+*/
 
 // ==========================================================================
 // SET_CHARACTER_NAMES
@@ -436,7 +438,7 @@ void user_interface::set_character_names(
 // SET_BEASTS
 // ==========================================================================
 void user_interface::set_beasts(
-    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
+    std::vector<hugin::model::beast> const &beasts)
 {
     pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     pimpl_->gm_tools_screen_->set_beasts(beasts);
@@ -445,7 +447,7 @@ void user_interface::set_beasts(
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::beast>> user_interface::get_beasts() const
+std::vector<hugin::model::beast> user_interface::get_beasts() const
 {
     pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     return pimpl_->gm_tools_screen_->get_beasts();
@@ -455,7 +457,7 @@ std::vector<std::shared_ptr<paradice::beast>> user_interface::get_beasts() const
 // SET_ENCOUNTERS
 // ==========================================================================
 void user_interface::set_encounters(
-    std::vector<std::shared_ptr<paradice::encounter>> const &encounters)
+    std::vector<hugin::model::encounter> const &encounters)
 {
     pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     pimpl_->gm_tools_screen_->set_encounters(encounters);
@@ -464,8 +466,7 @@ void user_interface::set_encounters(
 // ==========================================================================
 // GET_ENCOUNTERS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::encounter>> 
-user_interface::get_encounters() const
+std::vector<hugin::model::encounter> user_interface::get_encounters() const
 {
     pimpl_->ensure_face_created(hugin::FACE_GM_TOOLS);
     return pimpl_->gm_tools_screen_->get_encounters();

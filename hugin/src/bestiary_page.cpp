@@ -65,7 +65,7 @@ struct bestiary_page::impl
     std::shared_ptr<munin::container> split_container_;
     std::shared_ptr<munin::container> details_container_;
 
-    std::vector<std::shared_ptr<paradice::beast>> beasts_;
+    std::vector<hugin::model::beast>  beasts_;
     std::vector<terminalpp::string>   names_;
 
     std::vector<boost::signals::connection> connections_;
@@ -92,7 +92,7 @@ struct bestiary_page::impl
             split_container_->add_component(details_container_);
             name_field_->get_document()->set_text(names_[index]);
 
-            auto description = beasts_[index]->get_description();
+            auto description = beasts_[index].description;
             description_area_->get_document()->set_text(description);
         }
     }
@@ -258,8 +258,7 @@ bestiary_page::~bestiary_page()
 // ==========================================================================
 // SET_BEASTS
 // ==========================================================================
-void bestiary_page::set_beasts(
-    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
+void bestiary_page::set_beasts(std::vector<hugin::model::beast> const &beasts)
 {
     pimpl_->beasts_ = beasts;
 
@@ -268,7 +267,7 @@ void bestiary_page::set_beasts(
 
     for (auto &current_beast : beasts)
     {
-        pimpl_->names_.push_back(current_beast->get_name());
+        pimpl_->names_.push_back(current_beast.name);
     }
 
     // Set this as the current list of beasts and ensure it is de-selected.
@@ -279,7 +278,7 @@ void bestiary_page::set_beasts(
 // ==========================================================================
 // GET_BEASTS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::beast>> bestiary_page::get_beasts() const
+std::vector<hugin::model::beast> bestiary_page::get_beasts() const
 {
     return pimpl_->beasts_;
 }
@@ -287,12 +286,12 @@ std::vector<std::shared_ptr<paradice::beast>> bestiary_page::get_beasts() const
 // ==========================================================================
 // GET_SELECTED_BEAST
 // ==========================================================================
-std::shared_ptr<paradice::beast> bestiary_page::get_selected_beast() const
+boost::optional<hugin::model::beast> bestiary_page::get_selected_beast() const
 {
     auto selected_index = pimpl_->beast_list_->get_item_index();
 
     return selected_index == -1
-      ? std::shared_ptr<paradice::beast>()
+      ? boost::optional<hugin::model::beast> {}
       : pimpl_->beasts_[selected_index];
 }
 

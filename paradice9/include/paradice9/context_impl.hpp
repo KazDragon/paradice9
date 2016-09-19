@@ -53,91 +53,90 @@ public :
     //* =====================================================================
     /// \brief Retrieves a list of clients currently connected to Paradice.
     //* =====================================================================
-    virtual std::vector< 
-        std::shared_ptr<paradice::client> 
-    > get_clients();
+    std::vector<std::shared_ptr<paradice::client>> get_clients() override;
 
     //* =====================================================================
     /// \brief Adds a client to the list of clients currently connected
     /// to Paradice.
     //* =====================================================================
-    virtual void add_client(std::shared_ptr<paradice::client> const &cli);
+    void add_client(std::shared_ptr<paradice::client> const &cli) override;
 
     //* =====================================================================
     /// \brief Removes a client from the list of clients currently
     /// connected to Paradice.
     //* =====================================================================
-    virtual void remove_client(std::shared_ptr<paradice::client> const &cli);
+    void remove_client(std::shared_ptr<paradice::client> const &cli) override;
     
     //* =====================================================================
     /// \brief For all clients, updates their lists of names.
     //* =====================================================================
-    virtual void update_names();
+    void update_names() override;
 
     //* =====================================================================
     /// \brief Returns how a character appears to others, including prefix
     /// and suffix.
     //* =====================================================================
-    virtual std::string get_moniker(
-        std::shared_ptr<paradice::character> const &ch);
+    std::string get_moniker(
+        std::shared_ptr<paradice::character> const &ch) override;
 
     //* =====================================================================
     /// \brief Loads an account from a specific account name and returns it.
     /// Returns an empty shared_ptr<> if there was no account with that name
     /// found.
     //* =====================================================================
-    virtual std::shared_ptr<paradice::account> load_account(
-        std::string const &name);
+    std::shared_ptr<paradice::account> load_account(
+        std::string const &name) override;
 
     //* =====================================================================
     /// \brief Saves an account.
     //* =====================================================================
-    virtual void save_account(std::shared_ptr<paradice::account> const &acct);
+    void save_account(std::shared_ptr<paradice::account> const &acct) override;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and
     /// returns it.  Returns an empty shared_ptr<> if there was no character
     /// with that name found.
     //* =====================================================================
-    virtual std::shared_ptr<paradice::character> load_character(
-        std::string const &name);
+    std::shared_ptr<paradice::character> load_character(
+        std::string const &name) override;
 
     //* =====================================================================
     /// \brief Saves a character.
     //* =====================================================================
-    virtual void save_character(std::shared_ptr<paradice::character> const &ch);
+    void save_character(
+        std::shared_ptr<paradice::character> const &ch) override;
     
     //* =====================================================================
     /// \brief Enacts a server shutdown.
     //* =====================================================================
-    virtual void shutdown();
+    void shutdown() override;
     
     //* =====================================================================
     /// \brief Gets the currently active encounter
     //* =====================================================================
-    virtual std::shared_ptr<paradice::active_encounter> get_active_encounter();
+    std::shared_ptr<paradice::active_encounter> get_active_encounter() override;
 
     //* =====================================================================
     /// \brief Sets the currently active encounter
     //* =====================================================================
-    virtual void set_active_encounter(
-        std::shared_ptr<paradice::active_encounter> const &enc);
+    void set_active_encounter(
+        std::shared_ptr<paradice::active_encounter> const &enc) override;
 
     //* =====================================================================
     /// \brief Gets the visibility of the encounter.
     //* =====================================================================
-    virtual bool is_active_encounter_visible() const;
+    bool is_active_encounter_visible() const override;
 
     //* =====================================================================
     /// \brief Sets the visibility of the encounter for all players.
     //* =====================================================================
-    virtual void set_active_encounter_visible(bool visibility);
+    void set_active_encounter_visible(bool visibility) override;
 
     //* =====================================================================
     /// \brief Informs the context that changes have been made to the
     /// active encounter and that any related views should be updated.
     //* =====================================================================
-    virtual void update_active_encounter();
+    void update_active_encounter() override;
 
 private :
     struct impl;

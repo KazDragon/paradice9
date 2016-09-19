@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "hugin/encounters_page.hpp"
-#include <paradice/encounter.hpp>
+#include "hugin/model/encounter.hpp"
 #include <munin/algorithm.hpp>
 #include <munin/background_fill.hpp>
 #include <munin/button.hpp>
@@ -58,7 +58,7 @@ struct encounters_page::impl
     std::shared_ptr<munin::container>  split_container_;
     std::shared_ptr<munin::container>  details_container_;
 
-    std::vector<std::shared_ptr<paradice::encounter>> encounters_;
+    std::vector<hugin::model::encounter> encounters_;
 
     std::vector<boost::signals::connection> connections_;
 
@@ -84,11 +84,11 @@ struct encounters_page::impl
 
         if (index >= 0 && size_t(index) < encounters_.size())
         {
-            auto beasts = encounters_[index]->get_beasts();
+            auto const &beasts = encounters_[index].beasts;
 
             for (auto const &beast : beasts)
             {
-                beast_names.push_back(beast->get_name());
+                beast_names.push_back(beast.name);
             }
 
             beasts_list_->set_items(beast_names);
@@ -245,15 +245,15 @@ encounters_page::~encounters_page()
 // SET_ENCOUNTERS
 // ==========================================================================
 void encounters_page::set_encounters(
-    std::vector<std::shared_ptr<paradice::encounter>> const &encounters)
+    std::vector<hugin::model::encounter> const &encounters)
 {
     pimpl_->encounters_ = encounters;
 
     std::vector<terminalpp::string> encounter_names;
 
-    for (auto const &enc : pimpl_->encounters_)
+    for (auto const &encounter : pimpl_->encounters_)
     {
-        encounter_names.push_back(enc->get_name());
+        encounter_names.push_back(encounter.name);
     }
 
     pimpl_->encounters_list_->set_items(encounter_names);
@@ -263,8 +263,7 @@ void encounters_page::set_encounters(
 // ==========================================================================
 // GET_ENCOUNTERS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::encounter>> 
-    encounters_page::get_encounters() const
+std::vector<hugin::model::encounter> encounters_page::get_encounters() const
 {
     return pimpl_->encounters_;
 }
@@ -272,12 +271,13 @@ std::vector<std::shared_ptr<paradice::encounter>>
 // ==========================================================================
 // GET_SELECTED_ENCOUNTER
 // ==========================================================================
-std::shared_ptr<paradice::encounter> encounters_page::get_selected_encounter() const
+boost::optional<hugin::model::encounter> 
+    encounters_page::get_selected_encounter() const
 {
     auto selected_index = pimpl_->encounters_list_->get_item_index();
 
     return selected_index == -1
-      ? std::shared_ptr<paradice::encounter>()
+      ? boost::optional<hugin::model::encounter>{}
       : pimpl_->encounters_[selected_index];
 }
 

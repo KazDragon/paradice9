@@ -278,13 +278,13 @@ public :
         user_interface_->on_gm_fight_beast.connect(
             [this](auto const &beast)
             {
-                this->on_gm_fight_beast(beast);
+                // TODO: this->on_gm_fight_beast(beast);
             });
 
         user_interface_->on_gm_fight_encounter.connect(
             [this](auto const &encounter)
             {
-                this->on_gm_fight_encounter(encounter);
+                // TODO: this->on_gm_fight_encounter(encounter);
             });
 
         user_interface_->on_help_closed.connect(
@@ -707,8 +707,8 @@ private :
         // encounters in the UI.
         if (ch->get_gm_level() != 0)
         {
-            user_interface_->set_beasts(ch->get_beasts());
-            user_interface_->set_encounters(ch->get_encounters());
+            set_user_interface_beasts(ch->get_beasts());
+            set_user_interface_encounters(ch->get_encounters());
         }
 
         character_ = ch;
@@ -829,8 +829,8 @@ private :
     // ======================================================================
     void on_gm_tools_back()
     {
-        character_->set_beasts(user_interface_->get_beasts());
-        character_->set_encounters(user_interface_->get_encounters());
+        set_character_beasts(user_interface_->get_beasts());
+        set_character_encounters(user_interface_->get_encounters());
         context_->save_character(character_);
 
         user_interface_->select_face(hugin::FACE_MAIN);
@@ -842,7 +842,7 @@ private :
     // ======================================================================
     void on_gm_fight_beast(std::shared_ptr<paradice::beast> beast)
     {
-        add_beast(context_->get_active_encounter(), beast);
+        //TODO: add_beast(context_->get_active_encounter(), beast);
         context_->update_active_encounter();
 
         user_interface_->set_statusbar_text(terminalpp::encode(
@@ -859,7 +859,7 @@ private :
 
         for (auto beast : encounter->get_beasts())
         {
-            add_beast(enc, beast);
+            // TODO: add_beast(enc, beast);
         }
 
         context_->update_active_encounter();
@@ -1047,6 +1047,62 @@ private :
     std::string                             last_command_;
 
 private :
+    // ======================================================================
+    // SET_USER_INTERFACE_BEASTS
+    // ======================================================================
+    void set_user_interface_beasts(
+        std::vector<std::shared_ptr<beast>> const &beasts)
+    {
+        std::vector<hugin::model::beast> ui_beasts;
+        
+        for (auto const &beast : beasts)
+        {
+            ui_beasts.emplace_back(
+                beast->get_id(),
+                beast->get_name(),
+                beast->get_description());
+        }
+        
+        user_interface_->set_beasts(ui_beasts);
+    }
+
+    // ======================================================================
+    // SET_CHARACTER_BEASTS
+    // ======================================================================
+    void set_character_beasts(
+        std::vector<hugin::model::beast> const &beasts)
+    {
+        std::vector<std::shared_ptr<beast>> ch_beasts;
+        
+        for (auto const &ui_beast : beasts)
+        {
+            ch_beasts.emplace_back(std::make_shared<beast>(
+                ui_beast.id,
+                ui_beast.name,
+                ui_beast.description));
+        }
+        
+        character_->set_beasts(ch_beasts);
+    }
+    
+    // ======================================================================
+    // SET_USER_INTERFACE_ENCOUNTERS
+    // ======================================================================
+    void set_user_interface_encounters(
+        std::vector<std::shared_ptr<encounter>> const &encounters)
+    {
+        // TODO: user_interface->set_encounters(encounters);
+    }
+
+    // ======================================================================
+    // SET_CHARACTER_ENCOUNTERS
+    // ======================================================================
+    void set_character_encounters(
+        std::vector<hugin::model::encounter> const &encounters)
+    {
+        // TODO:
+    }
+    
     // ======================================================================
     // DISPATCH_QUEUE
     // ======================================================================

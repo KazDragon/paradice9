@@ -63,7 +63,7 @@ public :
     /// no more data to be read, and the stream is dead.
     /// \warning This operation MUST NOT block.
     //* =====================================================================
-    virtual boost::optional<input_size_type> available() const;
+    boost::optional<input_size_type> available() const override;
 
     //* =====================================================================
     /// \brief Performs a synchronous read on the stream.
@@ -73,7 +73,7 @@ public :
     /// since the last read() yielded a positive value, which was less than or
     /// equal to size, in which case it MUST NOT block.
     //* =====================================================================
-    virtual input_storage_type read(input_size_type size);
+    input_storage_type read(input_size_type size) override;
 
     //* =====================================================================
     /// \brief Schedules an asynchronous read on the stream.
@@ -84,16 +84,16 @@ public :
     /// \warning async_read MUST NOT return the read values synchronously,
     /// since this invalidates a set of operations.
     //* =====================================================================
-    virtual void async_read(
+    void async_read(
         input_size_type            size
-      , input_callback_type const &callback);
+      , input_callback_type const &callback) override;
 
     //* =====================================================================
     /// \brief Perform a synchronous write to the stream.
     /// \return the number of objects written to the stream.
     /// Write an array of odin::u8s to the stream.
     //* =====================================================================
-    virtual output_size_type write(output_storage_type const& values);
+    output_size_type write(output_storage_type const& values) override;
 
     //* =====================================================================
     /// \brief Schedules an asynchronous write to the stream.
@@ -104,15 +104,15 @@ public :
     /// \warning async_write MAY NOT return the amount of data written
     /// synchronously, since this invalidates a set of operations.
     //* =====================================================================
-    virtual void async_write(
+    void async_write(
         output_storage_type  const &values
-      , output_callback_type const &callback);
+      , output_callback_type const &callback) override;
 
     //* =====================================================================
     /// \brief Check to see if the underlying stream is still alive.
     /// \return true if the underlying stream is alive, false otherwise.
     //* =====================================================================
-    virtual bool is_alive() const;
+    bool is_alive() const override;
 
     //* =====================================================================
     /// \brief Retrieve the io_service instance that this socket uses for

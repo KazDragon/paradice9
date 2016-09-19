@@ -27,12 +27,10 @@
 #ifndef HUGIN_ENCOUNTERS_PAGE_HPP_
 #define HUGIN_ENCOUNTERS_PAGE_HPP_
 
+#include "hugin/model/encounter.hpp"
 #include "munin/composite_component.hpp"
+#include <boost/optional.hpp>
 #include <vector>
-
-namespace paradice {
-    class encounter;
-}
 
 namespace hugin {
 
@@ -56,17 +54,17 @@ public :
     /// \brief Sets the encounters visible on this page
     //* =====================================================================
     void set_encounters(
-        std::vector<std::shared_ptr<paradice::encounter>> const &encounters);
+        std::vector<hugin::model::encounter> const &encounters);
 
     //* =====================================================================
     /// \brief Retrieves the encounters visible on this page
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::encounter>> get_encounters() const;
+    std::vector<hugin::model::encounter> get_encounters() const;
 
     //* =====================================================================
     /// \brief Retrieves the currently selected encounter.
     //* =====================================================================
-    std::shared_ptr<paradice::encounter> get_selected_encounter() const;
+    boost::optional<hugin::model::encounter> get_selected_encounter() const;
 
     //* =====================================================================
     /// \fn on_new
@@ -78,25 +76,25 @@ public :
     /// \fn on_clone
     /// \brief Called when the 'clone' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_clone;
+    boost::signal<void (hugin::model::encounter const &)> on_clone;
 
     //* =====================================================================
     /// \fn on_edit
     /// \brief Called when the 'edit' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_edit;
+    boost::signal<void (hugin::model::encounter const &)> on_edit;
 
     //* =====================================================================
     /// \fn on_fight
     /// \brief Called when the 'fight!' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_fight;
+    boost::signal<void (hugin::model::encounter const &)> on_fight;
 
     //* =====================================================================
     /// \fn on_delete
     /// \brief Called when the 'delete' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_delete;
+    boost::signal<void (hugin::model::encounter const &)> on_delete;
 
 private :
     struct impl;

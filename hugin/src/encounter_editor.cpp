@@ -39,7 +39,6 @@
 #include <munin/solid_frame.hpp>
 #include <munin/text_area.hpp>
 #include <munin/view.hpp>
-#include <paradice/beast.hpp>
 #include <terminalpp/string.hpp>
 
 namespace hugin {
@@ -207,8 +206,8 @@ struct encounter_editor::impl
     std::shared_ptr<munin::button>     up_button_;
     std::shared_ptr<munin::button>     down_button_;
 
-    std::vector<std::shared_ptr<paradice::beast>>  bestiary_;
-    std::vector<std::shared_ptr<paradice::beast>>  beasts_;
+    std::vector<hugin::model::beast>   bestiary_;
+    std::vector<hugin::model::beast>   beasts_;
 
     void update_bestiary_list()
     {
@@ -216,7 +215,7 @@ struct encounter_editor::impl
 
         for (auto const &current_beast : bestiary_)
         {
-            beast_names.push_back(current_beast->get_name());
+            beast_names.push_back(current_beast.name);
         }
 
         encounter_bestiary_list_->set_items(beast_names);
@@ -229,7 +228,7 @@ struct encounter_editor::impl
 
         for (auto const &beast : beasts_)
         {
-            beast_names.push_back(beast->get_name());
+            beast_names.push_back(beast.name);
         }
 
         encounter_beasts_list_->set_items(beast_names);
@@ -271,7 +270,7 @@ struct encounter_editor::impl
             // selected beast.
             auto doc = beast_description_area_->get_document();
             doc->delete_text({0, doc->get_text_size()});
-            doc->insert_text(beasts_[index]->get_description());
+            doc->insert_text(beasts_[index].description);
             doc->set_caret_index(0);
 
             // Also show the text area if we aren't already, and switch the
@@ -298,13 +297,7 @@ struct encounter_editor::impl
         // on the right.
         if (selected_beast_index != -1)
         {
-            auto const &selected_beast = bestiary_[selected_beast_index];
-
-            auto new_beast = std::make_shared<paradice::beast>();
-            new_beast->set_name(selected_beast->get_name());
-            new_beast->set_description(selected_beast->get_description());
-
-            beasts_.push_back(new_beast);
+            beasts_.push_back(clone(bestiary_[selected_beast_index]));
             update_beasts_list();
         }
     }
@@ -452,7 +445,7 @@ encounter_editor::~encounter_editor()
 // SET_BESTIARY
 // ==========================================================================
 void encounter_editor::set_bestiary(
-    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
+    std::vector<hugin::model::beast> const &beasts)
 {
     pimpl_->bestiary_ = beasts;
     pimpl_->update_bestiary_list();
@@ -462,7 +455,7 @@ void encounter_editor::set_bestiary(
 // SET_ENCOUNTER_BEASTS
 // ==========================================================================
 void encounter_editor::set_encounter_beasts(
-    std::vector<std::shared_ptr<paradice::beast>> const &beasts)
+    std::vector<hugin::model::beast> const &beasts)
 {
     pimpl_->beasts_ = beasts;
     pimpl_->update_beasts_list();
@@ -471,8 +464,7 @@ void encounter_editor::set_encounter_beasts(
 // ==========================================================================
 // GET_ENCOUNTER_BEASTS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::beast>> 
-    encounter_editor::get_encounter_beasts() const
+std::vector<hugin::model::beast> encounter_editor::get_encounter_beasts() const
 {
     return pimpl_->beasts_;
 }

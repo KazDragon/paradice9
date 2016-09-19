@@ -28,8 +28,7 @@
 #define HUGIN_GM_TOOLS_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include "paradice/beast.hpp"
-#include "paradice/encounter.hpp"
+#include "hugin/model/encounter.hpp"
 
 namespace hugin {
 
@@ -52,25 +51,23 @@ public :
     //* =====================================================================
     /// \brief Sets the beasts to be used by the user interface
     //* =====================================================================
-    void set_beasts(
-        std::vector<std::shared_ptr<paradice::beast>> const &beasts);
+    void set_beasts(std::vector<hugin::model::beast> const &beasts);
 
     //* =====================================================================
     /// \brief Returns the beasts used by the user interface
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::beast>> get_beasts() const;
+    std::vector<hugin::model::beast> get_beasts() const;
 
     //* =====================================================================
     /// \brief Sets the encounters to be used by the user interface
     //* =====================================================================
     void set_encounters(
-        std::vector<std::shared_ptr<paradice::encounter>> const &encounters);
+        std::vector<hugin::model::encounter> const &encounters);
 
     //* =====================================================================
     /// \brief Returns the encounters used by the user interface
     //* =====================================================================
-    std::vector<std::shared_ptr<paradice::encounter>> 
-        get_encounters() const;
+    std::vector<hugin::model::encounter> get_encounters() const;
 
     //* =====================================================================
     /// \fn on_fight_beast
@@ -78,7 +75,7 @@ public :
     //* =====================================================================
     boost::signal
     <
-        void (std::shared_ptr<paradice::beast> const &)
+        void (hugin::model::beast const &)
     > on_fight_beast;
 
     //* =====================================================================
@@ -88,7 +85,7 @@ public :
     //* =====================================================================
     boost::signal
     <
-        void (std::shared_ptr<paradice::encounter> const &)
+        void (hugin::model::encounter const &)
     > on_fight_encounter;
 
     //* =====================================================================

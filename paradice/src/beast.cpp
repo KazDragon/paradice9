@@ -40,7 +40,20 @@ namespace {
 // CONSTRUCTOR
 // ==========================================================================
 beast::beast()
-    : id_(uuid_generator())
+    : beast(uuid_generator(), "", "")
+{
+}
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+beast::beast(
+    boost::uuids::uuid const &id,
+    std::string const &name,
+    std::string const &description)
+  : id_(id),
+    name_(name),
+    description_(description)
 {
 }
 

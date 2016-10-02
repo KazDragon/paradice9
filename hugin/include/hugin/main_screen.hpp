@@ -28,7 +28,6 @@
 #define HUGIN_MAIN_SCREEN_HPP_
 
 #include "munin/composite_component.hpp"
-#include "paradice/active_encounter.hpp"
 #include <string>
 
 namespace terminalpp {
@@ -99,8 +98,10 @@ public :
     //* =====================================================================
     /// \brief Sets the Active Encounter.
     //* =====================================================================
+    /*
     void set_active_encounter(
         std::shared_ptr<paradice::active_encounter> const &active_encounter);
+    */
 
     //* =====================================================================
     /// \brief Sets the text contained in the Help window.

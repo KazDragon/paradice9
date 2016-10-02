@@ -28,7 +28,6 @@
 #define HUGIN_ACTIVE_ENCOUNTER_VIEW_HPP_
 
 #include "munin/composite_component.hpp"
-#include "paradice/active_encounter.hpp"
 
 namespace hugin {
 
@@ -57,8 +56,10 @@ public :
     //* =====================================================================
     /// \brief Sets the encounter that the view should work with.
     //* =====================================================================
+    /*
     void set_encounter(
         std::shared_ptr<paradice::active_encounter> const &encounter);
+    */
 
 private :
     struct impl;

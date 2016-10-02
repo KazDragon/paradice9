@@ -30,8 +30,6 @@
 #include <munin/grid_layout.hpp>
 #include <munin/list.hpp>
 #include <munin/scroll_pane.hpp>
-#include <paradice/beast.hpp>
-#include <paradice/character.hpp>
 #include <terminalpp/encoder.hpp>
 #include <boost/format.hpp>
 #include <numeric>
@@ -43,6 +41,7 @@ namespace hugin {
 // ==========================================================================
 struct active_encounter_view::impl
 {
+    /*
     std::shared_ptr<paradice::active_encounter> encounter_;
     bool                                        gm_mode_;
 
@@ -127,6 +126,7 @@ struct active_encounter_view::impl
         participant_list_->set_items(list_data);
         participant_list_->set_item_index(selected_index);
     }
+    */
 };
 
 // ==========================================================================
@@ -135,12 +135,14 @@ struct active_encounter_view::impl
 active_encounter_view::active_encounter_view()
     : pimpl_(std::make_shared<impl>())
 {
+    /*
     pimpl_->gm_mode_ = false;
     pimpl_->participant_list_ = munin::make_list();
 
     auto content = get_container();
     content->set_layout(munin::make_grid_layout(1, 1));
     content->add_component(munin::make_scroll_pane(pimpl_->participant_list_));
+    */
 }
 
 // ==========================================================================
@@ -155,18 +157,22 @@ active_encounter_view::~active_encounter_view()
 // ==========================================================================
 void active_encounter_view::set_gm_mode(bool mode)
 {
+    /*
     pimpl_->gm_mode_ = mode;
     pimpl_->update();
+    */
 }
 
 // ==========================================================================
 // SET_ENCOUNTER
 // ==========================================================================
+/*
 void active_encounter_view::set_encounter(
     std::shared_ptr<paradice::active_encounter> const &encounter)
 {
     pimpl_->encounter_ = encounter;
     pimpl_->update();
 }
+*/
 
 }

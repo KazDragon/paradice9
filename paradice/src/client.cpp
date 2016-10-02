@@ -48,6 +48,7 @@
 #include <boost/format.hpp>
 #include <cstdio>
 #include <deque>
+#include <iostream>
 #include <mutex>
 #include <string>
 #include <vector>

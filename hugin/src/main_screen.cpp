@@ -242,11 +242,13 @@ void main_screen::hide_active_encounter_window()
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER
 // ==========================================================================
+/*
 void main_screen::set_active_encounter(
     std::shared_ptr<paradice::active_encounter> const &active_encounter)
 {
     pimpl_->active_encounter_view_->set_encounter(active_encounter);
 }
+*/
 
 // ==========================================================================
 // SET_HELP_WINDOW_TEXT

@@ -1,4 +1,4 @@
-set (MUNIN_SOURCE_FILES
+set (munin_SOURCES
     src/text/default_multiline_document.cpp
     src/text/default_singleline_document.cpp
     src/text/document.cpp

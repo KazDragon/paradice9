@@ -1,10 +1,24 @@
-set (odin_SOURCES
+set (ODIN_SOURCE_FILES
     src/net/server.cpp
     src/net/socket.cpp
     src/tokenise.cpp
 )
 
-add_library(odin ${odin_SOURCES})
+set (ODIN_INCLUDE_FILES
+    include/odin/core.hpp
+    include/odin/export.hpp
+    include/odin/tokenise.hpp
+    include/odin/io/datastream.hpp
+    include/odin/io/input_datastream.hpp
+    include/odin/io/output_datastream.hpp
+    include/odin/net/server.hpp
+    include/odin/net/socket.hpp
+)
+
+add_library(odin
+    ${ODIN_SOURCE_FILES}
+    ${ODIN_INCLUDE_FILES}
+)
 
 target_include_directories(odin 
     PUBLIC

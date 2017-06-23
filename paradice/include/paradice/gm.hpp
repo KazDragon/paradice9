@@ -1,7 +1,7 @@
 // ==========================================================================
 // Paradice Encounters
 //
-// Copyright (C) 20013 Matthew Chaplain, All Rights Reserved.  
+// Copyright (C) 2013 Matthew Chaplain, All Rights Reserved.
 // This file is covered by the MIT Licence:
 //
 // Permission is hereby granted, free of charge, to any person obtaining a 

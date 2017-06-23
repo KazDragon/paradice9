@@ -1,4 +1,4 @@
-set (paradice_SOURCES
+set (PARADICE_SOURCE_FILES
     src/account.cpp
     src/active_encounter.cpp
     src/admin.cpp
@@ -19,7 +19,35 @@ set (paradice_SOURCES
     src/who.cpp
 )
 
-add_library(paradice ${paradice_SOURCES})
+set (PARADICE_INCLUDE_FILES
+    include/paradice/account.hpp
+    include/paradice/active_encounter.hpp
+    include/paradice/admin.hpp
+    include/paradice/beast.hpp
+    include/paradice/character.hpp
+    include/paradice/client.hpp
+    include/paradice/command.hpp
+    include/paradice/communication.hpp
+    include/paradice/configuration.hpp
+    include/paradice/connection.hpp
+    include/paradice/context.hpp
+    include/paradice/cryptography.hpp
+    include/paradice/dice.hpp
+    include/paradice/dice_roll_parser.hpp
+    include/paradice/encounter.hpp
+    include/paradice/export.hpp
+    include/paradice/gm.hpp
+    include/paradice/help.hpp
+    include/paradice/random.hpp
+    include/paradice/rules.hpp
+    include/paradice/utility.hpp
+    include/paradice/who.hpp
+)
+
+add_library(paradice
+    ${PARADICE_SOURCE_FILES}
+    ${PARADICE_INCLUDE_FILES}
+)
 
 set_target_properties(paradice
     PROPERTIES

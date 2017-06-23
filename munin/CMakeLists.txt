@@ -1,4 +1,4 @@
-set (munin_SOURCES
+set (MUNIN_SOURCE_FILES
     src/text/default_multiline_document.cpp
     src/text/default_singleline_document.cpp
     src/text/document.cpp
@@ -44,7 +44,59 @@ set (munin_SOURCES
     src/window.cpp
 )
 
-add_library(munin ${munin_SOURCES})
+set (MUNIN_INCLUDE_FILES
+    include/munin/algorithm.hpp
+    include/munin/aligned_layout.hpp
+    include/munin/background_fill.hpp
+    include/munin/basic_component.hpp
+    include/munin/basic_container.hpp
+    include/munin/basic_frame.hpp
+    include/munin/button.hpp
+    include/munin/card.hpp
+    include/munin/clock.hpp
+    include/munin/compass_layout.hpp
+    include/munin/component.hpp
+    include/munin/composite_component.hpp
+    include/munin/container.hpp
+    include/munin/context.hpp
+    include/munin/dropdown_list.hpp
+    include/munin/edit.hpp
+    include/munin/export.hpp
+    include/munin/filled_box.hpp
+    include/munin/framed_component.hpp
+    include/munin/frame.hpp
+    include/munin/grid_layout.hpp
+    include/munin/horizontal_scroll_bar.hpp
+    include/munin/horizontal_squeeze_layout.hpp
+    include/munin/horizontal_strip_layout.hpp
+    include/munin/image.hpp
+    include/munin/layout.hpp
+    include/munin/list.hpp
+    include/munin/named_frame.hpp
+    include/munin/rectangle.hpp
+    include/munin/sco_glyphs.hpp
+    include/munin/scroll_pane.hpp
+    include/munin/solid_frame.hpp
+    include/munin/status_bar.hpp
+    include/munin/tabbed_frame.hpp
+    include/munin/tabbed_panel.hpp
+    include/munin/text_area.hpp
+    include/munin/toggle_button.hpp
+    include/munin/vertical_scroll_bar.hpp
+    include/munin/vertical_squeeze_layout.hpp
+    include/munin/vertical_strip_layout.hpp
+    include/munin/view.hpp
+    include/munin/viewport.hpp
+    include/munin/window.hpp
+    include/munin/text/default_multiline_document.hpp
+    include/munin/text/default_singleline_document.hpp
+    include/munin/text/document.hpp
+)
+
+add_library(munin
+    ${MUNIN_SOURCE_FILES}
+    ${MUNIN_INCLUDE_FILES}
+)
 
 set_target_properties(munin
     PROPERTIES

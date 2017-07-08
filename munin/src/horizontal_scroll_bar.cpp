@@ -80,7 +80,7 @@ struct horizontal_scroll_bar::impl
                  ++x_coord)
             {
                 cvs[x_coord][y_coord] =
-                    terminalpp::element(double_lined_horizontal_beam, pen_);
+                    terminalpp::element(single_lined_horizontal_beam, pen_);
             }
         }
     }
@@ -139,7 +139,7 @@ struct horizontal_scroll_bar::impl
                 terminalpp::point(slider_position_, 0)
               , terminalpp::extent(1, 1))))
         {
-            cvs[slider_position_][0] = terminalpp::element(mix_lined_vcross, pen_);
+            cvs[slider_position_][0] = terminalpp::element(mix_lined_hcross, pen_);
         }
     }
 

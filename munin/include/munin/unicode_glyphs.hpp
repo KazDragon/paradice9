@@ -38,6 +38,11 @@ static constexpr terminalpp::glyph const single_lined_top_right_corner("\U000025
 static constexpr terminalpp::glyph const single_lined_bottom_left_corner("\U00002514");
 static constexpr terminalpp::glyph const single_lined_bottom_right_corner("\U00002518");
 
+static constexpr terminalpp::glyph const single_lined_rounded_top_left_corner("\U0000256D");
+static constexpr terminalpp::glyph const single_lined_rounded_top_right_corner("\U0000256E");
+static constexpr terminalpp::glyph const single_lined_rounded_bottom_left_corner("\U00002570");
+static constexpr terminalpp::glyph const single_lined_rounded_bottom_right_corner("\U0000256F");
+
 static constexpr terminalpp::glyph const single_lined_horizontal_beam("\U00002500");
 static constexpr terminalpp::glyph const single_lined_vertical_beam("\U00002502");
 static constexpr terminalpp::glyph const single_lined_top_tee("\U0000252C");

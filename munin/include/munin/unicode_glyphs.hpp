@@ -88,6 +88,8 @@ static constexpr terminalpp::glyph const mix_lined_vcross("\U0000256A");
 // Other drawing characters.
 static constexpr terminalpp::glyph const left_guillemet("\U000000AB");
 static constexpr terminalpp::glyph const right_guillemet("\U000000BB");
+static constexpr terminalpp::glyph const light_cross("\U00002573");
+static constexpr terminalpp::glyph const down_pointing_triangle("\U000025BE");
 
 }}
 

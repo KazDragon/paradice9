@@ -177,7 +177,7 @@ struct socket::impl : std::enable_shared_from_this<impl>
         /* OUTPUT DEBUGGING
         for(size_t i = 0; i < values.size(); ++i)
         {
-            char ch[2] = { values[i], 0 };
+            char ch[2] = { char(values[i]), 0 };
 
             printf("OUT [0x%02X] %s\n",
                 (int)(unsigned char)ch[0]

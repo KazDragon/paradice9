@@ -29,6 +29,7 @@
 
 #include "munin/export.hpp"
 #include <terminalpp/extent.hpp>
+#include <terminalpp/behaviour.hpp>
 #include <terminalpp/terminal.hpp>
 #include <boost/any.hpp>
 #include <boost/asio/strand.hpp>
@@ -50,7 +51,7 @@ public :
     /// \param strand A boost::asio::strand in which all asynchronous calls
     /// will be run.
     //* =====================================================================
-    window(boost::asio::strand &strand, terminalpp::terminal::behaviour const &behaviour);
+    window(boost::asio::strand &strand, terminalpp::behaviour const &behaviour);
 
     //* =====================================================================
     /// \brief Destructor

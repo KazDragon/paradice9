@@ -45,7 +45,7 @@ namespace odin { namespace net {
 /// Construct, passing a Boost.Asio io_service, a port number, and a function
 /// to call whenever a new connection is made.  The handler for these
 /// connections will be called in the io_service's run() method.  To stop the
-/// server and cancel any pending acceptance, call stop().
+/// server and cancel any pending acceptance, call shutdown().
 //* =========================================================================
 class ODIN_EXPORT server
 {

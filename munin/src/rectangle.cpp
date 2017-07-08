@@ -34,7 +34,10 @@ namespace munin {
 // ==========================================================================
 std::ostream &operator<<(std::ostream &out, rectangle const &rect)
 {
-    out << "rectangle[" << rect.origin << ", " << rect.size << "]";
+    out << "rectangle[("
+        << rect.origin.x << ", " << rect.origin.y << ") -> ("
+        << rect.size.width << ", " << rect.size.height << ")]";
+
     return out;
 }
 

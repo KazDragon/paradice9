@@ -1,19 +1,23 @@
-set (paradice9_SOURCES
+set (PARADICE9_SOURCE_FILES
     src/context_impl.cpp
     src/main.cpp
     src/paradice9.cpp
 )
 
-add_executable(paradice9 ${paradice9_SOURCES})
+set (PARADICE9_INCLUDE_FILES
+    include/paradice9/context_impl.hpp
+    include/paradice9/paradice9.hpp
+)
+
+add_executable(paradice9
+    ${PARADICE9_SOURCE_FILES}
+    ${PARADICE9_INCLUDE_FILES}
+)
 
 target_include_directories(paradice9
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-#    PRIVATE 
-#        ${CMAKE_SOURCE_DIR}
-#        ${Boost_INCLUDE_DIRS}
-#)
 
 target_compile_definitions(paradice9
     PRIVATE
@@ -32,4 +36,5 @@ target_link_libraries(paradice9
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_PROGRAM_OPTIONS_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
+        ${CMAKE_THREAD_LIBS_INIT}
 )

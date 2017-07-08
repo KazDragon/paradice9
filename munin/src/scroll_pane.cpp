@@ -31,7 +31,7 @@
 #include "munin/filled_box.hpp"
 #include "munin/framed_component.hpp"
 #include "munin/grid_layout.hpp"
-#include "munin/sco_glyphs.hpp"
+#include "munin/unicode_glyphs.hpp"
 #include "munin/vertical_scroll_bar.hpp"
 #include "munin/viewport.hpp"
 #include "terminalpp/element.hpp"

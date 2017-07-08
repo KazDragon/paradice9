@@ -87,6 +87,7 @@ set (MUNIN_INCLUDE_FILES
     include/munin/vertical_strip_layout.hpp
     include/munin/view.hpp
     include/munin/viewport.hpp
+    include/munin/unicode_glyphs.hpp
     include/munin/window.hpp
     include/munin/text/default_multiline_document.hpp
     include/munin/text/default_singleline_document.hpp

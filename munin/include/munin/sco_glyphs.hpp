@@ -29,7 +29,7 @@
 
 #include <terminalpp/glyph.hpp>
 
-namespace munin {
+namespace munin { inline namespace sco {
     
 // Some uncommon glyphs that are very useful.
 
@@ -91,6 +91,6 @@ DECLARE_SCO_GLYPH(right_guillemet, 175);
 
 #undef DECLARE_SCO_GLYPH
 
-}
+}}
 
 #endif

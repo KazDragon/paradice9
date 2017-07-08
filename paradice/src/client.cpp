@@ -155,9 +155,9 @@ namespace {
 class client::impl
     : public std::enable_shared_from_this<client::impl>
 {
-    static terminalpp::terminal::behaviour create_behaviour()
+    static terminalpp::behaviour create_behaviour()
     {
-        terminalpp::terminal::behaviour behaviour;
+        terminalpp::behaviour behaviour;
         behaviour.can_use_eight_bit_control_codes = true;
         behaviour.supports_basic_mouse_tracking = true;
         behaviour.supports_window_title_bel = true;
@@ -203,7 +203,6 @@ public :
         connection_->on_window_size_changed(
             [this](auto const &width, auto const &height)
             {
-                std::cout << "WINDOW SIZE = " << width << ", " << height << "\n";
                 this->on_window_size_changed(width, height);
             });
 

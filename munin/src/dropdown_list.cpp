@@ -33,8 +33,8 @@
 #include "munin/horizontal_squeeze_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/list.hpp"
-#include "munin/sco_glyphs.hpp"
 #include "munin/scroll_pane.hpp"
+#include "munin/unicode_glyphs.hpp"
 #include "munin/vertical_squeeze_layout.hpp"
 #include "munin/view.hpp"
 #include <terminalpp/ansi/mouse.hpp>

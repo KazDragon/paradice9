@@ -30,7 +30,7 @@
 #include "munin/filled_box.hpp"
 #include "munin/frame.hpp"
 #include "munin/grid_layout.hpp"
-#include "munin/sco_glyphs.hpp"
+#include "munin/unicode_glyphs.hpp"
 #include <terminalpp/canvas_view.hpp>
 #include <utility>
 

@@ -27,7 +27,7 @@
 #include "munin/horizontal_scroll_bar.hpp"
 #include "munin/context.hpp"
 #include "munin/algorithm.hpp"
-#include "munin/sco_glyphs.hpp"
+#include "munin/unicode_glyphs.hpp"
 #include <terminalpp/canvas_view.hpp>
 #include <utility>
 

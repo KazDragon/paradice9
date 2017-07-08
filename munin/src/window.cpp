@@ -30,6 +30,7 @@
 #include "munin/basic_container.hpp"
 #include "munin/context.hpp"
 #include <terminalpp/canvas_view.hpp>
+#include <terminalpp/default_terminal.hpp>
 #include <terminalpp/terminalpp.hpp>
 #include <boost/format.hpp>
 
@@ -63,9 +64,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        window                                &self
-      , boost::asio::strand                   &strand
-      , terminalpp::terminal::behaviour const &behaviour)
+        window                      &self
+      , boost::asio::strand         &strand
+      , terminalpp::behaviour const &behaviour)
         : self_(self)
         , self_valid_(true)
         , strand_(strand)
@@ -334,7 +335,7 @@ private :
 
     boost::asio::strand          &strand_;
     
-    terminalpp::terminal          terminal_;
+    terminalpp::default_terminal  terminal_;
     std::shared_ptr<container>    content_;
     terminalpp::screen            screen_;
     terminalpp::canvas            canvas_;
@@ -358,7 +359,7 @@ private :
 // ==========================================================================
 window::window(
     boost::asio::strand &strand
-  , terminalpp::terminal::behaviour const &behaviour)
+  , terminalpp::behaviour const &behaviour)
 {
     pimpl_ = std::make_shared<impl>(
         std::ref(*this), std::ref(strand), std::ref(behaviour));

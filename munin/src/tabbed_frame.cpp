@@ -32,7 +32,7 @@
 #include "munin/filled_box.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
-#include "munin/sco_glyphs.hpp"
+#include "munin/unicode_glyphs.hpp"
 #include "munin/vertical_strip_layout.hpp"
 #include "munin/view.hpp"
 #include <terminalpp/canvas.hpp>

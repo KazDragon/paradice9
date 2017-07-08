@@ -100,6 +100,13 @@ protected :
     odin::u32 preferred_height_;
 };
 
+static std::unique_ptr<fixed_height_layout> make_fixed_height_layout(
+    odin::u32 preferred_height)
+{
+    return std::unique_ptr<fixed_height_layout>(
+        new fixed_height_layout(preferred_height));
+}
+
 }
 
 // ==========================================================================
@@ -332,13 +339,12 @@ dropdown_list::dropdown_list()
     // ======================================================================
     // Construct the dropdown list.
     // ======================================================================
-    pimpl_->list_ = std::make_shared<list>();
+    pimpl_->list_ = make_list();
     pimpl_->list_->on_item_changed.connect(
         [this](auto idx)
         {
             pimpl_->on_item_changed(idx);
         });
-    auto scroller = std::make_shared<scroll_pane>(pimpl_->list_, false);
 
     // Now put them together.
     pimpl_->dropdown_ = view(
@@ -346,8 +352,8 @@ dropdown_list::dropdown_list()
         // Put the scrollpane in a fixed-height layout so that it doesn't 
         // prefer to take up the entire screen.
         view(
-            std::unique_ptr<fixed_height_layout>(new fixed_height_layout(7)),
-            scroller
+            make_fixed_height_layout(7),
+            make_scroll_pane(pimpl_->list_, false)
         ), COMPASS_LAYOUT_CENTRE,
         // Create a spacer to the right, so that the list is offset by the
         // width of the dropdown button.

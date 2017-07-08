@@ -298,7 +298,7 @@ dropdown_list::dropdown_list()
         ), COMPASS_LAYOUT_EAST);
 
     // Construct the centre bar |   |V|
-    pimpl_->dropdown_button_ = make_image("V");
+    pimpl_->dropdown_button_ = make_image(terminalpp::string({down_pointing_triangle}));
     pimpl_->dropdown_button_->set_can_focus(true);
     pimpl_->selected_text_ = make_image(" ");
 

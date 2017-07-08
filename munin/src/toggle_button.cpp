@@ -30,11 +30,19 @@
 #include "munin/grid_layout.hpp"
 #include "munin/image.hpp"
 #include "munin/solid_frame.hpp"
+#include "munin/unicode_glyphs.hpp"
 #include <terminalpp/ansi/mouse.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 
 namespace munin {
+
+namespace {
+
+static terminalpp::string const selected_image = {light_cross};
+static terminalpp::string const deselected_image = " ";
+
+}
 
 // ==========================================================================
 // TOGGLE_BUTTON::IMPLEMENTATION STRUCTURE
@@ -51,7 +59,8 @@ struct toggle_button::impl
 toggle_button::toggle_button(bool default_state)
   : pimpl_(std::make_shared<impl>())
 {
-    pimpl_->image_ = make_image(default_state ? "X" : " ");
+    pimpl_->image_ = make_image(
+        default_state ? selected_image : deselected_image);
     pimpl_->image_->set_can_focus(true);
 
     pimpl_->state_ = default_state;
@@ -80,7 +89,7 @@ void toggle_button::set_toggle(bool toggle)
     {
         pimpl_->state_ = toggle;
 
-        pimpl_->image_->set_image(toggle ? "X" : " ");
+        pimpl_->image_->set_image(toggle ? selected_image : deselected_image);
     }
 }
 

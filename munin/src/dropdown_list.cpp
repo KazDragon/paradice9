@@ -138,11 +138,11 @@ struct dropdown_list::impl
 
             bottom_left_corner_->set_attribute(
                 ATTRIBUTE_GLYPH
-              , double_lined_left_tee);
+              , single_lined_left_tee);
 
             bottom_tee_->set_attribute(
                 ATTRIBUTE_GLYPH
-              , double_lined_cross);
+              , single_lined_cross);
 
             list_->set_focus();
             self_.on_layout_change();
@@ -163,11 +163,11 @@ struct dropdown_list::impl
 
             bottom_left_corner_->set_attribute(
                 ATTRIBUTE_GLYPH
-              , double_lined_bottom_left_corner);
+              , single_lined_bottom_left_corner);
 
             bottom_tee_->set_attribute(
                 ATTRIBUTE_GLYPH
-              , double_lined_bottom_tee);
+              , single_lined_bottom_tee);
             closing_dropdown_ = false;
 
             self_.on_layout_change();
@@ -288,13 +288,13 @@ dropdown_list::dropdown_list()
     // Construct the top bar +----+-+
     auto top_row = view(
         make_compass_layout(),
-        make_fill(double_lined_top_left_corner), COMPASS_LAYOUT_WEST,
-        make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
+        make_fill(single_lined_rounded_top_left_corner), COMPASS_LAYOUT_WEST,
+        make_fill(single_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
         view(
             make_compass_layout(),
-            make_fill(double_lined_top_tee),          COMPASS_LAYOUT_WEST,
-            make_fill(double_lined_horizontal_beam),  COMPASS_LAYOUT_CENTRE,
-            make_fill(double_lined_top_right_corner), COMPASS_LAYOUT_EAST
+            make_fill(single_lined_top_tee),          COMPASS_LAYOUT_WEST,
+            make_fill(single_lined_horizontal_beam),  COMPASS_LAYOUT_CENTRE,
+            make_fill(single_lined_rounded_top_right_corner), COMPASS_LAYOUT_EAST
         ), COMPASS_LAYOUT_EAST);
 
     // Construct the centre bar |   |V|
@@ -304,28 +304,28 @@ dropdown_list::dropdown_list()
 
     auto centre_row = view(
         make_compass_layout(),
-        make_fill(double_lined_vertical_beam), COMPASS_LAYOUT_WEST,
+        make_fill(single_lined_vertical_beam), COMPASS_LAYOUT_WEST,
         pimpl_->selected_text_,                COMPASS_LAYOUT_CENTRE,
         view(
             make_compass_layout(),
-            make_fill(double_lined_vertical_beam), COMPASS_LAYOUT_WEST,
+            make_fill(single_lined_vertical_beam), COMPASS_LAYOUT_WEST,
             pimpl_->dropdown_button_,              COMPASS_LAYOUT_CENTRE,
-            make_fill(double_lined_vertical_beam), COMPASS_LAYOUT_EAST
+            make_fill(single_lined_vertical_beam), COMPASS_LAYOUT_EAST
         ), COMPASS_LAYOUT_EAST);
         
     // Construct the bottom bar +-----+-+
-    pimpl_->bottom_left_corner_  = make_fill(double_lined_bottom_left_corner);
-    pimpl_->bottom_tee_          = make_fill(double_lined_bottom_tee);
-    pimpl_->bottom_right_corner_ = make_fill(double_lined_bottom_right_corner);
+    pimpl_->bottom_left_corner_  = make_fill(single_lined_rounded_bottom_left_corner);
+    pimpl_->bottom_tee_          = make_fill(single_lined_bottom_tee);
+    pimpl_->bottom_right_corner_ = make_fill(single_lined_rounded_bottom_right_corner);
 
     auto bottom_row = view(
         make_compass_layout(),
         pimpl_->bottom_left_corner_, COMPASS_LAYOUT_WEST,
-        make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
+        make_fill(single_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
         view(
             make_compass_layout(),
             pimpl_->bottom_tee_, COMPASS_LAYOUT_WEST,
-            make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
+            make_fill(single_lined_horizontal_beam), COMPASS_LAYOUT_CENTRE,
             pimpl_->bottom_right_corner_, COMPASS_LAYOUT_EAST
         ), COMPASS_LAYOUT_EAST);
 

@@ -80,7 +80,7 @@ struct vertical_scroll_bar::impl
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                cvs[x_coord][y_coord] = {double_lined_vertical_beam, pen_};
+                cvs[x_coord][y_coord] = {single_lined_vertical_beam, pen_};
             }
         }
     }
@@ -139,7 +139,7 @@ struct vertical_scroll_bar::impl
                 terminalpp::point(0, slider_position_)
               , terminalpp::extent(1, 1))))
         {
-            cvs[0][slider_position_] = {mix_lined_hcross, pen_};
+            cvs[0][slider_position_] = {mix_lined_vcross, pen_};
         }
     }
 

@@ -53,19 +53,19 @@ public :
         bool                                   top_border)
       : basic_frame(
             top_border
-          ? make_fill(double_lined_top_left_corner)
+          ? make_fill(single_lined_rounded_top_left_corner)
           : std::shared_ptr<filled_box>(),
             top_border
-          ? make_fill(double_lined_horizontal_beam)
+          ? make_fill(single_lined_horizontal_beam)
           : std::shared_ptr<filled_box>(),
             top_border
-          ? make_fill(double_lined_top_right_corner)
+          ? make_fill(single_lined_rounded_top_right_corner)
           : std::shared_ptr<filled_box>(),
-            make_fill(double_lined_vertical_beam),
+            make_fill(single_lined_vertical_beam),
             vscroll_bar,
-            make_fill(double_lined_bottom_left_corner),
+            make_fill(single_lined_rounded_bottom_left_corner),
             hscroll_bar,
-            make_fill(double_lined_bottom_right_corner))
+            make_fill(single_lined_rounded_bottom_right_corner))
     {
     }
 

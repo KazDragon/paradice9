@@ -336,7 +336,7 @@ private :
         auto left_rivet = std::make_shared<tabbed_frame_header_rivet>();
         rivets_.push_back(left_rivet);
 
-        filler_ = make_fill(double_lined_horizontal_beam);
+        filler_ = make_fill(single_lined_horizontal_beam);
         auto filler = view(
             make_compass_layout(),
             make_background_fill(), COMPASS_LAYOUT_NORTH,
@@ -417,8 +417,8 @@ private :
 
             if (index <= selected_)
             {
-                rivet->set_top_element({double_lined_top_left_corner, pen});
-                rivet->set_middle_element({double_lined_vertical_beam, pen});
+                rivet->set_top_element({single_lined_rounded_top_left_corner, pen});
+                rivet->set_middle_element({single_lined_vertical_beam, pen});
 
             }
             else if (index == rivets_.size() - 1)
@@ -428,35 +428,35 @@ private :
             }
             else
             {
-                rivet->set_top_element({double_lined_top_right_corner, pen});
+                rivet->set_top_element({single_lined_rounded_top_right_corner, pen});
 
-                rivet->set_middle_element({double_lined_vertical_beam, pen});
+                rivet->set_middle_element({single_lined_vertical_beam, pen});
             }
 
             if (index == 0)
             {
                 rivet->set_bottom_element({
                     selected_ == 0
-                      ? double_lined_left_tee
-                      : double_lined_top_left_corner
+                      ? single_lined_left_tee
+                      : single_lined_rounded_top_left_corner
                   , selected_item_pen});
             }
             else if (index == rivets_.size() - 1)
             {
                 rivet->set_bottom_element(
-                    {double_lined_top_right_corner, selected_item_pen});
+                    {single_lined_rounded_top_right_corner, selected_item_pen});
             }
             else
             {
                 if (index == selected_ || index == selected_ + 1)
                 {
                     rivet->set_bottom_element(
-                        {double_lined_bottom_tee, selected_item_pen});
+                        {single_lined_bottom_tee, selected_item_pen});
                 }
                 else
                 {
                     rivet->set_bottom_element(
-                        {double_lined_horizontal_beam, selected_item_pen});
+                        {single_lined_horizontal_beam, selected_item_pen});
                 }
             }
 
@@ -468,10 +468,10 @@ private :
         for (auto &label : labels_)
         {
             label->set_top_element({
-                double_lined_horizontal_beam
+                single_lined_horizontal_beam
               , index == selected_ ? selected_item_pen : terminalpp::attribute()});
             label->set_bottom_element(
-                {double_lined_horizontal_beam, selected_item_pen});
+                {single_lined_horizontal_beam, selected_item_pen});
 
             ++index;
         }
@@ -495,7 +495,7 @@ private :
             make_compass_layout(),
             make_background_fill(), COMPASS_LAYOUT_NORTH,
             make_background_fill(), COMPASS_LAYOUT_CENTRE,
-            make_fill(double_lined_horizontal_beam), COMPASS_LAYOUT_SOUTH);
+            make_fill(single_lined_horizontal_beam), COMPASS_LAYOUT_SOUTH);
 
         auto rightmost = std::make_shared<tabbed_frame_header_rivet>();
 
@@ -604,11 +604,11 @@ tabbed_frame::tabbed_frame()
             }
         });
 
-    pimpl_->left_border_         = make_fill(double_lined_vertical_beam);
-    pimpl_->right_border_        = make_fill(double_lined_vertical_beam);
-    pimpl_->bottom_left_corner_  = make_fill(double_lined_bottom_left_corner);
-    pimpl_->bottom_border_       = make_fill(double_lined_horizontal_beam);
-    pimpl_->bottom_right_corner_ = make_fill(double_lined_bottom_right_corner);
+    pimpl_->left_border_         = make_fill(single_lined_vertical_beam);
+    pimpl_->right_border_        = make_fill(single_lined_vertical_beam);
+    pimpl_->bottom_left_corner_  = make_fill(single_lined_rounded_bottom_left_corner);
+    pimpl_->bottom_border_       = make_fill(single_lined_horizontal_beam);
+    pimpl_->bottom_right_corner_ = make_fill(single_lined_rounded_bottom_right_corner);
         
     auto north = view(
         make_grid_layout(1, 1),

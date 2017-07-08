@@ -201,7 +201,7 @@ public :
         else
         {
             top_right_->set_attribute(ATTRIBUTE_LOCK,  false);
-            top_right_->set_attribute(ATTRIBUTE_GLYPH, double_lined_top_right_corner);
+            top_right_->set_attribute(ATTRIBUTE_GLYPH, single_lined_rounded_top_right_corner);
             top_right_->set_attribute(ATTRIBUTE_PEN,   terminalpp::attribute());
         }
     }
@@ -251,14 +251,14 @@ public :
 // ==========================================================================
 named_frame::named_frame()
   : basic_frame(
-        std::make_shared<filled_box>(double_lined_top_left_corner),
-        std::make_shared<title_bar>("", double_lined_horizontal_beam),
-        std::make_shared<filled_box>(double_lined_top_right_corner),
-        std::make_shared<filled_box>(double_lined_vertical_beam),
-        std::make_shared<filled_box>(double_lined_vertical_beam),
-        std::make_shared<filled_box>(double_lined_bottom_left_corner),
-        std::make_shared<filled_box>(double_lined_horizontal_beam),
-        std::make_shared<filled_box>(double_lined_bottom_right_corner))
+        std::make_shared<filled_box>(single_lined_rounded_top_left_corner),
+        std::make_shared<title_bar>("", single_lined_horizontal_beam),
+        std::make_shared<filled_box>(single_lined_rounded_top_right_corner),
+        std::make_shared<filled_box>(single_lined_vertical_beam),
+        std::make_shared<filled_box>(single_lined_vertical_beam),
+        std::make_shared<filled_box>(single_lined_rounded_bottom_left_corner),
+        std::make_shared<filled_box>(single_lined_horizontal_beam),
+        std::make_shared<filled_box>(single_lined_rounded_bottom_right_corner))
 {
     pimpl_ = std::make_shared<impl>(std::ref(*this));
     pimpl_->title_bar_ = std::dynamic_pointer_cast<title_bar>(get_top_component());

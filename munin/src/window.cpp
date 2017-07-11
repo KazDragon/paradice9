@@ -147,6 +147,14 @@ public :
     }
 
     // ======================================================================
+    // DISABLE_MOUSE_TRACKING
+    // ======================================================================
+    void disable_mouse_tracking()
+    {
+        self_.on_repaint(terminal_.disable_mouse());
+    }
+
+    // ======================================================================
     // ======================================================================
     void use_normal_screen_buffer()
     {
@@ -421,6 +429,12 @@ void window::enable_mouse_tracking()
 {
     pimpl_->enable_mouse_tracking();
 }
+
+void window::disable_mouse_tracking()
+{
+    pimpl_->disable_mouse_tracking();
+}
+
 
 void window::use_normal_screen_buffer()
 {

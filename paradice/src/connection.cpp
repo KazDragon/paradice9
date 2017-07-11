@@ -137,7 +137,7 @@ struct connection::impl
         
         if (stream.size() != 0)
         {
-            socket_->async_write({stream.begin(), stream.end()}, nullptr);
+            socket_->write({stream.begin(), stream.end()});
         }
         
     }

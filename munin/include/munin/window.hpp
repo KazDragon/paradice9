@@ -86,6 +86,11 @@ public :
     void enable_mouse_tracking();
 
     //* =====================================================================
+    /// \brief Disables mouse tracking for the window.
+    //* =====================================================================
+    void disable_mouse_tracking();
+
+    //* =====================================================================
     /// \brief Retrieve the top level container in the window.  This
     /// contains all the components that are displayed in this window.
     //* =====================================================================

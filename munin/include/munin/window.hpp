@@ -75,6 +75,12 @@ public :
     void set_title(std::string const &title);
 
     //* =====================================================================
+    /// \brief 
+    //* =====================================================================
+    void use_normal_screen_buffer();
+    void use_alternate_screen_buffer();
+
+    //* =====================================================================
     /// \brief Enables mouse tracking for the window.
     //* =====================================================================
     void enable_mouse_tracking();

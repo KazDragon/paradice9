@@ -315,6 +315,7 @@ public :
         content->set_focus();
 
         window_->enable_mouse_tracking();
+        window_->use_alternate_screen_buffer();
     }
 
     // ======================================================================
@@ -1163,6 +1164,7 @@ std::shared_ptr<character> client::get_character() const
 // ==========================================================================
 void client::disconnect()
 {
+    pimpl_->get_window()->use_normal_screen_buffer();
     pimpl_->disconnect();
 }
 

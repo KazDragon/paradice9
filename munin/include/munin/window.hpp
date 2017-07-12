@@ -75,9 +75,24 @@ public :
     void set_title(std::string const &title);
 
     //* =====================================================================
+    /// \brief Switches to the normal screen buffer.
+    //* =====================================================================
+    void use_normal_screen_buffer();
+
+    //* =====================================================================
+    /// \brief Switches to the alternate screen buffer.
+    //* =====================================================================
+    void use_alternate_screen_buffer();
+
+    //* =====================================================================
     /// \brief Enables mouse tracking for the window.
     //* =====================================================================
     void enable_mouse_tracking();
+
+    //* =====================================================================
+    /// \brief Disables mouse tracking for the window.
+    //* =====================================================================
+    void disable_mouse_tracking();
 
     //* =====================================================================
     /// \brief Retrieve the top level container in the window.  This

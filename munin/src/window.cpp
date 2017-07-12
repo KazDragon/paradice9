@@ -147,6 +147,32 @@ public :
     }
 
     // ======================================================================
+    // DISABLE_MOUSE_TRACKING
+    // ======================================================================
+    void disable_mouse_tracking()
+    {
+        self_.on_repaint(terminal_.disable_mouse());
+    }
+
+    // ======================================================================
+    // USE_NORMAL_SCREEN_BUFFER
+    // ======================================================================
+    void use_normal_screen_buffer()
+    {
+        self_.on_repaint(terminal_.use_normal_screen_buffer());
+        last_window_size_ = {};
+    }
+
+    // ======================================================================
+    // USE_ALTERNATE_SCREEN_BUFFER
+    // ======================================================================
+    void use_alternate_screen_buffer()
+    {
+        self_.on_repaint(terminal_.use_alternate_screen_buffer());
+        last_window_size_ = {};
+    }
+
+    // ======================================================================
     // GET_CONTENT
     // ======================================================================
     std::shared_ptr<container> get_content()
@@ -404,6 +430,30 @@ void window::set_title(std::string const &title)
 void window::enable_mouse_tracking()
 {
     pimpl_->enable_mouse_tracking();
+}
+
+// ==========================================================================
+// DISABLE_MOUSE_TRACKING
+// ==========================================================================
+void window::disable_mouse_tracking()
+{
+    pimpl_->disable_mouse_tracking();
+}
+
+// ==========================================================================
+// USE_NORMAL_SCREEN_BUFFER
+// ==========================================================================
+void window::use_normal_screen_buffer()
+{
+    pimpl_->use_normal_screen_buffer();
+}
+
+// ==========================================================================
+// USE_ALTERNATE_SCREEN_BUFFER
+// ==========================================================================
+void window::use_alternate_screen_buffer()
+{
+    pimpl_->use_alternate_screen_buffer();
 }
 
 // ==========================================================================

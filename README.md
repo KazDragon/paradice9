@@ -19,8 +19,9 @@ This is tested automatically on the following platforms:
 It requires the following supporting libraries:
   * The Boost Libraries (www.boost.org)
   * Telnet++ (https://github.com/KazDragon/telnetpp, supplied as a git submodule)
+  * Terminal++ (https://github.com/KazDragon/terminalpp, supplied as a git submodule)
   * Optionally, Crypto++ (www.cryptopp.com)
-  * Optionally, CppUnit (sourceforge.net/projects/cppunit)
+  * Optionally, Google Test (https://github.com/google/googletest)
 
 Building
 --------

@@ -25,8 +25,3 @@ It requires the following supporting libraries:
 Building
 --------
 Use CMake as your system dictates.
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/KazDragon/paradice9/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-

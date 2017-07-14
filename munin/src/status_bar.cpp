@@ -70,7 +70,7 @@ struct status_bar::impl : public std::enable_shared_from_this<impl>
 
                 if (pthis)
                 {
-                    pthis->start_marquee();
+                    pthis->marquee_start();
                 }
             });
     }

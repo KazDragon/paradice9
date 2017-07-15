@@ -39,7 +39,6 @@
 namespace munin {
 
 namespace {
-    // TODO: Implement the marquee functionality.
     BOOST_STATIC_CONSTANT(odin::u32, DELAY_BEFORE_MARQUEE   = 3);
     BOOST_STATIC_CONSTANT(odin::u32, MARQUEE_SPEED_MS       = 15);
     BOOST_STATIC_CONSTANT(odin::u32, CHARACTERS_PER_MARQUEE = 2);

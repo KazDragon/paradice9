@@ -39,13 +39,9 @@
 namespace munin {
 
 namespace {
-    // TODO: Implement the marquee functionality.
-    BOOST_STATIC_CONSTANT(odin::u32, DELAY_BEFORE_MARQUEE = 5);
-    /*
-     BOOST_STATIC_CONSTANT(odin::u32, DELAY_BEFORE_MARQUEE = 3);
-     BOOST_STATIC_CONSTANT(odin::u32, MARQUEE_SPEED        = 1);
-     BOOST_STATIC_CONSTANT(odin::u32, DELAY_AFTER_MARQUEE  = 2);
-    */
+    BOOST_STATIC_CONSTANT(odin::u32, DELAY_BEFORE_MARQUEE   = 3);
+    BOOST_STATIC_CONSTANT(odin::u32, MARQUEE_SPEED_MS       = 15);
+    BOOST_STATIC_CONSTANT(odin::u32, CHARACTERS_PER_MARQUEE = 2);
 }
 
 // ==========================================================================
@@ -70,16 +66,37 @@ struct status_bar::impl : public std::enable_shared_from_this<impl>
 
                 if (pthis)
                 {
-                    pthis->marquee_start();
+                    pthis->marquee_progress();
                 }
             });
     }
 
 private :
-    void marquee_start()
+    void marquee_progress()
     {
-        // TODO: Implement the marquee functionality.
-        image_->set_image("");
+        if (message_.size() < CHARACTERS_PER_MARQUEE)
+        {
+            image_->set_image("");
+        }
+        else
+        {
+            message_ = terminalpp::string{message_.begin() + CHARACTERS_PER_MARQUEE, message_.end()};
+            image_->set_image(message_);
+
+            timer_->expires_from_now(boost::posix_time::milliseconds(MARQUEE_SPEED_MS));
+            timer_->async_wait(
+                [wp=std::weak_ptr<impl>(shared_from_this())]
+                (auto const &)
+                {
+                    auto pthis = wp.lock();
+
+                    if (pthis)
+                    {
+                        pthis->marquee_progress();
+                    }
+                });
+
+        }
     }
 };
 

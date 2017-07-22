@@ -274,8 +274,8 @@ void framed_component::do_event(boost::any const &event)
             auto position = pimpl_->interior_->get_position();
             terminalpp::ansi::mouse::report subreport;
             subreport.button_     = report->button_;
-            subreport.x_position_ = terminalpp::u8(report->x_position_ - position.x);
-            subreport.y_position_ = terminalpp::u8(report->y_position_ - position.y);
+            subreport.x_position_ = report->x_position_ - position.x;
+            subreport.y_position_ = report->y_position_ - position.y;
 
             pimpl_->interior_->event(subreport);
             handled = true;
@@ -285,8 +285,8 @@ void framed_component::do_event(boost::any const &event)
             auto position = pimpl_->border_->get_position();
             terminalpp::ansi::mouse::report subreport;
             subreport.button_     = report->button_;
-            subreport.x_position_ = terminalpp::u8(report->x_position_ - position.x);
-            subreport.y_position_ = terminalpp::u8(report->y_position_ - position.y);
+            subreport.x_position_ = report->x_position_ - position.x;
+            subreport.y_position_ = report->y_position_ - position.y;
 
             pimpl_->border_->event(subreport);
 

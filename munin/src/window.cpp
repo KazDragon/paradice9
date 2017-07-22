@@ -29,9 +29,9 @@
 #include "munin/container.hpp"
 #include "munin/basic_container.hpp"
 #include "munin/context.hpp"
+#include <terminalpp/ansi_terminal.hpp>
 #include <terminalpp/canvas_view.hpp>
-#include <terminalpp/default_terminal.hpp>
-#include <terminalpp/terminalpp.hpp>
+#include <terminalpp/screen.hpp>
 #include <boost/format.hpp>
 
 namespace munin {
@@ -361,7 +361,7 @@ private :
 
     boost::asio::strand          &strand_;
     
-    terminalpp::default_terminal  terminal_;
+    terminalpp::ansi_terminal     terminal_;
     std::shared_ptr<container>    content_;
     terminalpp::screen            screen_;
     terminalpp::canvas            canvas_;

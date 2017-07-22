@@ -16,10 +16,10 @@ TEST(munin_algorithm, test_rectangle_intersection_same)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(1), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.height);
+    ASSERT_EQ(1, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(3, intersection->size.width);
+    ASSERT_EQ(4, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_no_overlap)
@@ -69,10 +69,10 @@ TEST(munin_algorithm, test_rectangle_intersection_overlap_top_left)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(4), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(1), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(4, intersection->origin.x);
+    ASSERT_EQ(1, intersection->origin.y);
+    ASSERT_EQ(3, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_overlap_bottom_left)
@@ -101,10 +101,10 @@ TEST(munin_algorithm, test_rectangle_intersection_overlap_bottom_left)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(4), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(2), intersection->size.height);
+    ASSERT_EQ(4, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(3, intersection->size.width);
+    ASSERT_EQ(2, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_overlap_bottom_right)
@@ -136,10 +136,10 @@ TEST(munin_algorithm, test_rectangle_intersection_overlap_bottom_right)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_overlap_top_right)
@@ -171,10 +171,10 @@ TEST(munin_algorithm, test_rectangle_intersection_overlap_top_right)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(4), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(4, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_enclose_top)
@@ -206,20 +206,20 @@ TEST(munin_algorithm, test_rectangle_intersection_enclose_top)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_enclose_left)
@@ -252,20 +252,20 @@ TEST(munin_algorithm, test_rectangle_intersection_enclose_left)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_enclose_bottom)
@@ -296,20 +296,20 @@ TEST(munin_algorithm, test_rectangle_intersection_enclose_bottom)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(5), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(2), intersection->size.height);
+    ASSERT_EQ(2, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(5, intersection->size.width);
+    ASSERT_EQ(2, intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(5), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(2), intersection->size.height);
+    ASSERT_EQ(2, intersection->origin.x);
+    ASSERT_EQ(3, intersection->origin.y);
+    ASSERT_EQ(5, intersection->size.width);
+    ASSERT_EQ(2, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_enclose_right)
@@ -341,20 +341,20 @@ TEST(munin_algorithm, test_rectangle_intersection_enclose_right)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(5), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(5, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(3, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(5), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(5, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(3, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangle_intersection_contain)
@@ -385,20 +385,20 @@ TEST(munin_algorithm, test_rectangle_intersection_contain)
     auto intersection = munin::intersection(lhs, rhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
     
     // Ensure that this works for the opposite case too, where the first
     // rectangle encloses the second.
     intersection = munin::intersection(rhs, lhs);
     ASSERT_TRUE(intersection.is_initialized());
     
-    ASSERT_EQ(terminalpp::s32(3), intersection->origin.x);
-    ASSERT_EQ(terminalpp::s32(2), intersection->origin.y);
-    ASSERT_EQ(terminalpp::s32(4), intersection->size.width);
-    ASSERT_EQ(terminalpp::s32(3), intersection->size.height);
+    ASSERT_EQ(3, intersection->origin.x);
+    ASSERT_EQ(2, intersection->origin.y);
+    ASSERT_EQ(4, intersection->size.width);
+    ASSERT_EQ(3, intersection->size.height);
 }
 
 TEST(munin_algorithm, test_rectangular_slice)

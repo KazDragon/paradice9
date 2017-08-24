@@ -312,10 +312,11 @@ void list::do_draw(
 
                 if (is_selected_item)
                 {
-                    element.attribute_.polarity_ =
-                        element.attribute_.polarity_ == terminalpp::ansi::graphics::polarity::negative
-                                                      ? terminalpp::ansi::graphics::polarity::positive
-                                                      : terminalpp::ansi::graphics::polarity::negative;
+                    element.attribute_.polarity_.value_ =
+                        element.attribute_.polarity_.value_ == 
+                            terminalpp::ansi::graphics::polarity::negative
+                          ? terminalpp::ansi::graphics::polarity::positive
+                          : terminalpp::ansi::graphics::polarity::negative;
                 }
 
                 cvs[x_coord][y_coord] = element;

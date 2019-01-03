@@ -28,7 +28,7 @@
 #include "munin/context.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/unicode_glyphs.hpp"
-#include <terminalpp/canvas_view.hpp>
+#include <munin/canvas_view.hpp>
 #include <boost/optional.hpp>
 #include <utility>
 
@@ -52,7 +52,7 @@ struct vertical_scroll_bar::impl
     // DO_DRAW
     // ======================================================================
     void do_draw(
-        terminalpp::canvas_view &cvs
+        munin::canvas_view &cvs
       , rectangle const &region)
     {
         draw_beam(cvs, region);
@@ -68,7 +68,7 @@ struct vertical_scroll_bar::impl
     // DRAW_BEAM
     // ======================================================================
     void draw_beam(
-        terminalpp::canvas_view &cvs
+        munin::canvas_view &cvs
       , rectangle const &region)
     {
         // Draws the beam on which the slider is placed.
@@ -128,7 +128,7 @@ struct vertical_scroll_bar::impl
     // DRAW_SLIDER
     // ======================================================================
     void draw_slider(
-        terminalpp::canvas_view &cvs
+        munin::canvas_view &cvs
       , rectangle const &region)
     {
         // Now that we know precisely where the slider is, check that it is

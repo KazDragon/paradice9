@@ -379,7 +379,7 @@ struct basic_container::impl
     std::vector<std::shared_ptr<component>>              components_;
     std::vector<boost::any>                              component_hints_;
     std::vector<odin::u32>                               component_layers_;
-    std::vector<std::vector<boost::signals::connection>> component_connections_;
+    std::vector<std::vector<boost::signals2::connection>> component_connections_;
     layered_layout_map                                   layouts_;
     rectangle                                            bounds_;
     bool                                                 has_focus_;
@@ -539,7 +539,7 @@ void basic_container::do_add_component(
     pimpl_->component_hints_.push_back(hint);
     pimpl_->component_layers_.push_back(layer);
 
-    std::vector<boost::signals::connection> component_connections;
+    std::vector<boost::signals2::connection> component_connections;
 
     // Register for callbacks for when the new subcomponent either gains
     // or loses focus.  We can make sure our own focus is correct based

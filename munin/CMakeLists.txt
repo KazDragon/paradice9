@@ -9,6 +9,7 @@ set (MUNIN_SOURCE_FILES
     src/basic_container.cpp
     src/basic_frame.cpp
     src/button.cpp
+    src/canvas_view.cpp
     src/card.cpp
     src/clock.cpp
     src/compass_layout.cpp
@@ -52,6 +53,7 @@ set (MUNIN_INCLUDE_FILES
     include/munin/basic_container.hpp
     include/munin/basic_frame.hpp
     include/munin/button.hpp
+    include/munin/canvas_view.hpp
     include/munin/card.hpp
     include/munin/clock.hpp
     include/munin/compass_layout.hpp
@@ -112,13 +114,10 @@ target_include_directories(munin
 target_link_libraries(munin
     PUBLIC
         odin
-        terminalpp
-        ${Boost_SIGNALS_LIBRARY}
-)
-
-#Remove when we move to signals2 or some other mechanism.
-target_compile_definitions(munin
-    PRIVATE BOOST_SIGNALS_NO_DEPRECATION_WARNING
+        CONAN_PKG::boost_any
+        CONAN_PKG::boost_scope_exit
+        CONAN_PKG::boost_signals2
+        CONAN_PKG::terminalpp
 )
 
 target_compile_features(munin

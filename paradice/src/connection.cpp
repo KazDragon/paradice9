@@ -27,12 +27,13 @@
 #include "paradice/connection.hpp"
 #include "odin/net/socket.hpp"
 #include <telnetpp/telnetpp.hpp>
-#include <telnetpp/byte_converter.hpp>
 #include <telnetpp/options/echo/server.hpp>
+/*
 #include <telnetpp/options/mccp/codec.hpp>
 #include <telnetpp/options/mccp/server.hpp>
 #include <telnetpp/options/mccp/zlib/compressor.hpp>
 #include <telnetpp/options/mccp/zlib/decompressor.hpp>
+*/
 #include <telnetpp/options/naws/client.hpp>
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
@@ -54,33 +55,26 @@ struct connection::impl
     // CONSTRUCTOR
     // ======================================================================
     impl(std::shared_ptr<odin::net::socket> const &socket)
-      : socket_(socket),
-        telnet_session_(
-            [this](auto &&text) -> std::vector<telnetpp::token>
-            {
-                this->on_text(text);
-                return {};
-            }),
+      : socket_(socket)/*,
         telnet_mccp_codec_(
             std::make_shared<telnetpp::options::mccp::zlib::compressor>(),
             std::make_shared<telnetpp::options::mccp::zlib::decompressor>())
+        */
     {
-        telnet_echo_server_.set_activatable();
         telnet_session_.install(telnet_echo_server_);
-        
-        telnet_suppress_ga_server_.set_activatable();
         telnet_session_.install(telnet_suppress_ga_server_);
-         
-        telnet_naws_client_.set_activatable();
+
+        /*
         telnet_naws_client_.on_window_size_changed.connect(
             [this](auto &&width, auto &&height) -> std::vector<telnetpp::token>
             {
                 this->on_window_size_changed(width, height);
                 return {};
             });
+        */
         telnet_session_.install(telnet_naws_client_);
 
-        telnet_terminal_type_client_.set_activatable();
+        /*
         telnet_terminal_type_client_.on_terminal_type.connect(
             [this](auto &&type) -> std::vector<telnetpp::token>
             {
@@ -97,26 +91,28 @@ struct connection::impl
                 
                 return {};
             });
+        */
         telnet_session_.install(telnet_terminal_type_client_);
 
-        telnet_mccp_server_.set_activatable();
-        write(telnet_session_.send(telnet_mccp_server_.begin_compression()));
-        telnet_session_.install(telnet_mccp_server_);
+        // write(telnet_session_.send(telnet_mccp_server_.begin_compression()));
+        // telnet_session_.install(telnet_mccp_server_);
         
         // Begin the keepalive process.  This sends regular heartbeats to the
         // client to help guard against his network settings timing him out
         // due to lack of activity.
         keepalive_timer_ =
             std::make_shared<boost::asio::deadline_timer>(
-                std::ref(socket_->get_io_service()));
+                std::ref(socket_->get_io_context()));
         schedule_keepalive();
         
         // Send the required activations.
+        /*
         write(telnet_session_.send(telnet_echo_server_.activate()));
         write(telnet_session_.send(telnet_suppress_ga_server_.activate()));
         write(telnet_session_.send(telnet_naws_client_.activate()));
         write(telnet_session_.send(telnet_terminal_type_client_.activate()));
         write(telnet_session_.send(telnet_mccp_server_.activate()));
+        */
     }
 
     // ======================================================================
@@ -130,6 +126,7 @@ struct connection::impl
     // ======================================================================
     // WRITE
     // ======================================================================
+    /*
     void write(std::vector<telnetpp::stream_token> const &data)
     {
         auto const &compressed_data = telnet_mccp_codec_.send(data);
@@ -139,8 +136,8 @@ struct connection::impl
         {
             socket_->write({stream.begin(), stream.end()});
         }
-        
     }
+    */
 
     // ======================================================================
     // SCHEDULE_NEXT_READ
@@ -170,8 +167,10 @@ struct connection::impl
     // ======================================================================
     void on_data(std::vector<odin::u8> const &data)
     {
+        /*
         write(telnet_session_.send(
             telnet_session_.receive({data.begin(), data.end()})));
+        */
             
         schedule_next_read();
     }
@@ -183,10 +182,11 @@ struct connection::impl
     {
         if (!error && socket_->is_alive())
         {
+            /*
             write(telnet_session_.send({
                     telnetpp::element(telnetpp::command(telnetpp::nop))
                 }));
-
+            */
             schedule_keepalive();
         }
     }
@@ -255,12 +255,12 @@ struct connection::impl
     telnetpp::session                                    telnet_session_;
     telnetpp::options::echo::server                      telnet_echo_server_;
     telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_;
+    /*
     telnetpp::options::mccp::server                      telnet_mccp_server_;
     telnetpp::options::mccp::codec                       telnet_mccp_codec_;
+    */
     telnetpp::options::naws::client                      telnet_naws_client_;
     telnetpp::options::terminal_type::client             telnet_terminal_type_client_;
-    
-    telnetpp::byte_converter                             telnet_byte_converter_;
     
     std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
     std::shared_ptr<boost::asio::deadline_timer>         keepalive_timer_;
@@ -298,9 +298,11 @@ void connection::start()
 // ==========================================================================
 void connection::write(std::string const &data)
 {
+    /*
     pimpl_->write(pimpl_->telnet_session_.send({
         telnetpp::element(data)
     }));
+    */
 }
 
 // ==========================================================================

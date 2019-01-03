@@ -31,6 +31,7 @@
 #include "hugin/user_interface.hpp"
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/filesystem.hpp>
 #include <algorithm>
 #include <fstream>
@@ -109,10 +110,10 @@ static std::string get_character_address(
 struct context_impl::impl
 {
     impl(
-        boost::asio::io_service                       &io_service
+        boost::asio::io_context                       &io_context
       , std::shared_ptr<odin::net::server>             server
-      , std::shared_ptr<boost::asio::io_service::work> work)
-      : strand_(io_service)
+      , std::shared_ptr<boost::asio::io_context::work> work)
+      : strand_(io_context)
       , server_(server)
       , work_(work)
     {
@@ -233,9 +234,9 @@ struct context_impl::impl
         oa << boost::serialization::make_nvp("character", *ch);
     }
 
-    boost::asio::strand                            strand_;
+    boost::asio::io_context::strand                strand_;
     std::shared_ptr<odin::net::server>             server_;
-    std::shared_ptr<boost::asio::io_service::work> work_;
+    std::shared_ptr<boost::asio::io_context::work> work_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
 };
 
@@ -243,10 +244,10 @@ struct context_impl::impl
 // CONSTRUCTOR
 // ==========================================================================
 context_impl::context_impl(
-    boost::asio::io_service                        &io_service
+    boost::asio::io_context                        &io_context
   , std::shared_ptr<odin::net::server>              server
-  , std::shared_ptr<boost::asio::io_service::work>  work)
-    : pimpl_(new impl(io_service, server, work))
+  , std::shared_ptr<boost::asio::io_context::work>  work)
+    : pimpl_(new impl(io_context, server, work))
 {
 }
     

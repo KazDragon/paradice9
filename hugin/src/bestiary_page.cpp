@@ -68,7 +68,7 @@ struct bestiary_page::impl
     std::vector<std::shared_ptr<paradice::beast>> beasts_;
     std::vector<terminalpp::string>   names_;
 
-    std::vector<boost::signals::connection> connections_;
+    std::vector<boost::signals2::connection> connections_;
 
     // ======================================================================
     // CONSTRUCTOR

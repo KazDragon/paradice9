@@ -28,12 +28,11 @@
 #define PARADICE_SERVER_HPP_
 
 #include "odin/core.hpp"
-#include <boost/cstdint.hpp>
 #include <functional>
 #include <memory>
 
 namespace boost { namespace asio {
-    class io_service;
+    class io_context;
 }}
 
 namespace odin { namespace net {
@@ -42,9 +41,9 @@ namespace odin { namespace net {
 //* =========================================================================
 /// \brief Implements a tcp/ip server.
 /// \par Usage
-/// Construct, passing a Boost.Asio io_service, a port number, and a function
+/// Construct, passing a Boost.Asio io_context, a port number, and a function
 /// to call whenever a new connection is made.  The handler for these
-/// connections will be called in the io_service's run() method.  To stop the
+/// connections will be called in the io_context's run() method.  To stop the
 /// server and cancel any pending acceptance, call shutdown().
 //* =========================================================================
 class ODIN_EXPORT server
@@ -57,7 +56,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    server(boost::asio::io_service &io_service
+    server(boost::asio::io_context &io_context
          , odin::u16                port
          , accept_handler const    &on_accept);
 

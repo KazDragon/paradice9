@@ -28,14 +28,12 @@
 #define MUNIN_CONTEXT_HPP_
 
 #include "munin/export.hpp"
-#include <boost/asio/strand.hpp>
+#include <boost/asio/io_context.hpp>
 #include <memory>
 
-namespace terminalpp {
-    class canvas_view;
-}
-
 namespace munin {
+
+class canvas_view;
 
 //* =========================================================================
 /// \brief A context onto which components can draw themselves.
@@ -46,7 +44,7 @@ public :
     //* =====================================================================
     /// \brief Constructor.
     //* =====================================================================
-    context(terminalpp::canvas_view &cvs, boost::asio::strand &strand);
+    context(munin::canvas_view &cvs, boost::asio::io_context::strand &strand);
 
     //* =====================================================================
     /// \brief Destructor.
@@ -56,12 +54,12 @@ public :
     //* =====================================================================
     /// \brief Retrieve the canvas.
     //* =====================================================================
-    terminalpp::canvas_view &get_canvas();
+    munin::canvas_view &get_canvas();
 
     //* =====================================================================
     /// \brief Retrieve the strand.
     //* =====================================================================
-    boost::asio::strand &get_strand();
+    boost::asio::io_context::strand &get_strand();
 
 private :
     class impl;

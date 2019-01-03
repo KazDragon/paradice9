@@ -25,7 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/paradice9.hpp"
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -35,9 +35,9 @@
 
 namespace po = boost::program_options;
 
-static void run_io_service(boost::asio::io_service &io_service)
+static void run_io_service(boost::asio::io_context &io_context)
 {
-    io_service.run();
+    io_context.run();
 }
 
 int main(int argc, char *argv[])
@@ -131,18 +131,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    boost::asio::io_service io_service;
+    boost::asio::io_context io_context;
     
     paradice9 application(
-        io_service
-      , std::make_shared<boost::asio::io_service::work>(std::ref(io_service))
+        io_context
+      , std::make_shared<boost::asio::io_context::work>(std::ref(io_context))
       , port);
  
     std::vector<std::thread> threadpool;
 
     for (unsigned int thr = 0; thr < concurrency; ++thr)
     {
-        threadpool.emplace_back(&run_io_service, std::ref(io_service));
+        threadpool.emplace_back(&run_io_service, std::ref(io_context));
     }
     
     for (auto &pthread : threadpool)
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
         pthread.join();
     }
     
-    io_service.stop();
+    io_context.stop();
 
     return EXIT_SUCCESS;
 }

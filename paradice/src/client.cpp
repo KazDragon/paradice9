@@ -44,7 +44,7 @@
 #include "odin/tokenise.hpp"
 #include "terminalpp/encoder.hpp"
 #include "terminalpp/string.hpp"
-#include <boost/asio/strand.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
 #include <deque>
@@ -171,10 +171,10 @@ public :
     // ======================================================================
     impl(
         client                  &self,
-        boost::asio::io_service &io_service,
+        boost::asio::io_context &io_context,
         std::shared_ptr<context>      ctx)
       : self_(self),
-        strand_(io_service),
+        strand_(io_context),
         context_(ctx),
         window_(std::make_shared<munin::window>(
             std::ref(strand_), create_behaviour())),
@@ -1033,7 +1033,7 @@ private :
     }
 
     client                                 &self_;
-    boost::asio::strand                     strand_;
+    boost::asio::io_context::strand         strand_;
     std::shared_ptr<context>                context_;
     std::shared_ptr<account>                account_;
     std::shared_ptr<character>              character_;
@@ -1073,11 +1073,11 @@ private :
 // CONSTRUCTOR
 // ==========================================================================
 client::client(
-    boost::asio::io_service &io_service
+    boost::asio::io_context &io_context
   , std::shared_ptr<context> ctx)
 {
     pimpl_ = std::make_shared<impl>(
-        std::ref(*this), std::ref(io_service), ctx);
+        std::ref(*this), std::ref(io_context), ctx);
 }
 
 // ==========================================================================

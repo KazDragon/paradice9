@@ -32,7 +32,7 @@
 #include "odin/core.hpp"
 #include <terminalpp/extent.hpp>
 #include <terminalpp/point.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 
 namespace terminalpp {
     class string;
@@ -124,7 +124,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component should be redrawn.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void (std::vector<munin::rectangle> const &regions)
     > on_redraw;
@@ -134,7 +134,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the caret has changed position.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void ()
     > on_caret_position_changed;

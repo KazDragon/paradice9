@@ -27,7 +27,7 @@
 #ifndef PARADICE_COMMAND_HPP_
 #define PARADICE_COMMAND_HPP_
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <string>
 
 namespace paradice {

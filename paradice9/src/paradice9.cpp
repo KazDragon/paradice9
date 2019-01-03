@@ -32,7 +32,7 @@
 #include "paradice/connection.hpp"
 #include "odin/net/server.hpp"
 #include "odin/net/socket.hpp"
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <map>
 #include <utility>
@@ -47,10 +47,10 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        boost::asio::io_service                        &io_service
-      , std::shared_ptr<boost::asio::io_service::work>  work
+        boost::asio::io_context                        &io_context
+      , std::shared_ptr<boost::asio::io_context::work>  work
       , unsigned int                                    port)
-        : io_service_(io_service) 
+        : io_service_(io_context) 
         , server_(new odin::net::server(
               io_service_
             , port
@@ -58,7 +58,7 @@ public :
                   this->on_accept(socket);
               }))
         , context_(std::make_shared<context_impl>(
-              std::ref(io_service), server_, std::ref(work)))
+              std::ref(io_context), server_, std::ref(work)))
     {
     }
 
@@ -226,7 +226,7 @@ private :
         }
     }
     
-    boost::asio::io_service            &io_service_;
+    boost::asio::io_context            &io_service_;
     std::shared_ptr<odin::net::server>  server_;
     std::shared_ptr<paradice::context>  context_;
     
@@ -241,10 +241,10 @@ private :
 // CONSTRUCTOR
 // ==========================================================================
 paradice9::paradice9(
-    boost::asio::io_service                        &io_service
-  , std::shared_ptr<boost::asio::io_service::work>  work
+    boost::asio::io_context                        &io_context
+  , std::shared_ptr<boost::asio::io_context::work>  work
   , unsigned int                        port)
-    : pimpl_(new impl(io_service, work, port))  
+    : pimpl_(new impl(io_context, work, port))  
 {
 }
 

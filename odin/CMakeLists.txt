@@ -23,14 +23,12 @@ add_library(odin
 target_include_directories(odin 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${Boost_INCLUDE_DIRS}
 )
 
-target_compile_features(odin
+target_link_libraries(odin
     PUBLIC
-        cxx_strong_enums
-    PRIVATE
-        cxx_auto_type
+        CONAN_PKG::boost_asio
+        CONAN_PKG::boost_optional
 )
 
 set_target_properties(odin

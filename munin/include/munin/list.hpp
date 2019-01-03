@@ -82,7 +82,7 @@ public :
     /// \par index The index that the item was changed from (you can query
     /// the component if you need to know the one it changed to.)
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (odin::s32 index)
     > on_item_changed;
 

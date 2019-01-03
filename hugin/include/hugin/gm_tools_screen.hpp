@@ -76,7 +76,7 @@ public :
     /// \fn on_fight_beast
     /// \brief Called when a beast is selected to enter the active encounter.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void (std::shared_ptr<paradice::beast> const &)
     > on_fight_beast;
@@ -86,7 +86,7 @@ public :
     /// \brief Called when an encounter is selected to enter the active 
     /// encounter.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void (std::shared_ptr<paradice::encounter> const &)
     > on_fight_encounter;
@@ -96,7 +96,7 @@ public :
     /// \brief Called when the 'back' button is pressed on the GM Tools
     /// screen.
     //* =====================================================================
-    boost::signal<void ()> on_back;
+    boost::signals2::signal<void ()> on_back;
 
 protected :
     //* =====================================================================

@@ -58,7 +58,7 @@ public :
     /// \brief Set a function to be called when the user inputs the details
     /// for the change of a password.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (std::string const &old_password
             , std::string const &new_password
             , std::string const &new_password_verify)> on_password_changed;
@@ -67,7 +67,7 @@ public :
     /// \brief Set a function to be called when the user cancels the change
     /// of a password.
     //* =====================================================================
-    boost::signal<void ()> on_password_change_cancelled;
+    boost::signals2::signal<void ()> on_password_change_cancelled;
 
 protected :
     //* =====================================================================

@@ -142,7 +142,7 @@ public :
         bottom_box_->set_fill(element);
     }
 
-    boost::signal<void ()> on_click;
+    boost::signals2::signal<void ()> on_click;
 
 protected :
     // ======================================================================
@@ -249,7 +249,7 @@ public :
         update_highlights();
     }
 
-    boost::signal<void (std::string)> on_tab_selected;
+    boost::signals2::signal<void (std::string)> on_tab_selected;
 
 protected :
     // ======================================================================

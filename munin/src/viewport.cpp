@@ -27,7 +27,7 @@
 #include "munin/viewport.hpp"
 #include "munin/context.hpp"
 #include "munin/rectangle.hpp"
-#include <terminalpp/canvas_view.hpp>
+#include <munin/canvas_view.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <boost/scope_exit.hpp>
 

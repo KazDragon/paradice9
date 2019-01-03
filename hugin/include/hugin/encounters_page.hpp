@@ -72,31 +72,31 @@ public :
     /// \fn on_new
     /// \brief Called when the 'new' button is pressed.
     //* =====================================================================
-    boost::signal<void ()> on_new;
+    boost::signals2::signal<void ()> on_new;
 
     //* =====================================================================
     /// \fn on_clone
     /// \brief Called when the 'clone' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_clone;
+    boost::signals2::signal<void (std::shared_ptr<paradice::encounter> const &)> on_clone;
 
     //* =====================================================================
     /// \fn on_edit
     /// \brief Called when the 'edit' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_edit;
+    boost::signals2::signal<void (std::shared_ptr<paradice::encounter> const &)> on_edit;
 
     //* =====================================================================
     /// \fn on_fight
     /// \brief Called when the 'fight!' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_fight;
+    boost::signals2::signal<void (std::shared_ptr<paradice::encounter> const &)> on_fight;
 
     //* =====================================================================
     /// \fn on_delete
     /// \brief Called when the 'delete' button is pressed.
     //* =====================================================================
-    boost::signal<void (std::shared_ptr<paradice::encounter> const &)> on_delete;
+    boost::signals2::signal<void (std::shared_ptr<paradice::encounter> const &)> on_delete;
 
 private :
     struct impl;

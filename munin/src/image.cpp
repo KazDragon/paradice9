@@ -27,7 +27,7 @@
 #include "munin/image.hpp"
 #include "munin/context.hpp"
 #include "odin/core.hpp"
-#include "terminalpp/canvas_view.hpp"
+#include "munin/canvas_view.hpp"
 #include "terminalpp/string.hpp"
 #include <algorithm>
 #include <utility>

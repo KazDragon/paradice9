@@ -70,13 +70,13 @@ public :
     /// \brief Provide a function to be called if the user opts to create
     /// a new character.
     //* =====================================================================
-    boost::signal<void ()> on_new_character;
+    boost::signals2::signal<void ()> on_new_character;
     
     //* =====================================================================
     /// \brief Provide a function to be called if the user opts to use an
     /// existing character.
     //* =====================================================================
-    boost::signal<void (std::string const &name)> on_character_selected;
+    boost::signals2::signal<void (std::string const &name)> on_character_selected;
     
 protected :
     //* =====================================================================

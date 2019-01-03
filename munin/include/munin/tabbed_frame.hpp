@@ -72,7 +72,7 @@ public :
     /// \brief Callback signal for when a tab was selected.
     /// \par text The text of the tab that was selected.
     //* =====================================================================
-    boost::signal<void (std::string const &)> on_tab_selected;
+    boost::signals2::signal<void (std::string const &)> on_tab_selected;
 
 protected :
     //* =====================================================================

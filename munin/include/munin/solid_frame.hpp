@@ -54,7 +54,7 @@ public :
     /// \fn on_close
     /// \brief A signal that is raised whenever the close icon is clicked.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void ()
     > on_close;
 

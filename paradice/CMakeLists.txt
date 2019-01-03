@@ -60,11 +60,7 @@ target_include_directories(paradice
 )
 
 # Select the best cryptography available.
-if (CRYPTO++_FOUND)
-    target_compile_definitions(paradice
-        PRIVATE
-            PARADICE_USE_CRYPTOPP)
-            
+if (PARADICE_USE_CRYPTOPP)
     target_link_libraries(paradice
         PRIVATE 
             cryptopp)
@@ -74,28 +70,16 @@ else()
             PARADICE_NOCRYPT)
 endif()
 
-target_compile_definitions(paradice
-    PRIVATE
-        BOOST_SIGNALS_NO_DEPRECATION_WARNING
-)
-
-target_compile_features(paradice
-    PRIVATE
-        cxx_right_angle_brackets
-        cxx_generic_lambdas
-)
 
 target_link_libraries(paradice
     PUBLIC
         odin
-        terminalpp
-        ${Boost_SERIALIZATION_LIBRARY}
+        CONAN_PKG::terminalpp
     PRIVATE
         munin
         hugin
-        telnetpp
-        ${Boost_RANDOM_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
+        CONAN_PKG::boost_uuid
+        CONAN_PKG::telnetpp
 )
 
 

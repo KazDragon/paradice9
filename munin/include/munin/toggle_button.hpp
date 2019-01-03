@@ -64,7 +64,7 @@ public :
     /// button either being clicked, or having focus and receiving an
     /// enter or space keypress.
     //* =====================================================================
-    boost::signal<void (bool)> on_toggle;
+    boost::signals2::signal<void (bool)> on_toggle;
 
 protected :
     //* =====================================================================

@@ -95,7 +95,7 @@ struct password_change_screen::impl
     std::shared_ptr<munin::edit>            new_password_verify_field_;
     std::shared_ptr<munin::button>          ok_button_;
     std::shared_ptr<munin::button>          cancel_button_;
-    std::vector<boost::signals::connection> connections_;
+    std::vector<boost::signals2::connection> connections_;
 };
 
 // ==========================================================================

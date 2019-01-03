@@ -59,7 +59,7 @@ public :
     /// \brief Set a function to be called when the user inputs the details
     /// for the creation of an account.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (std::string const &account_name,
               std::string const &password,
               std::string const &password_verify)> on_account_created;
@@ -68,7 +68,7 @@ public :
     /// \brief Set a function to be called when the user cancels the creation
     /// of an account.
     //* =====================================================================
-    boost::signal<void ()> on_account_creation_cancelled;
+    boost::signals2::signal<void ()> on_account_creation_cancelled;
     
 protected :
     //* =====================================================================

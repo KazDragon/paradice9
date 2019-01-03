@@ -60,7 +60,7 @@ struct encounters_page::impl
 
     std::vector<std::shared_ptr<paradice::encounter>> encounters_;
 
-    std::vector<boost::signals::connection> connections_;
+    std::vector<boost::signals2::connection> connections_;
 
 
     // ======================================================================

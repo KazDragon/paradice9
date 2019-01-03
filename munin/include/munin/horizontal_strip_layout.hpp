@@ -28,7 +28,6 @@
 #define MUNIN_HORIZONTAL_STRIP_LAYOUT_HPP_
 
 #include "munin/layout.hpp"
-#include <boost/shared_ptr.hpp>
 
 namespace munin {
 

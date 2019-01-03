@@ -27,7 +27,7 @@
 #include "munin/filled_box.hpp"
 #include "munin/context.hpp"
 #include "odin/core.hpp"
-#include <terminalpp/canvas_view.hpp>
+#include <munin/canvas_view.hpp>
 
 namespace munin {
 

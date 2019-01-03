@@ -28,7 +28,7 @@
 #include "munin/text/default_singleline_document.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/context.hpp"
-#include <terminalpp/canvas_view.hpp>
+#include <munin/canvas_view.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <algorithm>
@@ -101,7 +101,7 @@ struct edit::impl
     /// \brief Draws the component
     //* =====================================================================
     void draw(
-        terminalpp::canvas_view &cvs
+        munin::canvas_view &cvs
       , rectangle const &region)
     {
         auto document_size = document_->get_size();

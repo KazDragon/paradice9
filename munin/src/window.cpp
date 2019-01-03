@@ -30,8 +30,10 @@
 #include "munin/basic_container.hpp"
 #include "munin/context.hpp"
 #include <terminalpp/ansi_terminal.hpp>
-#include <terminalpp/canvas_view.hpp>
+#include <munin/canvas_view.hpp>
 #include <terminalpp/screen.hpp>
+#include <boost/asio/post.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/format.hpp>
 
 namespace munin {
@@ -64,9 +66,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        window                      &self
-      , boost::asio::strand         &strand
-      , terminalpp::behaviour const &behaviour)
+        window                          &self
+      , boost::asio::io_context::strand &strand
+      , terminalpp::behaviour const     &behaviour)
         : self_(self)
         , self_valid_(true)
         , strand_(strand)
@@ -214,7 +216,8 @@ private :
         // any further repaint requests.
         if (!repaint_scheduled_)
         {
-            strand_.post([sp=shared_from_this()]{sp->do_repaint();});
+            boost::asio::post(
+                strand_, [sp=shared_from_this()]{sp->do_repaint();});
             repaint_scheduled_ = true;
         }
     }
@@ -228,7 +231,8 @@ private :
         // if there's one already scheduled.
         if (!layout_scheduled_)
         {
-            strand_.post([sp=shared_from_this()]{sp->do_layout();});
+            boost::asio::post(
+                [sp=shared_from_this()]{sp->do_layout();});
             layout_scheduled_ = true;
         }
     }
@@ -309,7 +313,7 @@ private :
         // into horizontal slices.
         auto slices = create_repaint_slices();
 
-        terminalpp::canvas_view canvas_view(canvas_);
+        munin::canvas_view canvas_view(canvas_);
         context ctx(canvas_view, strand_);
         
         // Draw each slice on the canvas.
@@ -359,7 +363,7 @@ private :
     window                       &self_;
     bool                          self_valid_;
 
-    boost::asio::strand          &strand_;
+    boost::asio::io_context::strand &strand_;
     
     terminalpp::ansi_terminal     terminal_;
     std::shared_ptr<container>    content_;
@@ -377,14 +381,14 @@ private :
     bool                          handling_newline_;
     char                          newline_char_;
 
-    std::vector<boost::signals::connection> connections_;
+    std::vector<boost::signals2::connection> connections_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 window::window(
-    boost::asio::strand &strand
+    boost::asio::io_context::strand &strand
   , terminalpp::behaviour const &behaviour)
 {
     pimpl_ = std::make_shared<impl>(

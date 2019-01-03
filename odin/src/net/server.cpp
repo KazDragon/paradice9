@@ -41,12 +41,12 @@ struct server::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(boost::asio::io_service             &io_service,
+    impl(boost::asio::io_context             &io_context,
          odin::u16                            port,
          server::accept_handler const        &on_accept)
-      : io_service_(io_service),
+      : io_context_(io_context),
         acceptor_(
-            io_service,
+            io_context,
             boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
         on_accept_(on_accept)
     {
@@ -81,7 +81,7 @@ struct server::impl
     void schedule_accept()
     {
         auto new_socket =
-            std::make_shared<boost::asio::ip::tcp::socket>(io_service_);
+            std::make_shared<boost::asio::ip::tcp::socket>(io_context_);
 
         acceptor_.async_accept(
             *new_socket.get(),
@@ -101,7 +101,7 @@ struct server::impl
         acceptor_.close(unused_error_code);
     }
 
-    boost::asio::io_service        &io_service_;
+    boost::asio::io_context        &io_context_;
     boost::asio::ip::tcp::acceptor  acceptor_;
     server::accept_handler          on_accept_;
 };
@@ -110,10 +110,10 @@ struct server::impl
 // CONSTRUCTOR
 // ==========================================================================
 server::server(
-    boost::asio::io_service     &io_service
+    boost::asio::io_context     &io_context
   , uint16_t                     port
   , accept_handler const        &on_accept)
-    : pimpl_(new impl(io_service, port, on_accept))
+    : pimpl_(new impl(io_context, port, on_accept))
 {
     pimpl_->schedule_accept();
 }

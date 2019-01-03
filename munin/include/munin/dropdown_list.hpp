@@ -80,7 +80,7 @@ public :
     /// \brief Connect to this signal to receive updates about when the
     /// selected item changes.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (odin::s32)
     > on_item_changed;
 

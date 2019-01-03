@@ -49,7 +49,7 @@ namespace munin {
 }
 
 namespace boost { namespace asio {
-    class io_service;
+    class io_context;
 }}
 
 namespace paradice {
@@ -62,7 +62,7 @@ public :
     /// \brief Constructor
     //* =====================================================================
     client(
-        boost::asio::io_service  &io_service
+        boost::asio::io_context  &io_context
       , std::shared_ptr<context>  ctx);
 
     //* =====================================================================

@@ -59,7 +59,7 @@ struct wholist::impl
     // DRAW
     // ======================================================================
     void draw(
-        terminalpp::canvas_view &cvs,
+        munin::canvas_view &cvs,
         munin::rectangle const  &region)
     {
         munin::copy_region(region, view_, cvs);

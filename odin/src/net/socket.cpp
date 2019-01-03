@@ -218,11 +218,11 @@ struct socket::impl : std::enable_shared_from_this<impl>
     }
 
     // ======================================================================
-    // GET_IO_SERVICE
+    // GET_IO_CONTEXT
     // ======================================================================
-    boost::asio::io_service &get_io_service()
+    boost::asio::io_context &get_io_context()
     {
-        return socket_->get_io_service();
+        return socket_->get_io_context();
     }
 
     // ======================================================================
@@ -481,11 +481,11 @@ bool socket::is_alive() const
 }
 
 // ==========================================================================
-// GET_IO_SERVICE
+// GET_IO_CONTEXT
 // ==========================================================================
-boost::asio::io_service &socket::get_io_service()
+boost::asio::io_context &socket::get_io_context()
 {
-    return pimpl_->get_io_service();
+    return pimpl_->get_io_context();
 }
 
 // ==========================================================================

@@ -115,10 +115,10 @@ public :
     virtual bool is_alive() const;
 
     //* =====================================================================
-    /// \brief Retrieve the io_service instance that this socket uses for
+    /// \brief Retrieve the io_context instance that this socket uses for
     /// synchronisation.
     //* =====================================================================
-    boost::asio::io_service &get_io_service();
+    boost::asio::io_context &get_io_context();
 
     //* =====================================================================
     /// \brief Register a callback to be performed when the socket is closed.

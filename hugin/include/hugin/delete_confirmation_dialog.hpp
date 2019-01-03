@@ -61,14 +61,14 @@ public :
     /// \brief Connect to this signal to receive notifications about the
     /// "Yes" button being pressed.
     //* =====================================================================
-    boost::signal<void ()> on_delete_confirmation;
+    boost::signals2::signal<void ()> on_delete_confirmation;
 
     //* =====================================================================
     /// \fn on_delete_rejection
     /// \brief Connect to this signal to receive notifications about the
     /// "No" button being pressed.
     //* =====================================================================
-    boost::signal<void ()> on_delete_rejection;
+    boost::signals2::signal<void ()> on_delete_rejection;
 
 private :
     struct impl;

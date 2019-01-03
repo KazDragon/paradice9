@@ -54,14 +54,14 @@ public :
     /// \brief Set a function to be called when the user inputs a name
     /// and password on the intro screen.
     //* =====================================================================
-    boost::signal<void (std::string, std::string)> on_login;
+    boost::signals2::signal<void (std::string, std::string)> on_login;
 
     //* =====================================================================
     /// \fn on_new_account
     /// \brief Set a function to be called when the user clicks on the
     /// new account button.
     //* =====================================================================
-    boost::signal<void ()> on_new_account;
+    boost::signals2::signal<void ()> on_new_account;
 
 protected :
     //* =====================================================================

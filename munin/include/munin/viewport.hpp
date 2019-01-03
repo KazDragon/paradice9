@@ -74,7 +74,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the subcomponent's size has changed.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void ()
     > on_subcomponent_size_changed;
 
@@ -83,7 +83,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the viewport's origin changes.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void ()
     > on_origin_changed;
 

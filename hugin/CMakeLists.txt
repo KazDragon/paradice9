@@ -59,12 +59,7 @@ set_target_properties(hugin
 target_link_libraries(hugin
     PUBLIC
         munin
-        ${Boost_SIGNALS_LIBRARY}
-)
-
-target_compile_definitions(hugin
-    PRIVATE
-        BOOST_SIGNALS_NO_DEPRECATION_WARNING
+        CONAN_PKG::boost_uuid
 )
 
 target_compile_features(hugin

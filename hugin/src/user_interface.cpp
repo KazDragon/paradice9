@@ -42,6 +42,7 @@
 #include <munin/vertical_strip_layout.hpp>
 #include <munin/view.hpp>
 #include <terminalpp/string.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <deque>
 #include <mutex>
 #include <thread>
@@ -54,14 +55,14 @@ namespace hugin {
 struct user_interface::impl
     : public std::enable_shared_from_this<impl>
 {
-    impl(user_interface &self, boost::asio::strand &strand)
+    impl(user_interface &self, boost::asio::io_context::strand &strand)
         : self_(self),
           strand_(strand)
     {
     }
     
     user_interface                             &self_;
-    boost::asio::strand                        &strand_;
+    boost::asio::io_context::strand            &strand_;
     std::shared_ptr<munin::card>                active_screen_;
     
     std::shared_ptr<intro_screen>               intro_screen_;   
@@ -278,7 +279,7 @@ private:
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-user_interface::user_interface(boost::asio::strand &strand)
+user_interface::user_interface(boost::asio::io_context::strand &strand)
   : pimpl_(std::make_shared<impl>(std::ref(*this), std::ref(strand)))
 {
     pimpl_->active_screen_              = std::make_shared<munin::card>();

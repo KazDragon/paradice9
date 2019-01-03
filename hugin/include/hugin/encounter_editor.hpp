@@ -89,13 +89,13 @@ public :
     /// \fn on_revert
     /// \brief Called when the revert button is pressed.
     //* =====================================================================
-    boost::signal<void ()> on_revert;
+    boost::signals2::signal<void ()> on_revert;
 
     //* =====================================================================
     /// \fn on_save
     /// \brief Called when the save button is pressed.
     //* =====================================================================
-    boost::signal<void ()> on_save;
+    boost::signals2::signal<void ()> on_save;
 
 private :
     struct impl;

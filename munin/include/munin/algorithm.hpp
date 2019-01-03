@@ -35,10 +35,11 @@
 
 namespace terminalpp {
     class canvas;
-    class canvas_view;
 }
 
 namespace munin {
+
+class canvas_view;
 
 //* =========================================================================
 /// \brief Returns the intersection of two rectangles.
@@ -84,7 +85,7 @@ MUNIN_EXPORT
 void copy_region(
     rectangle               const &region
   , terminalpp::canvas      const &source
-  , terminalpp::canvas_view       &destination);
+  , munin::canvas_view       &destination);
 
 }
     

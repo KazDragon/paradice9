@@ -28,7 +28,7 @@
 #define MUNIN_BUTTON_HPP_
 
 #include "munin/composite_component.hpp"
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 
 namespace terminalpp {
     class string;
@@ -59,7 +59,7 @@ public :
     /// button either being clicked, or having focus and receiving an
     /// enter or space keypress.
     //* =====================================================================
-    boost::signal<void ()> on_click;
+    boost::signals2::signal<void ()> on_click;
 
 protected :
     //* =====================================================================

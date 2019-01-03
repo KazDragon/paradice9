@@ -57,7 +57,7 @@ public :
     /// \brief Connect to this signal in order to be informed of a control
     /// that causes the scrollbar to want to be paged left.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void()
     > on_page_left;
 
@@ -66,7 +66,7 @@ public :
     /// \brief Connect to this signal in order to be informed of a control
     /// that causes the scrollbar to want to be paged right.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void()
     > on_page_right;
 

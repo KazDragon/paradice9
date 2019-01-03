@@ -28,7 +28,7 @@
 #include "munin/algorithm.hpp"
 #include "munin/context.hpp"
 #include "munin/layout.hpp"
-#include <terminalpp/canvas_view.hpp>
+#include <munin/canvas_view.hpp>
 #include <boost/scope_exit.hpp>
 #include <vector>
 
@@ -37,7 +37,7 @@ namespace munin {
 namespace {
     typedef std::pair<
         std::shared_ptr<component>
-      , std::vector<boost::signals::connection>
+      , std::vector<boost::signals2::connection>
     > component_connections_type;
 }
 

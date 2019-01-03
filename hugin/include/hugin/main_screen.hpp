@@ -59,7 +59,7 @@ public :
     /// \brief Set a function to be called when the user inputs a command
     /// on the main screen.
     //* =====================================================================
-    boost::signal<void (std::string const &input)> on_input_entered;
+    boost::signals2::signal<void (std::string const &input)> on_input_entered;
     
     //* =====================================================================
     /// \brief Adds output to the output text area on the main screen.
@@ -112,7 +112,7 @@ public :
     /// \brief Register a callback for when the close button on the help
     /// screen is called.
     //* =====================================================================
-    boost::signal<void ()> on_help_closed;
+    boost::signals2::signal<void ()> on_help_closed;
 
 protected :
     //* =====================================================================

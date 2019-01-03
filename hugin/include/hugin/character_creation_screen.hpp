@@ -59,14 +59,14 @@ public :
     /// \brief Set a function to be called when the user inputs the details
     /// for the creation of an character.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (std::string const &name, bool is_gm)> on_character_created;
     
     //* =====================================================================
     /// \brief Set a function to be called when the user cancels the creation
     /// of an character.
     //* =====================================================================
-    boost::signal<void ()> on_character_creation_cancelled;
+    boost::signals2::signal<void ()> on_character_creation_cancelled;
 
 protected :
     //* =====================================================================

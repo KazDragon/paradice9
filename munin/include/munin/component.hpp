@@ -32,7 +32,7 @@
 #include <terminalpp/point.hpp>
 #include <terminalpp/extent.hpp>
 #include <boost/any.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 #include <memory>
 #include <vector>
 
@@ -230,7 +230,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component should be redrawn.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void (std::vector<rectangle> const &regions)
     > on_redraw;
@@ -241,7 +241,7 @@ public :
     /// update the overall layout should be done.  Connect to this signal
     /// in order to receive notifications about this.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void ()
     > on_layout_change;
@@ -252,7 +252,7 @@ public :
     /// such as text controls that grow with the text within them.  Connect
     /// to this signal in order to receive notifications about this.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void ()
     > on_preferred_size_changed;
@@ -262,7 +262,7 @@ public :
     /// \brief Certain components sizes change during their lifetime.
     /// Connect to this signal in order to receive notifications about this.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void ()
     > on_size_changed;
@@ -274,7 +274,7 @@ public :
     /// \brief Connect to this signal in order to receive notification about
     /// when the component changes position.
     //* =====================================================================
-    boost::signal
+    boost::signals2::signal
     <
         void (terminalpp::point from, terminalpp::point to)
     > on_position_changed;
@@ -284,7 +284,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component has gained focus.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void ()
     > on_focus_set;
 
@@ -293,7 +293,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component has lost focus.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void ()
     > on_focus_lost;
 
@@ -302,7 +302,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component's cursor state changes.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (bool)
     > on_cursor_state_changed;
 
@@ -311,7 +311,7 @@ public :
     /// \brief Connect to this signal in order to receive notifications about
     /// when the component's cursor position changes.
     //* =====================================================================
-    boost::signal<
+    boost::signals2::signal<
         void (terminalpp::point)
     > on_cursor_position_changed;
 

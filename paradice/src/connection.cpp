@@ -28,6 +28,8 @@
 #include "odin/net/socket.hpp"
 #include <telnetpp/telnetpp.hpp>
 #include <telnetpp/options/echo/server.hpp>
+#include <boost/container/small_vector.hpp>
+
 /*
 #include <telnetpp/options/mccp/codec.hpp>
 #include <telnetpp/options/mccp/server.hpp>
@@ -42,6 +44,11 @@
 #include <deque>
 #include <string>
 #include <utility>
+
+#include <iostream>
+#include <iomanip>
+
+using namespace telnetpp::literals;
 
 namespace paradice {
 
@@ -74,24 +81,20 @@ struct connection::impl
         */
         telnet_session_.install(telnet_naws_client_);
 
-        /*
         telnet_terminal_type_client_.on_terminal_type.connect(
-            [this](auto &&type) -> std::vector<telnetpp::token>
+            [this](telnetpp::bytes type, auto &&cont)
             {
                 this->on_terminal_type_detected(type);
-                return {};
             });
         telnet_terminal_type_client_.on_state_changed.connect(
-            [this](auto &&state) -> std::vector<telnetpp::token>
+            [this](auto &&cont)
             {
-                if (telnet_terminal_type_client_.is_active())
+                if (telnet_terminal_type_client_.active())
                 {
-                    return telnet_terminal_type_client_.request_terminal_type();
+                    telnet_terminal_type_client_.request_terminal_type(cont);
                 }
-                
-                return {};
             });
-        */
+        
         telnet_session_.install(telnet_terminal_type_client_);
 
         // write(telnet_session_.send(telnet_mccp_server_.begin_compression()));
@@ -106,13 +109,16 @@ struct connection::impl
         schedule_keepalive();
         
         // Send the required activations.
-        /*
-        write(telnet_session_.send(telnet_echo_server_.activate()));
-        write(telnet_session_.send(telnet_suppress_ga_server_.activate()));
-        write(telnet_session_.send(telnet_naws_client_.activate()));
-        write(telnet_session_.send(telnet_terminal_type_client_.activate()));
-        write(telnet_session_.send(telnet_mccp_server_.activate()));
-        */
+        auto buffer_output = 
+            [this](telnetpp::element const &data){ this->write_element(data); };
+
+        telnet_echo_server_.activate(buffer_output);
+        telnet_suppress_ga_server_.activate(buffer_output);
+        telnet_naws_client_.activate(buffer_output);
+        telnet_terminal_type_client_.activate(buffer_output);
+        //telnet_mccp_server_.activate(buffer_output);
+
+        flush_output_buffer();
     }
 
     // ======================================================================
@@ -122,22 +128,42 @@ struct connection::impl
     {
         schedule_next_read();
     }
-    
+
     // ======================================================================
-    // WRITE
+    // WRITE_BYTES
     // ======================================================================
-    /*
-    void write(std::vector<telnetpp::stream_token> const &data)
+    void write_bytes(telnetpp::bytes data)
     {
-        auto const &compressed_data = telnet_mccp_codec_.send(data);
-        auto const &stream = telnet_byte_converter_.send(compressed_data);
-        
-        if (stream.size() != 0)
+        output_buffer_.insert(
+            output_buffer_.end(),
+            data.begin(),
+            data.end());
+    }
+
+    // ======================================================================
+    // WRITE_ELEMENT
+    // ======================================================================
+    void write_element(telnetpp::element const &elem)
+    {
+        telnet_session_.send(
+            elem, 
+            [this](telnetpp::bytes data)
+            {
+                write_bytes(data);
+            });
+    }
+
+    // ======================================================================
+    // FLUSH_OUTPUT_BUFFER
+    // ======================================================================
+    void flush_output_buffer()
+    {
+        if (!output_buffer_.empty())
         {
-            socket_->write({stream.begin(), stream.end()});
+            socket_->write({output_buffer_.begin(), output_buffer_.end()});
+            output_buffer_.clear();
         }
     }
-    */
 
     // ======================================================================
     // SCHEDULE_NEXT_READ
@@ -167,11 +193,18 @@ struct connection::impl
     // ======================================================================
     void on_data(std::vector<odin::u8> const &data)
     {
-        /*
-        write(telnet_session_.send(
-            telnet_session_.receive({data.begin(), data.end()})));
-        */
-            
+        telnet_session_.receive(
+            data,
+            [this](telnetpp::bytes content, auto &&cont)
+            {
+                this->on_text(std::string(content.begin(), content.end()));
+            },
+            [this](telnetpp::bytes data)
+            {
+                write_bytes(data);
+            });
+
+        flush_output_buffer();
         schedule_next_read();
     }
     
@@ -182,11 +215,8 @@ struct connection::impl
     {
         if (!error && socket_->is_alive())
         {
-            /*
-            write(telnet_session_.send({
-                    telnetpp::element(telnetpp::command(telnetpp::nop))
-                }));
-            */
+            write_element(telnetpp::command{telnetpp::nop});
+            flush_output_buffer();
             schedule_keepalive();
         }
     }
@@ -229,9 +259,9 @@ struct connection::impl
     // ======================================================================
     // ON_TERMINAL_TYPE_DETECTED
     // ======================================================================
-    void on_terminal_type_detected(std::string const &type)
+    void on_terminal_type_detected(telnetpp::bytes type)
     {
-        terminal_type_ = type;
+        terminal_type_.assign(type.begin(), type.end());
         announce_terminal_type();
     }
 
@@ -249,7 +279,7 @@ struct connection::impl
     }
     
     std::shared_ptr<odin::net::socket>                   socket_;
-    std::vector<odin::u8>                                unparsed_bytes_;
+    boost::container::small_vector<odin::u8, 1024>       output_buffer_;
     
     std::function<void (std::string const &)>            on_data_read_;
     telnetpp::session                                    telnet_session_;
@@ -298,11 +328,10 @@ void connection::start()
 // ==========================================================================
 void connection::write(std::string const &data)
 {
-    /*
-    pimpl_->write(pimpl_->telnet_session_.send({
-        telnetpp::element(data)
-    }));
-    */
+    pimpl_->write_element(telnetpp::bytes(
+        reinterpret_cast<telnetpp::byte const *>(data.c_str()),
+        reinterpret_cast<telnetpp::byte const *>(data.c_str() + data.size())));
+    pimpl_->flush_output_buffer();
 }
 
 // ==========================================================================

@@ -68,8 +68,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region);
+        context                     &ctx,
+        terminalpp::rectangle const &region);
 
     struct impl;
     std::shared_ptr<impl> pimpl_;

@@ -27,29 +27,42 @@
 #ifndef PARADICE9_HPP_
 #define PARADICE9_HPP_
 
-#include <boost/asio/io_context.hpp>
+#include <serverpp/core.hpp>
 #include <memory>
 
 //* =========================================================================
 /// \brief A class that implements the main engine for the Paradice9 server.
-/// \param io_context - The engine will be run within using the dispatch
-///        mechanisms of this object.
-/// \brief work - A "work" object.  While this is not reset, the threads'
-///        run() methods will not terminate.  Resetting this work object
-///        is part of the shutdown protocol.
 /// \brief port - The server will be set up on this port number.
 //* =========================================================================
-class paradice9
+class paradice9 final
 {
 public :
-    paradice9(
-        boost::asio::io_context                        &io_context
-      , std::shared_ptr<boost::asio::io_context::work>  work
-      , unsigned int                                    port);
+    //* =====================================================================
+    /// Constructor
+    //* =====================================================================
+    paradice9(serverpp::port_identifier port);
     
+    //* =====================================================================
+    /// Destructor
+    //* =====================================================================
+    ~paradice9();
+
+    //* =====================================================================
+    /// Run Paradice9 in this thread
+    ///
+    /// Blocks until Paradice9 is shut donw. May be called multiple times to 
+    /// run the server on multiple threads.
+    //* =====================================================================
+    void run();
+
+    //* =====================================================================
+    /// Shuts Paradice9 down.  All running threads are released.
+    //* =====================================================================
+    void shutdown();
+
 private :
     struct impl;
-    std::shared_ptr<impl> pimpl_;
+    std::unique_ptr<impl> pimpl_;
 };
 
 #endif

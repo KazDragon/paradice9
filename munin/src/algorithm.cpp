@@ -27,20 +27,17 @@
 #include "munin/algorithm.hpp"
 #include <terminalpp/canvas.hpp>
 #include <munin/canvas_view.hpp>
-#include "odin/core.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>
-
-using namespace odin;
-using namespace boost;
-using namespace std;
 
 namespace munin {
 
 // ==========================================================================
 // INTERSECTION
 // ==========================================================================
-optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
+boost::optional<terminalpp::rectangle> intersection(
+    terminalpp::rectangle const &lhs, 
+    terminalpp::rectangle const &rhs)
 {
     // Check to see if the rectangles overlap.
 
@@ -70,7 +67,7 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
     // The overlapping rectangle has an origin that starts at the same x-
     // co-ordinate as the not-leftmost rectangle, and at the same y-co-ordinate
     // as the not-topmost rectangle.
-    rectangle overlap;
+    terminalpp::rectangle overlap;
     overlap.origin.x = not_leftmost.origin.x;
     overlap.origin.y = not_topmost.origin.y;
 
@@ -107,18 +104,20 @@ optional<rectangle> intersection(rectangle const &lhs, rectangle const &rhs)
 // ==========================================================================
 // CUT_SLICES
 // ==========================================================================
-static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
+static std::vector<terminalpp::rectangle> cut_slices(
+    std::vector<terminalpp::rectangle> const &rectangles)
 {
-    vector<rectangle> slices;
+    std::vector<terminalpp::rectangle> slices;
 
     for (auto &&current_rectangle : rectangles)
     {
-        for (odin::s32 row = 0; row < current_rectangle.size.height; ++row)
+        for (std::int32_t row = 0; row < current_rectangle.size.height; ++row)
         {
             slices.push_back(
-                rectangle{{ current_rectangle.origin.x
-                          , current_rectangle.origin.y + row}
-                        , {current_rectangle.size.width, 1}});
+                terminalpp::rectangle{{ current_rectangle.origin.x,
+                                        current_rectangle.origin.y + row },
+                                      { current_rectangle.size.width, 1 }
+                                     });
         }
     }
 
@@ -128,7 +127,9 @@ static vector<rectangle> cut_slices(vector<rectangle> const &rectangles)
 // ==========================================================================
 // COMPARE_SLICES
 // ==========================================================================
-static bool compare_slices(rectangle const &lhs, rectangle const &rhs)
+static bool compare_slices(
+    terminalpp::rectangle const &lhs, 
+    terminalpp::rectangle const &rhs)
 {
     if (lhs.origin.y == rhs.origin.y)
     {
@@ -143,7 +144,7 @@ static bool compare_slices(rectangle const &lhs, rectangle const &rhs)
 // ==========================================================================
 // HAS_EMPTY_HEIGHT
 // ==========================================================================
-static bool has_empty_height(rectangle const &rect)
+static bool has_empty_height(terminalpp::rectangle const &rect)
 {
     return rect.size.height == 0;
 }
@@ -151,7 +152,8 @@ static bool has_empty_height(rectangle const &rect)
 // ==========================================================================
 // MERGE_OVERLAPPING_SLICES
 // ==========================================================================
-static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
+static std::vector<terminalpp::rectangle> merge_overlapping_slices(
+    std::vector<terminalpp::rectangle> rectangles)
 {
     sort(rectangles.begin(), rectangles.end(), compare_slices);
 
@@ -201,7 +203,8 @@ static vector<rectangle> merge_overlapping_slices(vector<rectangle> rectangles)
 // ==========================================================================
 // RECTANGULAR_SLICE
 // ==========================================================================
-vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
+std::vector<terminalpp::rectangle> rectangular_slice(
+    std::vector<terminalpp::rectangle> const &rectangles)
 {
     return merge_overlapping_slices(cut_slices(rectangles));
 }
@@ -209,8 +212,8 @@ vector<rectangle> rectangular_slice(vector<rectangle> const &rectangles)
 // ==========================================================================
 // CLIP_REGION
 // ==========================================================================
-static munin::rectangle clip_region(
-    munin::rectangle region, terminalpp::extent size)
+static terminalpp::rectangle clip_region(
+    terminalpp::rectangle region, terminalpp::extent size)
 {
     if (region.origin.x < 0)
     {
@@ -254,7 +257,7 @@ static munin::rectangle clip_region(
 // ==========================================================================
 // HAS_ZERO_DIMENSION
 // ==========================================================================
-static bool has_zero_dimension(munin::rectangle const &region)
+static bool has_zero_dimension(terminalpp::rectangle const &region)
 {
     return region.size.width == 0 || region.size.height == 0;
 }
@@ -262,7 +265,8 @@ static bool has_zero_dimension(munin::rectangle const &region)
 // ==========================================================================
 // CLIP_REGIONS
 // ==========================================================================
-vector<rectangle> clip_regions(vector<rectangle> regions, terminalpp::extent size)
+std::vector<terminalpp::rectangle> clip_regions(
+    std::vector<terminalpp::rectangle> regions, terminalpp::extent size)
 {
     // Returns a vector of rectangles that is identical to the regions
     // passed in, except that their extends are clipped to those of the
@@ -279,7 +283,8 @@ vector<rectangle> clip_regions(vector<rectangle> regions, terminalpp::extent siz
 // ==========================================================================
 // PRUNE_REGIONS
 // ==========================================================================
-vector<rectangle> prune_regions(vector<rectangle> regions)
+std::vector<terminalpp::rectangle> prune_regions(
+    std::vector<terminalpp::rectangle> regions)
 {
     regions.erase(
         remove_if(
@@ -295,15 +300,15 @@ vector<rectangle> prune_regions(vector<rectangle> regions)
 // COPY_REGION
 // ==========================================================================
 void copy_region(
-    rectangle               const &region
+    terminalpp::rectangle   const &region
   , terminalpp::canvas      const &source
-  , munin::canvas_view       &destination)
+  , munin::canvas_view            &destination)
 {
-    for (s32 y_coord = region.origin.y;
+    for (auto y_coord = region.origin.y;
          y_coord < region.origin.y + region.size.height;
          ++y_coord)
     {
-        for (s32 x_coord = region.origin.x;
+        for (auto x_coord = region.origin.x;
              x_coord < region.origin.x + region.size.width;
              ++x_coord)
         {

@@ -40,7 +40,7 @@ struct default_singleline_document::impl
     }
 
     std::vector<terminalpp::element> text_;
-    odin::u32                        caret_index_;
+    std::uint32_t                        caret_index_;
 };
 
 // ==========================================================================
@@ -71,7 +71,7 @@ void default_singleline_document::do_set_size(terminalpp::extent)
 // ==========================================================================
 terminalpp::extent default_singleline_document::do_get_size() const
 {
-    return terminalpp::extent(odin::u32(pimpl_->text_.size()), odin::u32(1));
+    return terminalpp::extent(std::uint32_t(pimpl_->text_.size()), std::uint32_t(1));
 }
 
 // ==========================================================================
@@ -81,7 +81,7 @@ void default_singleline_document::do_set_caret_position(
     terminalpp::point const& pt)
 {
     pimpl_->caret_index_ = (std::min)(
-        odin::u32(pimpl_->text_.size()), odin::u32(pt.x));
+        std::uint32_t(pimpl_->text_.size()), std::uint32_t(pt.x));
 }
 
 // ==========================================================================
@@ -95,16 +95,16 @@ terminalpp::point default_singleline_document::do_get_caret_position() const
 // ==========================================================================
 // DO_SET_CARET_INDEX
 // ==========================================================================
-void default_singleline_document::do_set_caret_index(odin::u32 index)
+void default_singleline_document::do_set_caret_index(std::uint32_t index)
 {
     pimpl_->caret_index_ = (std::min)(
-        odin::u32(pimpl_->text_.size()), index);
+        std::uint32_t(pimpl_->text_.size()), index);
 }
 
 // ==========================================================================
 // DO_GET_CARET_INDEX
 // ==========================================================================
-odin::u32 default_singleline_document::do_get_caret_index() const
+std::uint32_t default_singleline_document::do_get_caret_index() const
 {
     return pimpl_->caret_index_;
 }
@@ -112,7 +112,7 @@ odin::u32 default_singleline_document::do_get_caret_index() const
 // ==========================================================================
 // DO_GET_TEXT_SIZE
 // ==========================================================================
-odin::u32 default_singleline_document::do_get_text_size() const
+std::uint32_t default_singleline_document::do_get_text_size() const
 {
     return pimpl_->text_.size();
 }
@@ -122,7 +122,7 @@ odin::u32 default_singleline_document::do_get_text_size() const
 // ==========================================================================
 void default_singleline_document::do_insert_text(
     terminalpp::string const  &text
-  , boost::optional<odin::u32> index)
+  , boost::optional<std::uint32_t> index)
 {
     auto old_index = pimpl_->caret_index_;
 
@@ -145,15 +145,15 @@ void default_singleline_document::do_insert_text(
 
     set_caret_index(get_caret_index() + stripped_text.size());
 
-    on_redraw({rectangle(
+    on_redraw({terminalpp::rectangle(
         terminalpp::point(old_index, 0)
-      , terminalpp::extent(odin::s32(text.size()), 0))});
+      , terminalpp::extent(std::int32_t(text.size()), 0))});
 }
 
 // ==========================================================================
 // DO_DELETE_TEXT
 // ==========================================================================
-void default_singleline_document::do_delete_text(std::pair<odin::u32, odin::u32> range)
+void default_singleline_document::do_delete_text(std::pair<std::uint32_t, std::uint32_t> range)
 {
     // Arrange the range in a start->end order.
     if (range.first > range.second)
@@ -163,7 +163,7 @@ void default_singleline_document::do_delete_text(std::pair<odin::u32, odin::u32>
     }
 
     // Discard nonexistent ranges.
-    if (range.first >= odin::u32(pimpl_->text_.size()))
+    if (range.first >= std::uint32_t(pimpl_->text_.size()))
     {
         return;
     }
@@ -187,7 +187,7 @@ void default_singleline_document::do_delete_text(std::pair<odin::u32, odin::u32>
     }
 
     // Finally, notify that the document has changed.
-    on_redraw({rectangle(
+    on_redraw({terminalpp::rectangle(
         terminalpp::point(range.first, 0)
       , terminalpp::extent(pimpl_->text_.size() - range.first, 1))});
 }
@@ -208,7 +208,7 @@ void default_singleline_document::do_set_text(terminalpp::string const &text)
     set_caret_index(get_caret_index());
 
     // Finally, notify that the document has changed.
-    on_redraw({rectangle(
+    on_redraw({terminalpp::rectangle(
         terminalpp::point(0, 0)
       , terminalpp::extent((std::max)(old_size, text.size()), 1))});
 }
@@ -216,7 +216,7 @@ void default_singleline_document::do_set_text(terminalpp::string const &text)
 // ==========================================================================
 // DO_GET_NUMBER_OF_LINES
 // ==========================================================================
-odin::u32 default_singleline_document::do_get_number_of_lines() const
+std::uint32_t default_singleline_document::do_get_number_of_lines() const
 {
     return 1;
 }
@@ -225,7 +225,7 @@ odin::u32 default_singleline_document::do_get_number_of_lines() const
 // DO_GET_LINE
 // ==========================================================================
 terminalpp::string default_singleline_document::do_get_line(
-    odin::u32 index) const
+    std::uint32_t index) const
 {
     return {pimpl_->text_.begin(), pimpl_->text_.end()};
 }

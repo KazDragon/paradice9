@@ -26,7 +26,6 @@
 #define PARADICE_RULES_HPP_
 
 #include "command.hpp"
-#include "odin/core.hpp"
 #include <memory>
 #include <string>
 
@@ -39,8 +38,8 @@ struct roll_data
     std::weak_ptr<client> roller;
     std::string           name;
     std::string           roll_text;
-    odin::s32             raw_score;
-    odin::s32             score;
+    std::int32_t             raw_score;
+    std::int32_t             score;
     bool                  max_roll;
 };
 

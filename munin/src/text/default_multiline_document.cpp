@@ -46,7 +46,7 @@ struct default_multiline_document::impl
     //* =====================================================================
     /// \brief Reindexes the document from the given line number.
     //* =====================================================================
-    void reindex(odin::u32 line)
+    void reindex(std::uint32_t line)
     {
         // Ignore this if the width is 0.
         if (width_ == 0)
@@ -69,7 +69,7 @@ struct default_multiline_document::impl
 
         // Starting from the index of the last line, count to the end of
         // the document, caching each start of each line.
-        for (odin::u32 index = current_line_index; index < text_.size(); ++index)
+        for (std::uint32_t index = current_line_index; index < text_.size(); ++index)
         {
             if (text_[index].glyph_.character_ == '\n')
             {
@@ -88,7 +88,7 @@ struct default_multiline_document::impl
     //* =====================================================================
     /// \brief Retrieves the length of the specified line.
     //* =====================================================================
-    odin::u32 get_line_length(odin::u32 line)
+    std::uint32_t get_line_length(std::uint32_t line)
     {
         // First case: if there is no such line, the length is 0.
         if (line >= line_indices_.size())
@@ -113,7 +113,7 @@ struct default_multiline_document::impl
     //* =====================================================================
     /// \brief Retrieves a position from a specified index.
     //* =====================================================================
-    terminalpp::point position_from_index(odin::u32 index)
+    terminalpp::point position_from_index(std::uint32_t index)
     {
         // Simple and common case: if the index is on the last line.
         auto last_line = line_indices_.size() - 1;
@@ -137,7 +137,7 @@ struct default_multiline_document::impl
         {
             // Search through the line indices to find the y position of the
             // required index.
-            odin::u32 current_line = 0;
+            std::uint32_t current_line = 0;
 
             for (; current_line < line_indices_.size(); ++current_line)
             {
@@ -158,7 +158,7 @@ struct default_multiline_document::impl
         }
 
         // Finally, correct for off-the-end.
-        if (odin::u32(caret_position.x) == width_)
+        if (std::uint32_t(caret_position.x) == width_)
         {
             caret_position.x = 0;
             ++caret_position.y;
@@ -171,10 +171,10 @@ struct default_multiline_document::impl
     std::vector<terminalpp::element> text_;
 
     // The indices at which each text line starts.
-    std::vector<odin::u32>            line_indices_;
+    std::vector<std::uint32_t>            line_indices_;
 
     // The width of the document
-    odin::u32                         width_;
+    std::uint32_t                         width_;
 
     // The current position at which the caret resides in the document.
     terminalpp::point                 caret_position_;
@@ -203,7 +203,7 @@ void default_multiline_document::do_set_size(terminalpp::extent size)
     // Re-indexing and redrawing a document is potentially a lot of work.
     // Avoid it if we can by only reindexing and redrawing if the width has
     // actually changed.
-    if (pimpl_->width_ != odin::u32(size.width))
+    if (pimpl_->width_ != std::uint32_t(size.width))
     {
         auto caret_index = get_caret_index();
 
@@ -214,7 +214,7 @@ void default_multiline_document::do_set_size(terminalpp::extent size)
         pimpl_->reindex(0);
 
         // The entire document may well have changed.  Redraw it all.
-        on_redraw({munin::rectangle({}, get_size())});
+        on_redraw({terminalpp::rectangle({}, get_size())});
 
         // Update the caret position based on the caret index before the
         // resize.
@@ -225,7 +225,7 @@ void default_multiline_document::do_set_size(terminalpp::extent size)
     // However, since this may indicate a caret position change (due to the
     // document being shrunk vertically, for example), update the caret
     // position.
-    if (pimpl_->line_indices_.size() != odin::u32(size.height))
+    if (pimpl_->line_indices_.size() != std::uint32_t(size.height))
     {
         set_caret_position(get_caret_position());
     }
@@ -247,7 +247,7 @@ void default_multiline_document::do_set_caret_position(
 {
     // The new position can go no lower than the end of the current document.
     pimpl_->caret_position_.y =
-        (std::min)(odin::u32(pt.y), odin::u32(pimpl_->line_indices_.size() - 1));
+        (std::min)(std::uint32_t(pt.y), std::uint32_t(pimpl_->line_indices_.size() - 1));
 
     // The new x-position can go no further than the space after the last
     // character on this line.
@@ -257,7 +257,7 @@ void default_multiline_document::do_set_caret_position(
     if (line_length != 0)
     {
         pimpl_->caret_position_.x =
-            (std::min)(odin::u32(pt.x), odin::u32(line_length));
+            (std::min)(std::uint32_t(pt.x), std::uint32_t(line_length));
     }
     else
     {
@@ -276,7 +276,7 @@ terminalpp::point default_multiline_document::do_get_caret_position() const
 // ==========================================================================
 // DO_SET_CARET_INDEX
 // ==========================================================================
-void default_multiline_document::do_set_caret_index(odin::u32 index)
+void default_multiline_document::do_set_caret_index(std::uint32_t index)
 {
     pimpl_->caret_position_ = pimpl_->position_from_index(index);
 }
@@ -284,21 +284,21 @@ void default_multiline_document::do_set_caret_index(odin::u32 index)
 // ==========================================================================
 // DO_GET_CARET_INDEX
 // ==========================================================================
-odin::u32 default_multiline_document::do_get_caret_index() const
+std::uint32_t default_multiline_document::do_get_caret_index() const
 {
     auto caret_position = get_caret_position();
 
-    return odin::u32(caret_position.y) >= odin::u32(pimpl_->line_indices_.size())
-      ? odin::u32(pimpl_->text_.size())
+    return std::uint32_t(caret_position.y) >= std::uint32_t(pimpl_->line_indices_.size())
+      ? std::uint32_t(pimpl_->text_.size())
       : (std::min)(
-            odin::u32(pimpl_->line_indices_[caret_position.y] + caret_position.x),
-            odin::u32(pimpl_->text_.size()));
+            std::uint32_t(pimpl_->line_indices_[caret_position.y] + caret_position.x),
+            std::uint32_t(pimpl_->text_.size()));
 }
 
 // ==========================================================================
 // DO_GET_TEXT_SIZE
 // ==========================================================================
-odin::u32 default_multiline_document::do_get_text_size() const
+std::uint32_t default_multiline_document::do_get_text_size() const
 {
     return pimpl_->text_.size();
 }
@@ -308,7 +308,7 @@ odin::u32 default_multiline_document::do_get_text_size() const
 // ==========================================================================
 void default_multiline_document::do_insert_text(
     terminalpp::string const  &text,
-    boost::optional<odin::u32> index)
+    boost::optional<std::uint32_t> index)
 {
     // Get the current caret position and index.
     auto caret_index = get_caret_index();
@@ -362,7 +362,7 @@ void default_multiline_document::do_insert_text(
 
     // Finally, since this could affect all regions from the insert row
     // downwards, schedule those portions of the document for a redraw.
-    on_redraw({munin::rectangle(
+    on_redraw({terminalpp::rectangle(
         terminalpp::point(0, insert_position.y), get_size())});
 }
 
@@ -384,7 +384,7 @@ void default_multiline_document::do_set_text(terminalpp::string const &text)
     // Schedule a redraw for the union of the old and new documents.
     auto new_size = get_size();
 
-    on_redraw({munin::rectangle(
+    on_redraw({terminalpp::rectangle(
         terminalpp::point(0, 0)
       , terminalpp::extent(
           (std::max)(old_size.width, new_size.width),
@@ -394,7 +394,7 @@ void default_multiline_document::do_set_text(terminalpp::string const &text)
 // ==========================================================================
 // DO_DELETE_TEXT
 // ==========================================================================
-void default_multiline_document::do_delete_text(std::pair<odin::u32, odin::u32> range)
+void default_multiline_document::do_delete_text(std::pair<std::uint32_t, std::uint32_t> range)
 {
     // Arrange the range in a start->end order.
     if (range.first > range.second)
@@ -404,7 +404,7 @@ void default_multiline_document::do_delete_text(std::pair<odin::u32, odin::u32> 
     }
 
     // Discard nonexistent ranges.
-    if (range.first >= odin::u32(pimpl_->text_.size()))
+    if (range.first >= std::uint32_t(pimpl_->text_.size()))
     {
         return;
     }
@@ -435,7 +435,7 @@ void default_multiline_document::do_delete_text(std::pair<odin::u32, odin::u32> 
     }
 
     // Finally, notify that the document has changed.
-    on_redraw({munin::rectangle(
+    on_redraw({terminalpp::rectangle(
         terminalpp::point(0, range_start_position.y)
       , terminalpp::extent(
           pimpl_->width_
@@ -445,16 +445,16 @@ void default_multiline_document::do_delete_text(std::pair<odin::u32, odin::u32> 
 // ==========================================================================
 // DO_GET_NUMBER_OF_LINES
 // ==========================================================================
-odin::u32 default_multiline_document::do_get_number_of_lines() const
+std::uint32_t default_multiline_document::do_get_number_of_lines() const
 {
-    return odin::u32(pimpl_->line_indices_.size());
+    return std::uint32_t(pimpl_->line_indices_.size());
 }
 
 // ==========================================================================
 // DO_GET_LINE
 // ==========================================================================
 terminalpp::string default_multiline_document::do_get_line(
-    odin::u32 index) const
+    std::uint32_t index) const
 {
     // Special case: if the text area is empty, return an empty array.
     if (pimpl_->text_.empty())
@@ -467,7 +467,7 @@ terminalpp::string default_multiline_document::do_get_line(
         // The beginning point of the selected line is already cached into
         // the view.
         auto line_begin = pimpl_->line_indices_[index];
-        odin::u32 line_length = 0;
+        std::uint32_t line_length = 0;
 
         // Count forwards until we either move onto the next line or hit a \n.
         while (line_length < pimpl_->width_

@@ -31,18 +31,18 @@
 
 namespace munin {
 
-BOOST_STATIC_CONSTANT(odin::u32, HORIZONTAL_ALIGNMENT_LEFT   = 0);
-BOOST_STATIC_CONSTANT(odin::u32, HORIZONTAL_ALIGNMENT_CENTRE = 1);
-BOOST_STATIC_CONSTANT(odin::u32, HORIZONTAL_ALIGNMENT_RIGHT  = 2);
+BOOST_STATIC_CONSTANT(std::uint32_t, HORIZONTAL_ALIGNMENT_LEFT   = 0);
+BOOST_STATIC_CONSTANT(std::uint32_t, HORIZONTAL_ALIGNMENT_CENTRE = 1);
+BOOST_STATIC_CONSTANT(std::uint32_t, HORIZONTAL_ALIGNMENT_RIGHT  = 2);
 
-BOOST_STATIC_CONSTANT(odin::u32, VERTICAL_ALIGNMENT_TOP    = 0);
-BOOST_STATIC_CONSTANT(odin::u32, VERTICAL_ALIGNMENT_CENTRE = 1);
-BOOST_STATIC_CONSTANT(odin::u32, VERTICAL_ALIGNMENT_BOTTOM = 2);
+BOOST_STATIC_CONSTANT(std::uint32_t, VERTICAL_ALIGNMENT_TOP    = 0);
+BOOST_STATIC_CONSTANT(std::uint32_t, VERTICAL_ALIGNMENT_CENTRE = 1);
+BOOST_STATIC_CONSTANT(std::uint32_t, VERTICAL_ALIGNMENT_BOTTOM = 2);
 
 struct alignment_data
 {
-    odin::u32 horizontal_alignment;
-    odin::u32 vertical_alignment;
+    std::uint32_t horizontal_alignment;
+    std::uint32_t vertical_alignment;
 };
 
 //* =========================================================================

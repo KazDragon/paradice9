@@ -204,11 +204,11 @@ void intro_screen::clear()
 {
     // Erase the text in the name field.    
     auto document = pimpl_->intro_name_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     // Erase the text in the password field.
     document = pimpl_->intro_password_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
 }
 
 // ==========================================================================

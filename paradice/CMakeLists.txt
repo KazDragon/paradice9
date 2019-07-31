@@ -15,6 +15,7 @@ set (PARADICE_SOURCE_FILES
     src/help.cpp
     src/random.cpp
     src/rules.cpp
+    src/tokenise.cpp
     src/utility.cpp
     src/who.cpp
 )
@@ -40,6 +41,7 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/help.hpp
     include/paradice/random.hpp
     include/paradice/rules.hpp
+    include/paradice/tokenise.hpp
     include/paradice/utility.hpp
     include/paradice/who.hpp
 )
@@ -75,6 +77,7 @@ target_link_libraries(paradice
     PUBLIC
         odin
         CONAN_PKG::terminalpp
+        CONAN_PKG::serverpp
     PRIVATE
         munin
         hugin

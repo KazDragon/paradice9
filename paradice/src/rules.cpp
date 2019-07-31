@@ -31,7 +31,7 @@
 #include "paradice/active_encounter.hpp"
 #include "paradice/context.hpp"
 #include "paradice/random.hpp"
-#include "odin/tokenise.hpp"
+#include "paradice/tokenise.hpp"
 #include <boost/format.hpp>
 #include <map>
 #include <mutex>
@@ -42,7 +42,7 @@
 namespace paradice {
 
 namespace {
-    BOOST_STATIC_CONSTANT(odin::u32, max_encounter_rolls = 10);
+    BOOST_STATIC_CONSTANT(std::uint32_t, max_encounter_rolls = 10);
     
     static std::map<
         std::string,           // category.
@@ -107,11 +107,11 @@ static dice_result throw_dice(roller const &rlr, dice_roll const &roll)
     result.roller_ = rlr;
     result.roll_ = roll;
 
-    for (odin::u32 repetition = 0; repetition < roll.repetitions_; ++repetition)
+    for (std::uint32_t repetition = 0; repetition < roll.repetitions_; ++repetition)
     {
-        std::vector<odin::s32> raw_dice;
+        std::vector<std::int32_t> raw_dice;
 
-        for (odin::u32 die = 0; die < roll.amount_; ++die)
+        for (std::uint32_t die = 0; die < roll.amount_; ++die)
         {
             raw_dice.push_back(random_number(1, roll.sides_));
         }
@@ -188,7 +188,7 @@ static void execute_roll(
     dice_result result = throw_dice(player, roll);
     auto dice_description = describe_dice(roll);
 
-    odin::s32 total_score = 0;
+    std::int32_t total_score = 0;
 
     std::string dice_text;
 
@@ -353,7 +353,7 @@ PARADICE_COMMAND_IMPL(roll)
     }
 
     // Store a category if the user entered one.
-    auto category = odin::tokenise(std::string(begin, end)).first;
+    auto category = paradice::tokenise(std::string(begin, end)).first;
 
     execute_roll(ctx, category, rolls.get(), player, false);
 }
@@ -388,10 +388,10 @@ PARADICE_COMMAND_IMPL(rollprivate)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(showrolls)
 {
-    auto tokens   = odin::tokenise(arguments);
+    auto tokens   = paradice::tokenise(arguments);
     auto category = tokens.first;
     
-    tokens        = odin::tokenise(tokens.second);
+    tokens        = paradice::tokenise(tokens.second);
     auto order    = tokens.first;
     
     if (category == "")
@@ -442,7 +442,7 @@ PARADICE_COMMAND_IMPL(showrolls)
         "\n===== Rolls in the %s category =====")
         % category);
     
-    for (odin::u32 index = 0; index < rolls.size(); ++index)
+    for (std::uint32_t index = 0; index < rolls.size(); ++index)
     {
         roll_data &data = rolls[index];
         auto roller = data.roller.lock();
@@ -471,7 +471,7 @@ PARADICE_COMMAND_IMPL(showrolls)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(clearrolls)
 {
-    auto category = odin::tokenise(arguments).first;
+    auto category = paradice::tokenise(arguments).first;
     
     if (category == "")
     {

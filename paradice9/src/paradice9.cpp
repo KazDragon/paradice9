@@ -25,6 +25,11 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/paradice9.hpp"
+
+#include "paradice/client.hpp"
+#include <serverpp/tcp_server.hpp>
+#include <boost/make_unique.hpp>
+/*
 #include "paradice9/context_impl.hpp"
 #include "paradice/character.hpp"
 #include "paradice/client.hpp"
@@ -36,6 +41,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <map>
 #include <utility>
+*/
 
 // ==========================================================================
 // PARADICE9::IMPLEMENTATION STRUCTURE
@@ -46,28 +52,43 @@ public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(
-        boost::asio::io_context                        &io_context
-      , std::shared_ptr<boost::asio::io_context::work>  work
-      , unsigned int                                    port)
-        : io_service_(io_context) 
-        , server_(new odin::net::server(
-              io_service_
-            , port
-            , [this](auto socket){
-                  this->on_accept(socket);
-              }))
+    impl(serverpp::port_identifier port)
+      : server_{port}
+      /*
         , context_(std::make_shared<context_impl>(
               std::ref(io_context), server_, std::ref(work)))
+      */
     {
+    }
+
+    // ======================================================================
+    // RUN
+    // ======================================================================
+    void run()
+    {
+        server_.accept(
+            [this](serverpp::tcp_socket &&new_socket)
+            {
+                on_accept(std::move(new_socket));
+            });
+    }
+
+    // ======================================================================
+    // SHUTDOWN
+    // ======================================================================
+    void shutdown()
+    {
+        server_.shutdown();
     }
 
 private :
     // ======================================================================
     // ON_ACCEPT
     // ======================================================================
-    void on_accept(std::shared_ptr<odin::net::socket> const &socket)
+    void on_accept(serverpp::tcp_socket &&new_socket)
     {
+
+        /*
         // Create the connection and client structures for the socket.
         auto connection = std::make_shared<paradice::connection>(socket);
         pending_connections_.push_back(connection);
@@ -97,8 +118,10 @@ private :
             });
 
         connection->start();
+        */
     }
 
+/*
     // ======================================================================
     // ON_TERMINAL_TYPE
     // ======================================================================
@@ -212,8 +235,8 @@ private :
     // ======================================================================
     void on_window_size_changed(
         std::weak_ptr<paradice::connection> weak_connection,
-        odin::u16                           width,
-        odin::u16                           height)
+        std::uint16_t                           width,
+        std::uint16_t                           height)
     {
         // This is only called during the negotiation process.  We save
         // the size so that it can be given to the client once the process
@@ -234,17 +257,40 @@ private :
     std::vector<std::shared_ptr<paradice::connection>> pending_connections_;
     std::map<
         std::shared_ptr<paradice::connection>, 
-        std::pair<odin::u16, odin::u16> > pending_sizes_; 
+        std::pair<std::uint16_t, std::uint16_t> > pending_sizes_; 
+*/
+    serverpp::tcp_server server_;
+    
+    std::mutex clients_mutex_;
+    std::vector<std::unique_ptr<paradice::client>> clients_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-paradice9::paradice9(
-    boost::asio::io_context                        &io_context
-  , std::shared_ptr<boost::asio::io_context::work>  work
-  , unsigned int                        port)
-    : pimpl_(new impl(io_context, work, port))  
+paradice9::paradice9(serverpp::port_identifier port)
+    : pimpl_(boost::make_unique<impl>(port))
 {
+}
+
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
+paradice9::~paradice9() = default;
+
+// ==========================================================================
+// RUN
+// ==========================================================================
+void paradice9::run()
+{
+    pimpl_->run();
+}
+
+// ==========================================================================
+// SHUTDOWN
+// ==========================================================================
+void paradice9::shutdown()
+{
+    pimpl_->shutdown();
 }
 

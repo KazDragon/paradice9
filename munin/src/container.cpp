@@ -59,7 +59,7 @@ struct container::impl
     // ======================================================================
     void subcomponent_redraw_handler(
         std::weak_ptr<component> weak_subcomponent,
-        std::vector<rectangle>   regions)
+        std::vector<terminalpp::rectangle>   regions)
     {
         auto subcomponent = weak_subcomponent.lock();
 
@@ -105,11 +105,11 @@ struct container::impl
         if (dirty_)
         {
             components_.clear();
-            std::vector<odin::u32> layers;
+            std::vector<std::uint32_t> layers;
 
             auto number_of_components = self_.get_number_of_components();
 
-            for (odin::u32 index = 0; index < number_of_components; ++index)
+            for (std::uint32_t index = 0; index < number_of_components; ++index)
             {
                 auto comp       = self_.get_component(index);
                 auto comp_layer = self_.get_component_layer(index);
@@ -164,7 +164,7 @@ container::~container()
 // ==========================================================================
 // GET_NUMBER_OF_COMPONENTS
 // ==========================================================================
-odin::u32 container::get_number_of_components() const
+std::uint32_t container::get_number_of_components() const
 {
     return do_get_number_of_components();
 }
@@ -175,7 +175,7 @@ odin::u32 container::get_number_of_components() const
 void container::add_component(
     std::shared_ptr<component> const &comp
   , boost::any                 const &layout_hint
-  , odin::u32                         layer)
+  , std::uint32_t                         layer)
 {
     do_add_component(comp, layout_hint, layer);
     pimpl_->dirty_ = true;
@@ -207,7 +207,7 @@ void container::add_component(
     on_layout_change();
 
     // A redraw of the container is required.
-    on_redraw({ rectangle({}, get_size()) });
+    on_redraw({ terminalpp::rectangle({}, get_size()) });
 }
 
 // ==========================================================================
@@ -247,7 +247,7 @@ void container::remove_component(std::shared_ptr<component> const &comp)
 // ==========================================================================
 // GET_COMPONENT
 // ==========================================================================
-std::shared_ptr<component> container::get_component(odin::u32 index) const
+std::shared_ptr<component> container::get_component(std::uint32_t index) const
 {
     return do_get_component(index);
 }
@@ -255,7 +255,7 @@ std::shared_ptr<component> container::get_component(odin::u32 index) const
 // ==========================================================================
 // GET_COMPONENT_HINT
 // ==========================================================================
-boost::any container::get_component_hint(odin::u32 index) const
+boost::any container::get_component_hint(std::uint32_t index) const
 {
     return do_get_component_hint(index);
 }
@@ -263,7 +263,7 @@ boost::any container::get_component_hint(odin::u32 index) const
 // ==========================================================================
 // GET_COMPONENT_LAYER
 // ==========================================================================
-odin::u32 container::get_component_layer(odin::u32 index) const
+std::uint32_t container::get_component_layer(std::uint32_t index) const
 {
     return do_get_component_layer(index);
 }
@@ -273,7 +273,7 @@ odin::u32 container::get_component_layer(odin::u32 index) const
 // ==========================================================================
 void container::set_layout(
     std::unique_ptr<munin::layout> lyt
-  , odin::u32                      layer /*= DEFAULT_LAYER*/)
+  , std::uint32_t                      layer /*= DEFAULT_LAYER*/)
 {
     do_set_layout(std::move(lyt), layer);
 }
@@ -281,7 +281,7 @@ void container::set_layout(
 // ==========================================================================
 // GET_LAYOUT
 // ==========================================================================
-boost::optional<munin::layout &> container::get_layout(odin::u32 layer) const
+boost::optional<munin::layout &> container::get_layout(std::uint32_t layer) const
 {
     return do_get_layout(layer);
 }
@@ -289,7 +289,7 @@ boost::optional<munin::layout &> container::get_layout(odin::u32 layer) const
 // ==========================================================================
 // GET_LAYOUT_LAYERS
 // ==========================================================================
-std::vector<odin::u32> container::get_layout_layers() const
+std::vector<std::uint32_t> container::get_layout_layers() const
 {
     return do_get_layout_layers();
 }
@@ -298,8 +298,8 @@ std::vector<odin::u32> container::get_layout_layers() const
 // DO_DRAW
 // ==========================================================================
 void container::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     auto &cvs = ctx.get_canvas();
 
@@ -312,7 +312,7 @@ void container::do_draw(
         // The area we want to draw is the intersection of the region
         // passed in above and the region of space that the component
         // occupies.
-        rectangle component_region(
+        terminalpp::rectangle component_region(
             current_component->get_position()
           , current_component->get_size());
 

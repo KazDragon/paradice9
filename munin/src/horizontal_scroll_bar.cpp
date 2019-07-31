@@ -51,8 +51,8 @@ struct horizontal_scroll_bar::impl
     // DO_DRAW
     // ======================================================================
     void do_draw(
-        munin::canvas_view &cvs
-      , rectangle const &region)
+        munin::canvas_view &cvs,
+        terminalpp::rectangle const &region)
     {
         draw_beam(cvs, region);
 
@@ -68,14 +68,14 @@ struct horizontal_scroll_bar::impl
     // ======================================================================
     void draw_beam(
         munin::canvas_view &cvs
-      , rectangle const &region)
+      , terminalpp::rectangle const &region)
     {
         // Draws the beam on which the slider is placed.
-        for (odin::s32 y_coord = region.origin.y;
+        for (std::int32_t y_coord = region.origin.y;
              y_coord < region.origin.y + region.size.height;
              ++y_coord)
         {
-            for (odin::s32 x_coord = region.origin.x;
+            for (std::int32_t x_coord = region.origin.x;
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
@@ -116,11 +116,11 @@ struct horizontal_scroll_bar::impl
         // is slightly inwards.
         slider_position_ = (percentage == 0)
                          ? 0
-                         : (std::max)(slider_position_, odin::s32(1));
+                         : (std::max)(slider_position_, std::int32_t(1));
 
         slider_position_ = (percentage == 100)
                          ? (size.width - 1)
-                         : (std::min)(slider_position_, odin::s32(size.width - 2));
+                         : (std::min)(slider_position_, std::int32_t(size.width - 2));
 
     }
 
@@ -129,13 +129,13 @@ struct horizontal_scroll_bar::impl
     // ======================================================================
     void draw_slider(
         munin::canvas_view &cvs
-      , rectangle const &region)
+      , terminalpp::rectangle const &region)
     {
         // Now that we know precisely where the slider is, check that it is
         // within the redraw region.
         if (intersection(
             region
-          , rectangle(
+          , terminalpp::rectangle(
                 terminalpp::point(slider_position_, 0)
               , terminalpp::extent(1, 1))))
         {
@@ -163,8 +163,8 @@ struct horizontal_scroll_bar::impl
 
     horizontal_scroll_bar     &self_;
     terminalpp::attribute      pen_;
-    odin::s32                  slider_position_;
-    boost::optional<odin::u8>  percentage_;
+    std::int32_t                  slider_position_;
+    boost::optional<std::uint8_t>  percentage_;
 };
 
 // ==========================================================================
@@ -186,7 +186,7 @@ horizontal_scroll_bar::~horizontal_scroll_bar()
 // ==========================================================================
 // GET_SLIDER_POSITION
 // ==========================================================================
-boost::optional<odin::u8> horizontal_scroll_bar::get_slider_position() const
+boost::optional<std::uint8_t> horizontal_scroll_bar::get_slider_position() const
 {
     return pimpl_->percentage_;
 }
@@ -194,7 +194,7 @@ boost::optional<odin::u8> horizontal_scroll_bar::get_slider_position() const
 // ==========================================================================
 // SET_SLIDER_POSITION
 // ==========================================================================
-void horizontal_scroll_bar::set_slider_position(boost::optional<odin::u8> percentage)
+void horizontal_scroll_bar::set_slider_position(boost::optional<std::uint8_t> percentage)
 {
     auto old_slider_position = pimpl_->slider_position_;
     auto old_percentage = pimpl_->percentage_;
@@ -208,10 +208,10 @@ void horizontal_scroll_bar::set_slider_position(boost::optional<odin::u8> percen
         // Therefore, we need to redraw both where the slider was, and
         // where the slider now is.
         on_redraw({
-            rectangle(
+            terminalpp::rectangle(
                 terminalpp::point(old_slider_position, 0)
               , terminalpp::extent(1, 1))
-          , rectangle(
+          , terminalpp::rectangle(
                 terminalpp::point(pimpl_->slider_position_, 0)
               , terminalpp::extent(1, 1))});
     }
@@ -219,7 +219,7 @@ void horizontal_scroll_bar::set_slider_position(boost::optional<odin::u8> percen
     {
         // The slider has been turned either on or off.  Redraw it.
         on_redraw({
-            rectangle(
+            terminalpp::rectangle(
                 terminalpp::point(pimpl_->slider_position_, 0)
               , terminalpp::extent(1, 1))});
     }
@@ -246,8 +246,8 @@ void horizontal_scroll_bar::do_set_size(terminalpp::extent const &size)
 // DO_DRAW
 // ==========================================================================
 void horizontal_scroll_bar::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     pimpl_->do_draw(ctx.get_canvas(), region);
 }
@@ -280,7 +280,7 @@ void horizontal_scroll_bar::do_set_attribute(std::string const &name, boost::any
             pimpl_->pen_ = *pen;
         }
 
-        on_redraw({rectangle({}, get_size())});
+        on_redraw({terminalpp::rectangle({}, get_size())});
     }
 }
 

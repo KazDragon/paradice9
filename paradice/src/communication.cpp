@@ -29,11 +29,10 @@
 #include "paradice/client.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
+#include "paradice/tokenise.hpp"
 #include "paradice/utility.hpp"
 #include "hugin/user_interface.hpp"
 #include "munin/algorithm.hpp"
-#include "odin/tokenise.hpp"
-#include "odin/core.hpp"
 #include "terminalpp/encoder.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
@@ -160,7 +159,7 @@ PARADICE_COMMAND_IMPL(say)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(whisper)
 {
-    auto arg = odin::tokenise(arguments);
+    auto arg = paradice::tokenise(arguments);
 
     if (arg.first.empty() || arg.second.empty())
     {

@@ -28,7 +28,6 @@
 #define PARADICE_WHO_HPP_
 
 #include "command.hpp"
-#include "odin/core.hpp"
 #include <boost/utility.hpp>
 #include <string>
 
@@ -36,8 +35,8 @@ namespace paradice {
 
 class character;
 
-BOOST_STATIC_CONSTANT(odin::u16, minimum_name_size = 3);
-BOOST_STATIC_CONSTANT(odin::u16, maximum_name_size = 36);
+BOOST_STATIC_CONSTANT(std::uint16_t, minimum_name_size = 3);
+BOOST_STATIC_CONSTANT(std::uint16_t, maximum_name_size = 36);
     
 PARADICE_COMMAND_DECL(title);
 PARADICE_COMMAND_DECL(prefix);

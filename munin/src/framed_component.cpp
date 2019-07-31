@@ -74,7 +74,7 @@ private :
         terminalpp::extent preferred_interior_size;
         terminalpp::extent preferred_border_size;
 
-        for (odin::u32 index = 0; index < components.size(); ++index)
+        for (std::uint32_t index = 0; index < components.size(); ++index)
         {
             auto comp     = components[index];
             auto any_hint = hints[index];
@@ -116,7 +116,7 @@ private :
     {
         // This layout expects only two subcomponents: a frame, and a central
         // component.  It lays them out in the expected format.
-        for (odin::u32 index = 0; index < components.size(); ++index)
+        for (std::uint32_t index = 0; index < components.size(); ++index)
         {
             auto comp     = components[index];
             auto any_hint = hints[index];
@@ -159,10 +159,10 @@ private :
         }
     }
 
-    mutable odin::s32 border_top_height_;
-    mutable odin::s32 border_bottom_height_;
-    mutable odin::s32 border_left_width_;
-    mutable odin::s32 border_right_width_;
+    mutable std::int32_t border_top_height_;
+    mutable std::int32_t border_bottom_height_;
+    mutable std::int32_t border_left_width_;
+    mutable std::int32_t border_right_width_;
 };
 
 }
@@ -266,9 +266,9 @@ void framed_component::do_event(boost::any const &event)
         // that.  Otherwise, it's clicking the frame, so we set focus
         // instead.
         if (intersection(
-            rectangle(pimpl_->interior_->get_position()
+            terminalpp::rectangle(pimpl_->interior_->get_position()
                     , pimpl_->interior_->get_size())
-          , rectangle(terminalpp::point(report->x_position_, report->y_position_)
+          , terminalpp::rectangle(terminalpp::point(report->x_position_, report->y_position_)
                     , terminalpp::extent{1, 1})))
         {
             auto position = pimpl_->interior_->get_position();

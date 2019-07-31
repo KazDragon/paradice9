@@ -30,7 +30,6 @@ set (MUNIN_SOURCE_FILES
     src/layout.cpp
     src/list.cpp
     src/named_frame.cpp
-    src/rectangle.cpp
     src/scroll_pane.cpp
     src/solid_frame.cpp
     src/status_bar.cpp
@@ -75,7 +74,6 @@ set (MUNIN_INCLUDE_FILES
     include/munin/layout.hpp
     include/munin/list.hpp
     include/munin/named_frame.hpp
-    include/munin/rectangle.hpp
     include/munin/sco_glyphs.hpp
     include/munin/scroll_pane.hpp
     include/munin/solid_frame.hpp
@@ -115,6 +113,7 @@ target_link_libraries(munin
     PUBLIC
         odin
         CONAN_PKG::boost_any
+        CONAN_PKG::boost_asio
         CONAN_PKG::boost_scope_exit
         CONAN_PKG::boost_signals2
         CONAN_PKG::terminalpp

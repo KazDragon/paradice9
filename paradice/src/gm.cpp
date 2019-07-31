@@ -27,8 +27,8 @@
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
 #include "paradice/context.hpp"
+#include "paradice/tokenise.hpp"
 #include "hugin/user_interface.hpp"
-#include "odin/tokenise.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
@@ -97,7 +97,7 @@ static void add_encounter_player(
 }
 
 static void remove_encounter_participant(
-    odin::u32 id,
+    std::uint32_t id,
     std::shared_ptr<context> ctx)
 {
     auto enc = ctx->get_active_encounter();
@@ -117,7 +117,7 @@ static void remove_encounter_participant(
 
 PARADICE_COMMAND_IMPL(gm_encounter_add_player)
 {
-    auto arg0 = odin::tokenise(arguments);
+    auto arg0 = paradice::tokenise(arguments);
     auto argument = arg0.first;
 
     for (auto cli : ctx->get_clients())
@@ -146,7 +146,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_add_players)
 
 PARADICE_COMMAND_IMPL(gm_encounter_add)
 {
-    auto arg0 = odin::tokenise(arguments);
+    auto arg0 = paradice::tokenise(arguments);
     auto argument = arg0.first;
 
 #define DISPATCH_GM_ENCOUNTER_ADD_COMMAND(cmd) \
@@ -169,7 +169,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_add)
 
 PARADICE_COMMAND_IMPL(gm_encounter_remove)
 {
-    auto arg0 = odin::tokenise(arguments);
+    auto arg0 = paradice::tokenise(arguments);
     auto argument = arg0.first;
 
     if (argument == "all")
@@ -180,11 +180,11 @@ PARADICE_COMMAND_IMPL(gm_encounter_remove)
     }
     else
     {
-        odin::u32 id = 0;
+        std::uint32_t id = 0;
  
         try
         {
-            id = boost::lexical_cast<odin::u32>(argument);
+            id = boost::lexical_cast<std::uint32_t>(argument);
         }
         catch(boost::bad_lexical_cast const &)
         {
@@ -208,14 +208,14 @@ PARADICE_COMMAND_IMPL(gm_encounter_remove)
 
 PARADICE_COMMAND_IMPL(gm_encounter_move)
 {
-    auto arg0 = odin::tokenise(arguments);
+    auto arg0 = paradice::tokenise(arguments);
     auto id_arg = arg0.first;
 
-    odin::u32 id = 0;
+    std::uint32_t id = 0;
 
     try
     {
-        id = boost::lexical_cast<odin::u32>(id_arg);
+        id = boost::lexical_cast<std::uint32_t>(id_arg);
     }
     catch(boost::bad_lexical_cast const &)
     {
@@ -248,7 +248,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_move)
         return;
     }
 
-    auto arg1 = odin::tokenise(arg0.second);
+    auto arg1 = paradice::tokenise(arg0.second);
     auto dir_arg = arg1.first;
 
     if (dir_arg == "up")
@@ -292,7 +292,7 @@ PARADICE_COMMAND_IMPL(gm_encounter_move)
 
 PARADICE_COMMAND_IMPL(gm_encounter)
 {
-    auto arg0 = odin::tokenise(arguments);
+    auto arg0 = paradice::tokenise(arguments);
     auto argument = arg0.first;
 
 #define DISPATCH_GM_ENCOUNTER_COMMAND(cmd) \
@@ -323,7 +323,7 @@ PARADICE_COMMAND_IMPL(gm_encounter)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(gm)
 {
-    auto arg0 = odin::tokenise(arguments);
+    auto arg0 = paradice::tokenise(arguments);
     auto argument = arg0.first;
 
 #define DISPATCH_GM_COMMAND(cmd) \

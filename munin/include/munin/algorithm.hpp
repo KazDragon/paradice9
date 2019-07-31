@@ -28,7 +28,7 @@
 #define MUNIN_ALGORITHM_HPP_
 
 #include "munin/export.hpp"
-#include "munin/rectangle.hpp"
+#include <terminalpp/rectangle.hpp>
 #include <boost/optional.hpp>
 #include <string>
 #include <vector>
@@ -45,9 +45,9 @@ class canvas_view;
 /// \brief Returns the intersection of two rectangles.
 //* =========================================================================
 MUNIN_EXPORT 
-boost::optional<rectangle> intersection(
-    rectangle const &lhs
-  , rectangle const &rhs);
+boost::optional<terminalpp::rectangle> intersection(
+    terminalpp::rectangle const &lhs
+  , terminalpp::rectangle const &rhs);
 
 //* =========================================================================
 /// \brief Returns an array of sliced rectangles.
@@ -58,8 +58,8 @@ boost::optional<rectangle> intersection(
 /// right, top to bottom.
 //* =========================================================================
 MUNIN_EXPORT 
-std::vector<rectangle> rectangular_slice(
-    std::vector<rectangle> const &rectangles);
+std::vector<terminalpp::rectangle> rectangular_slice(
+    std::vector<terminalpp::rectangle> const &rectangles);
 
 //* =========================================================================
 /// \brief Returns an array of clipped regions.
@@ -68,24 +68,25 @@ std::vector<rectangle> rectangular_slice(
 /// For example, if the size is (5,5), and a region is (3,2)->[3,3], then
 /// the region is clipped to (3,2)->[2,3].
 //* =========================================================================
-std::vector<rectangle> clip_regions(
-    std::vector<rectangle> regions
-  , terminalpp::extent     size);
+std::vector<terminalpp::rectangle> clip_regions(
+    std::vector<terminalpp::rectangle> regions,
+    terminalpp::extent size);
 
 //* =========================================================================
 /// \brief Returns the passed array, except that any regions that have a
 /// height or width of 0 are omitted.
 //* =========================================================================
-std::vector<rectangle> prune_regions(std::vector<rectangle> regions);
+std::vector<terminalpp::rectangle> prune_regions(
+  std::vector<terminalpp::rectangle> regions);
 
 //* =========================================================================
 /// \brief Copies a region from one canvas to another.
 //* =========================================================================
 MUNIN_EXPORT
 void copy_region(
-    rectangle               const &region
+    terminalpp::rectangle   const &region
   , terminalpp::canvas      const &source
-  , munin::canvas_view       &destination);
+  , munin::canvas_view            &destination);
 
 }
     

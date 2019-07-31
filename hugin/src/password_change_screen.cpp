@@ -203,13 +203,13 @@ password_change_screen::~password_change_screen()
 void password_change_screen::clear()
 {
     auto document = pimpl_->old_password_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     document = pimpl_->new_password_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     document = pimpl_->new_password_verify_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
 }
 
 // ==========================================================================

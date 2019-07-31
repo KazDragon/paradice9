@@ -48,9 +48,9 @@ struct list::impl
     // ======================================================================
     // DO_CURSOR_UP_KEY_EVENT
     // ======================================================================
-    void do_cursor_up_key_event(odin::u32 times)
+    void do_cursor_up_key_event(std::uint32_t times)
     {
-        if (odin::s32(times) >= item_index_)
+        if (std::int32_t(times) >= item_index_)
         {
             self_.set_item_index(0);
         }
@@ -63,7 +63,7 @@ struct list::impl
     // ======================================================================
     // DO_CURSOR_DOWN_KEY_EVENT
     // ======================================================================
-    void do_cursor_down_key_event(odin::u32 times)
+    void do_cursor_down_key_event(std::uint32_t times)
     {
         self_.set_item_index(item_index_ + times);
     }
@@ -127,7 +127,7 @@ struct list::impl
         {
             auto item_selected = report.y_position_;
 
-            if (odin::u32(item_selected) <= items_.size())
+            if (std::uint32_t(item_selected) <= items_.size())
             {
                 if (self_.get_item_index() == item_selected)
                 {
@@ -145,7 +145,7 @@ struct list::impl
 
     list                            &self_;
     std::vector<terminalpp::string>  items_;
-    odin::s32                        item_index_;
+    std::int32_t                        item_index_;
 };
 
 // ==========================================================================
@@ -182,7 +182,7 @@ void list::set_items(std::vector<terminalpp::string> const &items)
     }
 
     // We will probably require redrawing the entire component.
-    on_redraw({rectangle({}, size)});
+    on_redraw({terminalpp::rectangle({}, size)});
 
     // This may well change the preferred size of this component.
     on_preferred_size_changed();
@@ -191,11 +191,11 @@ void list::set_items(std::vector<terminalpp::string> const &items)
 // ==========================================================================
 // SET_ITEM_INDEX
 // ==========================================================================
-void list::set_item_index(odin::s32 index)
+void list::set_item_index(std::int32_t index)
 {
     auto old_index = pimpl_->item_index_;
 
-    if (index >= odin::s32(pimpl_->items_.size()))
+    if (index >= std::int32_t(pimpl_->items_.size()))
     {
         index = pimpl_->items_.size() - 1;
     }
@@ -209,7 +209,7 @@ void list::set_item_index(odin::s32 index)
     if (old_index >= 0)
     {
         on_redraw({
-            rectangle(
+            terminalpp::rectangle(
                 terminalpp::point(0, old_index)
               , terminalpp::extent(size.width, 1))});
     }
@@ -217,7 +217,7 @@ void list::set_item_index(odin::s32 index)
     if (index >= 0)
     {
         on_redraw({
-            rectangle(
+            terminalpp::rectangle(
                 terminalpp::point(0, index)
               , terminalpp::extent(size.width, 1))});
     }
@@ -229,7 +229,7 @@ void list::set_item_index(odin::s32 index)
 // ==========================================================================
 // GET_ITEM_INDEX
 // ==========================================================================
-odin::s32 list::get_item_index() const
+std::int32_t list::get_item_index() const
 {
     return pimpl_->item_index_;
 }
@@ -251,11 +251,11 @@ terminalpp::extent list::do_get_preferred_size() const
 {
     // The preferred size of this component is the widest item wide, and
     // the number of components high.
-    odin::u32 max_width = 0;
+    std::uint32_t max_width = 0;
 
     for (auto const &item : pimpl_->items_)
     {
-        max_width = (std::max)(max_width, odin::u32(item.size()));
+        max_width = (std::max)(max_width, std::uint32_t(item.size()));
     }
 
     return terminalpp::extent(max_width, pimpl_->items_.size());
@@ -284,17 +284,17 @@ void list::do_set_cursor_position(terminalpp::point const &position)
 // DO_DRAW
 // ==========================================================================
 void list::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     static terminalpp::element const default_element(' ');
     auto &cvs = ctx.get_canvas();
 
-    for (odin::s32 y_coord = region.origin.y;
+    for (std::int32_t y_coord = region.origin.y;
         y_coord < region.origin.y + region.size.height;
         ++y_coord)
     {
-        if (y_coord < odin::s32(pimpl_->items_.size()))
+        if (y_coord < std::int32_t(pimpl_->items_.size()))
         {
             bool is_selected_item =
                 y_coord >= 0
@@ -302,11 +302,11 @@ void list::do_draw(
 
             auto item = pimpl_->items_[y_coord];
 
-            for (odin::s32 x_coord = region.origin.x;
+            for (std::int32_t x_coord = region.origin.x;
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
-                auto element = x_coord < odin::s32(item.size())
+                auto element = x_coord < std::int32_t(item.size())
                              ? item[x_coord]
                              : default_element;
 
@@ -324,7 +324,7 @@ void list::do_draw(
         }
         else
         {
-            for (odin::s32 x_coord = region.origin.x;
+            for (std::int32_t x_coord = region.origin.x;
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {

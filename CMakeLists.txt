@@ -16,7 +16,6 @@ conan_basic_setup(TARGETS)
 # should be included.
 include(GenerateExportHeader)
 
-add_subdirectory(odin)
 add_subdirectory(munin)
 add_subdirectory(paradice)
 add_subdirectory(hugin)

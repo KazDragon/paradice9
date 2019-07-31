@@ -107,28 +107,28 @@ protected :
     /// override this function in order to retrieve the top border height in
     /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_top_border_height() const;
+    virtual std::int32_t do_get_top_border_height() const;
 
     //* =====================================================================
     /// \brief Called by get_bottom_border_height.  Derived classes must
     /// override this function in order to retrieve the bottomborder height
     /// int a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_bottom_border_height() const;
+    virtual std::int32_t do_get_bottom_border_height() const;
 
     //* =====================================================================
     /// \brief Called by get_left_border_width.  Derived classes must
     /// override this function in order to retrieve the left border width in
     /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_left_border_width() const;
+    virtual std::int32_t do_get_left_border_width() const;
 
     //* =====================================================================
     /// \brief Called by get_right_border_width.  Derived classes must
     /// override this function in order to retrieve the right border width in
     /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_right_border_width() const;
+    virtual std::int32_t do_get_right_border_width() const;
 
     //* =====================================================================
     /// \brief Called by set_attribute().  Derived classes must override this

@@ -35,13 +35,13 @@
 #include "paradice/gm.hpp"
 #include "paradice/help.hpp"
 #include "paradice/rules.hpp"
+#include "paradice/tokenise.hpp"
 #include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
 #include "munin/algorithm.hpp"
 #include "munin/container.hpp"
 #include "munin/grid_layout.hpp"
 #include "munin/window.hpp"
-#include "odin/tokenise.hpp"
 #include "terminalpp/encoder.hpp"
 #include "terminalpp/string.hpp"
 #include <boost/asio/io_context_strand.hpp>
@@ -91,8 +91,8 @@ namespace {
     {
         std::string      command_;
         paradice_command function_;
-        odin::u32        admin_level_required_;
-        odin::u32        gm_level_required_;
+        std::uint32_t        admin_level_required_;
+        std::uint32_t        gm_level_required_;
     } const command_list[] =
     {
         PARADICE_CMD_ENTRY_NOP("!")
@@ -383,7 +383,7 @@ public :
     // ======================================================================
     // SET_WINDOW_SIZE
     // ======================================================================
-    void set_window_size(odin::u16 width, odin::u16 height)
+    void set_window_size(std::uint16_t width, std::uint16_t height)
     {
         {
             std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
@@ -414,7 +414,7 @@ private :
     // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
-    void on_window_size_changed(odin::u16 width, odin::u16 height)
+    void on_window_size_changed(std::uint16_t width, std::uint16_t height)
     {
         std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
         dispatch_queue_.push_back(
@@ -980,7 +980,7 @@ private :
 
         user_interface_->add_command_history(input);
 
-        auto arg = odin::tokenise(input);
+        auto arg = paradice::tokenise(input);
 
         // Transform the command to lower case.
         for (auto ch = arg.first.begin(); ch != arg.first.end(); ++ch)
@@ -1122,7 +1122,7 @@ void client::set_window_title(std::string const &title)
 // ==========================================================================
 // SET_WINDOW_SIZE
 // ==========================================================================
-void client::set_window_size(odin::u16 width, odin::u16 height)
+void client::set_window_size(std::uint16_t width, std::uint16_t height)
 {
     pimpl_->set_window_size(width, height);
 }

@@ -54,13 +54,13 @@ public :
     //* =====================================================================
     void insert_tab(
         std::string const &text,
-        boost::optional<odin::u32> index = {});
+        boost::optional<std::uint32_t> index = {});
 
     //* =====================================================================
     /// \brief Removes a tab from the frame.
     /// \par index The index at which the tab should be removed.
     //* =====================================================================
-    void remove_tab(odin::u32 index);
+    void remove_tab(std::uint32_t index);
 
     //* =====================================================================
     /// \brief Sets the highlight to be on or off.
@@ -80,28 +80,28 @@ protected :
     /// override this function in order to retrieve the top border height in
     /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_top_border_height() const;
+    virtual std::int32_t do_get_top_border_height() const;
 
     //* =====================================================================
     /// \brief Called by get_bottom_border_height.  Derived classes must
     /// override this function in order to retrieve the bottomborder height
     /// int a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_bottom_border_height() const;
+    virtual std::int32_t do_get_bottom_border_height() const;
 
     //* =====================================================================
     /// \brief Called by get_left_border_width.  Derived classes must
     /// override this function in order to retrieve the left border width in
     /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_left_border_width() const;
+    virtual std::int32_t do_get_left_border_width() const;
 
     //* =====================================================================
     /// \brief Called by get_right_border_width.  Derived classes must
     /// override this function in order to retrieve the right border width in
     /// a custom manner.
     //* =====================================================================
-    virtual odin::s32 do_get_right_border_width() const;
+    virtual std::int32_t do_get_right_border_width() const;
 
     //* =====================================================================
     /// \brief Called by set_highlight.  Derived classes must override this

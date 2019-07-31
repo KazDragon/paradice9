@@ -29,7 +29,6 @@
 
 #include "munin/export.hpp"
 #include "munin/basic_component.hpp"
-#include "odin/core.hpp"
 
 namespace terminalpp {
     class string;
@@ -62,13 +61,13 @@ public :
     /// \brief Selects an item with the given index.
     /// \param selected_item the item to select, or -1 for no item.
     //* =====================================================================
-    void set_item_index(odin::s32 index);
+    void set_item_index(std::int32_t index);
 
     //* =====================================================================
     /// \brief Gets the index of the currently selected item, or -1 if no
     /// item is selected.
     //* =====================================================================
-    odin::s32 get_item_index() const;
+    std::int32_t get_item_index() const;
 
     //* =====================================================================
     /// \brief Gets the value of the currently selected item.
@@ -83,7 +82,7 @@ public :
     /// the component if you need to know the one it changed to.)
     //* =====================================================================
     boost::signals2::signal<
-        void (odin::s32 index)
+        void (std::int32_t index)
     > on_item_changed;
 
 protected :
@@ -118,8 +117,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region);
+        context                     &ctx,
+        terminalpp::rectangle const &region);
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this

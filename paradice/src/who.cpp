@@ -32,8 +32,7 @@
 #include "paradice/context.hpp"
 #include "paradice/utility.hpp"
 #include "munin/algorithm.hpp"
-#include "odin/tokenise.hpp"
-#include "odin/core.hpp"
+#include "paradice/tokenise.hpp"
 #include "terminalpp/string.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>

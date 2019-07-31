@@ -28,9 +28,9 @@
 #define MUNIN_COMPONENT_HPP_
 
 #include "munin/export.hpp"
-#include "munin/rectangle.hpp"
 #include <terminalpp/point.hpp>
 #include <terminalpp/extent.hpp>
+#include <terminalpp/rectangle.hpp>
 #include <boost/any.hpp>
 #include <boost/signals2.hpp>
 #include <memory>
@@ -214,8 +214,8 @@ public :
     /// should be drawn.
     //* =====================================================================
     void draw(
-        context         &ctx
-      , rectangle const &region);
+        context                     &ctx
+      , terminalpp::rectangle const &region);
 
     //* =====================================================================
     /// \brief Send an event to the component.  This may be of any type.
@@ -232,7 +232,7 @@ public :
     //* =====================================================================
     boost::signals2::signal
     <
-        void (std::vector<rectangle> const &regions)
+        void (std::vector<terminalpp::rectangle> const &regions)
     > on_redraw;
 
     //* =====================================================================
@@ -482,8 +482,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region) = 0;
+        context                     &ctx
+      , terminalpp::rectangle const &region) = 0;
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this

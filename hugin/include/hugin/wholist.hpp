@@ -76,7 +76,7 @@ protected :
     //* =====================================================================
     virtual void do_draw(
         munin::context         &ctx
-      , munin::rectangle const &region);
+      , terminalpp::rectangle const &region);
     
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

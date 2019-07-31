@@ -189,7 +189,7 @@ public :
     // ======================================================================
     // INSERT_TAB
     // ======================================================================
-    void insert_tab(std::string const &text, boost::optional<odin::u32> index)
+    void insert_tab(std::string const &text, boost::optional<std::uint32_t> index)
     {
         // If index is not initialised, then place the new tab at the end
         // of the current list of tabs.  Otherwise, place it at the index
@@ -221,7 +221,7 @@ public :
     // ======================================================================
     // REMOVE_TAB
     // ======================================================================
-    void remove_tab(odin::u32 index)
+    void remove_tab(std::uint32_t index)
     {
         tabs_.erase(tabs_.begin() + index);
 
@@ -398,7 +398,7 @@ private :
     {
         // Updates the rivets and labels to show where the selected tab is
         // and also whether the framed component is focussed (todo).
-        odin::u32 index = 0;
+        std::uint32_t index = 0;
 
         terminalpp::attribute selected_item_pen;
 
@@ -522,7 +522,7 @@ private :
     std::shared_ptr<filled_box>                             filler_;
     std::vector<std::shared_ptr<tabbed_frame_header_rivet>> rivets_;
     std::vector<std::shared_ptr<tabbed_frame_header_label>> labels_;
-    odin::u32                                               selected_;
+    std::uint32_t                                               selected_;
     bool                                                    highlight_;
 };
 
@@ -645,7 +645,7 @@ tabbed_frame::tabbed_frame()
 // ==========================================================================
 void tabbed_frame::insert_tab(
     std::string const &text,
-    boost::optional<odin::u32> index /* = optional<u32>() */)
+    boost::optional<std::uint32_t> index /* = optional<u32>() */)
 {
     pimpl_->header_->insert_tab(text, index);
 }
@@ -661,7 +661,7 @@ void tabbed_frame::set_highlight(bool highlight)
 // ==========================================================================
 // REMOVE_TAB
 // ==========================================================================
-void tabbed_frame::remove_tab(odin::u32 index)
+void tabbed_frame::remove_tab(std::uint32_t index)
 {
     pimpl_->header_->remove_tab(index);
 }
@@ -669,7 +669,7 @@ void tabbed_frame::remove_tab(odin::u32 index)
 // ==========================================================================
 // DO_GET_TOP_BORDER_HEIGHT
 // ==========================================================================
-odin::s32 tabbed_frame::do_get_top_border_height() const
+std::int32_t tabbed_frame::do_get_top_border_height() const
 {
     return 3;
 }
@@ -677,7 +677,7 @@ odin::s32 tabbed_frame::do_get_top_border_height() const
 // ==========================================================================
 // DO_GET_BOTTOM_BORDER_HEIGHT
 // ==========================================================================
-odin::s32 tabbed_frame::do_get_bottom_border_height() const
+std::int32_t tabbed_frame::do_get_bottom_border_height() const
 {
     return 1;
 }
@@ -685,7 +685,7 @@ odin::s32 tabbed_frame::do_get_bottom_border_height() const
 // ==========================================================================
 // DO_GET_LEFT_BORDER_WIDTH
 // ==========================================================================
-odin::s32 tabbed_frame::do_get_left_border_width() const
+std::int32_t tabbed_frame::do_get_left_border_width() const
 {
     return 1;
 }
@@ -693,7 +693,7 @@ odin::s32 tabbed_frame::do_get_left_border_width() const
 // ==========================================================================
 // DO_GET_RIGHT_BORDER_WIDTH
 // ==========================================================================
-odin::s32 tabbed_frame::do_get_right_border_width() const
+std::int32_t tabbed_frame::do_get_right_border_width() const
 {
     return 1;
 }

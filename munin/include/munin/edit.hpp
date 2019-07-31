@@ -89,8 +89,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region) override;
+        context                     &ctx,
+        terminalpp::rectangle const &region);
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this

@@ -215,13 +215,13 @@ struct scroll_pane::impl
     // ======================================================================
     // CALCULATE_HORIZONTAL_SCROLLBAR
     // ======================================================================
-    boost::optional<odin::u8> calculate_horizontal_scrollbar()
+    boost::optional<std::uint8_t> calculate_horizontal_scrollbar()
     {
         auto origin = viewport_->get_origin();
         auto size = viewport_->get_size();
         auto underlying_component_size = underlying_component_->get_size();
 
-        odin::u8 slider_position = 0;
+        std::uint8_t slider_position = 0;
 
         if (underlying_component_size.width <= size.width)
         {
@@ -238,7 +238,7 @@ struct scroll_pane::impl
             }
             else
             {
-                slider_position = odin::u8((origin.x * 100) / max_right);
+                slider_position = std::uint8_t((origin.x * 100) / max_right);
 
                 if (slider_position == 0)
                 {
@@ -258,13 +258,13 @@ struct scroll_pane::impl
     // ======================================================================
     // CALCULATE_VERTICAL_SCROLLBAR
     // ======================================================================
-    boost::optional<odin::u8> calculate_vertical_scrollbar()
+    boost::optional<std::uint8_t> calculate_vertical_scrollbar()
     {
         auto origin = viewport_->get_origin();
         auto size = viewport_->get_size();
         auto underlying_component_size = underlying_component_->get_size();
 
-        odin::u8 slider_position = 0;
+        std::uint8_t slider_position = 0;
 
         if (underlying_component_size.height <= size.height)
         {
@@ -281,7 +281,7 @@ struct scroll_pane::impl
             }
             else
             {
-                slider_position = odin::u8((origin.y * 100) / max_bottom);
+                slider_position = std::uint8_t((origin.y * 100) / max_bottom);
 
                 if (slider_position == 0)
                 {

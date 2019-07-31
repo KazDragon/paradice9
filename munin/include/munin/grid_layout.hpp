@@ -45,7 +45,7 @@ public :
     /// \param rows The number of rows in this grid.
     /// \param columns The number of columns in this grid.
     //* =====================================================================
-    grid_layout(odin::u32 rows, odin::u32 columns);
+    grid_layout(std::uint32_t rows, std::uint32_t columns);
 
     //* =====================================================================
     /// \brief Destructor
@@ -82,7 +82,7 @@ private :
 //* =========================================================================
 MUNIN_EXPORT
 std::unique_ptr<layout> make_grid_layout(
-    odin::u32 rows, odin::u32 columns);
+    std::uint32_t rows, std::uint32_t columns);
 
 }
 

@@ -62,7 +62,7 @@ void vertical_strip_layout::do_layout(
   , std::vector<boost::any>                 const &hints
   , terminalpp::extent                             size)
 {
-    auto x_coord = odin::u32(0);
+    auto x_coord = std::uint32_t(0);
     
     for (auto &comp : components)
     {    

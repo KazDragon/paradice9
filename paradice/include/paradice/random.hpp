@@ -27,11 +27,9 @@
 #ifndef PARADICE_RANDOM_HPP_
 #define PARADICE_RANDOM_HPP_
 
-#include "odin/core.hpp"
-
 namespace paradice {
 
-odin::u32 random_number(odin::u32 from, odin::u32 to);
+std::uint32_t random_number(std::uint32_t from, std::uint32_t to);
 
 }
 

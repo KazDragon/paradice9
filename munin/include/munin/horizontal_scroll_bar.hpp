@@ -29,7 +29,6 @@
 
 #include "munin/export.hpp"
 #include "munin/basic_component.hpp"
-#include "odin/core.hpp"
 #include <boost/optional.hpp>
 
 namespace munin {
@@ -76,7 +75,7 @@ public :
     /// absolute right, and 1..99 is somewhere inbetween.  No percentage
     /// (the default) indicates that the slider is not be present.
     //* =====================================================================
-    boost::optional<odin::u8> get_slider_position() const;
+    boost::optional<std::uint8_t> get_slider_position() const;
 
     //* =====================================================================
     /// \brief Sets the position that the slider is in.  This is expressed
@@ -84,7 +83,7 @@ public :
     /// absolute right, and 1..99 is somewhere inbetween.  No percentage
     /// (the default) indicates that the slider should not be present.
     //* =====================================================================
-    void set_slider_position(boost::optional<odin::u8> percentage);
+    void set_slider_position(boost::optional<std::uint8_t> percentage);
 
 protected :
     //* =====================================================================
@@ -111,8 +110,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region);
+        context                     &ctx,
+        terminalpp::rectangle const &region);
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this

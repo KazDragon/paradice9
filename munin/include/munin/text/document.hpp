@@ -28,11 +28,11 @@
 #define MUNIN_TEXT_DOCUMENT_HPP_
 
 #include "munin/export.hpp"
-#include "munin/rectangle.hpp"
-#include "odin/core.hpp"
+#include <terminalpp/rectangle.hpp>
 #include <terminalpp/extent.hpp>
 #include <terminalpp/point.hpp>
 #include <boost/signals2.hpp>
+#include <cstdint>
 
 namespace terminalpp {
     class string;
@@ -74,17 +74,17 @@ public :
     //* =====================================================================
     /// \brief Sets the caret's location from an index into the text.
     //* =====================================================================
-    void set_caret_index(odin::u32 index);
+    void set_caret_index(std::uint32_t index);
 
     //* =====================================================================
     /// \brief Returns the caret's location as an index into the text.
     //* =====================================================================
-    odin::u32 get_caret_index() const;
+    std::uint32_t get_caret_index() const;
 
     //* =====================================================================
     /// \brief Returns the size of the text.
     //* =====================================================================
-    odin::u32 get_text_size() const;
+    std::uint32_t get_text_size() const;
 
     //* =====================================================================
     /// \brief Inserts the given characters at the caret or, optionally,
@@ -92,7 +92,7 @@ public :
     //* =====================================================================
     void insert_text(
         terminalpp::string const &text
-      , boost::optional<odin::u32> index = boost::optional<odin::u32>());
+      , boost::optional<std::uint32_t> index = boost::optional<std::uint32_t>());
 
     //* =====================================================================
     /// \brief Delete the specified region of text.
@@ -101,7 +101,7 @@ public :
     /// 0, 1, 2, 3 and 4.  Deleting the range [0..size) will delete the
     /// entire contents of the document.
     //* =====================================================================
-    void delete_text(std::pair<odin::u32, odin::u32> range);
+    void delete_text(std::pair<std::uint32_t, std::uint32_t> range);
 
     //* =====================================================================
     /// \brief Replaces the entire text content with the specified text.
@@ -111,12 +111,12 @@ public :
     //* =====================================================================
     /// \brief Returns the number of lines in the text.
     //* =====================================================================
-    odin::u32 get_number_of_lines() const;
+    std::uint32_t get_number_of_lines() const;
 
     //* =====================================================================
     /// \brief Returns the specified line of text in the document.
     //* =====================================================================
-    terminalpp::string get_line(odin::u32 index) const;
+    terminalpp::string get_line(std::uint32_t index) const;
 
     //* =====================================================================
     /// \fn on_redraw
@@ -126,7 +126,7 @@ public :
     //* =====================================================================
     boost::signals2::signal
     <
-        void (std::vector<munin::rectangle> const &regions)
+        void (std::vector<terminalpp::rectangle> const &regions)
     > on_redraw;
 
     //* =====================================================================
@@ -173,21 +173,21 @@ protected :
     /// override this function in order to set the caret's index in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_caret_index(odin::u32 index) = 0;
+    virtual void do_set_caret_index(std::uint32_t index) = 0;
 
     //* =====================================================================
     /// \brief Called by get_caret_index().  Derived classes must override
     /// this function in order to retrieve the caret's position in a custom
     /// manner.
     //* =====================================================================
-    virtual odin::u32 do_get_caret_index() const = 0;
+    virtual std::uint32_t do_get_caret_index() const = 0;
 
     //* =====================================================================
     /// \brief Called by get_text_size().  Derived classes must override
     /// this function in order to get the size of the text in a custom
     /// manner.
     //* =====================================================================
-    virtual odin::u32 do_get_text_size() const = 0;
+    virtual std::uint32_t do_get_text_size() const = 0;
 
     //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this
@@ -196,13 +196,13 @@ protected :
     //* =====================================================================
     virtual void do_insert_text(
         terminalpp::string const&  text
-      , boost::optional<odin::u32> index) = 0;
+      , boost::optional<std::uint32_t> index) = 0;
 
     //* =====================================================================
     /// \brief Called by delete_text().  Derived classes must override this
     /// function in order to delete text in a custom manner.
     //* =====================================================================
-    virtual void do_delete_text(std::pair<odin::u32, odin::u32> range) = 0;
+    virtual void do_delete_text(std::pair<std::uint32_t, std::uint32_t> range) = 0;
 
     //* =====================================================================
     /// \brief Called by set_text().  Derived classes must override this
@@ -215,13 +215,13 @@ protected :
     /// override this function in order to get the number of lines in the
     /// document in a custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_number_of_lines() const = 0;
+    virtual std::uint32_t do_get_number_of_lines() const = 0;
 
     //* =====================================================================
     /// \brief Called by get_line().  Derived classes must override this
     /// function in order to return the text line in a custom manner.
     //* =====================================================================
-    virtual terminalpp::string do_get_line(odin::u32 index) const = 0;
+    virtual terminalpp::string do_get_line(std::uint32_t index) const = 0;
 };
 
 }}

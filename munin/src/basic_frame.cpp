@@ -165,9 +165,9 @@ std::shared_ptr<component> basic_frame::get_bottom_right_component()
 // ==========================================================================
 // DO_GET_TOP_BORDER_HEIGHT
 // ==========================================================================
-odin::s32 basic_frame::do_get_top_border_height() const
+std::int32_t basic_frame::do_get_top_border_height() const
 {
-    odin::s32 top_border_height = 0;
+    std::int32_t top_border_height = 0;
 
     if (pimpl_->top_left_ != NULL)
     {
@@ -196,7 +196,7 @@ odin::s32 basic_frame::do_get_top_border_height() const
 // ==========================================================================
 // DO_GET_BOTTOM_BORDER_HEIGHT
 // ==========================================================================
-odin::s32 basic_frame::do_get_bottom_border_height() const
+std::int32_t basic_frame::do_get_bottom_border_height() const
 {
     return 1;
 }
@@ -204,7 +204,7 @@ odin::s32 basic_frame::do_get_bottom_border_height() const
 // ==========================================================================
 // DO_GET_LEFT_BORDER_WIDTH
 // ==========================================================================
-odin::s32 basic_frame::do_get_left_border_width() const
+std::int32_t basic_frame::do_get_left_border_width() const
 {
     return 1;
 }
@@ -212,7 +212,7 @@ odin::s32 basic_frame::do_get_left_border_width() const
 // ==========================================================================
 // DO_GET_RIGHT_BORDER_WIDTH
 // ==========================================================================
-odin::s32 basic_frame::do_get_right_border_width() const
+std::int32_t basic_frame::do_get_right_border_width() const
 {
     return 1;
 }

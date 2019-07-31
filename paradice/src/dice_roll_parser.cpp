@@ -34,10 +34,10 @@
 
 BOOST_FUSION_ADAPT_STRUCT(
     paradice::dice_roll,
-    (odin::u32, repetitions_)
-    (odin::u32, amount_)
-    (odin::u32, sides_)
-    (odin::s32, bonus_)
+    (std::uint32_t, repetitions_)
+    (std::uint32_t, amount_)
+    (std::uint32_t, sides_)
+    (std::int32_t, bonus_)
 )
 
 namespace paradice {
@@ -81,8 +81,8 @@ struct dice_roll_grammar
             ;
     }
 
-    boost::spirit::qi::rule<Iterator, odin::u32()> repetitions_;
-    boost::spirit::qi::rule<Iterator, odin::s32()> bonuses_;
+    boost::spirit::qi::rule<Iterator, std::uint32_t()> repetitions_;
+    boost::spirit::qi::rule<Iterator, std::int32_t()> bonuses_;
     boost::spirit::qi::rule<Iterator, dice_roll()> dice_roll_;
 };
 

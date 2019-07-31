@@ -31,8 +31,8 @@
 #include "paradice/communication.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
+#include "paradice/tokenise.hpp"
 #include "paradice/who.hpp"
-#include "odin/tokenise.hpp"
 #include <terminalpp/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
@@ -66,9 +66,9 @@ PARADICE_COMMAND_IMPL(admin_set_password)
         "\n EXAMPLE:  admin_set_password bob foobar foobar"
         "\n\n";
 
-    auto token0 = odin::tokenise(arguments);
-    auto token1 = odin::tokenise(token0.second);
-    auto token2 = odin::tokenise(token1.second);
+    auto token0 = paradice::tokenise(arguments);
+    auto token1 = paradice::tokenise(token0.second);
+    auto token2 = paradice::tokenise(token1.second);
 
     if (token0.first.empty() || token1.first.empty() || token2.first.empty())
     {
@@ -142,7 +142,7 @@ PARADICE_COMMAND_IMPL(admin_shutdown)
         "\n USAGE:    admin_shutdown now"
         "\n\n";
 
-    auto token = odin::tokenise(arguments);
+    auto token = paradice::tokenise(arguments);
 
     if (token.first != "now")
     {

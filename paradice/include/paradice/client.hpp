@@ -28,7 +28,6 @@
 #define PARADICE_CLIENT_HPP_
 
 #include "paradice/export.hpp"
-#include "odin/core.hpp"
 #include <functional>
 #include <memory>
 #include <vector>
@@ -93,7 +92,7 @@ public :
     //* =====================================================================
     /// \brief Sets the size of the client's window
     //* =====================================================================
-    void set_window_size(odin::u16 width, odin::u16 height);
+    void set_window_size(std::uint16_t width, std::uint16_t height);
 
     //* =====================================================================
     /// \brief Sets the account that the client is currently using.

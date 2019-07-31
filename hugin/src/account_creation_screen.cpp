@@ -202,13 +202,13 @@ account_creation_screen::~account_creation_screen()
 void account_creation_screen::clear()
 {
     auto document = pimpl_->name_field_->get_document();
-    document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
+    document->delete_text(std::make_pair(std::uint32_t(0), document->get_text_size()));
     
     document = pimpl_->password_field_->get_document();
-    document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
+    document->delete_text(std::make_pair(std::uint32_t(0), document->get_text_size()));
     
     document = pimpl_->password_verify_field_->get_document();
-    document->delete_text(std::make_pair(odin::u32(0), document->get_text_size()));
+    document->delete_text(std::make_pair(std::uint32_t(0), document->get_text_size()));
 }
 
 // ==========================================================================

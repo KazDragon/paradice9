@@ -240,7 +240,7 @@ private :
     // ======================================================================
     // REDRAW_HANDLER
     // ======================================================================
-    void redraw_handler(std::vector<rectangle> const &regions)
+    void redraw_handler(std::vector<terminalpp::rectangle> const &regions)
     {
         // Coalesce all redraw events into a single repaint.  That way,
         // there is only one major repaint if 100 components decide they
@@ -264,7 +264,7 @@ private :
     // ======================================================================
     // CREATE_REPAINT_SLICES
     // ======================================================================
-    std::vector<rectangle> create_repaint_slices()
+    std::vector<terminalpp::rectangle> create_repaint_slices()
     {
         // In this function, we take the redraw regions and work out what
         // portions of the screen need to be sent to the client.  In
@@ -357,7 +357,8 @@ private :
         layout_scheduled_ = false;
 
         redraw_handler({
-            rectangle(content_->get_position(), content_->get_size())});
+            terminalpp::rectangle(content_->get_position(), content_->get_size())
+        });
     }
 
     window                       &self_;
@@ -374,7 +375,7 @@ private :
 
     terminalpp::extent            last_window_size_;
 
-    std::vector<rectangle>        redraw_regions_;
+    std::vector<terminalpp::rectangle> redraw_regions_;
     bool                          repaint_scheduled_;
     bool                          layout_scheduled_;
 

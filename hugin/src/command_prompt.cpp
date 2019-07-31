@@ -34,7 +34,7 @@
 #include <algorithm>
 #include <deque>
 
-BOOST_STATIC_CONSTANT(odin::u32, MAX_HISTORY = 50);
+BOOST_STATIC_CONSTANT(std::uint32_t, MAX_HISTORY = 50);
 
 namespace hugin {
 
@@ -45,7 +45,7 @@ struct command_prompt::impl
 {
     std::shared_ptr<munin::edit>     edit_ = munin::make_edit();
 
-    odin::u32                        current_history_;
+    std::uint32_t                        current_history_;
     std::deque<std::string>          history_;
 
     // Text to remember while running through the history.
@@ -108,9 +108,9 @@ void command_prompt::do_event(boost::any const &ev)
         {
             if (!pimpl_->history_.empty())
             {
-                odin::u32 index = (std::min)(
+                std::uint32_t index = (std::min)(
                     pimpl_->current_history_ + vk->repeat_count
-                  , odin::u32(pimpl_->history_.size()));
+                  , std::uint32_t(pimpl_->history_.size()));
 
                 if (index != pimpl_->current_history_)
                 {
@@ -137,7 +137,7 @@ void command_prompt::do_event(boost::any const &ev)
         {
             if (!pimpl_->history_.empty())
             {
-                odin::u32 index = vk->repeat_count > pimpl_->current_history_
+                std::uint32_t index = vk->repeat_count > pimpl_->current_history_
                           ? 0
                           : pimpl_->current_history_ - vk->repeat_count;
 

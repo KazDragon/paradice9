@@ -38,7 +38,7 @@ void add_participant(
   , active_encounter::participant const &part)
 {
     // First, find the maximum ID currently used in the encounter.
-    odin::u32 max_id = 0;
+    std::uint32_t max_id = 0;
 
     for (auto const &ent : enc->entries_)
     {

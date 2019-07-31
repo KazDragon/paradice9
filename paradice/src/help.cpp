@@ -26,7 +26,7 @@
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
 #include "paradice/connection.hpp"
-#include "odin/tokenise.hpp"
+#include "paradice/tokenise.hpp"
 #include "hugin/user_interface.hpp"
 #include "terminalpp/encoder.hpp"
 #include <boost/format.hpp>
@@ -212,7 +212,7 @@ namespace paradice {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(help)
 {
-    auto argument = odin::tokenise(arguments).first;
+    auto argument = paradice::tokenise(arguments).first;
     auto user_interface = player->get_user_interface();
     
     if (argument == "close")

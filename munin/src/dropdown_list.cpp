@@ -54,7 +54,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    fixed_height_layout(odin::u32 preferred_height)
+    fixed_height_layout(std::uint32_t preferred_height)
         : preferred_height_(preferred_height)
     {
     }
@@ -97,11 +97,11 @@ protected :
         }
     }
 
-    odin::u32 preferred_height_;
+    std::uint32_t preferred_height_;
 };
 
 static std::unique_ptr<fixed_height_layout> make_fixed_height_layout(
-    odin::u32 preferred_height)
+    std::uint32_t preferred_height)
 {
     return std::unique_ptr<fixed_height_layout>(
         new fixed_height_layout(preferred_height));
@@ -128,7 +128,7 @@ struct dropdown_list::impl
     // ======================================================================
     // ON_ITEM_CHANGED
     // ======================================================================
-    void on_item_changed(odin::s32)
+    void on_item_changed(std::int32_t)
     {
         selected_text_->set_image(self_.get_item());
     }
@@ -211,7 +211,7 @@ struct dropdown_list::impl
     // ======================================================================
     // DO_CURSOR_DOWN_KEY_EVENT
     // ======================================================================
-    bool do_cursor_down_key_event(odin::u32 times)
+    bool do_cursor_down_key_event(std::uint32_t times)
     {
         if (!dropdown_open_)
         {
@@ -393,7 +393,7 @@ void dropdown_list::set_items(std::vector<terminalpp::string> const &items)
 // ==========================================================================
 // SET_ITEM_INDEX
 // ==========================================================================
-void dropdown_list::set_item_index(odin::s32 index)
+void dropdown_list::set_item_index(std::int32_t index)
 {
     pimpl_->list_->set_item_index(index);
 }
@@ -401,7 +401,7 @@ void dropdown_list::set_item_index(odin::s32 index)
 // ==========================================================================
 // GET_ITEM_INDEX
 // ==========================================================================
-odin::s32 dropdown_list::get_item_index() const
+std::int32_t dropdown_list::get_item_index() const
 {
     return pimpl_->list_->get_item_index();
 }

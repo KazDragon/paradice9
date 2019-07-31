@@ -66,7 +66,7 @@ struct basic_component::impl
     basic_component                  &self_;
     std::weak_ptr<component>          parent_;
     std::map<std::string, boost::any> attributes_;
-    rectangle                         bounds_;
+    terminalpp::rectangle             bounds_;
     bool                              can_focus_;
     bool                              has_focus_;
     bool                              enabled_;

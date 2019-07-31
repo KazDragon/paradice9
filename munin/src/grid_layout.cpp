@@ -43,14 +43,14 @@ struct grid_layout::impl
     {
     }
 
-    odin::u32 rows_;
-    odin::u32 columns_;
+    std::uint32_t rows_;
+    std::uint32_t columns_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-grid_layout::grid_layout(odin::u32 rows, odin::u32 columns)
+grid_layout::grid_layout(std::uint32_t rows, std::uint32_t columns)
     : pimpl_(std::make_shared<impl>())
 {
     pimpl_->rows_    = rows;
@@ -103,13 +103,13 @@ void grid_layout::do_layout(
     std::vector<boost::any>                 const &hints,
     terminalpp::extent                             size)
 {
-    for (odin::u32 index = 0; index < components.size(); ++index)
+    for (std::uint32_t index = 0; index < components.size(); ++index)
     {
         auto comp = components[index];
 
         // Work out the row/column of the current component.
-        odin::u32 row    = index / pimpl_->columns_;
-        odin::u32 column = index % pimpl_->columns_;
+        std::uint32_t row    = index / pimpl_->columns_;
+        std::uint32_t column = index % pimpl_->columns_;
 
         // Naive: will have missing pixels and off-by-one errors
         comp->set_position(
@@ -127,7 +127,7 @@ void grid_layout::do_layout(
 // ==========================================================================
 // MAKE_GRID_LAYOUT
 // ==========================================================================
-std::unique_ptr<layout> make_grid_layout(odin::u32 rows, odin::u32 columns)
+std::unique_ptr<layout> make_grid_layout(std::uint32_t rows, std::uint32_t columns)
 {
     return std::unique_ptr<layout>(new grid_layout(rows, columns));
 }

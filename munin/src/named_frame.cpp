@@ -60,7 +60,7 @@ public :
     void set_title(terminalpp::string const &title)
     {
         title_ = title;
-        on_redraw({rectangle({}, get_size())});
+        on_redraw({terminalpp::rectangle({}, get_size())});
     }
 
     // ======================================================================
@@ -78,8 +78,8 @@ public :
     // DO_DRAW
     // ======================================================================
     void do_draw(
-        context         &ctx
-      , rectangle const &region)
+        context                     &ctx,
+        terminalpp::rectangle const &region)
     {
         draw_filler(ctx.get_canvas(), region);
         draw_title(ctx.get_canvas(), region);
@@ -101,7 +101,7 @@ protected :
             }
         }
 
-        on_redraw({rectangle({}, get_size())});
+        on_redraw({terminalpp::rectangle({}, get_size())});
     }
 
 private :
@@ -110,13 +110,13 @@ private :
     // ======================================================================
     void draw_filler(
         munin::canvas_view &cvs
-      , rectangle const &region)
+      , terminalpp::rectangle const &region)
     {
-        for (odin::s32 y_coord = region.origin.y;
+        for (std::int32_t y_coord = region.origin.y;
              y_coord < region.origin.y + region.size.height;
              ++y_coord)
         {
-            for (odin::s32 x_coord = region.origin.x;
+            for (std::int32_t x_coord = region.origin.x;
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
@@ -130,25 +130,25 @@ private :
     // ======================================================================
     void draw_title(
         munin::canvas_view &cvs
-      , rectangle const &region)
+      , terminalpp::rectangle const &region)
     {
         static terminalpp::element const default_element(' ');
 
-        for (odin::s32 y_coord = region.origin.y;
+        for (std::int32_t y_coord = region.origin.y;
              y_coord < region.origin.y + region.size.height;
              ++y_coord)
         {
-            for (odin::s32 x_coord = region.origin.x;
+            for (std::int32_t x_coord = region.origin.x;
                  x_coord < region.origin.x + region.size.width;
                  ++x_coord)
             {
                 auto index = x_coord - 2;
 
-                if (index == -1 || index == odin::s32(title_.size()))
+                if (index == -1 || index == std::int32_t(title_.size()))
                 {
                     cvs[x_coord][y_coord] = default_element;
                 }
-                else if (index >= 0 && index < odin::s32(title_.size()))
+                else if (index >= 0 && index < std::int32_t(title_.size()))
                 {
                     cvs[x_coord][y_coord] = title_[index];
                 }
@@ -278,7 +278,9 @@ named_frame::~named_frame()
 void named_frame::set_name(terminalpp::string const &name)
 {
     pimpl_->set_name(name);
-    on_redraw({rectangle({}, terminalpp::extent(get_size().width, 1))});
+    on_redraw({
+        terminalpp::rectangle({}, terminalpp::extent(get_size().width, 1))
+    });
 }
 
 // ==========================================================================

@@ -81,7 +81,7 @@ struct bestiary_page::impl
     // ======================================================================
     // ON_ITEM_CHANGED
     // ======================================================================
-    void on_item_changed(odin::s32 from)
+    void on_item_changed(std::int32_t from)
     {
         split_container_->remove_component(details_container_);
 

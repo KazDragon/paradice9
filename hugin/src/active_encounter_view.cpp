@@ -102,7 +102,7 @@ struct active_encounter_view::impl
 
             if (last_roll)
             {
-                odin::s32 total_score = 0;
+                std::int32_t total_score = 0;
 
                 for (auto const &repetition : last_roll->results_)
                 {

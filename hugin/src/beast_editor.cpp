@@ -195,7 +195,7 @@ terminalpp::string beast_editor::get_beast_description() const
     auto doc = pimpl_->description_area_->get_document();
     auto document_size = doc->get_size();
 
-    for (odin::s32 index = 0; index < document_size.height; ++index)
+    for (std::int32_t index = 0; index < document_size.height; ++index)
     {
         result += doc->get_line(index);
         result += "\n";

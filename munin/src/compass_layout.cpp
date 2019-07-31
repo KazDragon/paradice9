@@ -40,24 +40,24 @@ terminalpp::extent compass_layout::do_get_preferred_size(
 {
     // This isn't quite right as it doesn't take into account the order
     // of insertion like do_draw does, but it will do for now.
-    odin::u32 north_widths   = 0;
-    odin::u32 south_widths   = 0;
-    odin::u32 east_widths    = 0;
-    odin::u32 centre_widths  = 0;
-    odin::u32 west_widths    = 0;
-    odin::u32 north_heights  = 0;
-    odin::u32 south_heights  = 0;
-    odin::u32 east_heights   = 0;
-    odin::u32 centre_heights = 0;
-    odin::u32 west_heights   = 0;
+    std::uint32_t north_widths   = 0;
+    std::uint32_t south_widths   = 0;
+    std::uint32_t east_widths    = 0;
+    std::uint32_t centre_widths  = 0;
+    std::uint32_t west_widths    = 0;
+    std::uint32_t north_heights  = 0;
+    std::uint32_t south_heights  = 0;
+    std::uint32_t east_heights   = 0;
+    std::uint32_t centre_heights = 0;
+    std::uint32_t west_heights   = 0;
 
-    for (odin::u32 index = 0; index < components.size(); ++index)
+    for (std::uint32_t index = 0; index < components.size(); ++index)
     {
         auto comp = components[index];
         auto hint = hints[index];
 
-        odin::u32 *direction_hint = boost::any_cast<odin::u32>(&hint);
-        odin::u32 direction = COMPASS_LAYOUT_SOUTH;
+        std::uint32_t *direction_hint = boost::any_cast<std::uint32_t>(&hint);
+        std::uint32_t direction = COMPASS_LAYOUT_SOUTH;
 
         if (direction_hint != NULL)
         {
@@ -99,13 +99,13 @@ terminalpp::extent compass_layout::do_get_preferred_size(
     terminalpp::extent preferred_size;
 
     preferred_size.width = north_widths;
-    preferred_size.width = (std::max)(odin::u32(preferred_size.width), centre_widths);
-    preferred_size.width = (std::max)(odin::u32(preferred_size.width), south_widths);
+    preferred_size.width = (std::max)(std::uint32_t(preferred_size.width), centre_widths);
+    preferred_size.width = (std::max)(std::uint32_t(preferred_size.width), south_widths);
     preferred_size.width += (west_widths + east_widths);
 
     preferred_size.height = west_heights;
-    preferred_size.height = (std::max)(odin::u32(preferred_size.height), centre_heights);
-    preferred_size.height = (std::max)(odin::u32(preferred_size.height), east_heights);
+    preferred_size.height = (std::max)(std::uint32_t(preferred_size.height), centre_heights);
+    preferred_size.height = (std::max)(std::uint32_t(preferred_size.height), east_heights);
     preferred_size.height += (north_heights + south_heights);
 
     return preferred_size;
@@ -120,17 +120,17 @@ void compass_layout::do_layout(
   , terminalpp::extent                             size)
 {
     std::vector<std::shared_ptr<component>> centre_components;
-    odin::u32 west_used = 0;
-    odin::u32 north_used = 0;
-    odin::u32 south_used = 0;
-    odin::u32 east_used = 0;
+    std::uint32_t west_used = 0;
+    std::uint32_t north_used = 0;
+    std::uint32_t south_used = 0;
+    std::uint32_t east_used = 0;
 
-    for (odin::u32 index = 0; index < components.size(); ++index)
+    for (std::uint32_t index = 0; index < components.size(); ++index)
     {
         auto comp = components[index];
         auto hint = hints[index];
 
-        odin::u32 *direction = boost::any_cast<odin::u32>(&hint);
+        std::uint32_t *direction = boost::any_cast<std::uint32_t>(&hint);
 
         if (direction == NULL
          || *direction == COMPASS_LAYOUT_CENTRE)
@@ -141,9 +141,9 @@ void compass_layout::do_layout(
         {
             auto comp_size = comp->get_preferred_size();
             west_used = (std::max)(
-                west_used, odin::u32(comp_size.width));
+                west_used, std::uint32_t(comp_size.width));
             west_used = (std::min)(
-                west_used, odin::u32(size.width - east_used));
+                west_used, std::uint32_t(size.width - east_used));
 
             auto comp_height = (size.height - north_used) - south_used;
 
@@ -154,9 +154,9 @@ void compass_layout::do_layout(
         {
             auto comp_size = comp->get_preferred_size();
             east_used = (std::max)(
-                east_used, odin::u32(comp_size.width));
+                east_used, std::uint32_t(comp_size.width));
             east_used = (std::min)(
-                east_used, odin::u32(size.width - west_used));
+                east_used, std::uint32_t(size.width - west_used));
 
             auto comp_height = (size.height - north_used) - south_used;
 
@@ -169,9 +169,9 @@ void compass_layout::do_layout(
         {
             auto comp_size = comp->get_preferred_size();
             north_used = (std::max)(
-                north_used, odin::u32(comp_size.height));
+                north_used, std::uint32_t(comp_size.height));
             north_used = (std::min)(
-                north_used, odin::u32(size.height - south_used));
+                north_used, std::uint32_t(size.height - south_used));
 
             auto comp_width = (size.width - west_used) - east_used;
 
@@ -182,9 +182,9 @@ void compass_layout::do_layout(
         {
             auto comp_size = comp->get_preferred_size();
             south_used = (std::max)(
-                south_used, odin::u32(comp_size.height));
+                south_used, std::uint32_t(comp_size.height));
             south_used = (std::min)(
-                south_used, odin::u32(size.height - north_used));
+                south_used, std::uint32_t(size.height - north_used));
 
             auto comp_width = (size.width - west_used) - east_used;
 

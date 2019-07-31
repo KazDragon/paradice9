@@ -29,7 +29,6 @@
 
 #include "munin/export.hpp"
 #include "munin/basic_component.hpp"
-#include "odin/core.hpp"
 #include <boost/optional.hpp>
 #include <string>
 
@@ -64,7 +63,7 @@ public :
     //* =====================================================================
     /// \brief Returns the number of faces that this component contains.
     //* =====================================================================
-    odin::u32 get_number_of_faces() const;
+    std::uint32_t get_number_of_faces() const;
 
     //* =====================================================================
     /// \brief Selects a face for drawing.
@@ -117,8 +116,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region) override;
+        context                     &ctx
+      , terminalpp::rectangle const &region) override;
 
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this

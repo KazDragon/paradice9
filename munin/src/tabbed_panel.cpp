@@ -115,7 +115,7 @@ tabbed_panel::~tabbed_panel()
 void tabbed_panel::insert_tab(
     std::string                const &text,
     std::shared_ptr<component> const &comp,
-    boost::optional<odin::u32>        index /*= optional<u32>()*/)
+    boost::optional<std::uint32_t>        index /*= optional<u32>()*/)
 {
     pimpl_->card_->add_face(comp, text);
     pimpl_->frame_->insert_tab(text, index);
@@ -129,7 +129,7 @@ void tabbed_panel::insert_tab(
 // ==========================================================================
 // REMOVE_TAB
 // ==========================================================================
-void tabbed_panel::remove_tab(odin::u32 index)
+void tabbed_panel::remove_tab(std::uint32_t index)
 {
     pimpl_->frame_->remove_tab(index);
 }

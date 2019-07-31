@@ -30,7 +30,7 @@
 
 namespace paradice {
 
-odin::u32 random_number(odin::u32 from, odin::u32 to)
+std::uint32_t random_number(std::uint32_t from, std::uint32_t to)
 {
     // TODO: Make this code thread-safe.
     static boost::random_device rdev;

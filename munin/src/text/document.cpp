@@ -73,7 +73,7 @@ terminalpp::point document::get_caret_position() const
 // ==========================================================================
 // SET_CARET_INDEX
 // ==========================================================================
-void document::set_caret_index(odin::u32 index)
+void document::set_caret_index(std::uint32_t index)
 {
     do_set_caret_index(index);
     on_caret_position_changed();
@@ -82,7 +82,7 @@ void document::set_caret_index(odin::u32 index)
 // ==========================================================================
 // GET_CARET_INDEX
 // ==========================================================================
-odin::u32 document::get_caret_index() const
+std::uint32_t document::get_caret_index() const
 {
     return do_get_caret_index();
 }
@@ -90,7 +90,7 @@ odin::u32 document::get_caret_index() const
 // ==========================================================================
 // GET_TEXT_SIZE
 // ==========================================================================
-odin::u32 document::get_text_size() const
+std::uint32_t document::get_text_size() const
 {
     return do_get_text_size();
 }
@@ -100,7 +100,7 @@ odin::u32 document::get_text_size() const
 // ==========================================================================
 void document::insert_text(
     terminalpp::string const  &text
-  , boost::optional<odin::u32> index)
+  , boost::optional<std::uint32_t> index)
 {
     do_insert_text(text, index);
 }
@@ -108,7 +108,7 @@ void document::insert_text(
 // ==========================================================================
 // DELETE_TEXT
 // ==========================================================================
-void document::delete_text(std::pair<odin::u32, odin::u32> range)
+void document::delete_text(std::pair<std::uint32_t, std::uint32_t> range)
 {
     do_delete_text(range);
 }
@@ -124,7 +124,7 @@ void document::set_text(terminalpp::string const &text)
 // ==========================================================================
 // GET_NUMBER_OF_LINES
 // ==========================================================================
-odin::u32 document::get_number_of_lines() const
+std::uint32_t document::get_number_of_lines() const
 {
     return do_get_number_of_lines();
 }
@@ -132,7 +132,7 @@ odin::u32 document::get_number_of_lines() const
 // ==========================================================================
 // GET_LINE
 // ==========================================================================
-terminalpp::string document::get_line(odin::u32 index) const
+terminalpp::string document::get_line(std::uint32_t index) const
 {
     return do_get_line(index);
 }

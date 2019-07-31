@@ -30,7 +30,6 @@
 #include "paradice/export.hpp"
 #include "paradice/beast.hpp"
 #include "paradice/cryptography.hpp"
-#include "odin/core.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/extended_type_info_typeid.hpp>
 #include <boost/serialization/singleton.hpp>
@@ -91,12 +90,12 @@ public :
     //* =====================================================================
     /// \brief Retrieves the number of characters belonging to this account.
     //* =====================================================================
-    odin::u32 get_number_of_characters() const;
+    std::uint32_t get_number_of_characters() const;
     
     //* =====================================================================
     /// \brief Gets the indexth character name of the account. 
     //* =====================================================================
-    std::string get_character_name(odin::u32 index);
+    std::string get_character_name(std::uint32_t index);
     
     //* =====================================================================
     /// \brief Add a character to the account.
@@ -121,7 +120,7 @@ public :
     //* =====================================================================
     /// \brief Returns the admin level of the account.
     //* =====================================================================
-    odin::u32 get_admin_level() const;
+    std::uint32_t get_admin_level() const;
     
     //* =====================================================================
     /// \brief Serializes an account to or from an archive.
@@ -155,7 +154,7 @@ public :
 private :
     std::string              name_;
     std::string              password_;
-    odin::u32                admin_level_;
+    std::uint32_t                admin_level_;
     command_mode             command_mode_;
     std::vector<std::string> characters_;
 };

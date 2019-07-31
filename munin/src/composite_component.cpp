@@ -266,8 +266,8 @@ void composite_component::do_layout()
 // DO_DRAW
 // ==========================================================================
 void composite_component::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     pimpl_->container_->draw(ctx, region);
 }

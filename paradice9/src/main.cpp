@@ -25,7 +25,6 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/paradice9.hpp"
-#include <boost/asio/io_context.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -35,22 +34,17 @@
 
 namespace po = boost::program_options;
 
-static void run_io_service(boost::asio::io_context &io_context)
-{
-    io_context.run();
-}
-
 int main(int argc, char *argv[])
 {
-    unsigned int port        = 4000;
-    std::string  threads     = "";
-    unsigned int concurrency = 0;
+    serverpp::port_identifier port = 4000;
+    std::string  threads           = "";
+    unsigned int concurrency       = 0;
     
     po::options_description description("Available options");
     description.add_options()
-        ( "help,h",                                       "show this help message"                            )
-        ( "port,p",    po::value<unsigned int>(&port),    "port number"                                       )
-        ( "threads,t", po::value<std::string>(&threads),  "number of threads of execution (0 for autodetect)" )
+        ( "help,h",                                                    "show this help message"                            )
+        ( "port,p",    po::value<serverpp::port_identifier>(&port),    "port number"                                       )
+        ( "threads,t", po::value<std::string>(&threads),               "number of threads of execution (0 for autodetect)" )
         ;
 
     po::positional_options_description pos_description;
@@ -131,18 +125,13 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    boost::asio::io_context io_context;
-    
-    paradice9 application(
-        io_context
-      , std::make_shared<boost::asio::io_context::work>(std::ref(io_context))
-      , port);
+    paradice9 application{port};
  
     std::vector<std::thread> threadpool;
 
     for (unsigned int thr = 0; thr < concurrency; ++thr)
     {
-        threadpool.emplace_back(&run_io_service, std::ref(io_context));
+        threadpool.emplace_back([&application]{application.run();});
     }
     
     for (auto &pthread : threadpool)
@@ -150,8 +139,6 @@ int main(int argc, char *argv[])
         pthread.join();
     }
     
-    io_context.stop();
-
     return EXIT_SUCCESS;
 }
 

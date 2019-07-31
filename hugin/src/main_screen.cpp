@@ -68,7 +68,7 @@ struct main_screen::impl
         auto elements = document->get_line(0);
         auto input = to_string(elements); 
 
-        document->delete_text({odin::u32(0), document->get_text_size()});
+        document->delete_text({std::uint32_t(0), document->get_text_size()});
 
         if (!input.empty())
         {
@@ -140,13 +140,13 @@ main_screen::main_screen()
 void main_screen::clear()
 {
     auto document = pimpl_->input_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     document = pimpl_->output_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     document = pimpl_->help_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     update_wholist({});
     hide_help_window();
@@ -254,7 +254,7 @@ void main_screen::set_active_encounter(
 void main_screen::set_help_window_text(terminalpp::string const &text)
 {
     auto document = pimpl_->help_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     document->insert_text(text);
 }
 

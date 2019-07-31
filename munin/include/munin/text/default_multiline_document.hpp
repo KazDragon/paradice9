@@ -82,21 +82,21 @@ private :
     /// override this function in order to set the caret's index in a custom
     /// manner.
     //* =====================================================================
-    virtual void do_set_caret_index(odin::u32 index) override;
+    virtual void do_set_caret_index(std::uint32_t index) override;
 
     //* =====================================================================
     /// \brief Called by get_caret_index().  Derived classes must override
     /// this function in order to retrieve the caret's position in a custom
     /// manner.
     //* =====================================================================
-    virtual odin::u32 do_get_caret_index() const override;
+    virtual std::uint32_t do_get_caret_index() const override;
 
     //* =====================================================================
     /// \brief Called by get_text_size().  Derived classes must override
     /// this function in order to get the size of the text in a custom
     /// manner.
     //* =====================================================================
-    virtual odin::u32 do_get_text_size() const override;
+    virtual std::uint32_t do_get_text_size() const override;
 
     //* =====================================================================
     /// \brief Called by insert_text().  Derived classes must override this
@@ -105,13 +105,13 @@ private :
     //* =====================================================================
     virtual void do_insert_text(
         terminalpp::string const&  text
-      , boost::optional<odin::u32> index) override;
+      , boost::optional<std::uint32_t> index) override;
 
     //* =====================================================================
     /// \brief Called by delete_text().  Derived classes must override this
     /// function in order to delete text in a custom manner.
     //* =====================================================================
-    virtual void do_delete_text(std::pair<odin::u32, odin::u32> range) override;
+    virtual void do_delete_text(std::pair<std::uint32_t, std::uint32_t> range) override;
 
     //* =====================================================================
     /// \brief Called by set_text().  Derived classes must override this
@@ -124,13 +124,13 @@ private :
     /// override this function in order to get the number of lines in the
     /// document in a custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_number_of_lines() const override;
+    virtual std::uint32_t do_get_number_of_lines() const override;
 
     //* =====================================================================
     /// \brief Called by get_line().  Derived classes must override this
     /// function in order to return the text line in a custom manner.
     //* =====================================================================
-    virtual terminalpp::string do_get_line(odin::u32 index) const override;
+    virtual terminalpp::string do_get_line(std::uint32_t index) const override;
 
     struct impl;
     std::shared_ptr<impl> pimpl_;

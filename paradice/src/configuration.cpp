@@ -31,9 +31,9 @@
 #include "paradice/communication.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
+#include "paradice/tokenise.hpp"
 #include "paradice/who.hpp"
 #include "hugin/user_interface.hpp"
-#include "odin/tokenise.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
@@ -51,7 +51,7 @@ PARADICE_COMMAND_IMPL(set)
         "\r\n     commandmode (mud|mmo)"
         "\r\n\r\n";
 
-    auto token0 = odin::tokenise(arguments);
+    auto token0 = paradice::tokenise(arguments);
 
     if (token0.first.empty())
     {
@@ -68,7 +68,7 @@ PARADICE_COMMAND_IMPL(set)
             "\r\n Example: set commandmode mmo"
             "\r\n\r\n";
 
-        auto token1 = odin::tokenise(token0.second);
+        auto token1 = paradice::tokenise(token0.second);
 
         if (token1.first.empty())
         {

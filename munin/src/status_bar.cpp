@@ -39,9 +39,9 @@
 namespace munin {
 
 namespace {
-    BOOST_STATIC_CONSTANT(odin::u32, DELAY_BEFORE_MARQUEE   = 3);
-    BOOST_STATIC_CONSTANT(odin::u32, MARQUEE_SPEED_MS       = 15);
-    BOOST_STATIC_CONSTANT(odin::u32, CHARACTERS_PER_MARQUEE = 2);
+    BOOST_STATIC_CONSTANT(std::uint32_t, DELAY_BEFORE_MARQUEE   = 3);
+    BOOST_STATIC_CONSTANT(std::uint32_t, MARQUEE_SPEED_MS       = 15);
+    BOOST_STATIC_CONSTANT(std::uint32_t, CHARACTERS_PER_MARQUEE = 2);
 }
 
 // ==========================================================================
@@ -52,7 +52,7 @@ struct status_bar::impl : public std::enable_shared_from_this<impl>
     std::shared_ptr<boost::asio::deadline_timer> timer_;
     std::shared_ptr<image>                       image_;
     terminalpp::string                           message_;
-    odin::s32                                    tick_;
+    std::int32_t                                    tick_;
 
     void start_marquee()
     {
@@ -134,8 +134,8 @@ void status_bar::set_message(terminalpp::string const &message)
 // DO_DRAW
 // ==========================================================================
 void status_bar::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     // If draw has never been called before, then it is time to initialise
     // the timer.

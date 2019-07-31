@@ -1,6 +1,5 @@
 from conans import ConanFile, CMake, tools
 
-
 class Paradice9Conan(ConanFile):
     name = "paradice9"
     version = "2.0.0"
@@ -27,29 +26,14 @@ class Paradice9Conan(ConanFile):
                 "boost_uuid/[>=1.69]@bincrafters/stable",
                 "boost_utility/[>=1.69]@bincrafters/stable",
                 "boost_variant/[>=1.69]@bincrafters/stable",
-                "telnetpp/2.0.0@kazdragon/testing",
-                "terminalpp/2.0.0@kazdragon/testing")
-
-#     def source(self):
-#         self.run("git clone https://github.com/memsharded/hello.git")
-#         self.run("cd hello && git checkout static_shared")
-#         # This small hack might be useful to guarantee proper /MT /MD linkage
-#         # in MSVC if the packaged project doesn't have variables to set it
-#         # properly
-#         tools.replace_in_file("hello/CMakeLists.txt", "PROJECT(MyHello)",
-#                               '''PROJECT(MyHello)
-# include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-# conan_basic_setup()''')
+                "telnetpp/2.0.1@kazdragon/conan-public",
+                "terminalpp/1.3.0@kazdragon/conan-public",
+                "serverpp/0.0.3@kazdragon/conan-public")
 
     def build(self):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-
-        # Explicit way:
-        # self.run('cmake %s/hello %s'
-        #          % (self.source_folder, cmake.command_line))
-        # self.run("cmake --build . %s" % cmake.build_config)
 
     def package(self):
         self.copy("*.hpp", dst="include", src="hello")

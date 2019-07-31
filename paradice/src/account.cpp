@@ -79,15 +79,15 @@ bool account::password_match(std::string const &password)
 // ==========================================================================
 // GET_NUMBER_OF_CHARACTERS
 // ==========================================================================
-odin::u32 account::get_number_of_characters() const
+std::uint32_t account::get_number_of_characters() const
 {
-    return odin::u32(characters_.size());
+    return std::uint32_t(characters_.size());
 }
 
 // ==========================================================================
 // GET_CHARACTER_NAME
 // ==========================================================================
-std::string account::get_character_name(odin::u32 index)
+std::string account::get_character_name(std::uint32_t index)
 {
     return characters_[index];
 }
@@ -130,7 +130,7 @@ account::command_mode account::get_command_mode() const
 // ==========================================================================
 // GET_ADMIN_LEVEL
 // ==========================================================================
-odin::u32 account::get_admin_level() const
+std::uint32_t account::get_admin_level() const
 {
     return admin_level_;
 }

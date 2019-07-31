@@ -73,14 +73,14 @@ void horizontal_squeeze_layout::do_layout(
     {
         auto height_per_component =  size.height / amount;
         auto height_remainder =      size.height % amount;
-        auto height_remainder_used = odin::u32(0);
+        auto height_remainder_used = std::uint32_t(0);
 
-        for (odin::u32 index = 0; index < components.size(); ++index)
+        for (std::uint32_t index = 0; index < components.size(); ++index)
         {
             auto comp = components[index];
 
             comp->set_position(terminalpp::point(
-                odin::u32(0)
+                std::uint32_t(0)
               , (height_per_component * index) + height_remainder_used));
 
             auto height = height_per_component;

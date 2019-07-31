@@ -31,11 +31,11 @@
 
 namespace munin {
 
-BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_CENTRE = 0);
-BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_NORTH  = 1);
-BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_EAST   = 2);
-BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_SOUTH  = 3);
-BOOST_STATIC_CONSTANT(odin::u32, COMPASS_LAYOUT_WEST   = 4);
+BOOST_STATIC_CONSTANT(std::uint32_t, COMPASS_LAYOUT_CENTRE = 0);
+BOOST_STATIC_CONSTANT(std::uint32_t, COMPASS_LAYOUT_NORTH  = 1);
+BOOST_STATIC_CONSTANT(std::uint32_t, COMPASS_LAYOUT_EAST   = 2);
+BOOST_STATIC_CONSTANT(std::uint32_t, COMPASS_LAYOUT_SOUTH  = 3);
+BOOST_STATIC_CONSTANT(std::uint32_t, COMPASS_LAYOUT_WEST   = 4);
 
 //* =========================================================================
 /// \brief A class that can lay out its components according to basic compass

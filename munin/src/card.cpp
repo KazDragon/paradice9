@@ -118,7 +118,7 @@ void card::add_face(
 // ==========================================================================
 // GET_NUMBER_OF_FACES
 // ==========================================================================
-odin::u32 card::get_number_of_faces() const
+std::uint32_t card::get_number_of_faces() const
 {
     return pimpl_->faces_.size();
 }
@@ -264,8 +264,8 @@ void card::do_layout()
 // DO_DRAW
 // ==========================================================================
 void card::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     if (pimpl_->current_face_.is_initialized())
     {

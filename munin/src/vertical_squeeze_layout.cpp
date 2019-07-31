@@ -73,15 +73,15 @@ void vertical_squeeze_layout::do_layout(
     {
         auto width_per_component =  size.width / amount;
         auto width_remainder =      size.width % amount;
-        auto width_remainder_used = odin::u32(0);
+        auto width_remainder_used = std::uint32_t(0);
 
-        for (odin::u32 index = 0; index < amount; ++index)
+        for (std::uint32_t index = 0; index < amount; ++index)
         {
             auto comp = components[index];
 
             comp->set_position(terminalpp::point(
                 (width_per_component * index) + width_remainder_used
-                , odin::u32(0)));
+                , std::uint32_t(0)));
 
             auto width = width_per_component;
 

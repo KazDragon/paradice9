@@ -26,7 +26,6 @@
 #define PARADICE_DICE_HPP_
 
 #include "paradice/export.hpp"
-#include "odin/core.hpp"
 #include <boost/variant.hpp>
 #include <memory>
 #include <string>
@@ -39,10 +38,10 @@ class client;
 
 struct dice_roll
 {
-    odin::u32 repetitions_;
-    odin::u32 amount_;
-    odin::u32 sides_;
-    odin::s32 bonus_;
+    std::uint32_t repetitions_;
+    std::uint32_t amount_;
+    std::uint32_t sides_;
+    std::int32_t bonus_;
 };
 
 typedef boost::variant<
@@ -56,7 +55,7 @@ struct dice_result
     dice_roll roll_;
 
     // raw dice results per repetition.
-    std::vector<std::vector<odin::s32>> results_;
+    std::vector<std::vector<std::int32_t>> results_;
 };
 
 PARADICE_EXPORT 

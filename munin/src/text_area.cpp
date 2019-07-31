@@ -122,10 +122,10 @@ struct text_area::impl
     //* =====================================================================
     void draw(
         munin::canvas_view &cvs
-      , rectangle const &region)
+      , terminalpp::rectangle const &region)
     {
-        for (odin::u32 row_index = region.origin.y;
-             row_index < odin::u32(region.origin.y + region.size.height);
+        for (std::uint32_t row_index = region.origin.y;
+             row_index < std::uint32_t(region.origin.y + region.size.height);
              ++row_index)
         {
             auto line = document_->get_line(row_index);
@@ -133,8 +133,8 @@ struct text_area::impl
 
             // Write the characters that are required by the document.
             for (;
-                 column_index < odin::u32(region.origin.x + region.size.width)
-              && column_index < odin::u32(line.size());
+                 column_index < std::uint32_t(region.origin.x + region.size.width)
+              && column_index < std::uint32_t(line.size());
                  ++column_index)
             {
                 cvs[column_index][row_index] = line[column_index];
@@ -143,7 +143,7 @@ struct text_area::impl
             // Pad the rest with blanks
             static terminalpp::element const default_element(' ');
             for (;
-                column_index < odin::u32(region.size.width);
+                column_index < std::uint32_t(region.size.width);
                 ++column_index)
             {
                 cvs[column_index][row_index] = default_element;
@@ -176,7 +176,7 @@ private :
     //* =====================================================================
     /// \brief Called when the underlying document changes.
     //* =====================================================================
-    void on_document_changed(std::vector<rectangle> const &regions)
+    void on_document_changed(std::vector<terminalpp::rectangle> const &regions)
     {
         self_.on_preferred_size_changed();
         repaint();
@@ -196,17 +196,17 @@ private :
     //* =====================================================================
     void repaint()
     {
-        self_.on_redraw({rectangle({}, self_.get_size())});
+        self_.on_redraw({terminalpp::rectangle({}, self_.get_size())});
     }
 
     //* =====================================================================
     /// \brief Called by when the up arrow key has been pressed.
     //* =====================================================================
-    void do_cursor_up_key_event(odin::u32 times)
+    void do_cursor_up_key_event(std::uint32_t times)
     {
         auto position = document_->get_caret_position();
 
-        if (times > odin::u32(position.y))
+        if (times > std::uint32_t(position.y))
         {
             times = position.y;
         }
@@ -218,7 +218,7 @@ private :
     //* =====================================================================
     /// \brief Called when the down arrow key has been pressed.
     //* =====================================================================
-    void do_cursor_down_key_event(odin::u32 times)
+    void do_cursor_down_key_event(std::uint32_t times)
     {
         auto position = document_->get_caret_position();
 
@@ -230,7 +230,7 @@ private :
     //* =====================================================================
     /// \brief Called when the <- key has been pressed.
     //* =====================================================================
-    void do_cursor_backward_key_event(odin::u32 times)
+    void do_cursor_backward_key_event(std::uint32_t times)
     {
         auto index = document_->get_caret_index();
         auto new_index = (index < times ? 0 : index - times);
@@ -241,7 +241,7 @@ private :
     //* =====================================================================
     /// \brief Called when the -> key has been pressed.
     //* =====================================================================
-    void do_cursor_forward_key_event(odin::u32 times)
+    void do_cursor_forward_key_event(std::uint32_t times)
     {
         document_->set_caret_index(document_->get_caret_index() + times);
     }
@@ -503,8 +503,8 @@ void text_area::do_set_cursor_position(terminalpp::point const &position)
 // DO_DRAW
 // ==========================================================================
 void text_area::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     pimpl_->draw(ctx.get_canvas(), region);
 }

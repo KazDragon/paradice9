@@ -45,8 +45,8 @@
 namespace hugin {
 
 namespace {
-    BOOST_STATIC_CONSTANT(odin::u32, BALANCED_LAYOUT_PREFERRED = 0);
-    BOOST_STATIC_CONSTANT(odin::u32, BALANCED_LAYOUT_SHARED = 1);
+    BOOST_STATIC_CONSTANT(std::uint32_t, BALANCED_LAYOUT_PREFERRED = 0);
+    BOOST_STATIC_CONSTANT(std::uint32_t, BALANCED_LAYOUT_SHARED = 1);
     
     BOOST_STATIC_CONSTANT(std::string, BESTIARY_BUTTONS = "Bestiary");
     BOOST_STATIC_CONSTANT(std::string, BEAST_BUTTONS    = "Beast");
@@ -92,15 +92,15 @@ private :
         std::vector<boost::any>                        const &hints,
         terminalpp::extent                                    size)
     {
-        odin::u32 shared_components = 0;
+        std::uint32_t shared_components = 0;
         auto shared_width = size.width;
 
         // First, iterate the components and factor out any "preferred size"
         // components so we can see what must be shared.
         for (size_t index = 0; index < components.size(); ++index)
         {
-            odin::u32 const *psize_hint = boost::any_cast<odin::u32>(&hints[index]);
-            odin::u32 size_hint = psize_hint 
+            std::uint32_t const *psize_hint = boost::any_cast<std::uint32_t>(&hints[index]);
+            std::uint32_t size_hint = psize_hint 
               ? *psize_hint 
               : BALANCED_LAYOUT_PREFERRED;
 
@@ -118,27 +118,27 @@ private :
         }
 
         // Now obtain the minimum width for the shared components.
-        odin::u32 shared_component_width =
+        std::uint32_t shared_component_width =
             shared_components == 0
           ? 0
           : shared_width / shared_components;
 
         // There may be some left over units.  They can be shared across the
         // components
-          odin::u32 shared_component_extras =
+          std::uint32_t shared_component_extras =
             shared_components == 0
           ? 0
           : shared_width % shared_components;
 
         // Now lay out each component
-          odin::u32 current_x = 0;
+          std::uint32_t current_x = 0;
 
         for (size_t index = 0; index < components.size(); ++index)
         {
             auto comp = components[index];
 
-            odin::u32 const *psize_hint = boost::any_cast<odin::u32>(&hints[index]);
-            odin::u32 size_hint = psize_hint 
+            std::uint32_t const *psize_hint = boost::any_cast<std::uint32_t>(&hints[index]);
+            std::uint32_t size_hint = psize_hint 
               ? *psize_hint 
               : BALANCED_LAYOUT_PREFERRED;
 
@@ -152,7 +152,7 @@ private :
             }
             else // size_hint == BALANCED_LAYOUT_SHARED
             {
-                odin::u32 extras = 0;
+                std::uint32_t extras = 0;
 
                 if (shared_component_extras != 0)
                 {

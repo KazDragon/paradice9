@@ -101,14 +101,14 @@ struct edit::impl
     /// \brief Draws the component
     //* =====================================================================
     void draw(
-        munin::canvas_view &cvs
-      , rectangle const &region)
+        munin::canvas_view &cvs,
+        terminalpp::rectangle const &region)
     {
         auto document_size = document_->get_size();
         auto characters = document_size.width - document_base_;
         auto text = document_->get_line(0);
 
-        odin::s32 index = 0;
+        std::int32_t index = 0;
 
         // Write whatever characters are required.
         if (password_element_.is_initialized())
@@ -117,7 +117,7 @@ struct edit::impl
 
             for (;
                  (index + 1) < region.size.width
-              && odin::u32(region.origin.x + index) < characters;
+              && std::uint32_t(region.origin.x + index) < characters;
                  ++index)
             {
                 cvs[index][0] = element;
@@ -127,7 +127,7 @@ struct edit::impl
         {
             for (;
                  (index + 1) < region.size.width
-              && odin::u32(region.origin.x + index) < characters;
+              && std::uint32_t(region.origin.x + index) < characters;
                  ++index)
             {
                 cvs[index][0] = text[document_base_ + index];
@@ -185,20 +185,20 @@ private :
     //* =====================================================================
     /// \brief Called when the underlying document changes.
     //* =====================================================================
-    void on_document_changed(std::vector<rectangle> const &regions)
+    void on_document_changed(std::vector<terminalpp::rectangle> const &regions)
     {
         // Search the regions, looking for regions that overlap with the
         // text that we are displaying.
-        std::vector<rectangle> overlapping_changes;
+        std::vector<terminalpp::rectangle> overlapping_changes;
 
         // Determine the rectangle of the document that we are displaying.
-        rectangle display_rectangle(
+        terminalpp::rectangle display_rectangle(
             terminalpp::point(document_base_, 0)
           , terminalpp::extent(self_.get_size().width, 1));
 
         for (auto const &region : regions)
         {
-            boost::optional<rectangle> overlap = intersection(
+            boost::optional<terminalpp::rectangle> overlap = intersection(
                 region, display_rectangle);
 
             if (overlap)
@@ -258,14 +258,14 @@ private :
     //* =====================================================================
     void redraw()
     {
-        self_.on_redraw({rectangle({}, self_.get_size())});
+        self_.on_redraw({terminalpp::rectangle({}, self_.get_size())});
     }
 
     //* =====================================================================
     /// \brief Called by do_ansi_control_sequence_event when the <- key
     /// has been pressed.
     //* =====================================================================
-    void do_cursor_backward_key_event(odin::u32 times)
+    void do_cursor_backward_key_event(std::uint32_t times)
     {
         auto index = document_->get_caret_index();
         auto new_index = index < times ? 0 : index - times;
@@ -277,7 +277,7 @@ private :
     /// \brief Called by do_ansi_control_sequence_event when the -> key
     /// has been pressed.
     //* =====================================================================
-    void do_cursor_forward_key_event(odin::u32 times)
+    void do_cursor_forward_key_event(std::uint32_t times)
     {
         document_->set_caret_index(document_->get_caret_index() + times);
     }
@@ -395,7 +395,7 @@ private :
     terminalpp::point                       cursor_position_;
     bool                                    cursor_state_;
 
-    odin::u32                               document_base_;
+    std::uint32_t                               document_base_;
 
     boost::optional<terminalpp::element>    password_element_;
 };
@@ -452,8 +452,8 @@ terminalpp::point edit::do_get_cursor_position() const
 // DO_DRAW
 // ==========================================================================
 void edit::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     pimpl_->draw(ctx.get_canvas(), region);
 }

@@ -233,8 +233,8 @@ void component::layout()
 // DRAW
 // ==========================================================================
 void component::draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     do_draw(ctx, region);
 }

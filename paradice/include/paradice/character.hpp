@@ -30,7 +30,6 @@
 #include "paradice/export.hpp"
 #include "paradice/beast.hpp"
 #include "paradice/encounter.hpp"
-#include "odin/core.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/extended_type_info.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -92,12 +91,12 @@ public :
     //* =====================================================================
     /// \brief Sets the character's GM level.
     //* =====================================================================
-    void set_gm_level(odin::u32 level);
+    void set_gm_level(std::uint32_t level);
 
     //* =====================================================================
     /// \brief Retrieves the character's GM level.
     //* =====================================================================
-    odin::u32 get_gm_level() const;
+    std::uint32_t get_gm_level() const;
 
     //* =====================================================================
     /// \brief Sets the character's beasts.
@@ -159,7 +158,7 @@ private :
     std::string                             name_;
     std::string                             prefix_;
     std::string                             suffix_;
-    odin::u32                               gm_level_;
+    std::uint32_t                               gm_level_;
     std::vector<std::shared_ptr<beast>>     beasts_;
     std::vector<std::shared_ptr<encounter>> encounters_;
 };

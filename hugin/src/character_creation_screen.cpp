@@ -170,7 +170,7 @@ character_creation_screen::~character_creation_screen()
 void character_creation_screen::clear()
 {
     auto document = pimpl_->name_field_->get_document();
-    document->delete_text({odin::u32(0), document->get_text_size()});
+    document->delete_text({std::uint32_t(0), document->get_text_size()});
     
     pimpl_->gm_toggle_->set_toggle(false);
 }

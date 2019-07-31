@@ -28,7 +28,6 @@
 #define PARADICE_BEAST_HPP_
 
 #include "paradice/export.hpp"
-#include "odin/core.hpp"
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>

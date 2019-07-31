@@ -31,7 +31,7 @@ namespace munin {
 // ==========================================================================
 // GET_TOP_BORDER_HEIGHT
 // ==========================================================================
-odin::s32 frame::get_top_border_height() const
+std::int32_t frame::get_top_border_height() const
 {
     return do_get_top_border_height();
 }
@@ -39,7 +39,7 @@ odin::s32 frame::get_top_border_height() const
 // ==========================================================================
 // GET_BOTTOM_BORDER_HEIGHT
 // ==========================================================================
-odin::s32 frame::get_bottom_border_height() const
+std::int32_t frame::get_bottom_border_height() const
 {
     return do_get_bottom_border_height();
 }
@@ -47,7 +47,7 @@ odin::s32 frame::get_bottom_border_height() const
 // ==========================================================================
 // GET_LEFT_BORDER_WIDTH
 // ==========================================================================
-odin::s32 frame::get_left_border_width() const
+std::int32_t frame::get_left_border_width() const
 {
     return do_get_left_border_width();
 }
@@ -55,7 +55,7 @@ odin::s32 frame::get_left_border_width() const
 // ==========================================================================
 // GET_RIGHT_BORDER_WIDTH
 // ==========================================================================
-odin::s32 frame::get_right_border_width() const
+std::int32_t frame::get_right_border_width() const
 {
     return do_get_right_border_width();
 }

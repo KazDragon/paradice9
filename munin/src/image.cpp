@@ -26,7 +26,6 @@
 // ==========================================================================
 #include "munin/image.hpp"
 #include "munin/context.hpp"
-#include "odin/core.hpp"
 #include "munin/canvas_view.hpp"
 #include "terminalpp/string.hpp"
 #include <algorithm>
@@ -76,7 +75,7 @@ void image::set_image(std::vector<terminalpp::string> const &elements)
 {
     pimpl_->elements_ = elements;
     on_preferred_size_changed();
-    on_redraw({rectangle({}, get_size())});
+    on_redraw({terminalpp::rectangle({}, get_size())});
 }
 
 // ==========================================================================
@@ -98,8 +97,8 @@ terminalpp::extent image::do_get_preferred_size() const
     for (auto const &row : pimpl_->elements_)
     {
         preferred_size.width = (std::max)(
-            odin::u32(preferred_size.width)
-          , odin::u32(row.size()));
+            std::uint32_t(preferred_size.width)
+          , std::uint32_t(row.size()));
     }
 
     return preferred_size;
@@ -109,18 +108,18 @@ terminalpp::extent image::do_get_preferred_size() const
 // DO_DRAW
 // ==========================================================================
 void image::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     static terminalpp::element const default_element(' ');
     auto &cvs = ctx.get_canvas();
 
-    for (odin::u32 row = region.origin.y;
-         row < odin::u32(region.origin.y + region.size.height);
+    for (std::uint32_t row = region.origin.y;
+         row < std::uint32_t(region.origin.y + region.size.height);
          ++row)
     {
-        for (odin::u32 column = region.origin.x;
-             column < odin::u32(region.origin.x + region.size.width);
+        for (std::uint32_t column = region.origin.x;
+             column < std::uint32_t(region.origin.x + region.size.width);
              ++column)
         {
             if (row < pimpl_->elements_.size()

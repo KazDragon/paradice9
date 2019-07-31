@@ -26,8 +26,8 @@
 // ==========================================================================
 #include "munin/viewport.hpp"
 #include "munin/context.hpp"
-#include "munin/rectangle.hpp"
 #include <munin/canvas_view.hpp>
+#include <terminalpp/rectangle.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <boost/scope_exit.hpp>
 
@@ -56,7 +56,7 @@ struct viewport::impl
     // ======================================================================
     // ON_REDRAW
     // ======================================================================
-    void on_redraw(std::vector<rectangle> regions)
+    void on_redraw(std::vector<terminalpp::rectangle> regions)
     {
         // Adjust for offset.  If we are currently looking at the component
         // from (5,10), and it wants to update the region (7,12)->[2,2],
@@ -155,7 +155,9 @@ struct viewport::impl
     void on_subcomponent_preferred_size_changed()
     {
         set_subcomponent_size();
-        on_redraw({rectangle(terminalpp::point(0, 0), self_.get_size())});
+        on_redraw({
+            terminalpp::rectangle(terminalpp::point(0, 0), self_.get_size())
+        });
 
         self_.on_subcomponent_size_changed();
     }
@@ -234,7 +236,7 @@ struct viewport::impl
         else if (cursor_position.y + size.height >= component_size.height)
         {
             cursor_position.y = component_size.height - 1;
-            self_.on_redraw({rectangle({}, size)});
+            self_.on_redraw({terminalpp::rectangle({}, size)});
         }
         // Otherwise, if we would hit the last page, scroll until the last
         // page, then set the cursor.  This will cause a half-scroll so that
@@ -399,7 +401,7 @@ void viewport::set_origin(terminalpp::point const &origin)
 
     // It is highly likely that this will require redrawing the entire
     // contained object.
-    on_redraw({rectangle({}, get_size())});
+    on_redraw({terminalpp::rectangle({}, get_size())});
 
     // Also, announce that this has occurred.  This enables a container to
     // react to the fact that the origin has changed.  For example, by
@@ -439,7 +441,7 @@ void viewport::do_set_size(terminalpp::extent const &size)
         set_origin(origin);
     }
 
-    on_redraw({rectangle({}, size)});
+    on_redraw({terminalpp::rectangle({}, size)});
 }
 
 // ==========================================================================
@@ -577,8 +579,8 @@ terminalpp::point viewport::do_get_cursor_position() const
 // DO_DRAW
 // ==========================================================================
 void viewport::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     auto &cvs = ctx.get_canvas();
 
@@ -596,7 +598,7 @@ void viewport::do_draw(
 
     // So with the canvas offset, we also need to recalculate the draw region
     // by that same offset.
-    munin::rectangle offset_region(
+    terminalpp::rectangle offset_region(
         { region.origin.x + offset.x,
           region.origin.y + offset.y },
         region.size);

@@ -26,7 +26,6 @@
 // ==========================================================================
 #include "munin/filled_box.hpp"
 #include "munin/context.hpp"
-#include "odin/core.hpp"
 #include <munin/canvas_view.hpp>
 
 namespace munin {
@@ -74,7 +73,7 @@ void filled_box::set_preferred_size(terminalpp::extent preferred_size)
 void filled_box::set_fill(terminalpp::element const &element)
 {
     pimpl_->element_ = element;
-    on_redraw({rectangle({}, get_size())});
+    on_redraw({terminalpp::rectangle({}, get_size())});
 }
 
 // ==========================================================================
@@ -139,7 +138,7 @@ void filled_box::do_set_attribute(std::string const &name, boost::any const &att
 
     if (attribute_changed)
     {
-        on_redraw({rectangle({}, get_size())});
+        on_redraw({terminalpp::rectangle({}, get_size())});
     }
 }
 
@@ -147,17 +146,17 @@ void filled_box::do_set_attribute(std::string const &name, boost::any const &att
 // DO_DRAW
 // ==========================================================================
 void filled_box::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     auto &cvs = ctx.get_canvas();
 
-    for (odin::u32 row = region.origin.y;
-         row < odin::u32(region.origin.y + region.size.height);
+    for (std::uint32_t row = region.origin.y;
+         row < std::uint32_t(region.origin.y + region.size.height);
          ++row)
     {
-        for (odin::u32 column = region.origin.x;
-             column < odin::u32(region.origin.x + region.size.width);
+        for (std::uint32_t column = region.origin.x;
+             column < std::uint32_t(region.origin.x + region.size.width);
              ++column)
         {
             cvs[column][row] = pimpl_->element_;

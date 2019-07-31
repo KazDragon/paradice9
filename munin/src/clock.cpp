@@ -115,8 +115,8 @@ clock::~clock()
 // DO_DRAW
 // ==========================================================================
 void clock::do_draw(
-    context         &ctx
-  , rectangle const &region)
+    context                     &ctx,
+    terminalpp::rectangle const &region)
 {
     // If draw has never been called before, then it is time to initialise
     // the timer.

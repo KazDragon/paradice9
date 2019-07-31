@@ -1,5 +1,5 @@
 // ==========================================================================
-// Odin Tokenise
+// Paradice Tokenise
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,18 +24,21 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef ODIN_TOKENISE_HPP_
-#define ODIN_TOKENISE_HPP_
+#include "paradice/tokenise.hpp"
+#include <boost/algorithm/string/trim.hpp>
+#include <algorithm>
 
-#include "odin/core.hpp"
-#include <utility>
-#include <string>
+using namespace std;
 
-namespace odin {
+namespace paradice {
 
-ODIN_EXPORT
-std::pair<std::string, std::string> tokenise(std::string const &text);
+pair<string, string> tokenise(string const &text)
+{
+    auto space_pos = std::find(text.begin(), text.end(), ' ');
 
+    return {
+        boost::algorithm::trim_copy(string(text.begin(), space_pos))
+      , boost::algorithm::trim_copy(string(space_pos, text.end()))};
 }
 
-#endif
+}

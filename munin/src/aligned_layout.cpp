@@ -65,7 +65,7 @@ void aligned_layout::do_layout(
     std::vector<boost::any>                 const &hints,
     terminalpp::extent                             size)
 {
-    for (odin::u32 index = 0; index < components.size(); ++index)
+    for (std::uint32_t index = 0; index < components.size(); ++index)
     {
         auto const &comp = components[index];
         auto const &hint = hints[index];

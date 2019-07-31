@@ -28,7 +28,6 @@
 #define MUNIN_TABBED_PANEL_HPP_
 
 #include "munin/composite_component.hpp"
-#include "odin/core.hpp"
 #include <boost/optional.hpp>
 #include <string>
 
@@ -62,13 +61,13 @@ public :
     void insert_tab(
         std::string                       const &text,
         std::shared_ptr<munin::component> const &comp,
-        boost::optional<odin::u32>               index = {});
+        boost::optional<std::uint32_t>               index = {});
 
     //* =====================================================================
     /// \brief Removes a tab from the frame.
     /// \par index The index at which the tab should be removed.
     //* =====================================================================
-    void remove_tab(odin::u32 index);
+    void remove_tab(std::uint32_t index);
 
 private :
     struct impl;

@@ -29,7 +29,6 @@
 
 #include "munin/export.hpp"
 #include "munin/component.hpp"
-#include "odin/core.hpp"
 #include <boost/optional.hpp>
 #include <vector>
 
@@ -38,11 +37,11 @@ namespace munin {
 class layout;
 
 BOOST_STATIC_CONSTANT(
-    odin::u32, HIGHEST_LAYER = (std::numeric_limits<odin::u32>::max)());
+    std::uint32_t, HIGHEST_LAYER = (std::numeric_limits<std::uint32_t>::max)());
 BOOST_STATIC_CONSTANT(
-    odin::u32, LOWEST_LAYER = (std::numeric_limits<odin::u32>::min)());
+    std::uint32_t, LOWEST_LAYER = (std::numeric_limits<std::uint32_t>::min)());
 BOOST_STATIC_CONSTANT(
-    odin::u32, DEFAULT_LAYER = (std::numeric_limits<odin::u32>::max)() / 2);
+    std::uint32_t, DEFAULT_LAYER = (std::numeric_limits<std::uint32_t>::max)() / 2);
 
 //* =========================================================================
 /// \brief A graphical element capable of containing and arranging other
@@ -67,7 +66,7 @@ public :
     /// \brief Retrieves the number of components that this container
     /// contains.
     //* =====================================================================
-    odin::u32 get_number_of_components() const;
+    std::uint32_t get_number_of_components() const;
 
     //* =====================================================================
     /// \brief Adds a component to the container.
@@ -78,7 +77,7 @@ public :
     void add_component(
         std::shared_ptr<component> const &comp
       , boost::any                 const &layout_hint = boost::any()
-      , odin::u32                         layer = DEFAULT_LAYER);
+      , std::uint32_t                         layer = DEFAULT_LAYER);
 
     //* =====================================================================
     /// \brief Removes a component from the container.
@@ -88,36 +87,36 @@ public :
     //* =====================================================================
     /// \brief Retrieves a component from the container.
     //* =====================================================================
-    std::shared_ptr<component> get_component(odin::u32 index) const;
+    std::shared_ptr<component> get_component(std::uint32_t index) const;
 
     //* =====================================================================
     /// \brief Retrieves a component's hint from the container.
     //* =====================================================================
-    boost::any get_component_hint(odin::u32 index) const;
+    boost::any get_component_hint(std::uint32_t index) const;
 
     //* =====================================================================
     /// \brief Retrieves a component's layer from the container.
     //* =====================================================================
-    odin::u32 get_component_layer(odin::u32 index) const;
+    std::uint32_t get_component_layer(std::uint32_t index) const;
 
     //* =====================================================================
     /// \brief Sets the container's current layout for a given layer
     //* =====================================================================
     void set_layout(
         std::unique_ptr<munin::layout> lyt
-      , odin::u32                      layer = DEFAULT_LAYER);
+      , std::uint32_t                      layer = DEFAULT_LAYER);
 
     //* =====================================================================
     /// \brief Retrieves the current layout from the container for a given
     /// layer.
     //* =====================================================================
     boost::optional<munin::layout &> get_layout(
-        odin::u32 layer = DEFAULT_LAYER) const;
+        std::uint32_t layer = DEFAULT_LAYER) const;
 
     //* =====================================================================
     /// \brief Returns an array of layers that currently have layouts
     //* =====================================================================
-    std::vector<odin::u32> get_layout_layers() const;
+    std::vector<std::uint32_t> get_layout_layers() const;
 
 protected :
     //* =====================================================================
@@ -125,7 +124,7 @@ protected :
     /// override this function in order to retrieve the number of components
     /// in this container in a custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_number_of_components() const = 0;
+    virtual std::uint32_t do_get_number_of_components() const = 0;
 
     //* =====================================================================
     /// \brief Called by add_component().  Derived classes must override
@@ -135,7 +134,7 @@ protected :
     virtual void do_add_component(
         std::shared_ptr<component> const &comp
       , boost::any                 const &hint
-      , odin::u32                         layer) = 0;
+      , std::uint32_t                         layer) = 0;
 
     //* =====================================================================
     /// \brief Called by remove_component().  Derived classes must override
@@ -150,21 +149,21 @@ protected :
     /// function in order to retrieve a component in a custom manner.
     //* =====================================================================
     virtual std::shared_ptr<component> do_get_component(
-        odin::u32 index) const = 0;
+        std::uint32_t index) const = 0;
 
     //* =====================================================================
     /// \brief Called by get_component_hint().  Derived classes must
     /// override this function in order to retrieve a component hint in a
     /// custom manner.
     //* =====================================================================
-    virtual boost::any do_get_component_hint(odin::u32 index) const = 0;
+    virtual boost::any do_get_component_hint(std::uint32_t index) const = 0;
 
     //* =====================================================================
     /// \brief Called by get_component_layer().  Derived classes must
     /// override this function in order to retrieve a component layer in a
     /// custom manner.
     //* =====================================================================
-    virtual odin::u32 do_get_component_layer(odin::u32 index) const = 0;
+    virtual std::uint32_t do_get_component_layer(std::uint32_t index) const = 0;
 
     //* =====================================================================
     /// \brief Called by set_layout.  Derived classes must override this
@@ -172,21 +171,21 @@ protected :
     //* =====================================================================
     virtual void do_set_layout(
         std::unique_ptr<munin::layout> lyt
-      , odin::u32                      layer) = 0;
+      , std::uint32_t                      layer) = 0;
 
     //* =====================================================================
     /// \brief Called by get_layout.  Derived classes must override this
     /// function in order to get the container's layout in a custom manner.
     //* =====================================================================
     virtual boost::optional<munin::layout &> do_get_layout(
-        odin::u32 layer) const = 0;
+        std::uint32_t layer) const = 0;
 
     //* =====================================================================
     /// \brief Called by get_layout_layers.  Derived classes must override
     /// this function in order to get the container's layout in a custom
     /// manner.
     //* =====================================================================
-    virtual std::vector<odin::u32> do_get_layout_layers() const = 0;
+    virtual std::vector<std::uint32_t> do_get_layout_layers() const = 0;
 
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -198,8 +197,8 @@ protected :
     /// should be drawn.
     //* =====================================================================
     virtual void do_draw(
-        context         &ctx
-      , rectangle const &region);
+        context                     &ctx
+      , terminalpp::rectangle const &region);
 
 private :
     struct impl;

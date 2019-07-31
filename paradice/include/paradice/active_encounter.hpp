@@ -58,7 +58,7 @@ struct active_encounter
         participant             participant_;
         std::string             annotation_;
         std::deque<dice_result> roll_data_;
-        odin::u32               id_;
+        std::uint32_t               id_;
     };
 
     std::vector<entry> entries_;

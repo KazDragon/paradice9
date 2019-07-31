@@ -94,7 +94,7 @@ std::string character::get_suffix() const
 // ==========================================================================
 // SET_GM_LEVEL
 // ==========================================================================
-void character::set_gm_level(odin::u32 gm_level)
+void character::set_gm_level(std::uint32_t gm_level)
 {
     gm_level_ = gm_level;
 }
@@ -102,7 +102,7 @@ void character::set_gm_level(odin::u32 gm_level)
 // ==========================================================================
 // GET_GM_LEVEL
 // ==========================================================================
-odin::u32 character::get_gm_level() const
+std::uint32_t character::get_gm_level() const
 {
     return gm_level_;
 }

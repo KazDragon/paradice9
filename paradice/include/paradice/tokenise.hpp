@@ -27,6 +27,7 @@
 #ifndef PARADICE_TOKENISE_HPP_
 #define PARADICE_TOKENISE_HPP_
 
+#include "paradice/export.hpp"
 #include <utility>
 #include <string>
 

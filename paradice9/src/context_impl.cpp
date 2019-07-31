@@ -110,12 +110,10 @@ static std::string get_character_address(
 struct context_impl::impl
 {
     impl(
-        boost::asio::io_context                       &io_context
-      , std::shared_ptr<odin::net::server>             server
-      , std::shared_ptr<boost::asio::io_context::work> work)
-      : strand_(io_context)
-      , server_(server)
-      , work_(work)
+        boost::asio::io_context &io_context,
+        std::function<void ()>   shutdown)
+      : strand_(io_context),
+        shutdown_(std::move(shutdown))
     {
     }
     
@@ -235,8 +233,7 @@ struct context_impl::impl
     }
 
     boost::asio::io_context::strand                strand_;
-    std::shared_ptr<odin::net::server>             server_;
-    std::shared_ptr<boost::asio::io_context::work> work_;
+    std::function<void ()>                         shutdown_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
 };
 
@@ -244,10 +241,9 @@ struct context_impl::impl
 // CONSTRUCTOR
 // ==========================================================================
 context_impl::context_impl(
-    boost::asio::io_context                        &io_context
-  , std::shared_ptr<odin::net::server>              server
-  , std::shared_ptr<boost::asio::io_context::work>  work)
-    : pimpl_(new impl(io_context, server, work))
+    boost::asio::io_context &io_context,
+    std::function<void ()>   shutdown)
+  : pimpl_(new impl(io_context, std::move(shutdown)))
 {
 }
     
@@ -365,8 +361,7 @@ void context_impl::save_character(std::shared_ptr<paradice::character> const &ch
 // ==========================================================================
 void context_impl::shutdown()
 {
-    pimpl_->work_.reset();
-    pimpl_->server_->shutdown();
+    pimpl_->shutdown_();
 }
 
 // ==========================================================================

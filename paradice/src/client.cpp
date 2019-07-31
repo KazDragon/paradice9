@@ -191,14 +191,14 @@ public :
         connection_ = cnx;
 
         // CONNECTION CALLBACKS
-        connection_->on_data_read(
-            [this](std::string const &data)
-            {
-                std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-                dispatch_queue_.push_back(
-                    bind(&munin::window::data, window_, data));
-                strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-            });
+        // connection_->on_data_read(
+        //     [this](std::string const &data)
+        //     {
+        //         std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+        //         dispatch_queue_.push_back(
+        //             bind(&munin::window::data, window_, data));
+        //         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        //     });
 
         connection_->on_window_size_changed(
             [this](auto const &width, auto const &height)
@@ -399,7 +399,7 @@ public :
     // ======================================================================
     void disconnect()
     {
-        connection_->disconnect();
+        connection_->close();
     }
 
     // ======================================================================
@@ -407,7 +407,7 @@ public :
     // ======================================================================
     void on_connection_death(std::function<void ()> const &callback)
     {
-        connection_->on_socket_death(callback);
+        //connection_->on_socket_death(callback);
     }
 
 private :
@@ -427,7 +427,11 @@ private :
     // ======================================================================
     void on_repaint(std::string const &paint_data)
     {
-        connection_->write(paint_data);
+        serverpp::bytes data(
+            reinterpret_cast<serverpp::byte const*>(paint_data.data()),
+            paint_data.size());
+
+        connection_->write(data);
     }
 
     // ======================================================================

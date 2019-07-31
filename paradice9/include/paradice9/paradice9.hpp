@@ -28,6 +28,7 @@
 #define PARADICE9_HPP_
 
 #include <serverpp/core.hpp>
+#include <boost/asio/io_context.hpp>
 #include <memory>
 
 //* =========================================================================
@@ -40,20 +41,14 @@ public :
     //* =====================================================================
     /// Constructor
     //* =====================================================================
-    paradice9(serverpp::port_identifier port);
+    paradice9(
+        boost::asio::io_context &io_context, 
+        serverpp::port_identifier port);
     
     //* =====================================================================
     /// Destructor
     //* =====================================================================
     ~paradice9();
-
-    //* =====================================================================
-    /// Run Paradice9 in this thread
-    ///
-    /// Blocks until Paradice9 is shut donw. May be called multiple times to 
-    /// run the server on multiple threads.
-    //* =====================================================================
-    void run();
 
     //* =====================================================================
     /// Shuts Paradice9 down.  All running threads are released.

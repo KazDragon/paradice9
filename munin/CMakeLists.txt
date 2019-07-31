@@ -111,7 +111,6 @@ target_include_directories(munin
 
 target_link_libraries(munin
     PUBLIC
-        odin
         CONAN_PKG::boost_any
         CONAN_PKG::boost_asio
         CONAN_PKG::boost_scope_exit

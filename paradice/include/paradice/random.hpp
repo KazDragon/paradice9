@@ -27,6 +27,8 @@
 #ifndef PARADICE_RANDOM_HPP_
 #define PARADICE_RANDOM_HPP_
 
+#include <cstdint>
+
 namespace paradice {
 
 std::uint32_t random_number(std::uint32_t from, std::uint32_t to);

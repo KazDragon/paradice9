@@ -125,13 +125,14 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    paradice9 application{port};
+    boost::asio::io_context io_context;
+    paradice9 application{io_context, port};
  
     std::vector<std::thread> threadpool;
 
     for (unsigned int thr = 0; thr < concurrency; ++thr)
     {
-        threadpool.emplace_back([&application]{application.run();});
+        threadpool.emplace_back([&io_context]{io_context.run();});
     }
     
     for (auto &pthread : threadpool)

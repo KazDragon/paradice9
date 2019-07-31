@@ -28,7 +28,6 @@
 #define PARADICE9_CONTEXT_IMPL_HPP_
 
 #include "paradice/context.hpp"
-#include "odin/net/server.hpp"
 #include <boost/asio/io_context.hpp>
 
 //* =========================================================================
@@ -41,9 +40,8 @@ public :
     /// \brief Constructor
     //* =====================================================================
     context_impl(
-        boost::asio::io_context                       &io_context
-      , std::shared_ptr<odin::net::server>             server
-      , std::shared_ptr<boost::asio::io_context::work> work);
+        boost::asio::io_context &io_context,
+        std::function<void ()>   shutdown);
     
     //* =====================================================================
     /// \brief Denstructor

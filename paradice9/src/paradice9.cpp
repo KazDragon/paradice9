@@ -52,25 +52,22 @@ public :
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(serverpp::port_identifier port)
-      : server_{port}
+    impl(
+        boost::asio::io_context &io_context,
+        serverpp::port_identifier port)
+      : io_context_(io_context),
+        server_{
+          io_context, 
+          port,
+          [this](serverpp::tcp_socket &&new_socket)
+          {
+              on_accept(std::move(new_socket));
+          }}
       /*
         , context_(std::make_shared<context_impl>(
               std::ref(io_context), server_, std::ref(work)))
       */
     {
-    }
-
-    // ======================================================================
-    // RUN
-    // ======================================================================
-    void run()
-    {
-        server_.accept(
-            [this](serverpp::tcp_socket &&new_socket)
-            {
-                on_accept(std::move(new_socket));
-            });
     }
 
     // ======================================================================
@@ -259,6 +256,7 @@ private :
         std::shared_ptr<paradice::connection>, 
         std::pair<std::uint16_t, std::uint16_t> > pending_sizes_; 
 */
+    boost::asio::io_context &io_context_;
     serverpp::tcp_server server_;
     
     std::mutex clients_mutex_;
@@ -268,8 +266,10 @@ private :
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-paradice9::paradice9(serverpp::port_identifier port)
-    : pimpl_(boost::make_unique<impl>(port))
+paradice9::paradice9(
+    boost::asio::io_context &io_context, 
+    serverpp::port_identifier port)
+  : pimpl_(boost::make_unique<impl>(io_context, port))
 {
 }
 
@@ -277,14 +277,6 @@ paradice9::paradice9(serverpp::port_identifier port)
 // DESTRUCTOR
 // ==========================================================================
 paradice9::~paradice9() = default;
-
-// ==========================================================================
-// RUN
-// ==========================================================================
-void paradice9::run()
-{
-    pimpl_->run();
-}
 
 // ==========================================================================
 // SHUTDOWN

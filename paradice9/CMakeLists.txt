@@ -27,7 +27,6 @@ target_compile_features(paradice9
 target_link_libraries(paradice9
     PRIVATE
         paradice
-        hugin
         CONAN_PKG::boost_asio
         CONAN_PKG::boost_filesystem
         CONAN_PKG::boost_program_options

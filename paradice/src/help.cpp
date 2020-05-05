@@ -27,7 +27,7 @@
 #include "paradice/communication.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/tokenise.hpp"
-#include "hugin/user_interface.hpp"
+// #include "hugin/user_interface.hpp"
 #include "terminalpp/encoder.hpp"
 #include <boost/format.hpp>
 
@@ -213,11 +213,11 @@ namespace paradice {
 PARADICE_COMMAND_IMPL(help)
 {
     auto argument = paradice::tokenise(arguments).first;
-    auto user_interface = player->get_user_interface();
+    // auto user_interface = player->get_user_interface();
     
     if (argument == "close")
     {
-        user_interface->hide_help_window();
+        // user_interface->hide_help_window();
     }
     else
     {
@@ -227,11 +227,11 @@ PARADICE_COMMAND_IMPL(help)
         {
             if (argument == help_table[index].command)
             {
-                user_interface->set_help_window_text(
-                    terminalpp::encode(
-                        help_header
-                      + help_table[index].text));
-                user_interface->show_help_window();
+                // user_interface->set_help_window_text(
+                //     terminalpp::encode(
+                //         help_header
+                //       + help_table[index].text));
+                // user_interface->show_help_window();
                 return;
             }
         }
@@ -248,8 +248,8 @@ PARADICE_COMMAND_IMPL(help)
             text += " ";
         }
         
-        user_interface->set_help_window_text(terminalpp::encode(text));
-        user_interface->show_help_window();
+        // user_interface->set_help_window_text(terminalpp::encode(text));
+        // user_interface->show_help_window();
     }
 }
 

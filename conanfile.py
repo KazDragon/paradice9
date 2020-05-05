@@ -26,8 +26,9 @@ class Paradice9Conan(ConanFile):
                 "boost_uuid/[>=1.69]@bincrafters/stable",
                 "boost_utility/[>=1.69]@bincrafters/stable",
                 "boost_variant/[>=1.69]@bincrafters/stable",
+                "munin/0.3.1@kazdragon/conan-public",
                 "telnetpp/2.0.1@kazdragon/conan-public",
-                "terminalpp/1.3.0@kazdragon/conan-public",
+                "terminalpp/1.3.4@kazdragon/conan-public",
                 "serverpp/0.0.3@kazdragon/conan-public")
 
     def build(self):

@@ -28,7 +28,7 @@
 #include "paradice/communication.hpp"
 #include "paradice/context.hpp"
 #include "paradice/tokenise.hpp"
-#include "hugin/user_interface.hpp"
+// #include "hugin/user_interface.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
@@ -38,9 +38,9 @@ namespace {
 
 PARADICE_COMMAND_IMPL(gm_tools)
 {
-    auto user_interface = player->get_user_interface();
-    user_interface->select_face(hugin::FACE_GM_TOOLS);
-    user_interface->set_focus();
+    // auto user_interface = player->get_user_interface();
+    // user_interface->select_face(hugin::FACE_GM_TOOLS);
+    // user_interface->set_focus();
 }
 
 PARADICE_COMMAND_IMPL(gm_encounter_show)

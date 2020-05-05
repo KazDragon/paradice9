@@ -31,9 +31,8 @@
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
 #include "paradice/utility.hpp"
-#include "munin/algorithm.hpp"
 #include "paradice/tokenise.hpp"
-#include "terminalpp/string.hpp"
+#include <terminalpp/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <cstdio>

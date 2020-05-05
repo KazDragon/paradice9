@@ -32,9 +32,11 @@
 #include <memory>
 #include <vector>
 
+/*
 namespace hugin {
     class user_interface;
 }
+*/
 
 namespace paradice {
     class account;
@@ -77,7 +79,7 @@ public :
     //* =====================================================================
     /// \brief Gets the user interface for the client.
     //* =====================================================================
-    std::shared_ptr<hugin::user_interface> get_user_interface();
+    //std::shared_ptr<hugin::user_interface> get_user_interface();
 
     //* =====================================================================
     /// \brief Gets the window for the client.

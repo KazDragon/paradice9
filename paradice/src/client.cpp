@@ -37,13 +37,16 @@
 #include "paradice/rules.hpp"
 #include "paradice/tokenise.hpp"
 #include "paradice/who.hpp"
-#include "hugin/user_interface.hpp"
-#include "munin/algorithm.hpp"
-#include "munin/container.hpp"
-#include "munin/grid_layout.hpp"
-#include "munin/window.hpp"
-#include "terminalpp/encoder.hpp"
-#include "terminalpp/string.hpp"
+// #include "hugin/user_interface.hpp"
+// #include <munin/algorithm.hpp>
+#include <munin/container.hpp>
+//DEBUG
+#include <munin/filled_box.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/window.hpp>
+#include <terminalpp/behaviour.hpp>
+#include <terminalpp/encoder.hpp>
+#include <terminalpp/string.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
@@ -176,11 +179,10 @@ public :
       : self_(self),
         strand_(io_context),
         context_(ctx),
-        window_(std::make_shared<munin::window>(
-            std::ref(strand_), create_behaviour())),
-        user_interface_(std::make_shared<hugin::user_interface>(std::ref(strand_)))
+        window_{std::make_shared<munin::window>(munin::make_fill('?'))}
+        // user_interface_(std::make_shared<hugin::user_interface>(std::ref(strand_)))
     {
-        window_->set_size(terminalpp::extent(80, 24));
+        // window_->set_size(terminalpp::extent(80, 24));
     }
 
     // ======================================================================
@@ -207,115 +209,116 @@ public :
             });
 
         // WINDOW CALLBACKS
-        window_->on_repaint.connect(
-            [this](auto const &regions)
-            {
-                this->on_repaint(regions);
-            });
+        // window_->on_repaint.connect(
+        //     [this](auto const &regions)
+        //     {
+        //         this->on_repaint(regions);
+        //     });
 
         // USER INTERFACE CALLBACKS
-        user_interface_->on_input_entered.connect(
-            [this](auto const &input)
-            {
-                this->on_input_entered(input);
-            });
+        // user_interface_->on_input_entered.connect(
+        //     [this](auto const &input)
+        //     {
+        //         this->on_input_entered(input);
+        //     });
 
-        user_interface_->on_login.connect(
-            [this](auto const &name, auto const &pwd)
-            {
-                this->on_login(name, pwd);
-            });
+        // user_interface_->on_login.connect(
+        //     [this](auto const &name, auto const &pwd)
+        //     {
+        //         this->on_login(name, pwd);
+        //     });
 
-        user_interface_->on_new_account.connect(
-            [this]
-            {
-                this->on_new_account();
-            });
+        // user_interface_->on_new_account.connect(
+        //     [this]
+        //     {
+        //         this->on_new_account();
+        //     });
 
-        user_interface_->on_account_created.connect(
-            [this](auto const &name, auto const &pwd, auto const &pwd_verify)
-            {
-                this->on_account_created(name, pwd, pwd_verify);
-            });
+        // user_interface_->on_account_created.connect(
+        //     [this](auto const &name, auto const &pwd, auto const &pwd_verify)
+        //     {
+        //         this->on_account_created(name, pwd, pwd_verify);
+        //     });
 
-        user_interface_->on_account_creation_cancelled.connect(
-            [this]
-            {
-                this->on_account_creation_cancelled();
-            });
+        // user_interface_->on_account_creation_cancelled.connect(
+        //     [this]
+        //     {
+        //         this->on_account_creation_cancelled();
+        //     });
 
-        user_interface_->on_new_character.connect(
-            [this]
-            {
-                this->on_new_character();
-            });
+        // user_interface_->on_new_character.connect(
+        //     [this]
+        //     {
+        //         this->on_new_character();
+        //     });
 
-        user_interface_->on_character_selected.connect(
-            [this](auto const &idx)
-            {
-                this->on_character_selected(idx);
-            });
+        // user_interface_->on_character_selected.connect(
+        //     [this](auto const &idx)
+        //     {
+        //         this->on_character_selected(idx);
+        //     });
 
-        user_interface_->on_character_created.connect(
-            [this](auto const &name, auto const &is_gm)
-            {
-                this->on_character_created(name, is_gm);
-            });
+        // user_interface_->on_character_created.connect(
+        //     [this](auto const &name, auto const &is_gm)
+        //     {
+        //         this->on_character_created(name, is_gm);
+        //     });
 
-        user_interface_->on_character_creation_cancelled.connect(
-            [this]
-            {
-                this->on_character_creation_cancelled();
-            });
+        // user_interface_->on_character_creation_cancelled.connect(
+        //     [this]
+        //     {
+        //         this->on_character_creation_cancelled();
+        //     });
 
-        user_interface_->on_gm_tools_back.connect(
-            [this]
-            {
-                this->on_gm_tools_back();
-            });
+        // user_interface_->on_gm_tools_back.connect(
+        //     [this]
+        //     {
+        //         this->on_gm_tools_back();
+        //     });
 
-        user_interface_->on_gm_fight_beast.connect(
-            [this](auto const &beast)
-            {
-                this->on_gm_fight_beast(beast);
-            });
+        // user_interface_->on_gm_fight_beast.connect(
+        //     [this](auto const &beast)
+        //     {
+        //         this->on_gm_fight_beast(beast);
+        //     });
 
-        user_interface_->on_gm_fight_encounter.connect(
-            [this](auto const &encounter)
-            {
-                this->on_gm_fight_encounter(encounter);
-            });
+        // user_interface_->on_gm_fight_encounter.connect(
+        //     [this](auto const &encounter)
+        //     {
+        //         this->on_gm_fight_encounter(encounter);
+        //     });
 
-        user_interface_->on_help_closed.connect(
-            [this]
-            {
-                this->on_help_closed();
-            });
+        // user_interface_->on_help_closed.connect(
+        //     [this]
+        //     {
+        //         this->on_help_closed();
+        //     });
 
-        user_interface_->on_password_changed.connect(
-            [this](
-                auto const &old_pwd,
-                auto const &new_pwd,
-                auto const &new_pwd_verify)
-            {
-                this->on_password_changed(old_pwd, new_pwd, new_pwd_verify);
-            });
+        // user_interface_->on_password_changed.connect(
+        //     [this](
+        //         auto const &old_pwd,
+        //         auto const &new_pwd,
+        //         auto const &new_pwd_verify)
+        //     {
+        //         this->on_password_changed(old_pwd, new_pwd, new_pwd_verify);
+        //     });
 
-        user_interface_->on_password_change_cancelled.connect(
-            [this]
-            {
-                this->on_password_change_cancelled();
-            });
+        // user_interface_->on_password_change_cancelled.connect(
+        //     [this]
+        //     {
+        //         this->on_password_change_cancelled();
+        //     });
 
-        set_window_title("Paradice9");
+        // set_window_title("Paradice9");
 
-        auto content = window_->get_content();
-        content->set_layout(munin::make_grid_layout(1, 1));
-        content->add_component(user_interface_);
-        content->set_focus();
+        // auto content = window_->get_content();
+        // content->set_layout(munin::make_grid_layout(1, 1));
+        // //content->add_component(user_interface_);
+        // content->add_component(munin::make_fill('?'));
+        // content->set_focus();
 
-        window_->enable_mouse_tracking();
-        window_->use_alternate_screen_buffer();
+        // window_->enable_mouse_tracking();
+        // window_->use_alternate_screen_buffer();
     }
 
     // ======================================================================
@@ -353,10 +356,12 @@ public :
     // ======================================================================
     // GET_USER_INTERFACE
     // ======================================================================
+    /*
     std::shared_ptr<hugin::user_interface> get_user_interface()
     {
         return user_interface_;
     }
+    */
 
     // ======================================================================
     // GET_WINDOW
@@ -371,13 +376,13 @@ public :
     // ======================================================================
     void set_window_title(std::string const &title)
     {
-        {
-            std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-            dispatch_queue_.push_back(bind(
-                &munin::window::set_title, window_, title));
-        }
+        // {
+        //     std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+        //     dispatch_queue_.push_back(bind(
+        //         &munin::window::set_title, window_, title));
+        // }
 
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        // strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
 
     // ======================================================================
@@ -385,13 +390,13 @@ public :
     // ======================================================================
     void set_window_size(std::uint16_t width, std::uint16_t height)
     {
-        {
-            std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-            dispatch_queue_.push_back(bind(
-                &munin::window::set_size, window_, terminalpp::extent(width, height)));
-        }
+        // {
+        //     std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+        //     dispatch_queue_.push_back(bind(
+        //         &munin::window::set_size, window_, terminalpp::extent(width, height)));
+        // }
 
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        // strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
 
     // ======================================================================
@@ -416,10 +421,10 @@ private :
     // ======================================================================
     void on_window_size_changed(std::uint16_t width, std::uint16_t height)
     {
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        dispatch_queue_.push_back(
-            bind(&munin::window::set_size, window_, terminalpp::extent(width, height)));
-        strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        // std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
+        // dispatch_queue_.push_back(
+        //     bind(&munin::window::set_size, window_, terminalpp::extent(width, height)));
+        // strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
     }
 
     // ======================================================================
@@ -493,7 +498,7 @@ private :
             }
         }
 
-        user_interface_->set_character_names(characters);
+        //user_interface_->set_character_names(characters);
     }
 
     // ======================================================================
@@ -518,22 +523,22 @@ private :
         {
             // TODO: Use an actual logging library for this message.
             printf("Error loading account: %s\n", ex.what());
-            user_interface_->set_statusbar_text(
-                "\\[1Invalid username/password combination"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Invalid username/password combination"_ets);
             return;
         }
 
         if (account == NULL)
         {
-            user_interface_->set_statusbar_text(
-                "\\[1Invalid username/password combination"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Invalid username/password combination"_ets);
             return;
         }
 
         if (!account->password_match(password))
         {
-            user_interface_->set_statusbar_text(
-                "\\[1Invalid username/password combination"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Invalid username/password combination"_ets);
             return;
         }
 
@@ -544,8 +549,8 @@ private :
         account_ = account;
         update_character_names();
 
-        user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
-        user_interface_->set_focus();
+        // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        // user_interface_->set_focus();
     }
 
     // ======================================================================
@@ -553,9 +558,9 @@ private :
     // ======================================================================
     void on_new_account()
     {
-        user_interface_->clear_account_creation_screen();
-        user_interface_->select_face(hugin::FACE_ACCOUNT_CREATION);
-        user_interface_->set_focus();
+        // user_interface_->clear_account_creation_screen();
+        // user_interface_->select_face(hugin::FACE_ACCOUNT_CREATION);
+        // user_interface_->set_focus();
     }
 
     // ======================================================================
@@ -574,9 +579,9 @@ private :
         // * or ../, which could potentially wreck the system.
         if (!is_acceptible_name(account_name))
         {
-            user_interface_->set_statusbar_text(
-                "\\[1Name must be alphabetic only and at least three "
-                "characters long"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Name must be alphabetic only and at least three "
+            //     "characters long"_ets);
             return;
         }
 
@@ -596,16 +601,16 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error loading account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\1[That account name is unavailable.  Please try with "
-                "a different name"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\1[That account name is unavailable.  Please try with "
+            //     "a different name"_ets);
             return;
         }
 
         if (test_account != NULL)
         {
-            user_interface_->set_statusbar_text(
-                "\\[1An account with that name already exists"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1An account with that name already exists"_ets);
             return;
         }
 
@@ -613,8 +618,8 @@ private :
         // message and return.
         if (password != password_verify)
         {
-            user_interface_->set_statusbar_text(
-                "\\[1Passwords do not match"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Passwords do not match"_ets);
             return;
         }
 
@@ -632,15 +637,15 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\[1Unexpected error setting saving your account.  "
-                "Please try again."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Unexpected error setting saving your account.  "
+            //     "Please try again."_ets);
             return;
         }
 
         account_ = acc;
 
-        user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
     }
 
     // ======================================================================
@@ -648,9 +653,9 @@ private :
     // ======================================================================
     void on_account_creation_cancelled()
     {
-        user_interface_->clear_intro_screen();
-        user_interface_->select_face(hugin::FACE_INTRO);
-        user_interface_->set_focus();
+        // user_interface_->clear_intro_screen();
+        // user_interface_->select_face(hugin::FACE_INTRO);
+        // user_interface_->set_focus();
     }
 
     // ======================================================================
@@ -658,9 +663,9 @@ private :
     // ======================================================================
     void on_new_character()
     {
-        user_interface_->select_face(hugin::FACE_CHAR_CREATION);
-        user_interface_->clear_character_creation_screen();
-        user_interface_->set_focus();
+        // user_interface_->select_face(hugin::FACE_CHAR_CREATION);
+        // user_interface_->clear_character_creation_screen();
+        // user_interface_->set_focus();
     }
 
     // ======================================================================
@@ -681,8 +686,8 @@ private :
             printf("Error loading character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\[1Error loading character file."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Error loading character file."_ets);
 
             return;
         }
@@ -699,8 +704,8 @@ private :
 
                     if (other_ch && other_ch->get_gm_level() != 0)
                     {
-                        user_interface_->set_statusbar_text(
-                            "\\[1There is already a GM character online."_ets);
+                        // user_interface_->set_statusbar_text(
+                        //     "\\[1There is already a GM character online."_ets);
                         return;
                     }
                 }
@@ -711,14 +716,14 @@ private :
         // encounters in the UI.
         if (ch->get_gm_level() != 0)
         {
-            user_interface_->set_beasts(ch->get_beasts());
-            user_interface_->set_encounters(ch->get_encounters());
+            // user_interface_->set_beasts(ch->get_beasts());
+            // user_interface_->set_encounters(ch->get_encounters());
         }
 
         character_ = ch;
         context_->update_names();
 
-        user_interface_->select_face(hugin::FACE_MAIN);
+        // user_interface_->select_face(hugin::FACE_MAIN);
         set_window_title(character_->get_name() + " - Paradice9");
 
         send_to_all(
@@ -740,9 +745,9 @@ private :
         // Check that the name is appropriate.
         if (!is_acceptible_name(character_name))
         {
-            user_interface_->set_statusbar_text(
-                "\\[1Name must be alphabetic only and at least three "
-                "characters long"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Name must be alphabetic only and at least three "
+            //     "characters long"_ets);
             return;
         }
 
@@ -762,15 +767,15 @@ private :
             printf("Error reading character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\[1Error testing for that character."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Error testing for that character."_ets);
             return;
         }
 
         if (test_character != NULL)
         {
-            user_interface_->set_statusbar_text(
-                "\\[1A character with that name already exists"_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1A character with that name already exists"_ets);
             return;
         }
 
@@ -791,8 +796,8 @@ private :
             printf("Error saving character %s: %s\n",
                 character_name.c_str(), ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\[1There was an error saving the character."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1There was an error saving the character."_ets);
             return;
         }
 
@@ -807,16 +812,16 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\[1Unexpected error saving your account.  "
-                "Please try again."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Unexpected error saving your account.  "
+            //     "Please try again."_ets);
 
             account_->remove_character(character_name);
             return;
         }
 
         update_character_names();
-        user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
     }
 
     // ======================================================================
@@ -824,8 +829,8 @@ private :
     // ======================================================================
     void on_character_creation_cancelled()
     {
-        user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
-        user_interface_->set_focus();
+        // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        // user_interface_->set_focus();
     }
 
     // ======================================================================
@@ -833,12 +838,12 @@ private :
     // ======================================================================
     void on_gm_tools_back()
     {
-        character_->set_beasts(user_interface_->get_beasts());
-        character_->set_encounters(user_interface_->get_encounters());
+        // character_->set_beasts(user_interface_->get_beasts());
+        // character_->set_encounters(user_interface_->get_encounters());
         context_->save_character(character_);
 
-        user_interface_->select_face(hugin::FACE_MAIN);
-        user_interface_->set_focus();
+        // user_interface_->select_face(hugin::FACE_MAIN);
+        // user_interface_->set_focus();
     }
 
     // ======================================================================
@@ -846,12 +851,12 @@ private :
     // ======================================================================
     void on_gm_fight_beast(std::shared_ptr<paradice::beast> beast)
     {
-        add_beast(context_->get_active_encounter(), beast);
-        context_->update_active_encounter();
+        // add_beast(context_->get_active_encounter(), beast);
+        // context_->update_active_encounter();
 
-        user_interface_->set_statusbar_text(terminalpp::encode(
-            boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter")
-                % beast->get_name())));
+        // user_interface_->set_statusbar_text(terminalpp::encode(
+        //     boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter")
+        //         % beast->get_name())));
     }
 
     // ======================================================================
@@ -859,18 +864,18 @@ private :
     // ======================================================================
     void on_gm_fight_encounter(std::shared_ptr<paradice::encounter> encounter)
     {
-        auto enc = context_->get_active_encounter();
+        // auto enc = context_->get_active_encounter();
 
-        for (auto beast : encounter->get_beasts())
-        {
-            add_beast(enc, beast);
-        }
+        // for (auto beast : encounter->get_beasts())
+        // {
+        //     add_beast(enc, beast);
+        // }
 
-        context_->update_active_encounter();
+        // context_->update_active_encounter();
 
-        user_interface_->set_statusbar_text(terminalpp::encode(
-            boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter!")
-                % encounter->get_name())));
+        // user_interface_->set_statusbar_text(terminalpp::encode(
+        //     boost::str(boost::format("\\[3Added \\x%s\\x\\[3 to active encounter!")
+        //         % encounter->get_name())));
     }
 
     // ======================================================================
@@ -878,7 +883,7 @@ private :
     // ======================================================================
     void on_help_closed()
     {
-        user_interface_->hide_help_window();
+        // user_interface_->hide_help_window();
     }
 
     // ======================================================================
@@ -893,15 +898,15 @@ private :
 
         if (!account_->password_match(old_password))
         {
-            user_interface_->set_statusbar_text(
-                "\\[1Old password did not match."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Old password did not match."_ets);
             return;
         }
 
         if (new_password != new_password_verify)
         {
-            user_interface_->set_statusbar_text(
-                "\\[1New passwords did not match."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1New passwords did not match."_ets);
             return;
         }
 
@@ -916,14 +921,14 @@ private :
             // TODO: Use an actual logging library for this message.
             printf("Error saving account: %s\n", ex.what());
 
-            user_interface_->set_statusbar_text(
-                "\\[1Unexpected error saving your account.  "
-                "Please try again."_ets);
+            // user_interface_->set_statusbar_text(
+            //     "\\[1Unexpected error saving your account.  "
+            //     "Please try again."_ets);
 
             return;
         }
 
-        user_interface_->select_face(hugin::FACE_MAIN);
+        // user_interface_->select_face(hugin::FACE_MAIN);
     }
 
     // ======================================================================
@@ -931,7 +936,7 @@ private :
     // ======================================================================
     void on_password_change_cancelled()
     {
-        user_interface_->select_face(hugin::FACE_MAIN);
+        // user_interface_->select_face(hugin::FACE_MAIN);
     }
 
     // ======================================================================
@@ -982,7 +987,7 @@ private :
         std::shared_ptr<client> player = self_.shared_from_this();
         assert(player != NULL);
 
-        user_interface_->add_command_history(input);
+        // user_interface_->add_command_history(input);
 
         auto arg = paradice::tokenise(input);
 
@@ -1044,7 +1049,7 @@ private :
 
     std::shared_ptr<connection>             connection_;
     std::shared_ptr<munin::window>          window_;
-    std::shared_ptr<hugin::user_interface>  user_interface_;
+    // std::shared_ptr<hugin::user_interface>  user_interface_;
 
     std::mutex                              dispatch_queue_mutex_;
     std::deque<std::function<void ()>>      dispatch_queue_;
@@ -1102,10 +1107,10 @@ void client::set_connection(std::shared_ptr<connection> const &cnx)
 // ==========================================================================
 // GET_USER_INTERFACE
 // ==========================================================================
-std::shared_ptr<hugin::user_interface> client::get_user_interface()
-{
-    return pimpl_->get_user_interface();
-}
+// std::shared_ptr<hugin::user_interface> client::get_user_interface()
+// {
+//     return pimpl_->get_user_interface();
+// }
 
 // ==========================================================================
 // GET_WINDOW
@@ -1168,8 +1173,8 @@ std::shared_ptr<character> client::get_character() const
 // ==========================================================================
 void client::disconnect()
 {
-    pimpl_->get_window()->use_normal_screen_buffer();
-    pimpl_->get_window()->disable_mouse_tracking();
+    // pimpl_->get_window()->use_normal_screen_buffer();
+    // pimpl_->get_window()->disable_mouse_tracking();
     pimpl_->disconnect();
 }
 

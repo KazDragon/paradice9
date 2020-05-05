@@ -31,9 +31,9 @@
 #include "paradice/context.hpp"
 #include "paradice/tokenise.hpp"
 #include "paradice/utility.hpp"
-#include "hugin/user_interface.hpp"
-#include "munin/algorithm.hpp"
-#include "terminalpp/encoder.hpp"
+// #include "hugin/user_interface.hpp"
+// #include "munin/algorithm.hpp"
+#include <terminalpp/encoder.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 
@@ -56,10 +56,10 @@ void send_to_all(
     std::shared_ptr<context> &ctx,
     terminalpp::string const &text)
 {
-    for (auto cur_client : ctx->get_clients())
-    {
-        cur_client->get_user_interface()->add_output_text(text);
-    }
+    // for (auto cur_client : ctx->get_clients())
+    // {
+    //     cur_client->get_user_interface()->add_output_text(text);
+    // }
 }
 
 // ==========================================================================
@@ -92,7 +92,7 @@ void send_to_player(
     terminalpp::string const &text,
     std::shared_ptr<client>  &conn)
 {
-    conn->get_user_interface()->add_output_text(text);
+    // conn->get_user_interface()->add_output_text(text);
 }
 
 // ==========================================================================
@@ -118,7 +118,7 @@ void send_to_room(
     {
         if (cur_client != conn)
         {
-            cur_client->get_user_interface()->add_output_text(text);
+            // cur_client->get_user_interface()->add_output_text(text);
         }
     }
 }

@@ -28,7 +28,7 @@
 #include "paradice/account.hpp"
 #include "paradice/character.hpp"
 #include "paradice/client.hpp"
-#include "hugin/user_interface.hpp"
+// #include "hugin/user_interface.hpp"
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/asio/io_context_strand.hpp>
@@ -162,12 +162,12 @@ struct context_impl::impl
         
         for (auto &cur_client : clients_)
         {
-            auto user_interface = cur_client->get_user_interface();
+            // auto user_interface = cur_client->get_user_interface();
             
-            if (user_interface != NULL)
-            {
-                user_interface->update_wholist(names);
-            }
+            // if (user_interface != NULL)
+            // {
+            //     user_interface->update_wholist(names);
+            // }
         }
     }
 
@@ -370,7 +370,7 @@ void context_impl::shutdown()
 std::shared_ptr<paradice::active_encounter> context_impl::get_active_encounter()
 {
     if (!gm_encounter) {
-        gm_encounter = std::make_shared<paradice::active_encounter>();
+        // gm_encounter = std::make_shared<paradice::active_encounter>();
     }
 
     return gm_encounter;
@@ -406,11 +406,11 @@ void context_impl::set_active_encounter_visible(bool visibility)
         {
             if (gm_encounter_visible)
             {
-                cli->get_user_interface()->show_active_encounter_window();
+                // cli->get_user_interface()->show_active_encounter_window();
             }
             else
             {
-                cli->get_user_interface()->hide_active_encounter_window();
+                // cli->get_user_interface()->hide_active_encounter_window();
             }
         }
     }
@@ -425,7 +425,7 @@ void context_impl::update_active_encounter()
     {
         if (cli)
         {
-            cli->get_user_interface()->set_active_encounter(gm_encounter);
+            // cli->get_user_interface()->set_active_encounter(gm_encounter);
         }
     }
 }

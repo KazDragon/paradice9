@@ -33,7 +33,7 @@
 #include "paradice/context.hpp"
 #include "paradice/tokenise.hpp"
 #include "paradice/who.hpp"
-#include "hugin/user_interface.hpp"
+// #include "hugin/user_interface.hpp"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
@@ -130,8 +130,8 @@ PARADICE_COMMAND_IMPL(set)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(password)
 {
-    player->get_user_interface()->clear_password_change_screen();
-    player->get_user_interface()->select_face(hugin::FACE_PASSWORD_CHANGE);
+    // player->get_user_interface()->clear_password_change_screen();
+    // player->get_user_interface()->select_face(hugin::FACE_PASSWORD_CHANGE);
 }
 
 // ==========================================================================
@@ -163,10 +163,10 @@ PARADICE_COMMAND_IMPL(logout)
     player->set_window_title("Paradice9");
 
     // Now, return the player to the login screen
-    auto user_interface = player->get_user_interface();
-    user_interface->clear_intro_screen();
-    user_interface->select_face(hugin::FACE_INTRO);
-    user_interface->set_focus();
+    // auto user_interface = player->get_user_interface();
+    // user_interface->clear_intro_screen();
+    // user_interface->select_face(hugin::FACE_INTRO);
+    // user_interface->set_focus();
 }
 
 }

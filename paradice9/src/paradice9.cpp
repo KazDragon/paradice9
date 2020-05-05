@@ -25,23 +25,21 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/paradice9.hpp"
+#include "paradice9/context_impl.hpp"
 
 #include "paradice/client.hpp"
+#include "paradice/connection.hpp"
 #include <serverpp/tcp_server.hpp>
-#include <boost/make_unique.hpp>
 /*
-#include "paradice9/context_impl.hpp"
 #include "paradice/character.hpp"
 #include "paradice/client.hpp"
 #include "paradice/communication.hpp"
 #include "paradice/connection.hpp"
-#include "odin/net/server.hpp"
-#include "odin/net/socket.hpp"
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/placeholders.hpp>
-#include <map>
 #include <utility>
 */
+#include <boost/make_unique.hpp>
+#include <boost/range/algorithm/find.hpp>
+#include <map>
 
 // ==========================================================================
 // PARADICE9::IMPLEMENTATION STRUCTURE
@@ -80,16 +78,58 @@ public :
 
 private :
     // ======================================================================
+    // SCHEDULE_READ
+    // ======================================================================
+    void schedule_read(std::shared_ptr<paradice::connection> const &cnx)
+    {
+        cnx->async_read(
+            [this, wcnx = std::weak_ptr<paradice::connection>(cnx)](
+                serverpp::bytes) 
+            {
+                // As long as we are negotiating this connection, discard
+                // any bytes and schedule the next read.
+                std::shared_ptr<paradice::connection> cnx = wcnx.lock();
+
+                auto const &pending_cnx = 
+                    boost::find(pending_connections_, cnx);
+
+                if (pending_cnx != pending_connections_.end())
+                {
+                    schedule_read(cnx);
+                }
+            },
+            [this, wcnx = std::weak_ptr<paradice::connection>(cnx)]() 
+            {
+                // As long as we are negotiating this connection and the 
+                // connection is alive, schedule the next read.
+                std::shared_ptr<paradice::connection> cnx = wcnx.lock();
+
+                auto const &pending_cnx = 
+                    boost::find(pending_connections_, cnx);
+
+                if (pending_cnx != pending_connections_.end() && cnx->is_alive())
+                {
+                    schedule_read(cnx);
+                }
+            });
+    }
+
+    // ======================================================================
     // ON_ACCEPT
     // ======================================================================
     void on_accept(serverpp::tcp_socket &&new_socket)
     {
 
-        /*
         // Create the connection and client structures for the socket.
-        auto connection = std::make_shared<paradice::connection>(socket);
-        pending_connections_.push_back(connection);
+        auto connection = std::make_shared<paradice::connection>(
+            std::move(new_socket));
+
+        {
+            std::lock_guard<std::mutex> _(pending_connections_mutex_);
+            pending_connections_.push_back(connection);
+        }
         
+        /*
         // Before creating a client object, we first negotiate some
         // knowledge about the connection.  Set up the callbacks for this.
         connection->on_socket_death(
@@ -113,9 +153,9 @@ private :
             {
                 this->on_terminal_type(ws, wc, type);
             });
-
-        connection->start();
         */
+
+        schedule_read(connection);
     }
 
 /*
@@ -251,14 +291,19 @@ private :
     std::shared_ptr<paradice::context>  context_;
     
     // A vector of clients whose connections are being negotiated.
+*/
+    boost::asio::io_context &io_context_;
+    serverpp::tcp_server server_;
+
+    // Clients whose connections are being negotiated.
+    std::mutex pending_connections_mutex_;
     std::vector<std::shared_ptr<paradice::connection>> pending_connections_;
+
+/*
     std::map<
         std::shared_ptr<paradice::connection>, 
         std::pair<std::uint16_t, std::uint16_t> > pending_sizes_; 
 */
-    boost::asio::io_context &io_context_;
-    serverpp::tcp_server server_;
-    
     std::mutex clients_mutex_;
     std::vector<std::unique_ptr<paradice::client>> clients_;
 };

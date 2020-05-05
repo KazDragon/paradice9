@@ -27,19 +27,17 @@
 #include "paradice9/paradice9.hpp"
 #include "paradice9/context_impl.hpp"
 
-#include "paradice/client.hpp"
-#include "paradice/connection.hpp"
+#include <paradice/character.hpp>
+#include <paradice/client.hpp>
+#include <paradice/communication.hpp>
+#include <paradice/connection.hpp>
+
 #include <serverpp/tcp_server.hpp>
-/*
-#include "paradice/character.hpp"
-#include "paradice/client.hpp"
-#include "paradice/communication.hpp"
-#include "paradice/connection.hpp"
-#include <utility>
-*/
 #include <boost/make_unique.hpp>
 #include <boost/range/algorithm/find.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 #include <map>
+#include <utility>
 
 // ==========================================================================
 // PARADICE9::IMPLEMENTATION STRUCTURE
@@ -60,11 +58,9 @@ public :
           [this](serverpp::tcp_socket &&new_socket)
           {
               on_accept(std::move(new_socket));
-          }}
-      /*
-        , context_(std::make_shared<context_impl>(
-              std::ref(io_context), server_, std::ref(work)))
-      */
+          }},
+        context_(std::make_shared<context_impl>(
+              io_context, [this](){shutdown();}))
     {
     }
 
@@ -82,34 +78,45 @@ private :
     // ======================================================================
     void schedule_read(std::shared_ptr<paradice::connection> const &cnx)
     {
+        // Set up callbacks to handle communication while the attributes of
+        // the connection (window size, etc.) are being negotiated.  After
+        // that point, this responsibility is handed off to the client object.
         cnx->async_read(
             [this, wcnx = std::weak_ptr<paradice::connection>(cnx)](
                 serverpp::bytes) 
             {
-                // As long as we are negotiating this connection, discard
-                // any bytes and schedule the next read.
                 std::shared_ptr<paradice::connection> cnx = wcnx.lock();
 
+                std::unique_lock<std::mutex> lock(pending_connections_mutex_);
                 auto const &pending_cnx = 
                     boost::find(pending_connections_, cnx);
 
                 if (pending_cnx != pending_connections_.end())
                 {
+                    lock.unlock();
                     schedule_read(cnx);
                 }
             },
             [this, wcnx = std::weak_ptr<paradice::connection>(cnx)]() 
             {
-                // As long as we are negotiating this connection and the 
-                // connection is alive, schedule the next read.
                 std::shared_ptr<paradice::connection> cnx = wcnx.lock();
 
+                std::unique_lock<std::mutex> lock(pending_connections_mutex_);
                 auto const &pending_cnx = 
                     boost::find(pending_connections_, cnx);
 
-                if (pending_cnx != pending_connections_.end() && cnx->is_alive())
+                if (pending_cnx != pending_connections_.end())
                 {
-                    schedule_read(cnx);
+                    lock.unlock();
+                    if (cnx->is_alive())
+                    {
+                        schedule_read(cnx);
+                    }
+                    else
+                    {
+                        on_connection_death(cnx);
+                    }
+                    
                 }
             });
     }
@@ -129,91 +136,80 @@ private :
             pending_connections_.push_back(connection);
         }
         
-        /*
         // Before creating a client object, we first negotiate some
         // knowledge about the connection.  Set up the callbacks for this.
-        connection->on_socket_death(
-            [this, wp=std::weak_ptr<paradice::connection>(connection)] 
-            {
-                this->on_connection_death(wp);
-            });
-    
         connection->on_window_size_changed(
-            [this, wp=std::weak_ptr<paradice::connection>(connection)]
+            [this, wcnx=std::weak_ptr<paradice::connection>(connection)]
             (auto w, auto h) 
             {
-                this->on_window_size_changed(wp, w, h);
+                this->on_window_size_changed(wcnx, w, h);
             });
 
         connection->async_get_terminal_type(
             [this, 
-             ws=std::weak_ptr<odin::net::socket>(socket),
-             wc=std::weak_ptr<paradice::connection>(connection)]
+             wcnx=std::weak_ptr<paradice::connection>(connection)]
             (auto const &type)
             {
-                this->on_terminal_type(ws, wc, type);
+                this->on_terminal_type(wcnx, type);
             });
-        */
 
         schedule_read(connection);
     }
 
-/*
     // ======================================================================
     // ON_TERMINAL_TYPE
     // ======================================================================
     void on_terminal_type(
-        std::weak_ptr<odin::net::socket>     weak_socket
-      , std::weak_ptr<paradice::connection>  weak_connection
-      , std::string const                   &terminal_type)
+        std::weak_ptr<paradice::connection>  weak_connection,
+        std::string const                   &terminal_type)
     {
-        printf("Terminal type is: \"%s\"\n", terminal_type.c_str());
+        std::cout << "Terminal type is: " << terminal_type << "\n";
         
-        auto socket =     weak_socket.lock();
-        auto connection = weak_connection.lock();
+        auto cnx = weak_connection.lock();
         
-        if (socket != NULL && connection != NULL)
+        if (cnx)
         {
-            auto pending_connection =
-                std::find(
-                    pending_connections_.begin()
-                  , pending_connections_.end()
-                  , connection);
+            std::unique_lock<std::mutex> lock(pending_connections_mutex_);
+            auto pending_cnx = boost::find(pending_connections_, cnx);
             
             // There is a possibility that this is a stray terminal type.
             // If so, ignore it.
-            if (pending_connection == pending_connections_.end())
+            if (pending_cnx == pending_connections_.end())
             {
                 return;
             }
             
-            pending_connections_.erase(pending_connection);
+            pending_connections_.erase(pending_cnx);
+            lock.unlock();
 
             auto client =
-                std::make_shared<paradice::client>(std::ref(io_service_), context_);
-            client->set_connection(connection);
+                std::make_shared<paradice::client>(io_context_, context_);
+            client->set_connection(cnx);
             
-            client->on_connection_death(bind(
-                &impl::on_client_death
-              , this
-              , std::weak_ptr<paradice::client>(client)));
+            client->on_connection_death(
+                [this, wclient = std::weak_ptr<paradice::client>(client)]
+                {
+                    on_client_death(wclient);
+                });
 
             context_->add_client(client);
             context_->update_names();
             
             // If the window's size has been set by the NAWS process,
             // then update it to that.  Otherwise, use the standard 80,24.
-            auto psize = pending_sizes_.find(connection);
+            std::unique_lock<std::mutex> pending_size_lock(pending_sizes_mutex_);
+            auto psize = pending_sizes_.find(cnx);
             
             if (psize != pending_sizes_.end())
             {
                 client->set_window_size(
                     psize->second.first
                   , psize->second.second);
-                pending_sizes_.erase(connection);
+                pending_sizes_.erase(cnx);
             }
             else
             {
+                pending_size_lock.unlock();
                 client->set_window_size(80, 24);
             }
         }
@@ -222,36 +218,29 @@ private :
     // ======================================================================
     // ON_CONNECTION_DEATH
     // ======================================================================
-    void on_connection_death(std::weak_ptr<paradice::connection> const &weak_connection)
+    void on_connection_death(std::weak_ptr<paradice::connection> const &wcnx)
     {
-        auto connection = weak_connection.lock();
-    
-        if (connection != NULL)
-        {
-            pending_connections_.erase(remove(
-                    pending_connections_.begin()
-                  , pending_connections_.end()
-                  , connection)
-              , pending_connections_.end());
-            pending_sizes_.erase(connection);
-        }
+        std::cout << "Connection died\n";
+
+        std::lock_guard<std::mutex> _(pending_connections_mutex_);
+        boost::remove_erase(pending_connections_, wcnx.lock());
     }
     
     // ======================================================================
     // ON_CLIENT_DEATH
     // ======================================================================
-    void on_client_death(std::weak_ptr<paradice::client> &weak_client)
+    void on_client_death(std::weak_ptr<paradice::client> const &weak_client)
     {
         auto client = weak_client.lock();
         
-        if (client != NULL)
+        if (client)
         {
             context_->remove_client(client);
             context_->update_names();
     
             auto character = client->get_character();
             
-            if (character != NULL)
+            if (character)
             {
                 auto name = character->get_name();
             
@@ -266,7 +255,7 @@ private :
             }
         }
     }
-    
+
     // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
@@ -280,30 +269,26 @@ private :
         // has completed.
         auto connection = weak_connection.lock();
         
-        if (connection != NULL)
+        if (connection)
         {
+            std::lock_guard<std::mutex> _(pending_sizes_mutex_);
             pending_sizes_[connection] = std::make_pair(width, height);
         }
     }
     
-    boost::asio::io_context            &io_service_;
-    std::shared_ptr<odin::net::server>  server_;
-    std::shared_ptr<paradice::context>  context_;
-    
-    // A vector of clients whose connections are being negotiated.
-*/
     boost::asio::io_context &io_context_;
     serverpp::tcp_server server_;
+    std::shared_ptr<paradice::context>  context_;
 
     // Clients whose connections are being negotiated.
     std::mutex pending_connections_mutex_;
     std::vector<std::shared_ptr<paradice::connection>> pending_connections_;
 
-/*
+    std::mutex pending_sizes_mutex_;
     std::map<
         std::shared_ptr<paradice::connection>, 
         std::pair<std::uint16_t, std::uint16_t> > pending_sizes_; 
-*/
+
     std::mutex clients_mutex_;
     std::vector<std::unique_ptr<paradice::client>> clients_;
 };

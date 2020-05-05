@@ -193,12 +193,17 @@ struct connection::impl
     // ======================================================================
     void announce_terminal_type()
     {
-        for (auto const &callback : terminal_type_requests_)
+        // Announcing a terminal type request could plausibly disconnect and
+        // destroy this connection object.  Therefore, we move the requests
+        // structure out of the object proper before handling them.
+        decltype(terminal_type_requests_) requests{
+            std::move(terminal_type_requests_)};
+        terminal_type_requests_.clear();
+
+        for (auto const &callback : requests)
         {
             callback(terminal_type_);
         }
-
-        terminal_type_requests_.clear();
     }
 
     serverpp::tcp_socket socket_;

@@ -70,13 +70,14 @@ public :
     void shutdown()
     {
         server_.shutdown();
+        pending_connections_.clear();
     }
 
 private :
     // ======================================================================
-    // SCHEDULE_READ
+    // SCHEDULE_NEXT_READ
     // ======================================================================
-    void schedule_read(std::shared_ptr<paradice::connection> const &cnx)
+    void schedule_next_read(std::shared_ptr<paradice::connection> const &cnx)
     {
         // Set up callbacks to handle communication while the attributes of
         // the connection (window size, etc.) are being negotiated.  After
@@ -94,7 +95,7 @@ private :
                 if (pending_cnx != pending_connections_.end())
                 {
                     lock.unlock();
-                    schedule_read(cnx);
+                    schedule_next_read(cnx);
                 }
             },
             [this, wcnx = std::weak_ptr<paradice::connection>(cnx)]() 
@@ -110,7 +111,7 @@ private :
                     lock.unlock();
                     if (cnx->is_alive())
                     {
-                        schedule_read(cnx);
+                        schedule_next_read(cnx);
                     }
                     else
                     {
@@ -126,7 +127,6 @@ private :
     // ======================================================================
     void on_accept(serverpp::tcp_socket &&new_socket)
     {
-
         // Create the connection and client structures for the socket.
         auto connection = std::make_shared<paradice::connection>(
             std::move(new_socket));
@@ -153,7 +153,7 @@ private :
                 this->on_terminal_type(wcnx, type);
             });
 
-        schedule_read(connection);
+        schedule_next_read(connection);
     }
 
     // ======================================================================
@@ -184,13 +184,13 @@ private :
 
             auto client =
                 std::make_shared<paradice::client>(io_context_, context_);
-            client->set_connection(cnx);
             
             client->on_connection_death(
                 [this, wclient = std::weak_ptr<paradice::client>(client)]
                 {
                     on_client_death(wclient);
                 });
+            client->set_connection(cnx);
 
             context_->add_client(client);
             context_->update_names();
@@ -220,8 +220,6 @@ private :
     // ======================================================================
     void on_connection_death(std::weak_ptr<paradice::connection> const &wcnx)
     {
-        std::cout << "Connection died\n";
-
         std::lock_guard<std::mutex> _(pending_connections_mutex_);
         boost::remove_erase(pending_connections_, wcnx.lock());
     }
@@ -288,9 +286,6 @@ private :
     std::map<
         std::shared_ptr<paradice::connection>, 
         std::pair<std::uint16_t, std::uint16_t> > pending_sizes_; 
-
-    std::mutex clients_mutex_;
-    std::vector<std::unique_ptr<paradice::client>> clients_;
 };
 
 // ==========================================================================

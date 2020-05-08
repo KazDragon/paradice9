@@ -361,6 +361,11 @@ void context_impl::save_character(std::shared_ptr<paradice::character> const &ch
 // ==========================================================================
 void context_impl::shutdown()
 {
+    for (auto &client : pimpl_->clients_)
+    {
+        client->disconnect();
+    }
+
     pimpl_->shutdown_();
 }
 

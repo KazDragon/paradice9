@@ -37,17 +37,19 @@
 #include "paradice/rules.hpp"
 #include "paradice/tokenise.hpp"
 #include "paradice/who.hpp"
-// #include "hugin/user_interface.hpp"
-// #include <munin/algorithm.hpp>
+#include "paradice/ui/user_interface.hpp"
 #include <munin/container.hpp>
-//DEBUG
-#include <munin/filled_box.hpp>
+#include <munin/brush.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/window.hpp>
+#include <terminalpp/ansi_terminal.hpp>
 #include <terminalpp/behaviour.hpp>
+#include <terminalpp/canvas.hpp>
 #include <terminalpp/encoder.hpp>
 #include <terminalpp/string.hpp>
+#include <terminalpp/detail/lambda_visitor.hpp>
 #include <boost/asio/io_context_strand.hpp>
+#include <boost/range/algorithm/for_each.hpp>
 #include <boost/format.hpp>
 #include <cstdio>
 #include <deque>
@@ -55,9 +57,13 @@
 #include <string>
 #include <vector>
 
+using namespace terminalpp::literals;
+
 namespace paradice {
 
 namespace {
+    constexpr terminalpp::extent default_window_size{80, 24};
+
     #define PARADICE_CMD_ENTRY_NOP(name) \
         { name,        NULL                                  , 0, 0 }
 
@@ -85,17 +91,17 @@ namespace {
                         0, (level) \
         }
 
-    typedef std::function<void (
+    using paradice_command = std::function<void (
         std::shared_ptr<paradice::context> ctx,
         std::string                        args,
-        std::shared_ptr<paradice::client>  player)> paradice_command;
+        std::shared_ptr<paradice::client>  player)>;
 
     static struct command
     {
         std::string      command_;
         paradice_command function_;
-        std::uint32_t        admin_level_required_;
-        std::uint32_t        gm_level_required_;
+        std::uint32_t    admin_level_required_;
+        std::uint32_t    gm_level_required_;
     } const command_list[] =
     {
         PARADICE_CMD_ENTRY_NOP("!")
@@ -175,14 +181,68 @@ public :
     impl(
         client                  &self,
         boost::asio::io_context &io_context,
-        std::shared_ptr<context>      ctx)
-      : self_(self),
-        strand_(io_context),
-        context_(ctx),
-        window_{std::make_shared<munin::window>(munin::make_fill('?'))}
-        // user_interface_(std::make_shared<hugin::user_interface>(std::ref(strand_)))
+        std::shared_ptr<context> ctx)
+      : self_{self},
+        strand_{io_context},
+        context_{ctx},
+        terminal_{create_behaviour()},
+        canvas_{default_window_size},
+        user_interface_{std::make_shared<ui::user_interface>()},
+        window_{user_interface_},
+        repaint_requested_{false}
     {
-        // window_->set_size(terminalpp::extent(80, 24));
+        on_repaint();
+    }
+
+    // ======================================================================
+    // SCHEDULE_NEXT_READ
+    // ======================================================================
+    void schedule_next_read()
+    {
+        assert(connection_);
+
+        connection_->async_read(
+            [this](serverpp::bytes data)
+            {
+                auto const tokens = terminal_.read(std::string(
+                    reinterpret_cast<char const *>(data.data()),
+                    data.size()));
+
+                auto const &send_event_to_window = [this](auto const &token)
+                {
+                    boost::apply_visitor(
+                        terminalpp::detail::make_lambda_visitor(
+                            [this](terminalpp::virtual_key const &vk)
+                            {
+                                if (vk.key == terminalpp::vk::uppercase_q)
+                                {
+                                    context_->shutdown();
+                                }
+                                else
+                                {
+                                    window_.event(vk);
+                                }
+                            },
+                            [this](auto &&event)
+                            {
+                                window_.event(event);
+                            }),
+                            token);
+                };
+
+                boost::for_each(tokens, send_event_to_window);
+            },
+            [this]
+            {
+                if (connection_->is_alive())
+                {
+                    schedule_next_read();
+                }
+                else
+                {
+                    on_connection_death_();
+                }
+            });
     }
 
     // ======================================================================
@@ -193,15 +253,6 @@ public :
         connection_ = cnx;
 
         // CONNECTION CALLBACKS
-        // connection_->on_data_read(
-        //     [this](std::string const &data)
-        //     {
-        //         std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        //         dispatch_queue_.push_back(
-        //             bind(&munin::window::data, window_, data));
-        //         strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
-        //     });
-
         connection_->on_window_size_changed(
             [this](auto const &width, auto const &height)
             {
@@ -209,11 +260,11 @@ public :
             });
 
         // WINDOW CALLBACKS
-        // window_->on_repaint.connect(
-        //     [this](auto const &regions)
-        //     {
-        //         this->on_repaint(regions);
-        //     });
+        window_.on_repaint_request.connect(
+            [this]()
+            {
+                this->on_repaint();
+            });
 
         // USER INTERFACE CALLBACKS
         // user_interface_->on_input_entered.connect(
@@ -319,6 +370,8 @@ public :
 
         // window_->enable_mouse_tracking();
         // window_->use_alternate_screen_buffer();
+
+        schedule_next_read();
     }
 
     // ======================================================================
@@ -364,14 +417,6 @@ public :
     */
 
     // ======================================================================
-    // GET_WINDOW
-    // ======================================================================
-    std::shared_ptr<munin::window> get_window()
-    {
-        return window_;
-    }
-
-    // ======================================================================
     // SET_WINDOW_TITLE
     // ======================================================================
     void set_window_title(std::string const &title)
@@ -390,13 +435,8 @@ public :
     // ======================================================================
     void set_window_size(std::uint16_t width, std::uint16_t height)
     {
-        // {
-        //     std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        //     dispatch_queue_.push_back(bind(
-        //         &munin::window::set_size, window_, terminalpp::extent(width, height)));
-        // }
-
-        // strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        canvas_.resize({width, height});
+        on_repaint();
     }
 
     // ======================================================================
@@ -412,7 +452,7 @@ public :
     // ======================================================================
     void on_connection_death(std::function<void ()> const &callback)
     {
-        //connection_->on_socket_death(callback);
+        on_connection_death_ = callback;
     }
 
 private :
@@ -421,22 +461,35 @@ private :
     // ======================================================================
     void on_window_size_changed(std::uint16_t width, std::uint16_t height)
     {
-        // std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        // dispatch_queue_.push_back(
-        //     bind(&munin::window::set_size, window_, terminalpp::extent(width, height)));
-        // strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        set_window_size(width, height);
     }
 
     // ======================================================================
     // ON_REPAINT
     // ======================================================================
-    void on_repaint(std::string const &paint_data)
+    void on_repaint()
     {
-        serverpp::bytes data(
-            reinterpret_cast<serverpp::byte const*>(paint_data.data()),
-            paint_data.size());
+        // Set up a repaint event only if another repaint hasn't already been
+        // requested.
+        if (!repaint_requested_.exchange(true))
+        {
+            strand_.post([this]{ do_repaint(); });
+        }
+    }
 
-        connection_->write(data);
+    // ======================================================================
+    // DO_REPAINT
+    // ======================================================================
+    void do_repaint()
+    {
+        repaint_requested_ = false;
+
+        auto const &repaint_string = window_.repaint(canvas_, terminal_);
+        serverpp::bytes repaint_data(
+            reinterpret_cast<serverpp::byte const *>(repaint_string.data()),
+            repaint_string.size());
+            
+        connection_->write(repaint_data);
     }
 
     // ======================================================================
@@ -1043,22 +1096,32 @@ private :
 
     client                                 &self_;
     boost::asio::io_context::strand         strand_;
+
     std::shared_ptr<context>                context_;
     std::shared_ptr<account>                account_;
     std::shared_ptr<character>              character_;
 
     std::shared_ptr<connection>             connection_;
-    std::shared_ptr<munin::window>          window_;
-    // std::shared_ptr<hugin::user_interface>  user_interface_;
 
+    terminalpp::canvas                      canvas_;
+    terminalpp::ansi_terminal               terminal_;
+
+    std::shared_ptr<ui::user_interface>     user_interface_;
+    munin::window                           window_;
+
+    std::function<void ()>                  on_connection_death_;
+    /*
     std::mutex                              dispatch_queue_mutex_;
     std::deque<std::function<void ()>>      dispatch_queue_;
+    */
     std::string                             last_command_;
+    std::atomic_bool                        repaint_requested_;
 
 private :
     // ======================================================================
     // DISPATCH_QUEUE
     // ======================================================================
+    /*
     void dispatch_queue()
     {
         std::function<void ()> fn;
@@ -1076,6 +1139,7 @@ private :
             lock.lock();
         }
     }
+    */
 };
 
 // ==========================================================================
@@ -1092,9 +1156,7 @@ client::client(
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-client::~client()
-{
-}
+client::~client() = default;
 
 // ==========================================================================
 // SET_CONNECTION
@@ -1111,14 +1173,6 @@ void client::set_connection(std::shared_ptr<connection> const &cnx)
 // {
 //     return pimpl_->get_user_interface();
 // }
-
-// ==========================================================================
-// GET_WINDOW
-// ==========================================================================
-std::shared_ptr<munin::window> client::get_window()
-{
-    return pimpl_->get_window();
-}
 
 // ==========================================================================
 // SET_WINDOW_TITLE

@@ -82,11 +82,6 @@ public :
     //std::shared_ptr<hugin::user_interface> get_user_interface();
 
     //* =====================================================================
-    /// \brief Gets the window for the client.
-    //* =====================================================================
-    std::shared_ptr<munin::window> get_window();
-
-    //* =====================================================================
     /// \brief Sets the title of the client's window
     //* =====================================================================
     void set_window_title(std::string const &title);

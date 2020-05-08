@@ -18,6 +18,7 @@ set (PARADICE_SOURCE_FILES
     src/tokenise.cpp
     src/utility.cpp
     src/who.cpp
+    src/ui/user_interface.cpp
 )
 
 set (PARADICE_INCLUDE_FILES
@@ -44,6 +45,7 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/tokenise.hpp
     include/paradice/utility.hpp
     include/paradice/who.hpp
+    include/paradice/ui/user_interface.hpp
 )
 
 add_library(paradice

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice User Interface
+// Paradice Title Page
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,42 +24,22 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice/ui/user_interface.hpp"
-#include "paradice/ui/title_page.hpp"
-#include <munin/brush.hpp>
-#include <munin/grid_layout.hpp>
-#include <boost/make_unique.hpp>
+#ifndef PARADICE_UI_TITLE_PAGE_HPP_
+#define PARADICE_UI_TITLE_PAGE_HPP_
 
-namespace paradice { namespace ui {
+#include <munin/composite_component.hpp>
 
-// ==========================================================================
-// USER_INTERFACE::IMPLEMENTATION STRUCTURE
-// ==========================================================================
-struct user_interface::impl
+namespace paradice { namespace ui { 
+
+class title_page
+  : public munin::composite_component
 {
-    impl()
-      : title_page_{std::make_shared<title_page>()}
-    {
-    }
-
-    std::shared_ptr<title_page> title_page_;
+public :
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    title_page();
 };
-
-// ==========================================================================
-// CONSTRUCTOR
-// ==========================================================================
-user_interface::user_interface()
-  : pimpl_(boost::make_unique<impl>())
-{
-    using namespace terminalpp::literals;
-
-    set_layout(munin::make_grid_layout({1, 1}));
-    add_component(pimpl_->title_page_);
-};
-
-// ==========================================================================
-// DESTRUCTOR
-// ==========================================================================
-user_interface::~user_interface() = default;
 
 }}
+#endif

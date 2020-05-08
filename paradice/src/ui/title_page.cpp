@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice User Interface
+// Paradice Title Page
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,42 +24,41 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice/ui/user_interface.hpp"
 #include "paradice/ui/title_page.hpp"
-#include <munin/brush.hpp>
 #include <munin/grid_layout.hpp>
-#include <boost/make_unique.hpp>
+#include <munin/image.hpp>
+
+using namespace terminalpp::literals;
 
 namespace paradice { namespace ui {
 
-// ==========================================================================
-// USER_INTERFACE::IMPLEMENTATION STRUCTURE
-// ==========================================================================
-struct user_interface::impl
-{
-    impl()
-      : title_page_{std::make_shared<title_page>()}
-    {
-    }
+namespace {
 
-    std::shared_ptr<title_page> title_page_;
+std::vector<terminalpp::string> const main_image = {
+ "       \\[2__ _.--..--._ _\\x                  _"_ets,
+ "    \\[2.-' _/   _/\\\\_   \\\\_'-._\\x     |/ _._  | \\\\.__. _  _ ._ /_"_ets,
+ "    \\[2|__ /   _/\\[3\\\\__/\\[2\\\\_   \\\\__|\\x    |\\\\(_|/_ |_/|(_|(_|(_)| |_>"_ets,
+ "       \\[2|___/\\[3\\\\_\\\\__/\\[2  \\\\___|\\x                      _|"_ets,
+ "              \\[3\\\\__/\\x         ___                   ___           \\i>___"_ets,
+ "              \\[3\\\\__/\\x        / _ \\\\___ ________ ____/ (_)______   \\i>/ _ \\\\"_ets,
+ "               \\[3\\\\__/\\x      / ___/ _ `/ __/ _ `/ _  / / __/ -_)  \\i>\\\\_, /"_ets,
+ "                \\[3\\\\__/\\x    /_/   \\\\_,_/_/  \\\\_,_/\\\\_,_/_/\\\\__/\\\\__/  \\i>/___/"_ets,
+ "             \\[3____\\\\__/___\\x                              v2.0"_ets,
+ "       \\[3. - '             ' -."_ets,
+ "      \\[3/                      \\\\"_ets,
+ "\\[4~~~~~~~  ~~~~~ ~~~~~  ~~~ ~~~  ~~~~~"_ets,
+ "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~"_ets,
 };
+
+}
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-user_interface::user_interface()
-  : pimpl_(boost::make_unique<impl>())
+title_page::title_page()
 {
-    using namespace terminalpp::literals;
-
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(pimpl_->title_page_);
-};
-
-// ==========================================================================
-// DESTRUCTOR
-// ==========================================================================
-user_interface::~user_interface() = default;
+    add_component(munin::make_image(main_image));
+}
 
 }}

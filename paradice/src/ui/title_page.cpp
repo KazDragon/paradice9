@@ -25,8 +25,17 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/ui/title_page.hpp"
+#include <munin/aligned_layout.hpp>
+#include <munin/button.hpp>
+#include <munin/compass_layout.hpp>
+#include <munin/edit.hpp>
+#include <munin/filled_box.hpp>
+#include <munin/framed_component.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/image.hpp>
+#include <munin/titled_frame.hpp>
+#include <munin/vertical_strip_layout.hpp>
+#include <munin/view.hpp>
 
 using namespace terminalpp::literals;
 
@@ -57,8 +66,44 @@ std::vector<terminalpp::string> const main_image = {
 // ==========================================================================
 title_page::title_page()
 {
+    auto const name_edit = munin::make_edit();
+    auto const password_edit = munin::make_edit();
+
+
+    auto const fields_container = munin::view(
+        munin::make_grid_layout({1, 2}),
+        munin::make_framed_component(
+            munin::make_titled_frame("Name"),
+            name_edit),
+        munin::make_framed_component(
+            munin::make_titled_frame("Password"),
+            password_edit));
+
+    auto const buttons_container = munin::view(
+        munin::make_compass_layout(),
+        munin::make_fill(' '), 
+        munin::compass_layout::heading::centre,
+        munin::view(
+            munin::make_vertical_strip_layout(),
+            munin::make_button(" New "),
+            munin::make_button(" Login ")),
+        munin::compass_layout::heading::east);
+
+    auto const lower_section = munin::view(
+        munin::make_compass_layout(),
+        fields_container,
+        munin::compass_layout::heading::north,
+        buttons_container,
+        munin::compass_layout::heading::south);
+
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(munin::make_image(main_image));
+    add_component(
+        munin::view(
+            munin::make_compass_layout(),
+            munin::make_image(main_image), munin::compass_layout::heading::centre,
+            lower_section, munin::compass_layout::heading::south));
+
+    name_edit->set_focus();
 }
 
 }}

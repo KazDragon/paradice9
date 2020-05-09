@@ -189,7 +189,9 @@ public :
         canvas_{default_window_size},
         user_interface_{std::make_shared<ui::user_interface>()},
         window_{user_interface_},
-        repaint_requested_{false}
+        repaint_requested_{false},
+        cursor_state_changed_{true},
+        cursor_position_changed_{true}
     {
         on_repaint();
     }
@@ -267,6 +269,20 @@ public :
             });
 
         // USER INTERFACE CALLBACKS
+        user_interface_->on_cursor_state_changed.connect(
+            [this]()
+            {
+                cursor_state_changed_ = true;
+                this->on_repaint();
+            });
+
+        user_interface_->on_cursor_position_changed.connect(
+            [this]()
+            {
+                cursor_position_changed_ = true;
+                this->on_repaint();
+            });
+
         // user_interface_->on_input_entered.connect(
         //     [this](auto const &input)
         //     {
@@ -436,6 +452,7 @@ public :
     void set_window_size(std::uint16_t width, std::uint16_t height)
     {
         canvas_.resize({width, height});
+        cursor_position_changed_ = true;
         on_repaint();
     }
 
@@ -484,11 +501,25 @@ private :
     {
         repaint_requested_ = false;
 
-        auto const &repaint_string = window_.repaint(canvas_, terminal_);
+        auto repaint_string = window_.repaint(canvas_, terminal_);
+            
+        if (cursor_state_changed_.exchange(false))
+        {
+            repaint_string += user_interface_->get_cursor_state()
+              ? terminal_.show_cursor()
+              : terminal_.hide_cursor();
+        }
+
+        if (cursor_position_changed_.exchange(false))
+        {
+            repaint_string += terminal_.move_cursor(
+                user_interface_->get_cursor_position());
+        }
+
         serverpp::bytes repaint_data(
             reinterpret_cast<serverpp::byte const *>(repaint_string.data()),
             repaint_string.size());
-            
+
         connection_->write(repaint_data);
     }
 
@@ -1116,6 +1147,8 @@ private :
     */
     std::string                             last_command_;
     std::atomic_bool                        repaint_requested_;
+    std::atomic_bool                        cursor_state_changed_;
+    std::atomic_bool                        cursor_position_changed_;
 
 private :
     // ======================================================================

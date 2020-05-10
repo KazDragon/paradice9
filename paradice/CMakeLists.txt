@@ -1,8 +1,8 @@
 set (PARADICE_SOURCE_FILES
     src/account.cpp
-    src/active_encounter.cpp
+    #src/active_encounter.cpp
     src/admin.cpp
-    src/beast.cpp
+    #src/beast.cpp
     src/character.cpp
     src/client.cpp
     src/communication.cpp
@@ -10,8 +10,8 @@ set (PARADICE_SOURCE_FILES
     src/connection.cpp
     src/cryptography.cpp
     src/dice_roll_parser.cpp
-    src/encounter.cpp
-    src/gm.cpp
+    #src/encounter.cpp
+    #src/gm.cpp
     src/help.cpp
     src/random.cpp
     src/rules.cpp
@@ -24,9 +24,9 @@ set (PARADICE_SOURCE_FILES
 
 set (PARADICE_INCLUDE_FILES
     include/paradice/account.hpp
-    include/paradice/active_encounter.hpp
+    #include/paradice/active_encounter.hpp
     include/paradice/admin.hpp
-    include/paradice/beast.hpp
+    #include/paradice/beast.hpp
     include/paradice/character.hpp
     include/paradice/client.hpp
     include/paradice/command.hpp
@@ -37,9 +37,9 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/cryptography.hpp
     include/paradice/dice.hpp
     include/paradice/dice_roll_parser.hpp
-    include/paradice/encounter.hpp
+    #include/paradice/encounter.hpp
     include/paradice/export.hpp
-    include/paradice/gm.hpp
+    #include/paradice/gm.hpp
     include/paradice/help.hpp
     include/paradice/random.hpp
     include/paradice/rules.hpp

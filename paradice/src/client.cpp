@@ -32,7 +32,7 @@
 #include "paradice/configuration.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
-#include "paradice/gm.hpp"
+//#include "paradice/gm.hpp"
 #include "paradice/help.hpp"
 #include "paradice/rules.hpp"
 #include "paradice/tokenise.hpp"
@@ -131,7 +131,7 @@ namespace {
       , PARADICE_CMD_ENTRY(quit)
       , PARADICE_CMD_ENTRY(logout)
 
-      , PARADICE_GM_ENTRY(gm, 100)
+    //   , PARADICE_GM_ENTRY(gm, 100)
 
       , PARADICE_ADMIN_ENTRY(admin_set_password, 100)
       , PARADICE_ADMIN_ENTRY(admin_shutdown,     100)

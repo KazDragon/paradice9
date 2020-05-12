@@ -378,11 +378,7 @@ public :
 
         // set_window_title("Paradice9");
 
-        // auto content = window_->get_content();
-        // content->set_layout(munin::make_grid_layout(1, 1));
-        // //content->add_component(user_interface_);
-        // content->add_component(munin::make_fill('?'));
-        // content->set_focus();
+        user_interface_->set_focus();
 
         // window_->enable_mouse_tracking();
         // window_->use_alternate_screen_buffer();

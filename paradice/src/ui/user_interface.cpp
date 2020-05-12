@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "paradice/ui/user_interface.hpp"
 #include "paradice/ui/title_page.hpp"
+#include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
 #include <munin/grid_layout.hpp>
 #include <boost/make_unique.hpp>
@@ -37,19 +38,61 @@ namespace paradice { namespace ui {
 // ==========================================================================
 struct user_interface::impl
 {
-    impl()
-      : title_page_{std::make_shared<title_page>()}
+    impl(user_interface &self)
+      : self_(self),
+        title_page_{std::make_shared<title_page>()}
     {
     }
 
-    std::shared_ptr<title_page> title_page_;
+    // ======================================================================
+    // HANDLE_MOUSE_EVENT
+    // ======================================================================
+    bool handle_mouse_event(terminalpp::ansi::mouse::report const &report)
+    {
+        return false;
+    }
+
+    // ======================================================================
+    // HANDLE_VIRTUAL_KEY_EVENT
+    // ======================================================================
+    bool handle_virtual_key_event(terminalpp::virtual_key const &vk)
+    {
+        switch (vk.key)
+        {
+            case terminalpp::vk::ht:
+                self_.focus_next();
+
+                while (!self_.has_focus())
+                {
+                    self_.focus_next();
+                }
+
+                return true;
+
+            case terminalpp::vk::bt:
+                self_.focus_previous();
+
+                while (!self_.has_focus())
+                {
+                    self_.focus_previous();
+                }
+
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    user_interface              &self_;
+    std::shared_ptr<title_page>  title_page_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 user_interface::user_interface()
-  : pimpl_(boost::make_unique<impl>())
+  : pimpl_(boost::make_unique<impl>(*this))
 {
     using namespace terminalpp::literals;
 
@@ -61,5 +104,34 @@ user_interface::user_interface()
 // DESTRUCTOR
 // ==========================================================================
 user_interface::~user_interface() = default;
+
+// ==========================================================================
+// EVENT
+// ==========================================================================
+void user_interface::do_event(boost::any const &event)
+{
+    bool handled = false;
+
+    if (!handled)
+    {
+        auto const *vk_event = 
+            boost::any_cast<terminalpp::virtual_key>(&event);
+        handled = vk_event != nullptr 
+              && pimpl_->handle_virtual_key_event(*vk_event);
+    }
+
+    if (!handled)
+    {
+        auto const *mouse_event = 
+            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+        handled = mouse_event != nullptr
+              && pimpl_->handle_mouse_event(*mouse_event);
+    }
+
+    if (!handled)
+    {
+        composite_component::do_event(event);
+    }
+}
 
 }}

@@ -28,6 +28,8 @@
 #define PARADICE_UI_TITLE_PAGE_HPP_
 
 #include <munin/composite_component.hpp>
+#include <munin/button.hpp>
+#include <munin/image.hpp>
 
 namespace paradice { namespace ui { 
 
@@ -39,6 +41,11 @@ public :
     /// \brief Constructor
     //* =====================================================================
     title_page();
+
+private :
+    std::shared_ptr<munin::image>  test_;
+    std::shared_ptr<munin::button> new_button_;
+    std::shared_ptr<munin::button> login_button_;
 };
 
 }}

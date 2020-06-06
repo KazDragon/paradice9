@@ -380,7 +380,8 @@ public :
 
         user_interface_->set_focus();
 
-        // window_->enable_mouse_tracking();
+        write_to_connection(terminal_.enable_mouse());
+
         // window_->use_alternate_screen_buffer();
 
         schedule_next_read();
@@ -470,6 +471,18 @@ public :
 
 private :
     // ======================================================================
+    // WRITE_TO_CONNECTION
+    // ======================================================================
+    void write_to_connection(std::string const &text)
+    {
+        serverpp::bytes bytes(
+            reinterpret_cast<serverpp::byte const *>(text.data()),
+            text.size());
+
+        connection_->write(bytes);
+    }
+
+    // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
     void on_window_size_changed(std::uint16_t width, std::uint16_t height)
@@ -512,11 +525,7 @@ private :
                 user_interface_->get_cursor_position());
         }
 
-        serverpp::bytes repaint_data(
-            reinterpret_cast<serverpp::byte const *>(repaint_string.data()),
-            repaint_string.size());
-
-        connection_->write(repaint_data);
+        write_to_connection(repaint_string);
     }
 
     // ======================================================================

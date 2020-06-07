@@ -511,15 +511,16 @@ private :
         repaint_requested_ = false;
 
         auto repaint_string = window_.repaint(canvas_, terminal_);
+        auto const cursor_state = user_interface_->get_cursor_state();
             
         if (cursor_state_changed_.exchange(false))
         {
-            repaint_string += user_interface_->get_cursor_state()
+            repaint_string += cursor_state
               ? terminal_.show_cursor()
               : terminal_.hide_cursor();
         }
 
-        if (cursor_position_changed_.exchange(false))
+        if (cursor_state)
         {
             repaint_string += terminal_.move_cursor(
                 user_interface_->get_cursor_position());

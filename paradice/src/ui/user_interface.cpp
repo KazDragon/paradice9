@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/ui/user_interface.hpp"
+#include "paradice/ui/account_creation_page.hpp"
 #include "paradice/ui/title_page.hpp"
 #include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
@@ -39,9 +40,47 @@ namespace paradice { namespace ui {
 struct user_interface::impl
 {
     impl(user_interface &self)
-      : self_(self),
-        title_page_{std::make_shared<title_page>()}
+      : self_(self)
     {
+        content_->set_layout(munin::make_grid_layout({1, 1}));
+    }
+
+    // ======================================================================
+    // DROP_CONTENT
+    // ======================================================================
+    void drop_content()
+    {
+        content_->lose_focus();
+        content_->remove_component(last_content_);
+    }
+
+    // ======================================================================
+    // GO_TO_TITLE_PAGE
+    // ======================================================================
+    void go_to_title_page()
+    {
+        drop_content();
+        auto new_page = std::make_shared<title_page>();
+        new_page->on_new_account.connect(
+            [this]{go_to_account_creation_page();});
+
+        content_->add_component(new_page);
+        last_content_ = new_page;
+
+        content_->set_focus();
+    }
+
+    // ======================================================================
+    // GO_TO_ACCOUNT_CREATION_PAGE
+    // ======================================================================
+    void go_to_account_creation_page()
+    {
+        drop_content();
+        auto new_page = std::make_shared<account_creation_page>();
+        content_->add_component(new_page);
+        last_content_ = new_page;
+        content_->set_focus();
+        self_.on_redraw({{{}, self_.get_size()}});
     }
 
     // ======================================================================
@@ -84,8 +123,9 @@ struct user_interface::impl
         }
     }
 
-    user_interface              &self_;
-    std::shared_ptr<title_page>  title_page_;
+    user_interface                    &self_;
+    std::shared_ptr<munin::container>  content_{munin::make_container()};
+    std::shared_ptr<munin::component>  last_content_;
 };
 
 // ==========================================================================
@@ -97,7 +137,8 @@ user_interface::user_interface()
     using namespace terminalpp::literals;
 
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(pimpl_->title_page_);
+    add_component(pimpl_->content_);
+    pimpl_->go_to_title_page();
 };
 
 // ==========================================================================

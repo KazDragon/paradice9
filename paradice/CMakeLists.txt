@@ -20,6 +20,7 @@ set (PARADICE_SOURCE_FILES
     src/who.cpp
 
     src/ui/detail/password_edit.cpp
+    src/ui/account_creation_page.cpp
     src/ui/title_page.cpp
     src/ui/user_interface.cpp
 )
@@ -50,6 +51,7 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/who.hpp
 
     include/paradice/ui/detail/password_edit.hpp
+    include/paradice/ui/account_creation_page.hpp
     include/paradice/ui/title_page.hpp
     include/paradice/ui/user_interface.hpp
 )

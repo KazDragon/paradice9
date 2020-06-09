@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/ui/title_page.hpp"
+#include "paradice/ui/detail/password_edit.hpp"
 #include <munin/aligned_layout.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
@@ -37,6 +38,7 @@
 #include <munin/titled_frame.hpp>
 #include <munin/vertical_strip_layout.hpp>
 #include <munin/view.hpp>
+#include <munin/viewport.hpp>
 #include <terminalpp/algorithm/for_each_in_region.hpp>
 
 using namespace terminalpp::literals;
@@ -44,43 +46,6 @@ using namespace terminalpp::literals;
 namespace paradice { namespace ui {
 
 namespace {
-
-class password_field : public munin::edit
-{
-private:
-    void do_draw(
-        munin::render_surface &surface,
-        terminalpp::rectangle const &region) const
-    {
-        auto const content_size = get_text().size();
-        
-        terminalpp::for_each_in_region(
-            surface,
-            region,
-            [=](terminalpp::element &elem,
-                terminalpp::coordinate_type column,
-                terminalpp::coordinate_type row)
-            {
-                static constexpr auto password_element = terminalpp::element {
-                    '*',
-                    terminalpp::attribute { 
-                        terminalpp::ansi::graphics::colour::red 
-                    }
-                };
-
-                static constexpr auto fill_element = terminalpp::element {
-                    ' ' 
-                };
-
-                elem = column < content_size ? password_element : fill_element;
-            });
-    }
-};
-
-std::shared_ptr<password_field> make_password_field()
-{
-    return std::make_shared<password_field>();
-}
 
 std::vector<terminalpp::string> const main_image = {
  "       \\[2__ _.--..--._ _\\x                  _"_ets,
@@ -98,40 +63,42 @@ std::vector<terminalpp::string> const main_image = {
  "\\[4  ~~~   ~~~~~   ~~~~   ~~ ~  ~ ~ ~~~"_ets,
 };
 
-const terminalpp::attribute highlight_attribute = []{
-    terminalpp::attribute highlight_attribute;
-    highlight_attribute.foreground_colour_ = terminalpp::high_colour{4, 5, 1};
-    return highlight_attribute;
-}();
-
 }
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 title_page::title_page()
-  : test_(munin::make_image()),
-    new_button_(munin::make_button(" New ")),
+  : new_button_(munin::make_button(" New ")),
     login_button_(munin::make_button(" Login "))
 {
-    new_button_->on_click.connect([this]{ test_->set_content("New!"); });
-    login_button_->on_click.connect([this]{ test_->set_content("Login!"); });
-    
     auto const name_edit = munin::make_edit();
-    auto const password_edit = make_password_field();
+    auto const password_edit = detail::make_password_edit();
 
-    auto const name_frame = munin::make_titled_frame("Name");
-    auto const password_frame = munin::make_titled_frame("Password");
+    new_button_->on_click.connect(on_new_account);
+    login_button_->on_click.connect(
+        [=]
+        { 
+            auto const &account_name = 
+                terminalpp::to_string(name_edit->get_text());
+            auto const &password =
+                terminalpp::to_string(password_edit->get_text());
+            
+            on_account_login(account_name, password);
+        });
 
     auto const fields_container = munin::view(
         munin::make_grid_layout({1, 2}),
-        munin::make_framed_component(name_frame, name_edit),
-        munin::make_framed_component(password_frame, password_edit));
+        munin::make_framed_component(
+            munin::make_titled_frame("Name"), 
+            munin::make_viewport(name_edit)),
+        munin::make_framed_component(
+            munin::make_titled_frame("Password"), 
+            munin::make_viewport(password_edit)));
 
     auto const buttons_container = munin::view(
         munin::make_compass_layout(),
-        //munin::make_fill(' '),
-        test_,
+        munin::make_fill(' '),
         munin::compass_layout::heading::centre,
         munin::view(
             munin::make_vertical_strip_layout(),

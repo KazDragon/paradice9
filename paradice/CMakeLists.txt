@@ -18,6 +18,8 @@ set (PARADICE_SOURCE_FILES
     src/tokenise.cpp
     src/utility.cpp
     src/who.cpp
+
+    src/ui/detail/password_edit.cpp
     src/ui/title_page.cpp
     src/ui/user_interface.cpp
 )
@@ -46,6 +48,8 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/tokenise.hpp
     include/paradice/utility.hpp
     include/paradice/who.hpp
+
+    include/paradice/ui/detail/password_edit.hpp
     include/paradice/ui/title_page.hpp
     include/paradice/ui/user_interface.hpp
 )

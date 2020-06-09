@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Title Page
+// Paradice Password Edit
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,42 +24,35 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_UI_TITLE_PAGE_HPP_
-#define PARADICE_UI_TITLE_PAGE_HPP_
+#ifndef PARADICE_UI_DETAIL_PASSWORD_EDIT
+#define PARADICE_UI_DETAIL_PASSWORD_EDIT
 
-#include <munin/composite_component.hpp>
-#include <munin/button.hpp>
-#include <munin/image.hpp>
-#include <boost/signals2/signal.hpp>
+#include <munin/edit.hpp>
 
-namespace paradice { namespace ui { 
+namespace paradice { namespace ui { namespace detail { 
 
-class title_page
-  : public munin::composite_component
+class password_edit : public munin::edit
 {
-public :
+private:
     //* =====================================================================
-    /// \brief Constructor
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw
+    /// the part of itself specified by the region.
+    ///
+    /// \param surface the surface on which the component should draw itself.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
     //* =====================================================================
-    title_page();
-
-    //* =====================================================================
-    /// \fn on_new_account
-    /// Register a callback for when the "new" button is pressed.
-    //* =====================================================================
-    boost::signals2::signal<void ()> on_new_account;
-
-    //* =====================================================================
-    /// \fn on_account_login
-    /// Register a callback for when the "login" button is pressed, with
-    /// the account name and password attached.
-    //* =====================================================================
-    boost::signals2::signal<void (std::string, std::string)> on_account_login;
-
-private :
-    std::shared_ptr<munin::button> new_button_;
-    std::shared_ptr<munin::button> login_button_;
+    void do_draw(
+        munin::render_surface &surface,
+        terminalpp::rectangle const &region) const;
 };
 
-}}
+//* =========================================================================
+/// \brief Creates a new password edit
+//* =========================================================================
+std::shared_ptr<password_edit> make_password_edit();
+
+}}}
+
 #endif

@@ -68,6 +68,7 @@ struct user_interface::impl
         last_content_ = new_page;
 
         content_->set_focus();
+        self_.on_redraw({{{}, self_.get_size()}});
     }
 
     // ======================================================================
@@ -77,6 +78,8 @@ struct user_interface::impl
     {
         drop_content();
         auto new_page = std::make_shared<account_creation_page>();
+        new_page->on_return.connect([this]{go_to_title_page();});
+
         content_->add_component(new_page);
         last_content_ = new_page;
         content_->set_focus();

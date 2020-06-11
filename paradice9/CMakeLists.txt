@@ -31,4 +31,5 @@ target_link_libraries(paradice9
         CONAN_PKG::boost_filesystem
         CONAN_PKG::boost_program_options
         CONAN_PKG::serverpp
+        CONAN_PKG::sqlitecpp
 )

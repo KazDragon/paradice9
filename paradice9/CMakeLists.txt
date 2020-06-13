@@ -28,6 +28,7 @@ target_link_libraries(paradice9
     PRIVATE
         paradice
         CONAN_PKG::boost_asio
+        CONAN_PKG::boost_format
         CONAN_PKG::boost_filesystem
         CONAN_PKG::boost_program_options
         CONAN_PKG::serverpp

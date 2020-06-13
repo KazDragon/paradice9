@@ -87,9 +87,10 @@ target_link_libraries(paradice
     PUBLIC
         CONAN_PKG::terminalpp
         CONAN_PKG::serverpp
+        CONAN_PKG::boost_uuid
     PRIVATE
         CONAN_PKG::munin
-        CONAN_PKG::boost_uuid
+        CONAN_PKG::boost_format
         CONAN_PKG::telnetpp
 )
 

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Account Creation Page
+// Paradice Character Creation Page
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice/ui/account_creation_page.hpp"
+#include "paradice/ui/character_creation_page.hpp"
 #include "paradice/ui/detail/password_edit.hpp"
 #include <munin/aligned_layout.hpp>
 #include <munin/button.hpp>
@@ -49,25 +49,17 @@ namespace paradice { namespace ui {
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-account_creation_page::account_creation_page()
+character_creation_page::character_creation_page()
 {
     set_layout(munin::make_grid_layout({1, 1}));
 
     auto name_edit = munin::make_edit();
-    auto password_edit = detail::make_password_edit();
-    auto repeat_password_edit = detail::make_password_edit();
 
     auto fields = munin::view(
-        munin::make_grid_layout({1, 3}),
+        munin::make_grid_layout({1, 1}),
         munin::make_framed_component(
             munin::make_titled_frame("Name"),
-            name_edit),
-        munin::make_framed_component(
-            munin::make_titled_frame("Password"),
-            password_edit),
-        munin::make_framed_component(
-            munin::make_titled_frame("Password (Repeat)"),
-            repeat_password_edit));
+            name_edit));
 
     auto return_button = munin::make_button("Return");
     auto next_button = munin::make_button("Next");
@@ -76,9 +68,6 @@ account_creation_page::account_creation_page()
     next_button->on_click.connect(
         [=]
         {
-            on_next(
-                terminalpp::to_string(name_edit->get_text()),
-                terminalpp::to_string(password_edit->get_text()));
         });
 
     auto buttons = munin::view(
@@ -90,7 +79,7 @@ account_creation_page::account_creation_page()
     add_component(munin::view(
         munin::make_grid_layout({1, 1}),
         munin::make_framed_component(
-            munin::make_titled_frame("Create New Account"),
+            munin::make_titled_frame("Create New Character"),
             munin::view(
                 munin::make_compass_layout(),
                 fields, munin::compass_layout::heading::north,

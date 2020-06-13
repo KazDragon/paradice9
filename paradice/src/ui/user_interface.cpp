@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "paradice/ui/user_interface.hpp"
 #include "paradice/ui/account_creation_page.hpp"
+#include "paradice/ui/character_creation_page.hpp"
 #include "paradice/ui/title_page.hpp"
 #include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
@@ -46,29 +47,15 @@ struct user_interface::impl
     }
 
     // ======================================================================
-    // DROP_CONTENT
-    // ======================================================================
-    void drop_content()
-    {
-        content_->lose_focus();
-        content_->remove_component(last_content_);
-    }
-
-    // ======================================================================
     // GO_TO_TITLE_PAGE
     // ======================================================================
     void go_to_title_page()
     {
-        drop_content();
         auto new_page = std::make_shared<title_page>();
         new_page->on_new_account.connect(
             [this]{go_to_account_creation_page();});
 
-        content_->add_component(new_page);
-        last_content_ = new_page;
-
-        content_->set_focus();
-        self_.on_redraw({{{}, self_.get_size()}});
+        go_to_page(new_page);
     }
 
     // ======================================================================
@@ -76,13 +63,36 @@ struct user_interface::impl
     // ======================================================================
     void go_to_account_creation_page()
     {
-        drop_content();
         auto new_page = std::make_shared<account_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
+        new_page->on_next.connect([this](std::string const &, std::string const &){go_to_character_creation_page();});
+
+        go_to_page(new_page);
+    }
+
+    // ======================================================================
+    // GO_TO_CHARACTER_CREATION_PAGE
+    // ======================================================================
+    void go_to_character_creation_page()
+    {
+        auto new_page = std::make_shared<character_creation_page>();
+        new_page->on_return.connect([this]{go_to_title_page();});
+        
+        go_to_page(new_page);
+    }
+
+    // ======================================================================
+    // GO_TO_PAGE
+    // ======================================================================
+    void go_to_page(std::shared_ptr<munin::component> const &new_page)
+    {
+        content_->lose_focus();
+        content_->remove_component(last_content_);
 
         content_->add_component(new_page);
-        last_content_ = new_page;
         content_->set_focus();
+
+        last_content_ = new_page;
         self_.on_redraw({{{}, self_.get_size()}});
     }
 

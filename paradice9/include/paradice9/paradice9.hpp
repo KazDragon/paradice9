@@ -29,6 +29,7 @@
 
 #include <serverpp/core.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/filesystem/path.hpp>
 #include <memory>
 
 //* =========================================================================
@@ -43,7 +44,8 @@ public :
     //* =====================================================================
     paradice9(
         boost::asio::io_context &io_context, 
-        serverpp::port_identifier port);
+        serverpp::port_identifier port,
+        boost::filesystem::path const &database_path);
     
     //* =====================================================================
     /// Destructor

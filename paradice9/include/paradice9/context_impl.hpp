@@ -29,6 +29,7 @@
 
 #include "paradice/context.hpp"
 #include <boost/asio/io_context.hpp>
+#include <boost/filesystem/path.hpp>
 
 //* =========================================================================
 /// \brief Describes the context in which a Paradice server runs.
@@ -40,8 +41,9 @@ public :
     /// \brief Constructor
     //* =====================================================================
     context_impl(
-        boost::asio::io_context &io_context,
-        std::function<void ()>   shutdown);
+        boost::asio::io_context       &io_context,
+        boost::filesystem::path const &database_path,
+        std::function<void ()>         shutdown);
     
     //* =====================================================================
     /// \brief Denstructor

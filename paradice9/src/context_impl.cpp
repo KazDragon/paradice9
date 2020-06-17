@@ -28,7 +28,6 @@
 // #include "paradice/account.hpp"
 // #include "paradice/character.hpp"
 #include "paradice/client.hpp"
-// // #include "hugin/user_interface.hpp"
 // #include <boost/archive/xml_iarchive.hpp>
 // #include <boost/archive/xml_oarchive.hpp>
 #include <boost/asio/io_context_strand.hpp>
@@ -37,6 +36,9 @@
 // #include <algorithm>
 // #include <fstream>
 // #include <string>
+
+#include <SQLiteCpp/SQLiteCpp.h>
+
 #include <vector>
 
 // namespace fs = boost::filesystem;
@@ -111,11 +113,16 @@
 struct context_impl::impl
 {
     impl(
-        boost::asio::io_context &io_context,
-        std::function<void ()>   shutdown)
+        boost::asio::io_context       &io_context,
+        boost::filesystem::path const &database_path,
+        std::function<void ()>         shutdown)
       : strand_(io_context),
+        database_(
+            database_path.string(), 
+            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE),
         shutdown_(std::move(shutdown))
     {
+        ensure_schema_created();
     }
     
     // ======================================================================
@@ -123,7 +130,7 @@ struct context_impl::impl
     // ======================================================================
     void add_client(std::shared_ptr<paradice::client> const &cli)
     {
-        clients_.push_back(cli);
+        strand_.dispatch([this, cli]{clients_.push_back(cli);});
     }
 
     // ======================================================================
@@ -131,7 +138,7 @@ struct context_impl::impl
     // ======================================================================
     void remove_client(std::shared_ptr<paradice::client> const &cli)
     {
-        boost::remove_erase(clients_, cli);
+        strand_.dispatch([this, cli]{boost::remove_erase(clients_, cli);});
     }
 
     // ======================================================================
@@ -228,7 +235,69 @@ struct context_impl::impl
     //     oa << boost::serialization::make_nvp("character", *ch);
     // }
 
+    // ======================================================================
+    // SHUTDOWN
+    // ======================================================================
+    void shutdown()
+    {
+        for (auto &client : clients_)
+        {
+            client->disconnect();
+        }
+
+        shutdown_();
+    }
+
+private:
+    // ======================================================================
+    // ENSURE_ACCOUNT_TABLE_CREATED
+    // ======================================================================
+    void ensure_accounts_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS accounts ("
+            "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "    name TEXT UNIQUE,"
+            "    password TEXT,"
+            "    admin_level INTEGER,"
+            "    command_mode INTEGER"
+            ");"
+        );
+    }
+
+    // ======================================================================
+    // ENSURE_CHARACTER_TABLE_CREATED
+    // ======================================================================
+    void ensure_characters_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS characters ("
+            "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "    name TEXT UNIQUE,"
+            "    account_id INTEGER,"
+            "    prefix TEXT,"
+            "    suffix TEXT,"
+            "    gm_level INTEGER,"
+            "    FOREIGN KEY (account_id)"
+            "        REFERENCES accounts (id)"
+            "            ON DELETE CASCADE"
+            "            ON UPDATE NO ACTION"
+            ");"
+        );
+    }
+
+    // ======================================================================
+    // ENSURE_SCHEMA_CREATED
+    // ======================================================================
+    void ensure_schema_created()
+    {
+        database_.exec("PRAGMA foreign_keys=ON;");
+        ensure_accounts_table_created();
+        ensure_characters_table_created();
+    }
+
     boost::asio::io_context::strand                strand_;
+    SQLite::Database                               database_;
     std::function<void ()>                         shutdown_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
 };
@@ -237,9 +306,10 @@ struct context_impl::impl
 // CONSTRUCTOR
 // ==========================================================================
 context_impl::context_impl(
-    boost::asio::io_context &io_context,
-    std::function<void ()>   shutdown)
-  : pimpl_(new impl(io_context, std::move(shutdown)))
+    boost::asio::io_context       &io_context,
+    boost::filesystem::path const &database_path,
+    std::function<void ()>         shutdown)
+  : pimpl_(new impl(io_context, database_path, std::move(shutdown)))
 {
 }
     
@@ -263,7 +333,7 @@ context_impl::~context_impl()
 // ==========================================================================
 void context_impl::add_client(std::shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->strand_.dispatch([this, cli]{pimpl_->add_client(cli);});
+    pimpl_->add_client(cli);
 }
 
 // ==========================================================================
@@ -271,7 +341,7 @@ void context_impl::add_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->strand_.dispatch([this, cli]{pimpl_->remove_client(cli);});
+    pimpl_->remove_client(cli);
 }
 
 // ==========================================================================
@@ -357,12 +427,7 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::shutdown()
 {
-    for (auto &client : pimpl_->clients_)
-    {
-        client->disconnect();
-    }
-
-    pimpl_->shutdown_();
+    pimpl_->shutdown();
 }
 
 // ==========================================================================

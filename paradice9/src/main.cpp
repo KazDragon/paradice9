@@ -38,13 +38,15 @@ int main(int argc, char *argv[])
 {
     serverpp::port_identifier port = 4000;
     std::string  threads           = "";
+    std::string  database_path     = "paradice.db3";
     unsigned int concurrency       = 0;
     
     po::options_description description("Available options");
     description.add_options()
-        ( "help,h",                                                    "show this help message"                            )
-        ( "port,p",    po::value<serverpp::port_identifier>(&port),    "port number"                                       )
-        ( "threads,t", po::value<std::string>(&threads),               "number of threads of execution (0 for autodetect)" )
+        ( "help,h",                                                     "show this help message"                            )
+        ( "port,p",     po::value<serverpp::port_identifier>(&port),    "port number"                                       )
+        ( "threads,t",  po::value<std::string>(&threads),               "number of threads of execution (0 for autodetect)" )
+        ( "database,d", po::value<std::string>(&database_path),         "path to the database"                              )
         ;
 
     po::positional_options_description pos_description;
@@ -126,7 +128,7 @@ int main(int argc, char *argv[])
     }
 
     boost::asio::io_context io_context;
-    paradice9 application{io_context, port};
+    paradice9 application{io_context, port, database_path};
  
     std::vector<std::thread> threadpool;
 

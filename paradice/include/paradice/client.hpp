@@ -32,12 +32,6 @@
 #include <memory>
 #include <vector>
 
-/*
-namespace hugin {
-    class user_interface;
-}
-*/
-
 namespace paradice {
     class account;
     class character;
@@ -63,8 +57,7 @@ public :
     /// \brief Constructor
     //* =====================================================================
     client(
-        boost::asio::io_context  &io_context
-      , std::shared_ptr<context>  ctx);
+        boost::asio::io_context &io_context, std::shared_ptr<context> ctx);
 
     //* =====================================================================
     /// \brief Destructor
@@ -75,11 +68,6 @@ public :
     /// \brief Sets the connection on which this client operates.
     //* =====================================================================
     void set_connection(std::shared_ptr<connection> const &new_connection);
-
-    //* =====================================================================
-    /// \brief Gets the user interface for the client.
-    //* =====================================================================
-    //std::shared_ptr<hugin::user_interface> get_user_interface();
 
     //* =====================================================================
     /// \brief Sets the title of the client's window

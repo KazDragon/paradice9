@@ -62,6 +62,7 @@ using namespace terminalpp::literals;
 namespace paradice {
 
 namespace {
+
     constexpr terminalpp::extent default_window_size{80, 24};
 
     #define PARADICE_CMD_ENTRY_NOP(name) \
@@ -193,7 +194,6 @@ public :
         cursor_state_changed_{true},
         cursor_position_changed_{true}
     {
-        on_repaint();
     }
 
     // ======================================================================
@@ -222,12 +222,12 @@ public :
                                 }
                                 else
                                 {
-                                    window_.event(vk);
+                                    run_on_ui_strand([this, vk]{ window_.event(vk); });
                                 }
                             },
                             [this](auto &&event)
                             {
-                                window_.event(event);
+                                run_on_ui_strand([this, event] { window_.event(event); });
                             }),
                             token);
                 };
@@ -471,6 +471,30 @@ public :
 
 private :
     // ======================================================================
+    // RUN_ON_UI_STRAND
+    // ======================================================================
+    template <class Function>
+    void run_on_ui_strand(Function &&function)
+    {
+        // Here we capture a weak pointer to the impl.  Since all the
+        // deferred functions required that this object still exists, locking
+        // the weak pointer ensures that this is the case.
+        auto const exec = 
+            [wp = std::weak_ptr<impl>(shared_from_this()),
+             function = std::forward<Function>(function)]
+            {
+                auto const pthis = wp.lock();
+
+                if (pthis)
+                {
+                    function();
+                }
+            };
+
+        strand_.post(exec);
+    }
+
+    // ======================================================================
     // WRITE_TO_CONNECTION
     // ======================================================================
     void write_to_connection(std::string const &text)
@@ -499,7 +523,7 @@ private :
         // requested.
         if (!repaint_requested_.exchange(true))
         {
-            strand_.post([this]{ do_repaint(); });
+            run_on_ui_strand([this]{ do_repaint(); });
         }
     }
 
@@ -534,6 +558,7 @@ private :
     // ======================================================================
     void remove_duplicate_accounts(std::shared_ptr<account> acc)
     {
+        /*
         std::vector<std::shared_ptr<client>> clients_to_remove;
         auto clients = context_->get_clients();
 
@@ -555,6 +580,7 @@ private :
             current_client->disconnect();
             context_->remove_client(current_client);
         }
+        */
     }
 
     // ======================================================================
@@ -562,6 +588,7 @@ private :
     // ======================================================================
     void update_character_names()
     {
+        /*
         auto number_of_characters = account_->get_number_of_characters();
 
         std::vector<std::pair<std::string, std::string>> characters(
@@ -589,6 +616,7 @@ private :
         }
 
         //user_interface_->set_character_names(characters);
+        */
     }
 
     // ======================================================================
@@ -598,6 +626,7 @@ private :
         std::string const &username,
         std::string const &password)
     {
+        /*
         using namespace terminalpp::literals;
         
         std::string account_name(username);
@@ -641,6 +670,7 @@ private :
 
         // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
         // user_interface_->set_focus();
+        */
     }
 
     // ======================================================================
@@ -661,6 +691,7 @@ private :
         std::string const &password,
         std::string const &password_verify)
     {
+        /*
         using namespace terminalpp::literals;
 
         // Check that the account name is valid.  If not, report an
@@ -736,6 +767,7 @@ private :
         account_ = acc;
 
         // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        */
     }
 
     // ======================================================================
@@ -763,6 +795,7 @@ private :
     // ======================================================================
     void on_character_selected(std::string const &character_name)
     {
+        /*
         using namespace terminalpp::literals;
 
         std::shared_ptr<character> ch;
@@ -821,6 +854,7 @@ private :
           , "#SERVER: "
           + context_->get_moniker(character_)
           + " has entered Paradice.\n");
+        */
     }
 
     // ======================================================================
@@ -828,6 +862,7 @@ private :
     // ======================================================================
     void on_character_created(std::string character_name, bool is_gm)
     {
+        /*
         using namespace terminalpp::literals;
 
         capitalise(character_name);
@@ -912,6 +947,7 @@ private :
 
         update_character_names();
         // user_interface_->select_face(hugin::FACE_CHAR_SELECTION);
+        */
     }
 
     // ======================================================================
@@ -984,6 +1020,7 @@ private :
         std::string const &new_password,
         std::string const &new_password_verify)
     {
+        /*
         using namespace terminalpp::literals;
 
         if (!account_->password_match(old_password))
@@ -1019,6 +1056,7 @@ private :
         }
 
         // user_interface_->select_face(hugin::FACE_MAIN);
+        */
     }
 
     // ======================================================================
@@ -1034,6 +1072,7 @@ private :
     // ======================================================================
     void on_input_entered(std::string const &input)
     {
+        /*
         std::shared_ptr<client> player = self_.shared_from_this();
 
         assert(player != NULL);
@@ -1067,6 +1106,7 @@ private :
                 INVOKE_PARADICE_COMMAND(say, context_, input, player);
             }
         }
+        */
     }
 
     // ======================================================================
@@ -1074,6 +1114,7 @@ private :
     // ======================================================================
     void on_command(std::string const &input)
     {
+        /*
         std::shared_ptr<client> player = self_.shared_from_this();
         assert(player != NULL);
 
@@ -1129,6 +1170,7 @@ private :
         text += "\n";
 
         send_to_player(context_, text, player);
+        */
     }
 
     client                                 &self_;
@@ -1147,49 +1189,20 @@ private :
     munin::window                           window_;
 
     std::function<void ()>                  on_connection_death_;
-    /*
-    std::mutex                              dispatch_queue_mutex_;
-    std::deque<std::function<void ()>>      dispatch_queue_;
-    */
+
     std::string                             last_command_;
     std::atomic_bool                        repaint_requested_;
     std::atomic_bool                        cursor_state_changed_;
     std::atomic_bool                        cursor_position_changed_;
-
-private :
-    // ======================================================================
-    // DISPATCH_QUEUE
-    // ======================================================================
-    /*
-    void dispatch_queue()
-    {
-        std::function<void ()> fn;
-
-        std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-
-        while (!dispatch_queue_.empty())
-        {
-            fn = dispatch_queue_.front();
-            dispatch_queue_.pop_front();
-            lock.unlock();
-
-            fn();
-
-            lock.lock();
-        }
-    }
-    */
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 client::client(
-    boost::asio::io_context &io_context
-  , std::shared_ptr<context> ctx)
+    boost::asio::io_context &io_context, std::shared_ptr<context> ctx)
+  : pimpl_(std::make_shared<impl>(*this, io_context, std::move(ctx)))
 {
-    pimpl_ = std::make_shared<impl>(
-        std::ref(*this), std::ref(io_context), ctx);
 }
 
 // ==========================================================================

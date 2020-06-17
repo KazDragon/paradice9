@@ -27,6 +27,7 @@
 #include "paradice/ui/title_page.hpp"
 #include "paradice/ui/detail/password_edit.hpp"
 #include <munin/aligned_layout.hpp>
+#include <munin/brush.hpp>
 #include <munin/button.hpp>
 #include <munin/compass_layout.hpp>
 #include <munin/edit.hpp>
@@ -35,6 +36,7 @@
 #include <munin/grid_layout.hpp>
 #include <munin/image.hpp>
 #include <munin/render_surface.hpp>
+#include <munin/solid_frame.hpp>
 #include <munin/titled_frame.hpp>
 #include <munin/vertical_strip_layout.hpp>
 #include <munin/view.hpp>
@@ -87,14 +89,36 @@ title_page::title_page()
             on_account_login(account_name, password);
         });
 
-    auto const fields_container = munin::view(
+    auto const labels_container = munin::view(
+        munin::make_grid_layout({1, 2}),
+        munin::view(
+            munin::make_aligned_layout(),
+            munin::make_fill(' '),
+            munin::alignment_fill,
+            munin::make_image("Name"),
+            munin::alignment_hrvc),
+        munin::view(
+            munin::make_aligned_layout(),
+            munin::make_fill(' '),
+            munin::alignment_fill,
+            munin::make_image("Password"),
+            munin::alignment_hrvc));
+
+    auto const edits_container = munin::view(
         munin::make_grid_layout({1, 2}),
         munin::make_framed_component(
-            munin::make_titled_frame("Name"), 
+            munin::make_solid_frame(), 
             munin::make_viewport(name_edit)),
         munin::make_framed_component(
-            munin::make_titled_frame("Password"), 
+            munin::make_solid_frame(),
             munin::make_viewport(password_edit)));
+
+    auto const fields_container = munin::view(
+        munin::make_compass_layout(),
+        labels_container,
+        munin::compass_layout::heading::west,
+        edits_container,
+        munin::compass_layout::heading::centre);
 
     auto const buttons_container = munin::view(
         munin::make_compass_layout(),

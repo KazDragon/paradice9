@@ -22,6 +22,7 @@ set (PARADICE_SOURCE_FILES
     src/ui/detail/password_edit.cpp
     src/ui/account_creation_page.cpp
     src/ui/character_creation_page.cpp
+    src/ui/character_selection_page.cpp
     src/ui/title_page.cpp
     src/ui/user_interface.cpp
 )
@@ -54,6 +55,7 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/ui/detail/password_edit.hpp
     include/paradice/ui/account_creation_page.hpp
     include/paradice/ui/character_creation_page.hpp
+    include/paradice/ui/character_selection_page.hpp
     include/paradice/ui/title_page.hpp
     include/paradice/ui/user_interface.hpp
 )

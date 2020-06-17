@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Character Creation Page
+// Paradice Character Model
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,32 +24,19 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_UI_CHARACTER_CREATION_PAGE_HPP_
-#define PARADICE_UI_CHARACTER_CREATION_PAGE_HPP_
+#ifndef PARADICE_MODEL_CHARACTER_HPP_
+#define PARADICE_MODEL_CHARACTER_HPP_
 
-#include <munin/composite_component.hpp>
+#include <string>
+#include <vector>
 
-namespace paradice { namespace ui { 
+namespace paradice { namespace model {
 
-class character_creation_page
-  : public munin::composite_component
+struct character
 {
-public :
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
-    character_creation_page();
-
-    boost::signals2::signal<
-        void ()
-    > on_return;
-
-    boost::signals2::signal<
-        void (std::string const &name)
-    > on_character_created;
-
-private :
+    std::string name;
 };
 
 }}
+
 #endif

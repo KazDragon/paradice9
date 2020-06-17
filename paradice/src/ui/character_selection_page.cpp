@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Character Creation Page
+// Paradice Character Selection Page
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice/ui/character_creation_page.hpp"
+#include "paradice/ui/character_selection_page.hpp"
 #include "paradice/ui/detail/password_edit.hpp"
 #include <munin/aligned_layout.hpp>
 #include <munin/button.hpp>
@@ -49,45 +49,14 @@ namespace paradice { namespace ui {
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-character_creation_page::character_creation_page()
+character_selection_page::character_selection_page()
 {
     set_layout(munin::make_grid_layout({1, 1}));
-
-    auto name_edit = munin::make_edit();
-
-    auto fields = munin::view(
-        munin::make_grid_layout({1, 1}),
-        munin::make_framed_component(
-            munin::make_titled_frame("Name"),
-            name_edit));
-
-    auto return_button = munin::make_button("Return");
-    auto next_button = munin::make_button("Next");
-
-    return_button->on_click.connect(on_return);
-    next_button->on_click.connect(
-        [=]
-        {
-            on_character_created(to_string(name_edit->get_text()));
-        });
-
-    auto buttons = munin::view(
-        munin::make_compass_layout(),
-        return_button, munin::compass_layout::heading::west,
-        munin::make_fill(' '), munin::compass_layout::heading::centre,
-        next_button, munin::compass_layout::heading::east);
-
-    add_component(munin::view(
-        munin::make_grid_layout({1, 1}),
-        munin::make_framed_component(
-            munin::make_titled_frame("Create New Character"),
-            munin::view(
-                munin::make_compass_layout(),
-                fields, munin::compass_layout::heading::north,
-                munin::make_fill(' '), munin::compass_layout::heading::centre,
-                buttons, munin::compass_layout::heading::south))));
-
-    name_edit->set_focus();
+    add_component(munin::make_framed_component(
+        munin::make_titled_frame("Select Your Character"),
+        munin::view(
+            munin::make_compass_layout(),
+            munin::make_fill(' '))));
 }
 
 }}

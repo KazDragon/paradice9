@@ -27,6 +27,7 @@
 #include "paradice/ui/user_interface.hpp"
 #include "paradice/ui/account_creation_page.hpp"
 #include "paradice/ui/character_creation_page.hpp"
+#include "paradice/ui/character_selection_page.hpp"
 #include "paradice/ui/title_page.hpp"
 #include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
@@ -65,7 +66,17 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<account_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
-        new_page->on_next.connect([this](std::string const &, std::string const &){go_to_character_creation_page();});
+        new_page->on_next.connect(
+            [this](std::string const &name, std::string const &password)
+            {
+                auto new_account = self_.on_new_account(name, password);
+                
+                if (new_account)
+                {
+                    active_account_ = new_account.get();
+                    go_to_character_creation_page();
+                }
+            });
 
         go_to_page(new_page);
     }
@@ -77,7 +88,17 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<character_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
-        
+        new_page->on_character_created.connect([this](auto){go_to_character_selection_page();});
+        go_to_page(new_page);
+    }
+
+    // ======================================================================
+    // GO_TO_CHARACTER_SELECTION_PAGE
+    // ======================================================================
+    void go_to_character_selection_page()
+    {
+        auto new_page = std::make_shared<character_selection_page>();
+
         go_to_page(new_page);
     }
 
@@ -139,6 +160,9 @@ struct user_interface::impl
     user_interface                    &self_;
     std::shared_ptr<munin::container>  content_{munin::make_container()};
     std::shared_ptr<munin::component>  last_content_;
+
+    boost::optional<model::account>    active_account_;
+    boost::optional<model::character>  active_character_;
 };
 
 // ==========================================================================

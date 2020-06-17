@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Character Creation Page
+// Paradice Character Selection Page
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,31 +24,35 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_UI_CHARACTER_CREATION_PAGE_HPP_
-#define PARADICE_UI_CHARACTER_CREATION_PAGE_HPP_
+#ifndef PARADICE_UI_CHARACTER_SELECTION_PAGE_HPP_
+#define PARADICE_UI_CHARACTER_SELECTION_PAGE_HPP_
 
 #include <munin/composite_component.hpp>
+#include <boost/signals2/signal.hpp>
 
 namespace paradice { namespace ui { 
 
-class character_creation_page
+class character_selection_page
   : public munin::composite_component
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    character_creation_page();
+    character_selection_page();
 
-    boost::signals2::signal<
-        void ()
-    > on_return;
+    //* =====================================================================
+    /// \fn on_new_character
+    /// Register a callback for when the "new" button is pressed.
+    //* =====================================================================
+    boost::signals2::signal<void ()> on_new_character;
 
-    boost::signals2::signal<
-        void (std::string const &name)
-    > on_character_created;
-
-private :
+    //* =====================================================================
+    /// \fn on_character_selected
+    /// Register a callback for when the "login" button is pressed, with
+    /// the account name and password attached.
+    //* =====================================================================
+    boost::signals2::signal<void ()> on_character_selected;
 };
 
 }}

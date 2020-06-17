@@ -25,79 +25,79 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/who.hpp"
-#include "paradice/character.hpp"
-#include "paradice/client.hpp"
-#include "paradice/communication.hpp"
-#include "paradice/connection.hpp"
-#include "paradice/context.hpp"
-#include "paradice/utility.hpp"
-#include "paradice/tokenise.hpp"
-#include <terminalpp/string.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
-#include <cstdio>
+// #include "paradice/character.hpp"
+// #include "paradice/client.hpp"
+// #include "paradice/communication.hpp"
+// #include "paradice/connection.hpp"
+// #include "paradice/context.hpp"
+// #include "paradice/utility.hpp"
+// #include "paradice/tokenise.hpp"
+// #include <terminalpp/string.hpp>
+// #include <boost/algorithm/string/trim.hpp>
+// #include <boost/format.hpp>
+// #include <cstdio>
 
 namespace paradice {
 
 // ==========================================================================
 // IS_ACCEPTIBLE_NAME
 // ==========================================================================
-bool is_acceptible_name(std::string const &name)
-{
-    if (name.length() < 3)
-    {
-        return false;
-    }
+// bool is_acceptible_name(std::string const &name)
+// {
+//     if (name.length() < 3)
+//     {
+//         return false;
+//     }
     
-    for (auto ch : name)
-    {
-        if (!boost::is_alpha()(ch))
-        {
-            return false;
-        }
-    }
+//     for (auto ch : name)
+//     {
+//         if (!boost::is_alpha()(ch))
+//         {
+//             return false;
+//         }
+//     }
     
-    // Profanity filter HERE!
-    return true;
-}
+//     // Profanity filter HERE!
+//     return true;
+// }
 
 // ==========================================================================
 // PARADICE COMMAND: TITLE
 // ==========================================================================
 PARADICE_COMMAND_IMPL(title)
 {
-    using namespace terminalpp::literals;
+    // using namespace terminalpp::literals;
     
-    auto character = player->get_character();
-    character->set_suffix(boost::algorithm::trim_copy(arguments));
+    // auto character = player->get_character();
+    // character->set_suffix(boost::algorithm::trim_copy(arguments));
 
-    send_to_player(ctx, boost::str(
-        boost::format("\r\nYou are now %s.\r\n")
-            % ctx->get_moniker(character))
-      , player);
+    // send_to_player(ctx, boost::str(
+    //     boost::format("\r\nYou are now %s.\r\n")
+    //         % ctx->get_moniker(character))
+    //   , player);
     
-    send_to_room(ctx, boost::str(
-        boost::format("\r\n%s is now %s.\r\n")
-            % player->get_character()->get_name()
-            % ctx->get_moniker(character))
-      , player);
+    // send_to_room(ctx, boost::str(
+    //     boost::format("\r\n%s is now %s.\r\n")
+    //         % player->get_character()->get_name()
+    //         % ctx->get_moniker(character))
+    //   , player);
 
-    try
-    {
-        ctx->save_character(character);
-    }
-    catch(std::exception &ex)
-    {
-        printf("Error saving character %s: %s\n",
-            character->get_name().c_str(), ex.what());
+    // try
+    // {
+    //     ctx->save_character(character);
+    // }
+    // catch(std::exception &ex)
+    // {
+    //     printf("Error saving character %s: %s\n",
+    //         character->get_name().c_str(), ex.what());
 
-        send_to_player(
-            ctx
-          , "\\[1There was an error saving your character."_ets
-          , player);
-    }
+    //     send_to_player(
+    //         ctx
+    //       , "\\[1There was an error saving your character."_ets
+    //       , player);
+    // }
 
-    ctx->update_names();
+    // ctx->update_names();
 }
 
 // ==========================================================================
@@ -105,39 +105,39 @@ PARADICE_COMMAND_IMPL(title)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(prefix)
 {
-    using namespace terminalpp::literals;
+    // using namespace terminalpp::literals;
 
-    auto character = player->get_character();
-    character->set_prefix(boost::algorithm::trim_copy(arguments));
+    // auto character = player->get_character();
+    // character->set_prefix(boost::algorithm::trim_copy(arguments));
 
-    send_to_player(ctx, boost::str(
-        boost::format("\r\nYou are now %s.\r\n")
-            % ctx->get_moniker(character))
-      , player);
+    // send_to_player(ctx, boost::str(
+    //     boost::format("\r\nYou are now %s.\r\n")
+    //         % ctx->get_moniker(character))
+    //   , player);
     
-    send_to_room(ctx, boost::str(
-        boost::format("\r\n%s is now %s.\r\n")
-            % player->get_character()->get_name()
-            % ctx->get_moniker(character))
-      , player);
+    // send_to_room(ctx, boost::str(
+    //     boost::format("\r\n%s is now %s.\r\n")
+    //         % player->get_character()->get_name()
+    //         % ctx->get_moniker(character))
+    //   , player);
 
 
-    try
-    {
-        ctx->save_character(character);
-    }
-    catch(std::exception &ex)
-    {
-        printf("Error saving character %s: %s\n",
-            character->get_name().c_str(), ex.what());
+    // try
+    // {
+    //     ctx->save_character(character);
+    // }
+    // catch(std::exception &ex)
+    // {
+    //     printf("Error saving character %s: %s\n",
+    //         character->get_name().c_str(), ex.what());
 
-        send_to_player(
-            ctx
-          , "\\[1There was an error saving your character."_ets
-          , player);
-    }
+    //     send_to_player(
+    //         ctx
+    //       , "\\[1There was an error saving your character."_ets
+    //       , player);
+    // }
 
-    ctx->update_names();
+    // ctx->update_names();
 }
 
 }

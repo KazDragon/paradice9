@@ -25,18 +25,18 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/configuration.hpp"
-#include "paradice/account.hpp"
-#include "paradice/character.hpp"
-#include "paradice/client.hpp"
-#include "paradice/communication.hpp"
-#include "paradice/connection.hpp"
-#include "paradice/context.hpp"
-#include "paradice/tokenise.hpp"
-#include "paradice/who.hpp"
+// #include "paradice/account.hpp"
+// #include "paradice/character.hpp"
+// #include "paradice/client.hpp"
+// #include "paradice/communication.hpp"
+// #include "paradice/connection.hpp"
+// #include "paradice/context.hpp"
+// #include "paradice/tokenise.hpp"
+// #include "paradice/who.hpp"
 // #include "hugin/user_interface.hpp"
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
-#include <cstdio>
+// #include <boost/algorithm/string/trim.hpp>
+// #include <boost/format.hpp>
+// #include <cstdio>
 
 namespace paradice {
 
@@ -45,84 +45,84 @@ namespace paradice {
 // ==========================================================================
 PARADICE_COMMAND_IMPL(set)
 {
-    static std::string const usage =
-        "\r\n USAGE:   set <setting> [<argument>]"
-        "\r\n Current setting are:"
-        "\r\n     commandmode (mud|mmo)"
-        "\r\n\r\n";
+    // static std::string const usage =
+    //     "\r\n USAGE:   set <setting> [<argument>]"
+    //     "\r\n Current setting are:"
+    //     "\r\n     commandmode (mud|mmo)"
+    //     "\r\n\r\n";
 
-    auto token0 = paradice::tokenise(arguments);
+    // auto token0 = paradice::tokenise(arguments);
 
-    if (token0.first.empty())
-    {
-        send_to_player(ctx, usage, player);
-        return;
-    }
+    // if (token0.first.empty())
+    // {
+    //     send_to_player(ctx, usage, player);
+    //     return;
+    // }
 
-    // TODO: when we have more settings, factor them out into a map of
-    // settings functions.
-    if (token0.first == "commandmode")
-    {
-        static std::string const commandmode_usage =
-            "\r\n USAGE:   set commandmode (mud|mmo)"
-            "\r\n Example: set commandmode mmo"
-            "\r\n\r\n";
+    // // TODO: when we have more settings, factor them out into a map of
+    // // settings functions.
+    // if (token0.first == "commandmode")
+    // {
+    //     static std::string const commandmode_usage =
+    //         "\r\n USAGE:   set commandmode (mud|mmo)"
+    //         "\r\n Example: set commandmode mmo"
+    //         "\r\n\r\n";
 
-        auto token1 = paradice::tokenise(token0.second);
+    //     auto token1 = paradice::tokenise(token0.second);
 
-        if (token1.first.empty())
-        {
-            send_to_player(ctx, commandmode_usage, player);
-            return;
-        }
+    //     if (token1.first.empty())
+    //     {
+    //         send_to_player(ctx, commandmode_usage, player);
+    //         return;
+    //     }
 
-        // TODO: make case sensitive, tie settings to a map, etc.
-        if (token1.first == "mud")
-        {
-            player->get_account()->set_command_mode(
-                account::command_mode_mud);
+    //     // TODO: make case sensitive, tie settings to a map, etc.
+    //     if (token1.first == "mud")
+    //     {
+    //         player->get_account()->set_command_mode(
+    //             account::command_mode_mud);
 
-            send_to_player(
-                ctx
-              , "Your command mode is now 'mud'.  Type commands normally, and "
-                "use '.' or 'say' to talk.\n"
-              , player);
-        }
-        else if (token1.first == "mmo")
-        {
-            player->get_account()->set_command_mode(
-                account::command_mode_mmo);
+    //         send_to_player(
+    //             ctx
+    //           , "Your command mode is now 'mud'.  Type commands normally, and "
+    //             "use '.' or 'say' to talk.\n"
+    //           , player);
+    //     }
+    //     else if (token1.first == "mmo")
+    //     {
+    //         player->get_account()->set_command_mode(
+    //             account::command_mode_mmo);
 
-            send_to_player(
-                ctx
-              , "Your command mode is now 'mmo'.  Use the '/' character to "
-                "perform commands.  Anything else will be said by your "
-                "character.\n"
-              , player);
-        }
-        else
-        {
-            send_to_player(ctx, commandmode_usage, player);
-        }
-    }
+    //         send_to_player(
+    //             ctx
+    //           , "Your command mode is now 'mmo'.  Use the '/' character to "
+    //             "perform commands.  Anything else will be said by your "
+    //             "character.\n"
+    //           , player);
+    //     }
+    //     else
+    //     {
+    //         send_to_player(ctx, commandmode_usage, player);
+    //     }
+    // }
 
-    try
-    {
-        ctx->save_account(player->get_account());
-    }
-    catch(std::exception &ex)
-    {
-        // TODO: Use an actual logging library for this message.
-        std::printf("Error saving account: %s\n", ex.what());
+    // try
+    // {
+    //     ctx->save_account(player->get_account());
+    // }
+    // catch(std::exception &ex)
+    // {
+    //     // TODO: Use an actual logging library for this message.
+    //     std::printf("Error saving account: %s\n", ex.what());
 
-        send_to_player(
-            ctx
-          , "\\[1Unexpected error saving your account.  "
-            "Please try again."
-          , player);
+    //     send_to_player(
+    //         ctx
+    //       , "\\[1Unexpected error saving your account.  "
+    //         "Please try again."
+    //       , player);
 
-        return;
-    }
+    //     return;
+    // }
 }
 
 // ==========================================================================
@@ -139,7 +139,7 @@ PARADICE_COMMAND_IMPL(password)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(quit)
 {
-    player->disconnect();
+    // player->disconnect();
 }
 
 // ==========================================================================
@@ -147,26 +147,26 @@ PARADICE_COMMAND_IMPL(quit)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(logout)
 {
-    // First, announce the removal of the player from the game, and make it so.
-    send_to_room(
-        ctx
-      , "#SERVER: "
-      + player->get_character()->get_name()
-      + " has left Paradice!\n"
-      , player);
+    // // First, announce the removal of the player from the game, and make it so.
+    // send_to_room(
+    //     ctx
+    //   , "#SERVER: "
+    //   + player->get_character()->get_name()
+    //   + " has left Paradice!\n"
+    //   , player);
 
-    player->set_character({});
-    player->set_account({});
+    // player->set_character({});
+    // player->set_account({});
 
-    ctx->update_names();
+    // ctx->update_names();
 
-    player->set_window_title("Paradice9");
+    // player->set_window_title("Paradice9");
 
-    // Now, return the player to the login screen
-    // auto user_interface = player->get_user_interface();
-    // user_interface->clear_intro_screen();
-    // user_interface->select_face(hugin::FACE_INTRO);
-    // user_interface->set_focus();
+    // // Now, return the player to the login screen
+    // // auto user_interface = player->get_user_interface();
+    // // user_interface->clear_intro_screen();
+    // // user_interface->select_face(hugin::FACE_INTRO);
+    // // user_interface->set_focus();
 }
 
 }

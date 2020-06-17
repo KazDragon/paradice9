@@ -966,7 +966,7 @@ private :
     {
         // character_->set_beasts(user_interface_->get_beasts());
         // character_->set_encounters(user_interface_->get_encounters());
-        context_->save_character(character_);
+        // context_->save_character(character_);
 
         // user_interface_->select_face(hugin::FACE_MAIN);
         // user_interface_->set_focus();

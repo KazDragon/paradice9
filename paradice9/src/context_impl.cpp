@@ -25,84 +25,85 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/context_impl.hpp"
-#include "paradice/account.hpp"
-#include "paradice/character.hpp"
+// #include "paradice/account.hpp"
+// #include "paradice/character.hpp"
 #include "paradice/client.hpp"
-// #include "hugin/user_interface.hpp"
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
+// // #include "hugin/user_interface.hpp"
+// #include <boost/archive/xml_iarchive.hpp>
+// #include <boost/archive/xml_oarchive.hpp>
 #include <boost/asio/io_context_strand.hpp>
-#include <boost/filesystem.hpp>
-#include <algorithm>
-#include <fstream>
-#include <string>
+// #include <boost/filesystem.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
+// #include <algorithm>
+// #include <fstream>
+// #include <string>
 #include <vector>
 
-namespace fs = boost::filesystem;
+// namespace fs = boost::filesystem;
 
-namespace {
-    static std::shared_ptr<paradice::active_encounter> gm_encounter;
-    static bool gm_encounter_visible = false;
-}
+// namespace {
+//     static std::shared_ptr<paradice::active_encounter> gm_encounter;
+//     static bool gm_encounter_visible = false;
+// }
 
 // ==========================================================================
 // GET_ACCOUNTS_PATH
 // ==========================================================================
-static fs::path get_accounts_path()
-{
-    auto cwd = fs::current_path();
-    auto accounts_path = cwd / "accounts";
+// static fs::path get_accounts_path()
+// {
+//     auto cwd = fs::current_path();
+//     auto accounts_path = cwd / "accounts";
     
-    if (!fs::exists(accounts_path))
-    {
-        fs::create_directory(accounts_path);
-    }
+//     if (!fs::exists(accounts_path))
+//     {
+//         fs::create_directory(accounts_path);
+//     }
     
-    return accounts_path;
-}
+//     return accounts_path;
+// }
 
 // ==========================================================================
 // GET_CHARACTERS_PATH
 // ==========================================================================
-static fs::path get_characters_path()
-{
-    auto cwd = fs::current_path();
-    auto characters_path = cwd / "characters";
+// static fs::path get_characters_path()
+// {
+//     auto cwd = fs::current_path();
+//     auto characters_path = cwd / "characters";
     
-    if (!fs::exists(characters_path))
-    {
-        fs::create_directory(characters_path);
-    }
+//     if (!fs::exists(characters_path))
+//     {
+//         fs::create_directory(characters_path);
+//     }
     
-    return characters_path;
-}
+//     return characters_path;
+// }
 
 // ==========================================================================
 // GET_CHARACTER_ADDRESS
 // ==========================================================================
-static std::string get_character_address(
-    std::shared_ptr<paradice::character> const &ch)
-{
-    auto prefix = ch->get_prefix();
-    auto name   = ch->get_name();
-    auto title  = ch->get_suffix();
+// static std::string get_character_address(
+//     std::shared_ptr<paradice::character> const &ch)
+// {
+//     auto prefix = ch->get_prefix();
+//     auto name   = ch->get_name();
+//     auto title  = ch->get_suffix();
     
-    std::string address;
+//     std::string address;
     
-    if (!prefix.empty())
-    {
-        address += prefix + " ";
-    }
+//     if (!prefix.empty())
+//     {
+//         address += prefix + " ";
+//     }
     
-    address += name;
+//     address += name;
     
-    if (!title.empty())
-    {
-        address += " " + title;
-    }
+//     if (!title.empty())
+//     {
+//         address += " " + title;
+//     }
     
-    return address;
-}
+//     return address;
+// }
     
 // ==========================================================================
 // CONTEXT_IMPL IMPLEMENTATION STRUCTURE
@@ -130,12 +131,7 @@ struct context_impl::impl
     // ======================================================================
     void remove_client(std::shared_ptr<paradice::client> const &cli)
     {
-        clients_.erase(
-            std::remove(
-                clients_.begin()
-              , clients_.end()
-              , cli)
-          , clients_.end());
+        boost::remove_erase(clients_, cli);
     }
 
     // ======================================================================
@@ -143,22 +139,22 @@ struct context_impl::impl
     // ======================================================================
     void update_names()
     {
-        std::vector<std::string> names;
+        // std::vector<std::string> names;
         
-        for (auto &cur_client : clients_)
-        {
-            auto character = cur_client->get_character();
+        // for (auto &cur_client : clients_)
+        // {
+        //     auto character = cur_client->get_character();
             
-            if (character != NULL)
-            {
-                auto name = get_character_address(character);
+        //     if (character != NULL)
+        //     {
+        //         auto name = get_character_address(character);
                 
-                if (!name.empty())
-                {
-                    names.push_back(name);
-                }
-            }
-        }
+        //         if (!name.empty())
+        //         {
+        //             names.push_back(name);
+        //         }
+        //     }
+        // }
         
         for (auto &cur_client : clients_)
         {
@@ -174,63 +170,63 @@ struct context_impl::impl
     // ======================================================================
     // LOAD_ACCOUNT
     // ======================================================================
-    void load_account(
-        std::string const &name, std::shared_ptr<paradice::account> &acct)
-    {
-        auto account_path = get_accounts_path() / name;
+    // void load_account(
+    //     std::string const &name, std::shared_ptr<paradice::account> &acct)
+    // {
+    //     auto account_path = get_accounts_path() / name;
         
-        if (fs::exists(account_path))
-        {
-            std::ifstream in(account_path.string().c_str());
-            boost::archive::xml_iarchive ia(in);
+    //     if (fs::exists(account_path))
+    //     {
+    //         std::ifstream in(account_path.string().c_str());
+    //         boost::archive::xml_iarchive ia(in);
             
-            acct = std::make_shared<paradice::account>();
-            ia >> boost::serialization::make_nvp("account", *acct);
-        }
-    }
+    //         acct = std::make_shared<paradice::account>();
+    //         ia >> boost::serialization::make_nvp("account", *acct);
+    //     }
+    // }
 
     // ======================================================================
     // SAVE_ACCOUNT
     // ======================================================================
-    void save_account(std::shared_ptr<paradice::account> const &acct)
-    {
-        auto account_path = get_accounts_path() / acct->get_name();
+    // void save_account(std::shared_ptr<paradice::account> const &acct)
+    // {
+    //     auto account_path = get_accounts_path() / acct->get_name();
         
-        std::ofstream out(account_path.string().c_str());
-        boost::archive::xml_oarchive oa(out);
-        oa << boost::serialization::make_nvp("account", *acct);
-    }
+    //     std::ofstream out(account_path.string().c_str());
+    //     boost::archive::xml_oarchive oa(out);
+    //     oa << boost::serialization::make_nvp("account", *acct);
+    // }
 
     // ======================================================================
     // LOAD_CHARACTER
     // ======================================================================
-    void load_character(
-        std::string const                    &name,
-        std::shared_ptr<paradice::character> &ch)
-    {
-        auto character_path = get_characters_path() / name;
+    // void load_character(
+    //     std::string const                    &name,
+    //     std::shared_ptr<paradice::character> &ch)
+    // {
+    //     auto character_path = get_characters_path() / name;
         
-        if (fs::exists(character_path))
-        {
-            std::ifstream in(character_path.string().c_str());
-            boost::archive::xml_iarchive ia(in);
+    //     if (fs::exists(character_path))
+    //     {
+    //         std::ifstream in(character_path.string().c_str());
+    //         boost::archive::xml_iarchive ia(in);
             
-            ch = std::make_shared<paradice::character>();
-            ia >> boost::serialization::make_nvp("character", *ch);
-        }
-    }
+    //         ch = std::make_shared<paradice::character>();
+    //         ia >> boost::serialization::make_nvp("character", *ch);
+    //     }
+    // }
 
     // ======================================================================
     // SAVE_CHARACTER
     // ======================================================================
-    void save_character(std::shared_ptr<paradice::character> const &ch)
-    {
-        auto character_path = get_characters_path() / ch->get_name();
+    // void save_character(std::shared_ptr<paradice::character> const &ch)
+    // {
+    //     auto character_path = get_characters_path() / ch->get_name();
         
-        std::ofstream out(character_path.string().c_str());
-        boost::archive::xml_oarchive oa(out);
-        oa << boost::serialization::make_nvp("character", *ch);
-    }
+    //     std::ofstream out(character_path.string().c_str());
+    //     boost::archive::xml_oarchive oa(out);
+    //     oa << boost::serialization::make_nvp("character", *ch);
+    // }
 
     boost::asio::io_context::strand                strand_;
     std::function<void ()>                         shutdown_;
@@ -257,10 +253,10 @@ context_impl::~context_impl()
 // ==========================================================================
 // GET_CLIENTS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::client>> context_impl::get_clients()
-{
-    return pimpl_->clients_;
-}
+// std::vector<std::shared_ptr<paradice::client>> context_impl::get_clients()
+// {
+//     return pimpl_->clients_;
+// }
 
 // ==========================================================================
 // ADD_CLIENT
@@ -281,80 +277,80 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 // UPDATE_NAMES
 // ==========================================================================
-void context_impl::update_names()
-{
-    pimpl_->strand_.dispatch([this]{pimpl_->update_names();});
-}
+// void context_impl::update_names()
+// {
+//     pimpl_->strand_.dispatch([this]{pimpl_->update_names();});
+// }
 
 // ==========================================================================
 // GET_MONIKER
 // ==========================================================================
-std::string context_impl::get_moniker(std::shared_ptr<paradice::character> const &ch)
-{
-    std::string prefix = ch->get_prefix();
-    std::string name   = ch->get_name();
-    std::string title  = ch->get_suffix();
+// std::string context_impl::get_moniker(std::shared_ptr<paradice::character> const &ch)
+// {
+//     std::string prefix = ch->get_prefix();
+//     std::string name   = ch->get_name();
+//     std::string title  = ch->get_suffix();
     
-    std::string address;
+//     std::string address;
     
-    if (!prefix.empty())
-    {
-        address += prefix + " ";
-    }
+//     if (!prefix.empty())
+//     {
+//         address += prefix + " ";
+//     }
     
-    address += name;
+//     address += name;
     
-    if (!title.empty())
-    {
-        address += " " + title;
-    }
+//     if (!title.empty())
+//     {
+//         address += " " + title;
+//     }
     
-    return address;
-}
+//     return address;
+// }
  
 // ==========================================================================
 // LOAD_ACCOUNT
 // ==========================================================================
-std::shared_ptr<paradice::account> context_impl::load_account(std::string const &name)
-{
-    std::shared_ptr<paradice::account> acct;
+// std::shared_ptr<paradice::account> context_impl::load_account(std::string const &name)
+// {
+//     std::shared_ptr<paradice::account> acct;
 
-    pimpl_->strand_.dispatch([this, &name, &acct]{
-        pimpl_->load_account(name, acct);
-    });
+//     pimpl_->strand_.dispatch([this, &name, &acct]{
+//         pimpl_->load_account(name, acct);
+//     });
 
-    return acct;
-}
+//     return acct;
+// }
 
 // ==========================================================================
 // SAVE_ACCOUNT
 // ==========================================================================
-void context_impl::save_account(std::shared_ptr<paradice::account> const &acct)
-{
-    pimpl_->strand_.dispatch([this, acct]{pimpl_->save_account(acct);});
-}
+// void context_impl::save_account(std::shared_ptr<paradice::account> const &acct)
+// {
+//     pimpl_->strand_.dispatch([this, acct]{pimpl_->save_account(acct);});
+// }
 
 // ==========================================================================
 // LOAD_CHARACTER
 // ==========================================================================
-std::shared_ptr<paradice::character> context_impl::load_character(
-    std::string const &name)
-{
-    std::shared_ptr<paradice::character> ch;
-    pimpl_->strand_.dispatch([this, &name, &ch]{
-        pimpl_->load_character(name, ch);
-    });
+// std::shared_ptr<paradice::character> context_impl::load_character(
+//     std::string const &name)
+// {
+//     std::shared_ptr<paradice::character> ch;
+//     pimpl_->strand_.dispatch([this, &name, &ch]{
+//         pimpl_->load_character(name, ch);
+//     });
     
-    return ch;
-}
+//     return ch;
+// }
 
 // ==========================================================================
 // SAVE_CHARACTER
 // ==========================================================================
-void context_impl::save_character(std::shared_ptr<paradice::character> const &ch)
-{
-    pimpl_->strand_.dispatch([this, ch]{pimpl_->save_character(ch);});
-}
+// void context_impl::save_character(std::shared_ptr<paradice::character> const &ch)
+// {
+//     pimpl_->strand_.dispatch([this, ch]{pimpl_->save_character(ch);});
+// }
 
 // ==========================================================================
 // SHUTDOWN
@@ -372,65 +368,65 @@ void context_impl::shutdown()
 // ==========================================================================
 // GET_ACTIVE_ENCOUNTER
 // ==========================================================================
-std::shared_ptr<paradice::active_encounter> context_impl::get_active_encounter()
-{
-    if (!gm_encounter) {
-        // gm_encounter = std::make_shared<paradice::active_encounter>();
-    }
+// std::shared_ptr<paradice::active_encounter> context_impl::get_active_encounter()
+// {
+//     if (!gm_encounter) {
+//         // gm_encounter = std::make_shared<paradice::active_encounter>();
+//     }
 
-    return gm_encounter;
-}
+//     return gm_encounter;
+// }
 
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER
 // ==========================================================================
-void context_impl::set_active_encounter(
-    std::shared_ptr<paradice::active_encounter> const &enc)
-{
-    gm_encounter = enc;
-}
+// void context_impl::set_active_encounter(
+//     std::shared_ptr<paradice::active_encounter> const &enc)
+// {
+//     gm_encounter = enc;
+// }
 
 // ==========================================================================
 // IS_ACTIVE_ENCOUNTER_VISIBLE
 // ==========================================================================
-bool context_impl::is_active_encounter_visible() const
-{
-    return gm_encounter_visible;
-}
+// bool context_impl::is_active_encounter_visible() const
+// {
+//     return gm_encounter_visible;
+// }
 
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER_VISIBLE
 // ==========================================================================
-void context_impl::set_active_encounter_visible(bool visibility)
-{
-    gm_encounter_visible = visibility;
+// void context_impl::set_active_encounter_visible(bool visibility)
+// {
+//     gm_encounter_visible = visibility;
 
-    for (auto &cli : pimpl_->clients_)
-    {
-        if (cli)
-        {
-            if (gm_encounter_visible)
-            {
-                // cli->get_user_interface()->show_active_encounter_window();
-            }
-            else
-            {
-                // cli->get_user_interface()->hide_active_encounter_window();
-            }
-        }
-    }
-}
+//     for (auto &cli : pimpl_->clients_)
+//     {
+//         if (cli)
+//         {
+//             if (gm_encounter_visible)
+//             {
+//                 // cli->get_user_interface()->show_active_encounter_window();
+//             }
+//             else
+//             {
+//                 // cli->get_user_interface()->hide_active_encounter_window();
+//             }
+//         }
+//     }
+// }
 
 // ==========================================================================
 // UPDATE_ACTIVE_ENCOUNTER
 // ==========================================================================
-void context_impl::update_active_encounter()
-{
-    for (auto &cli : pimpl_->clients_)
-    {
-        if (cli)
-        {
-            // cli->get_user_interface()->set_active_encounter(gm_encounter);
-        }
-    }
-}
+// void context_impl::update_active_encounter()
+// {
+//     for (auto &cli : pimpl_->clients_)
+//     {
+//         if (cli)
+//         {
+//             // cli->get_user_interface()->set_active_encounter(gm_encounter);
+//         }
+//     }
+// }

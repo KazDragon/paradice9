@@ -193,7 +193,7 @@ private :
             client->set_connection(cnx);
 
             context_->add_client(client);
-            context_->update_names();
+            // context_->update_names();
             
             // If the window's size has been set by the NAWS process,
             // then update it to that.  Otherwise, use the standard 80,24.
@@ -234,7 +234,7 @@ private :
         if (client)
         {
             context_->remove_client(client);
-            context_->update_names();
+            // context_->update_names();
     
             auto character = client->get_character();
             
@@ -244,11 +244,11 @@ private :
             
                 if (!name.empty())
                 {
-                    paradice::send_to_all(
-                        context_
-                      , "#SERVER: "
-                      + context_->get_moniker(character)
-                      + " has left Paradice.\n");
+                    // paradice::send_to_all(
+                    //     context_
+                    //   , "#SERVER: "
+                    //   + context_->get_moniker(character)
+                    //   + " has left Paradice.\n");
                 }
             }
         }

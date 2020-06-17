@@ -25,17 +25,17 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/communication.hpp"
-#include "paradice/character.hpp"
-#include "paradice/client.hpp"
-#include "paradice/connection.hpp"
-#include "paradice/context.hpp"
-#include "paradice/tokenise.hpp"
-#include "paradice/utility.hpp"
+// #include "paradice/character.hpp"
+// #include "paradice/client.hpp"
+// #include "paradice/connection.hpp"
+// #include "paradice/context.hpp"
+// #include "paradice/tokenise.hpp"
+// #include "paradice/utility.hpp"
 // #include "hugin/user_interface.hpp"
 // #include "munin/algorithm.hpp"
-#include <terminalpp/encoder.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
+// #include <terminalpp/encoder.hpp>
+// #include <boost/algorithm/string/trim.hpp>
+// #include <boost/format.hpp>
 
 namespace paradice {
 
@@ -46,7 +46,7 @@ void send_to_all(
     std::shared_ptr<context> &ctx,
     std::string const        &text)
 {
-    send_to_all(ctx, terminalpp::encode(text));
+    // send_to_all(ctx, terminalpp::encode(text));
 }
 
 // ==========================================================================
@@ -70,7 +70,7 @@ void send_to_player(
     std::string const        &text,
     std::shared_ptr<client>  &conn)
 {
-    send_to_player(ctx, terminalpp::encode(text), conn);
+    // send_to_player(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
@@ -81,7 +81,7 @@ void send_to_player(
     char const *text, 
     std::shared_ptr<client> &conn)
 {
-    send_to_player(ctx, terminalpp::encode(text), conn);
+    // send_to_player(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
@@ -103,7 +103,7 @@ void send_to_room(
     std::string const        &text,
     std::shared_ptr<client>  &conn)
 {
-    send_to_room(ctx, terminalpp::encode(text), conn);
+    // send_to_room(ctx, terminalpp::encode(text), conn);
 }
 
 // ==========================================================================
@@ -114,13 +114,13 @@ void send_to_room(
     terminalpp::string const &text,
     std::shared_ptr<client>  &conn)
 {
-    for (auto cur_client : ctx->get_clients())
-    {
-        if (cur_client != conn)
-        {
-            // cur_client->get_user_interface()->add_output_text(text);
-        }
-    }
+    // for (auto cur_client : ctx->get_clients())
+    // {
+    //     if (cur_client != conn)
+    //     {
+    //         // cur_client->get_user_interface()->add_output_text(text);
+    //     }
+    // }
 }
 
 // ==========================================================================
@@ -128,30 +128,30 @@ void send_to_room(
 // ==========================================================================
 PARADICE_COMMAND_IMPL(say)
 {
-    if (arguments.empty())
-    {
-        send_to_player(
-            ctx
-          , "\n Usage: say [message]"
-            "\n     or"
-            "\n Usage: . [message]"
-            "\n"
-          , player);
+    // if (arguments.empty())
+    // {
+    //     send_to_player(
+    //         ctx
+    //       , "\n Usage: say [message]"
+    //         "\n     or"
+    //         "\n Usage: . [message]"
+    //         "\n"
+    //       , player);
 
-        return;
-    }
+    //     return;
+    // }
 
-    send_to_player(ctx, boost::str(
-        boost::format("You say, \"%s\\x\"\n")
-            % arguments)
-      , player);
+    // send_to_player(ctx, boost::str(
+    //     boost::format("You say, \"%s\\x\"\n")
+    //         % arguments)
+    //   , player);
 
 
-    send_to_room(ctx, boost::str(
-        boost::format("%s says, \"%s\\x\"\n")
-            % player->get_character()->get_name()
-            % arguments)
-      , player);
+    // send_to_room(ctx, boost::str(
+    //     boost::format("%s says, \"%s\\x\"\n")
+    //         % player->get_character()->get_name()
+    //         % arguments)
+    //   , player);
 }
 
 // ==========================================================================
@@ -159,43 +159,43 @@ PARADICE_COMMAND_IMPL(say)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(whisper)
 {
-    auto arg = paradice::tokenise(arguments);
+    // auto arg = paradice::tokenise(arguments);
 
-    if (arg.first.empty() || arg.second.empty())
-    {
-        send_to_player(
-            ctx
-          , "\n Usage: whisper [player] [message]"
-            "\n     or"
-            "\n Usage: > [player] [message]"
-            "\n"
-          , player);
+    // if (arg.first.empty() || arg.second.empty())
+    // {
+    //     send_to_player(
+    //         ctx
+    //       , "\n Usage: whisper [player] [message]"
+    //         "\n     or"
+    //         "\n Usage: > [player] [message]"
+    //         "\n"
+    //       , player);
 
-        return;
-    }
+    //     return;
+    // }
 
-    for (auto cur_client : ctx->get_clients())
-    {
-        if(is_iequal(cur_client->get_character()->get_name(), arg.first))
-        {
-            send_to_player(ctx, boost::str(
-                boost::format("You say to %s, \"%s\\x\"\n")
-                    % cur_client->get_character()->get_name()
-                    % arg.second)
-              , player);
+    // for (auto cur_client : ctx->get_clients())
+    // {
+    //     if(is_iequal(cur_client->get_character()->get_name(), arg.first))
+    //     {
+    //         send_to_player(ctx, boost::str(
+    //             boost::format("You say to %s, \"%s\\x\"\n")
+    //                 % cur_client->get_character()->get_name()
+    //                 % arg.second)
+    //           , player);
 
-            send_to_player(ctx, boost::str(
-                boost::format("%s says to you, \"%s\\x\"\n")
-                    % player->get_character()->get_name()
-                    % arg.second)
-              , cur_client);
+    //         send_to_player(ctx, boost::str(
+    //             boost::format("%s says to you, \"%s\\x\"\n")
+    //                 % player->get_character()->get_name()
+    //                 % arg.second)
+    //           , cur_client);
 
-            return;
-        }
-    }
+    //         return;
+    //     }
+    // }
 
-    send_to_player(
-        ctx, "\nCouldn't find anyone by that name to talk to.\n", player);
+    // send_to_player(
+    //     ctx, "\nCouldn't find anyone by that name to talk to.\n", player);
 }
 
 // ==========================================================================
@@ -203,20 +203,20 @@ PARADICE_COMMAND_IMPL(whisper)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(emote)
 {
-    if (arguments.empty())
-    {
-        static std::string const usage_message =
-            "\n USAGE:   emote <some action>"
-            "\n EXAMPLE: emote bounces off the walls."
-            "\n\n";
+    // if (arguments.empty())
+    // {
+    //     static std::string const usage_message =
+    //         "\n USAGE:   emote <some action>"
+    //         "\n EXAMPLE: emote bounces off the walls."
+    //         "\n\n";
 
-        send_to_player(ctx, usage_message, player);
-    }
+    //     send_to_player(ctx, usage_message, player);
+    // }
 
-    send_to_all(ctx, boost::str(
-        boost::format("%s %s\n")
-            % player->get_character()->get_name()
-            % arguments));
+    // send_to_all(ctx, boost::str(
+    //     boost::format("%s %s\n")
+    //         % player->get_character()->get_name()
+    //         % arguments));
 }
 
 }

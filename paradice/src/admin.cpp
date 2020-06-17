@@ -25,112 +25,112 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/admin.hpp"
-#include "paradice/account.hpp"
-#include "paradice/character.hpp"
-#include "paradice/client.hpp"
-#include "paradice/communication.hpp"
-#include "paradice/connection.hpp"
-#include "paradice/context.hpp"
-#include "paradice/tokenise.hpp"
-#include "paradice/who.hpp"
-#include <terminalpp/string.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/format.hpp>
-#include <cstdio>
+// #include "paradice/account.hpp"
+// #include "paradice/character.hpp"
+// #include "paradice/client.hpp"
+// #include "paradice/communication.hpp"
+// #include "paradice/connection.hpp"
+// #include "paradice/context.hpp"
+// #include "paradice/tokenise.hpp"
+// #include "paradice/who.hpp"
+// #include <terminalpp/string.hpp>
+// #include <boost/algorithm/string/trim.hpp>
+// #include <boost/format.hpp>
+// #include <cstdio>
 
 namespace paradice {
 
 // ==========================================================================
 // CAPITALISE
 // ==========================================================================
-static void capitalise(std::string &name)
-{
-    if (!name.empty())
-    {
-        name[0] = toupper(name[0]);
+// static void capitalise(std::string &name)
+// {
+//     if (!name.empty())
+//     {
+//         name[0] = toupper(name[0]);
 
-        for (std::string::size_type index = 1; index < name.size(); ++index)
-        {
-            name[index] = tolower(name[index]);
-        }
-    }
-}
+//         for (std::string::size_type index = 1; index < name.size(); ++index)
+//         {
+//             name[index] = tolower(name[index]);
+//         }
+//     }
+// }
 
 // ==========================================================================
 // PARADICE COMMAND: ADMIN_SET_PASSWORD
 // ==========================================================================
 PARADICE_COMMAND_IMPL(admin_set_password)
 {
-    static std::string const usage =
-        "\n USAGE:    admin_set_password <account> <argument> <verify>"
-        "\n EXAMPLE:  admin_set_password bob foobar foobar"
-        "\n\n";
+    // static std::string const usage =
+    //     "\n USAGE:    admin_set_password <account> <argument> <verify>"
+    //     "\n EXAMPLE:  admin_set_password bob foobar foobar"
+    //     "\n\n";
 
-    auto token0 = paradice::tokenise(arguments);
-    auto token1 = paradice::tokenise(token0.second);
-    auto token2 = paradice::tokenise(token1.second);
+    // auto token0 = paradice::tokenise(arguments);
+    // auto token1 = paradice::tokenise(token0.second);
+    // auto token2 = paradice::tokenise(token1.second);
 
-    if (token0.first.empty() || token1.first.empty() || token2.first.empty())
-    {
-        send_to_player(ctx, usage, player);
-        return;
-    }
+    // if (token0.first.empty() || token1.first.empty() || token2.first.empty())
+    // {
+    //     send_to_player(ctx, usage, player);
+    //     return;
+    // }
 
-    auto account_name = token0.first;
-    capitalise(account_name);
+    // auto account_name = token0.first;
+    // capitalise(account_name);
 
-    std::shared_ptr<account> account;
+    // std::shared_ptr<account> account;
 
-    try
-    {
-        account = ctx->load_account(account_name);
-    }
-    catch(std::exception &ex)
-    {
-        // TODO: Use an actual logging library for this message.
-        std::printf("Error loading account: %s\n", ex.what());
+    // try
+    // {
+    //     account = ctx->load_account(account_name);
+    // }
+    // catch(std::exception &ex)
+    // {
+    //     // TODO: Use an actual logging library for this message.
+    //     std::printf("Error loading account: %s\n", ex.what());
 
-        send_to_player(
-            ctx
-          , boost::str(boost::format("Error loading that account: %s\n") % ex.what())
-          , player);
-        return;
-    }
+    //     send_to_player(
+    //         ctx
+    //       , boost::str(boost::format("Error loading that account: %s\n") % ex.what())
+    //       , player);
+    //     return;
+    // }
 
-    if (account == NULL)
-    {
-        send_to_player(ctx, "No such account with that name.\n", player);
-        return;
-    }
+    // if (account == NULL)
+    // {
+    //     send_to_player(ctx, "No such account with that name.\n", player);
+    //     return;
+    // }
 
-    auto password = token1.first;
-    auto password_verify = token2.first;
+    // auto password = token1.first;
+    // auto password_verify = token2.first;
 
-    if (password != password_verify)
-    {
-        send_to_player(ctx, "Passwords did not match.\n", player);
-        return;
-    }
+    // if (password != password_verify)
+    // {
+    //     send_to_player(ctx, "Passwords did not match.\n", player);
+    //     return;
+    // }
 
-    account->set_password(password);
+    // account->set_password(password);
 
-    try
-    {
-        ctx->save_account(account);
-    }
-    catch(std::exception &ex)
-    {
-        // TODO: Use an actual logging library for this message.
-        std::printf("Error saving account: %s\n", ex.what());
+    // try
+    // {
+    //     ctx->save_account(account);
+    // }
+    // catch(std::exception &ex)
+    // {
+    //     // TODO: Use an actual logging library for this message.
+    //     std::printf("Error saving account: %s\n", ex.what());
 
-        send_to_player(
-            ctx
-          , "Unexpected error setting saving your account.  Please try again."
-          , player);
-        return;
-    }
+    //     send_to_player(
+    //         ctx
+    //       , "Unexpected error setting saving your account.  Please try again."
+    //       , player);
+    //     return;
+    // }
 
-    send_to_player(ctx, "Passwords changed.\n", player);
+    // send_to_player(ctx, "Passwords changed.\n", player);
 }
 
 // ==========================================================================
@@ -138,51 +138,51 @@ PARADICE_COMMAND_IMPL(admin_set_password)
 // ==========================================================================
 PARADICE_COMMAND_IMPL(admin_shutdown)
 {
-    static std::string const usage =
-        "\n USAGE:    admin_shutdown now"
-        "\n\n";
+    // static std::string const usage =
+    //     "\n USAGE:    admin_shutdown now"
+    //     "\n\n";
 
-    auto token = paradice::tokenise(arguments);
+    // auto token = paradice::tokenise(arguments);
 
-    if (token.first != "now")
-    {
-        send_to_player(ctx, usage, player);
-        return;
-    }
+    // if (token.first != "now")
+    // {
+    //     send_to_player(ctx, usage, player);
+    //     return;
+    // }
 
-    // For each client, save its character (if possible), then close its
-    // socket.
-    for (auto current_client : ctx->get_clients())
-    {
-        auto ch = current_client->get_character();
+    // // For each client, save its character (if possible), then close its
+    // // socket.
+    // for (auto current_client : ctx->get_clients())
+    // {
+    //     auto ch = current_client->get_character();
 
-        if (ch != NULL)
-        {
-            try
-            {
-                ctx->save_character(ch);
-            }
-            catch(std::exception &ex)
-            {
-                std::printf("Error saving character %s: %s\n",
-                    ch->get_name().c_str(), ex.what());
+    //     if (ch != NULL)
+    //     {
+    //         try
+    //         {
+    //             ctx->save_character(ch);
+    //         }
+    //         catch(std::exception &ex)
+    //         {
+    //             std::printf("Error saving character %s: %s\n",
+    //                 ch->get_name().c_str(), ex.what());
 
-                send_to_player(
-                    ctx
-                  , terminalpp::string(boost::str(boost::format(
-                        "\\[1Error saving character: %s.")
-                            % ch->get_name()))
-                  , player);
+    //             send_to_player(
+    //                 ctx
+    //               , terminalpp::string(boost::str(boost::format(
+    //                     "\\[1Error saving character: %s.")
+    //                         % ch->get_name()))
+    //               , player);
 
-                return;
-            }
-        }
+    //             return;
+    //         }
+    //     }
 
-        current_client->disconnect();
-    }
+    //     current_client->disconnect();
+    // }
 
-    // shutdown
-    ctx->shutdown();
+    // // shutdown
+    // ctx->shutdown();
 }
 
 }

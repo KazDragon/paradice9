@@ -91,8 +91,11 @@ public :
 
     //* =====================================================================
     /// \brief Creates a new account
+    /// \throw duplicate_account_error if an account with that name already
+    ///        exists.
+    /// \throw unexpected_error if any other error occurred.
     //* =====================================================================
-    std::shared_ptr<paradice::model::account> new_account(
+    paradice::model::account new_account(
         std::string const &name,
         std::string const &password) override;
 

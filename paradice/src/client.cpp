@@ -676,7 +676,7 @@ private :
     // ======================================================================
     // ON_NEW_ACCOUNT
     // ======================================================================
-    std::shared_ptr<model::account> on_new_account(
+    model::account on_new_account(
         std::string const &name, 
         std::string const &password)
     {

@@ -38,8 +38,11 @@
 // #include <string>
 
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <sqlite3.h>
 
 #include <vector>
+
+#include <iostream>
 
 // namespace fs = boost::filesystem;
 
@@ -195,10 +198,11 @@ struct context_impl::impl
     // ======================================================================
     // NEW_ACCOUNT
     // ======================================================================
-    std::shared_ptr<paradice::model::account> new_account(
+    paradice::model::account new_account(
         std::string const &name,
         std::string const &password)
-    {        
+    try
+    {
         SQLite::Statement stmt(
             database_,
             "INSERT INTO accounts "
@@ -217,11 +221,20 @@ struct context_impl::impl
 
         stmt.exec();
 
-        auto acct = std::make_shared<paradice::model::account>();
-        acct->name = name;
-        acct->password = password;
+        return paradice::model::account {
+            name, password
+        };
+    }
+    catch(SQLite::Exception const& ex)
+    {
+        switch (ex.getExtendedErrorCode())
+        {
+            case SQLITE_CONSTRAINT_UNIQUE:
+                throw paradice::duplicate_account_error{};
 
-        return acct;
+            default:
+                throw paradice::unexpected_error{};
+        }
     }
 
     // ======================================================================
@@ -439,7 +452,7 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 // NEW_ACCOUNT
 // ==========================================================================
-std::shared_ptr<paradice::model::account> context_impl::new_account(
+paradice::model::account context_impl::new_account(
     std::string const &name,
     std::string const &password)
 {

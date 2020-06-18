@@ -69,15 +69,18 @@ struct user_interface::impl
         new_page->on_next.connect(
             [this](std::string const &name, std::string const &password)
             {
-                boost::optional<std::shared_ptr<model::account>> new_account =
-                    self_.on_new_account(name, password);
-
-                active_account_ = new_account;
-
-                if (active_account_.is_initialized()
-                 && active_account_.get() != nullptr)
+                try
                 {
-                    go_to_character_creation_page();
+                    active_account_ = self_.on_new_account(name, password);
+
+                    if (active_account_)
+                    {
+                        go_to_character_creation_page();
+                    }
+                }
+                catch(...)
+                {
+                    
                 }
             });
 
@@ -164,8 +167,8 @@ struct user_interface::impl
     std::shared_ptr<munin::container>  content_{munin::make_container()};
     std::shared_ptr<munin::component>  last_content_;
 
-    boost::optional<std::shared_ptr<model::account>>   active_account_;
-    boost::optional<std::shared_ptr<model::character>> active_character_;
+    boost::optional<model::account>   active_account_;
+    boost::optional<model::character> active_character_;
 };
 
 // ==========================================================================

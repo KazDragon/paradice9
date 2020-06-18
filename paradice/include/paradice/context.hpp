@@ -37,6 +37,9 @@ class client;
 
 struct active_encounter;
 
+struct unexpected_error {};
+struct duplicate_account_error {};
+
 //* =========================================================================
 /// \brief Describes the interface for a context in which a Paradice server
 /// can run.
@@ -87,8 +90,11 @@ public :
 
     //* =====================================================================
     /// \brief Creates a new account
+    /// \throw duplicate_account_error if an account with that name already
+    ///        exists.
+    /// \throw unexpected_error if any other error occurred.
     //* =====================================================================
-    virtual std::shared_ptr<model::account> new_account(
+    virtual model::account new_account(
         std::string const &name,
         std::string const &password) = 0;
 

@@ -57,7 +57,7 @@ public:
     /// \brief Callback for when a new account is created.
     //* =====================================================================
     boost::signals2::signal<
-        std::shared_ptr<model::account> (
+        model::account (
             std::string const &name, std::string const &password)
     > on_new_account;
 
@@ -65,7 +65,7 @@ public:
     /// \brief Callback for when an attempt to log in to an account is made.
     //* =====================================================================
     boost::signals2::signal<
-        boost::optional<model::account> (
+        model::account (
             std::string const &name, std::string const &password)
     > on_login;
 

@@ -27,6 +27,7 @@
 #ifndef PARADICE_CONTEXT_HPP_
 #define PARADICE_CONTEXT_HPP_
 
+#include "paradice/model/account.hpp"
 #include <memory>
 #include <vector>
 
@@ -85,9 +86,16 @@ public :
     //     std::string const &name) = 0;
 
     //* =====================================================================
+    /// \brief Creates a new account
+    //* =====================================================================
+    virtual std::shared_ptr<model::account> new_account(
+        std::string const &name,
+        std::string const &password) = 0;
+
+    //* =====================================================================
     /// \brief Saves an account.
     //* =====================================================================
-    // virtual void save_account(std::shared_ptr<account> const &acct) = 0;
+    virtual void save_account(model::account const &acct) = 0;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and

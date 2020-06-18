@@ -35,6 +35,7 @@ namespace paradice { namespace model {
 struct account
 {
     std::string name;
+    std::string password;
     std::vector<std::string> characters;
 };
 

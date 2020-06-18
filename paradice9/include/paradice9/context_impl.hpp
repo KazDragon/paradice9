@@ -34,7 +34,7 @@
 //* =========================================================================
 /// \brief Describes the context in which a Paradice server runs.
 //* =========================================================================
-class context_impl : public paradice::context
+class context_impl final : public paradice::context
 {
 public :
     //* =====================================================================
@@ -90,9 +90,16 @@ public :
     //     std::string const &name) override;
 
     //* =====================================================================
+    /// \brief Creates a new account
+    //* =====================================================================
+    std::shared_ptr<paradice::model::account> new_account(
+        std::string const &name,
+        std::string const &password) override;
+
+    //* =====================================================================
     /// \brief Saves an account.
     //* =====================================================================
-    // void save_account(std::shared_ptr<paradice::account> const &acct) override;
+    void save_account(paradice::model::account const &acct) override;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and

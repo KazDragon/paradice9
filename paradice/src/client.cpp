@@ -295,11 +295,11 @@ public :
         //         this->on_login(name, pwd);
         //     });
 
-        // user_interface_->on_new_account.connect(
-        //     [this]
-        //     {
-        //         this->on_new_account();
-        //     });
+        user_interface_->on_new_account.connect(
+            [this](std::string const &name, std::string const &password)
+            {
+                return this->on_new_account(name, password);
+            });
 
         // user_interface_->on_account_created.connect(
         //     [this](auto const &name, auto const &pwd, auto const &pwd_verify)
@@ -676,11 +676,11 @@ private :
     // ======================================================================
     // ON_NEW_ACCOUNT
     // ======================================================================
-    void on_new_account()
+    std::shared_ptr<model::account> on_new_account(
+        std::string const &name, 
+        std::string const &password)
     {
-        // user_interface_->clear_account_creation_screen();
-        // user_interface_->select_face(hugin::FACE_ACCOUNT_CREATION);
-        // user_interface_->set_focus();
+        return context_->new_account(name, password);
     }
 
     // ======================================================================

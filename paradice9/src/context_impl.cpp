@@ -31,7 +31,7 @@
 // #include <boost/archive/xml_iarchive.hpp>
 // #include <boost/archive/xml_oarchive.hpp>
 #include <boost/asio/io_context_strand.hpp>
-// #include <boost/filesystem.hpp>
+#include <boost/make_unique.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 // #include <algorithm>
 // #include <fstream>
@@ -193,16 +193,60 @@ struct context_impl::impl
     // }
 
     // ======================================================================
+    // NEW_ACCOUNT
+    // ======================================================================
+    std::shared_ptr<paradice::model::account> new_account(
+        std::string const &name,
+        std::string const &password)
+    {        
+        SQLite::Statement stmt(
+            database_,
+            "INSERT INTO accounts "
+            "    VALUES ("
+            "        NULL," // id is auto generated
+            "        ?,"    // name
+            "        ?,"    // password
+            "        ?,"    // admin level
+            "        ?)"    // command mode 
+            ";");
+
+        stmt.bind(1, name);
+        stmt.bind(2, password);
+        stmt.bind(3, 0);
+        stmt.bind(4, 0);
+
+        stmt.exec();
+
+        auto acct = std::make_shared<paradice::model::account>();
+        acct->name = name;
+        acct->password = password;
+
+        return acct;
+    }
+
+    // ======================================================================
     // SAVE_ACCOUNT
     // ======================================================================
-    // void save_account(std::shared_ptr<paradice::account> const &acct)
-    // {
-    //     auto account_path = get_accounts_path() / acct->get_name();
-        
-    //     std::ofstream out(account_path.string().c_str());
-    //     boost::archive::xml_oarchive oa(out);
-    //     oa << boost::serialization::make_nvp("account", *acct);
-    // }
+    void save_account(paradice::model::account const &acct)
+    {
+        SQLite::Statement stmt(
+            database_,
+            "UPDATE accounts"
+            "    SET"
+            "        password=?,"
+            "        admin_level=?,"
+            "        command_mode=?"
+            "    WHERE"
+            "        name=?"
+            ";");
+
+        stmt.bind(1, acct.password);
+        stmt.bind(2, 0);
+        stmt.bind(3, 0);
+        stmt.bind(4, acct.name);
+
+        stmt.exec();
+    }
 
     // ======================================================================
     // LOAD_CHARACTER
@@ -393,12 +437,22 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // }
 
 // ==========================================================================
+// NEW_ACCOUNT
+// ==========================================================================
+std::shared_ptr<paradice::model::account> context_impl::new_account(
+    std::string const &name,
+    std::string const &password)
+{
+    return pimpl_->new_account(name, password);
+}
+
+// ==========================================================================
 // SAVE_ACCOUNT
 // ==========================================================================
-// void context_impl::save_account(std::shared_ptr<paradice::account> const &acct)
-// {
-//     pimpl_->strand_.dispatch([this, acct]{pimpl_->save_account(acct);});
-// }
+void context_impl::save_account(paradice::model::account const &acct)
+{
+    pimpl_->save_account(acct);
+}
 
 // ==========================================================================
 // LOAD_CHARACTER

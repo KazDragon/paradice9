@@ -200,7 +200,7 @@ struct context_impl::impl
     // ======================================================================
     paradice::model::account new_account(
         std::string const &name,
-        std::string const &password)
+        paradice::encrypted_string const &password)
     try
     {
         SQLite::Statement stmt(
@@ -215,7 +215,7 @@ struct context_impl::impl
             ";");
 
         stmt.bind(1, name);
-        stmt.bind(2, password);
+        stmt.bind(2, password.text);
         stmt.bind(3, 0);
         stmt.bind(4, 0);
 
@@ -253,7 +253,7 @@ struct context_impl::impl
             "        name=?"
             ";");
 
-        stmt.bind(1, acct.password);
+        stmt.bind(1, acct.password.text);
         stmt.bind(2, 0);
         stmt.bind(3, 0);
         stmt.bind(4, acct.name);
@@ -454,7 +454,7 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 paradice::model::account context_impl::new_account(
     std::string const &name,
-    std::string const &password)
+    paradice::encrypted_string const &password)
 {
     return pimpl_->new_account(name, password);
 }

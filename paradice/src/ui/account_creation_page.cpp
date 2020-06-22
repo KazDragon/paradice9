@@ -78,7 +78,7 @@ account_creation_page::account_creation_page()
         {
             on_next(
                 terminalpp::to_string(name_edit->get_text()),
-                terminalpp::to_string(password_edit->get_text()));
+                encrypt(terminalpp::to_string(password_edit->get_text())));
         });
 
     auto buttons = munin::view(

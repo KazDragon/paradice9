@@ -296,7 +296,7 @@ public :
         //     });
 
         user_interface_->on_new_account.connect(
-            [this](std::string const &name, std::string const &password)
+            [this](std::string const &name, encrypted_string const &password)
             {
                 return this->on_new_account(name, password);
             });
@@ -678,7 +678,7 @@ private :
     // ======================================================================
     model::account on_new_account(
         std::string const &name, 
-        std::string const &password)
+        encrypted_string const &password)
     {
         return context_->new_account(name, password);
     }

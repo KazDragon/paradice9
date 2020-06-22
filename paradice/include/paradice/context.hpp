@@ -96,7 +96,7 @@ public :
     //* =====================================================================
     virtual model::account new_account(
         std::string const &name,
-        std::string const &password) = 0;
+        encrypted_string const &password) = 0;
 
     //* =====================================================================
     /// \brief Saves an account.

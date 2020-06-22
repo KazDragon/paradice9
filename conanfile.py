@@ -26,6 +26,7 @@ class Paradice9Conan(ConanFile):
                 "boost_uuid/[>=1.69]@bincrafters/stable",
                 "boost_utility/[>=1.69]@bincrafters/stable",
                 "boost_variant/[>=1.69]@bincrafters/stable",
+                "cryptopp/[>=8.2.0]@bincrafters/stable",
                 "munin/[>=0.3.7]@kazdragon/conan-public",
                 "telnetpp/[>=2.0.1]@kazdragon/conan-public",
                 "terminalpp/[>=1.3.5]@kazdragon/conan-public",

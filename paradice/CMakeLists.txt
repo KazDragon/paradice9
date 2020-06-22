@@ -1,5 +1,5 @@
 set (PARADICE_SOURCE_FILES
-    src/account.cpp
+    #src/account.cpp
     #src/active_encounter.cpp
     src/admin.cpp
     #src/beast.cpp
@@ -28,7 +28,7 @@ set (PARADICE_SOURCE_FILES
 )
 
 set (PARADICE_INCLUDE_FILES
-    include/paradice/account.hpp
+    #include/paradice/account.hpp
     #include/paradice/active_encounter.hpp
     include/paradice/admin.hpp
     #include/paradice/beast.hpp
@@ -75,24 +75,13 @@ target_include_directories(paradice
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Select the best cryptography available.
-if (PARADICE_USE_CRYPTOPP)
-    target_link_libraries(paradice
-        PRIVATE 
-            cryptopp)
-else()
-    target_compile_definitions(paradice
-        PRIVATE
-            PARADICE_NOCRYPT)
-endif()
-
-
 target_link_libraries(paradice
     PUBLIC
         CONAN_PKG::terminalpp
         CONAN_PKG::serverpp
         CONAN_PKG::boost_uuid
     PRIVATE
+        CONAN_PKG::cryptopp
         CONAN_PKG::munin
         CONAN_PKG::boost_format
         CONAN_PKG::telnetpp

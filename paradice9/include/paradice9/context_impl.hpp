@@ -97,7 +97,7 @@ public :
     //* =====================================================================
     paradice::model::account new_account(
         std::string const &name,
-        std::string const &password) override;
+        paradice::encrypted_string const &password) override;
 
     //* =====================================================================
     /// \brief Saves an account.

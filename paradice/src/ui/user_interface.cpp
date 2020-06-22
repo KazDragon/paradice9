@@ -67,7 +67,7 @@ struct user_interface::impl
         auto new_page = std::make_shared<account_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
         new_page->on_next.connect(
-            [this](std::string const &name, std::string const &password)
+            [this](std::string const &name, encrypted_string const &password)
             {
                 try
                 {

@@ -26,44 +26,28 @@
 // ==========================================================================
 #include "paradice/cryptography.hpp"
 
-// Add the define PARADICE_USE_CRYPTOPP in order to use Crypto++ as a method
-// of securely hashing passwords.
-#ifdef PARADICE_USE_CRYPTOPP
 #include <cryptopp/filters.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
-
-// Add the define PARADICE_NOCRYPT in order to use the well-known ROT26 cypher
-// to store passwords
-#elif defined(PARADICE_NOCRYPT)
-// Intentionally blank
-#else
-#error No encryption method selected
-#endif
 
 namespace paradice {
 
 // ==========================================================================
 // ENCRYPT
 // ==========================================================================
-std::string encrypt(std::string const &text)
+encrypted_string encrypt(std::string const &text)
 {
-#ifdef PARADICE_USE_CRYPTOPP
-    CryptoPP::SHA hash;
+    CryptoPP::SHA256 hash;
 
     std::string result;
     CryptoPP::StringSource(
-        text
-      , true
-      , new CryptoPP::HashFilter(
-            hash
-          , new CryptoPP::HexEncoder(new CryptoPP::StringSink(result))));
+        text,
+        true,
+        new CryptoPP::HashFilter(
+            hash,
+            new CryptoPP::HexEncoder(new CryptoPP::StringSink(result))));
 
-#else
-    std::string result = text;
-#endif
-
-    return result;
+    return { result };
 }
 
 }

@@ -32,11 +32,13 @@
 
 namespace paradice {
     
+struct encrypted_string { std::string text; };
+
 //* =========================================================================
 /// \brief Encrypts a string.
 //* =========================================================================
 PARADICE_EXPORT 
-std::string encrypt(std::string const &text);
+encrypted_string encrypt(std::string const &text);
 
 }
 

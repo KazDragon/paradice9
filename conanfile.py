@@ -17,7 +17,7 @@ class Paradice9Conan(ConanFile):
                 "sqlitecpp/2.4.0",
                 "munin/[>=0.3.7]@kazdragon/conan-public",
                 "telnetpp/[>=2.0.1]@kazdragon/conan-public",
-                "terminalpp/[>=1.3.5]@kazdragon/conan-public",
+                "terminalpp/[>=1.4.0]@kazdragon/conan-public",
                 "serverpp/[>=0.0.3]@kazdragon/conan-public")
 
     def build(self):

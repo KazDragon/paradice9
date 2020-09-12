@@ -12,26 +12,13 @@ class Paradice9Conan(ConanFile):
     options = {"shared": [True, False]}
     default_options = "shared=False"
     generators = "cmake"
-    requires = ("boost_algorithm/[>=1.69]@bincrafters/stable",
-                "boost_any/[>=1.69]@bincrafters/stable",
-                "boost_asio/[>=1.69]@bincrafters/stable",
-                "boost_filesystem/[>=1.69]@bincrafters/stable",
-                "boost_format/[>=1.69]@bincrafters/stable",
-                "boost_optional/[>=1.69]@bincrafters/stable",
-                "boost_program_options/[>=1.69]@bincrafters/stable",
-                "boost_scope_exit/[>=1.69]@bincrafters/stable",
-                "boost_serialization/[>=1.69]@bincrafters/stable",
-                "boost_signals2/[>=1.69]@bincrafters/stable",
-                "boost_spirit/[>=1.69]@bincrafters/stable",
-                "boost_uuid/[>=1.69]@bincrafters/stable",
-                "boost_utility/[>=1.69]@bincrafters/stable",
-                "boost_variant/[>=1.69]@bincrafters/stable",
+    requires = ("boost/[>=1.69]",
                 "cryptopp/[>=8.2.0]@bincrafters/stable",
+                "sqlitecpp/2.4.0",
                 "munin/[>=0.3.7]@kazdragon/conan-public",
                 "telnetpp/[>=2.0.1]@kazdragon/conan-public",
                 "terminalpp/[>=1.3.5]@kazdragon/conan-public",
-                "serverpp/[>=0.0.3]@kazdragon/conan-public",
-                "sqlitecpp/2.4.0@bincrafters/stable")
+                "serverpp/[>=0.0.3]@kazdragon/conan-public")
 
     def build(self):
         cmake = CMake(self)

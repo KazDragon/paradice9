@@ -42,11 +42,11 @@
 #include <munin/brush.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/window.hpp>
-#include <terminalpp/ansi_terminal.hpp>
 #include <terminalpp/behaviour.hpp>
 #include <terminalpp/canvas.hpp>
 #include <terminalpp/encoder.hpp>
 #include <terminalpp/string.hpp>
+#include <terminalpp/terminal.hpp>
 #include <terminalpp/detail/lambda_visitor.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/range/algorithm/for_each.hpp>
@@ -222,12 +222,12 @@ public :
                                 }
                                 else
                                 {
-                                    run_on_ui_strand([this, vk]{ window_.event(vk); });
+                                    this->run_on_ui_strand([this, vk]{ window_.event(vk); });
                                 }
                             },
                             [this](auto &&event)
                             {
-                                run_on_ui_strand([this, event] { window_.event(event); });
+                                this->run_on_ui_strand([this, event] { window_.event(event); });
                             }),
                             token);
                 };
@@ -1183,7 +1183,7 @@ private :
     std::shared_ptr<connection>             connection_;
 
     terminalpp::canvas                      canvas_;
-    terminalpp::ansi_terminal               terminal_;
+    terminalpp::terminal                    terminal_;
 
     std::shared_ptr<ui::user_interface>     user_interface_;
     munin::window                           window_;

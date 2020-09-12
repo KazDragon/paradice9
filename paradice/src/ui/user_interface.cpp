@@ -94,7 +94,7 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<character_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
-        new_page->on_character_created.connect([this](auto){go_to_character_selection_page();});
+        new_page->on_character_created.connect([this](auto){this->go_to_character_selection_page();});
         go_to_page(new_page);
     }
 

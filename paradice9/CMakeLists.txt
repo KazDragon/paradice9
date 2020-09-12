@@ -27,10 +27,7 @@ target_compile_features(paradice9
 target_link_libraries(paradice9
     PRIVATE
         paradice
-        CONAN_PKG::boost_asio
-        CONAN_PKG::boost_format
-        CONAN_PKG::boost_filesystem
-        CONAN_PKG::boost_program_options
+        CONAN_PKG::boost
         CONAN_PKG::serverpp
         CONAN_PKG::sqlitecpp
 )

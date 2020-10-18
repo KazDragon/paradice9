@@ -30,6 +30,7 @@
 #include "paradice/export.hpp"
 #include "paradice/model/account.hpp"
 #include "paradice/model/character.hpp"
+#include <munin/animator.hpp>
 #include <munin/composite_component.hpp>
 #include <memory>
 
@@ -46,7 +47,7 @@ public:
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    user_interface();
+    user_interface(munin::animator &anim);
 
     //* =====================================================================
     /// \brief Destructor

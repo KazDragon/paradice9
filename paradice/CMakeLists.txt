@@ -1,3 +1,43 @@
+if (PARADICE9_USE_CONAN)
+    set(PARADICE_PUBLIC_LIBRARIES 
+        CONAN_PKG::terminalpp
+        CONAN_PKG::serverpp
+        CONAN_PKG::boost
+    )
+
+    set(PARADICE_PRIVATE_LIBRARIES
+        CONAN_PKG::cryptopp
+        CONAN_PKG::munin
+        CONAN_PKG::telnetpp
+    )
+else()
+    find_package(terminalpp REQUIRED)
+    find_package(munin REQUIRED)
+    find_package(serverpp REQUIRED)
+    find_package(telnetpp REQUIRED)
+    find_package(Boost COMPONENTS container program_options REQUIRED)
+    find_package(Cryptopp REQUIRED)
+    find_package(gsl-lite 0.34 REQUIRED)
+    find_package(nlohmann_json REQUIRED)
+    find_package(fmt REQUIRED)
+    find_package(ZLIB REQUIRED)
+
+    set(PARADICE_PUBLIC_LIBRARIES
+        terminalpp
+        serverpp
+        Boost::boost
+        Boost::program_options
+    )
+
+    set(PARADICE_PRIVATE_LIBRARIES
+        cryptopp-static
+        munin
+        telnetpp
+        ZLIB::ZLIB)
+
+endif()
+
+
 set (PARADICE_SOURCE_FILES
     #src/account.cpp
     #src/active_encounter.cpp
@@ -77,13 +117,9 @@ target_include_directories(paradice
 
 target_link_libraries(paradice
     PUBLIC
-        CONAN_PKG::terminalpp
-        CONAN_PKG::serverpp
-        CONAN_PKG::boost
+        ${PARADICE_PUBLIC_LIBRARIES}
     PRIVATE
-        CONAN_PKG::cryptopp
-        CONAN_PKG::munin
-        CONAN_PKG::telnetpp
+        ${PARADICE_PRIVATE_LIBRARIES}
 )
 
 

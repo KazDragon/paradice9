@@ -1,3 +1,23 @@
+if (PARADICE9_USE_CONAN)
+    set(PARADICE9_PRIVATE_LIBRARIES
+        paradice
+        CONAN_PKG::boost
+        CONAN_PKG::serverpp
+        CONAN_PKG::sqlitecpp
+)
+else()
+    find_package(serverpp REQUIRED)
+    find_package(SQLiteCpp REQUIRED)
+    find_package(Boost REQUIRED)
+    find_package(gsl-lite 0.34 REQUIRED)
+
+    set(PARADICE9_PRIVATE_LIBRARIES
+        paradice
+        serverpp
+        SQLiteCpp
+        Boost::boost)
+endif()
+
 set (PARADICE9_SOURCE_FILES
     src/context_impl.cpp
     src/main.cpp
@@ -26,8 +46,5 @@ target_compile_features(paradice9
 
 target_link_libraries(paradice9
     PRIVATE
-        paradice
-        CONAN_PKG::boost
-        CONAN_PKG::serverpp
-        CONAN_PKG::sqlitecpp
+        ${PARADICE9_PRIVATE_LIBRARIES}
 )

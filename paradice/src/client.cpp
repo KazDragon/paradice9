@@ -39,6 +39,7 @@
 #include "paradice/who.hpp"
 #include "paradice/ui/user_interface.hpp"
 #include <munin/container.hpp>
+#include <munin/background_animator.hpp>
 #include <munin/brush.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/window.hpp>
@@ -186,9 +187,10 @@ public :
       : self_{self},
         strand_{io_context},
         context_{ctx},
-        terminal_{create_behaviour()},
         canvas_{default_window_size},
-        user_interface_{std::make_shared<ui::user_interface>()},
+        terminal_{create_behaviour()},
+        animator_(strand_),
+        user_interface_{std::make_shared<ui::user_interface>(animator_)},
         window_{user_interface_},
         repaint_requested_{false},
         cursor_state_changed_{true},
@@ -1185,6 +1187,7 @@ private :
     terminalpp::canvas                      canvas_;
     terminalpp::terminal                    terminal_;
 
+    munin::background_animator              animator_;
     std::shared_ptr<ui::user_interface>     user_interface_;
     munin::window                           window_;
 

@@ -9,8 +9,11 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
+if (EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    set(PARADICE9_USE_CONAN ON)
+    include (${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup(TARGETS)
+endif()
 
 # When building shared objects, etc., we only want to export certain symbols.
 # Therefore, we need to generate headers suitable for declaring which symbols

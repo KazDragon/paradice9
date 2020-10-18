@@ -31,7 +31,10 @@
 #include "paradice/ui/title_page.hpp"
 #include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
+#include <munin/compass_layout.hpp>
 #include <munin/grid_layout.hpp>
+#include <munin/status_bar.hpp>
+#include <munin/view.hpp>
 #include <boost/make_unique.hpp>
 
 namespace paradice { namespace ui {
@@ -41,8 +44,9 @@ namespace paradice { namespace ui {
 // ==========================================================================
 struct user_interface::impl
 {
-    impl(user_interface &self)
-      : self_(self)
+    impl(user_interface &self, munin::animator &anim)
+      : self_(self),
+        animator_(anim)
     {
         content_->set_layout(munin::make_grid_layout({1, 1}));
     }
@@ -57,6 +61,9 @@ struct user_interface::impl
             [this]{go_to_account_creation_page();});
 
         go_to_page(new_page);
+
+        using namespace terminalpp::literals;
+        status_bar_->set_message("\\<550Enter name and password to enter the game"_ets);
     }
 
     // ======================================================================
@@ -164,7 +171,10 @@ struct user_interface::impl
     }
 
     user_interface                    &self_;
+    munin::animator                   &animator_;
+
     std::shared_ptr<munin::container>  content_{munin::make_container()};
+    std::shared_ptr<munin::status_bar> status_bar_{munin::make_status_bar(animator_)};
     std::shared_ptr<munin::component>  last_content_;
 
     boost::optional<model::account>   active_account_;
@@ -174,13 +184,19 @@ struct user_interface::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-user_interface::user_interface()
-  : pimpl_(boost::make_unique<impl>(*this))
+user_interface::user_interface(munin::animator &anim)
+  : pimpl_(boost::make_unique<impl>(*this, anim))
 {
     using namespace terminalpp::literals;
 
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(pimpl_->content_);
+    add_component(
+        munin::view(
+            munin::make_compass_layout(),
+            pimpl_->content_,
+            munin::compass_layout::heading::centre,
+            pimpl_->status_bar_,
+            munin::compass_layout::heading::south));
     pimpl_->go_to_title_page();
 };
 

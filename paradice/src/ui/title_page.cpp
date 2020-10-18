@@ -86,7 +86,8 @@ title_page::title_page()
             auto const &password =
                 terminalpp::to_string(password_edit->get_text());
             
-            on_account_login(account_name, password);
+            on_account_login(account_name, encrypt(password));
+
         });
 
     auto const labels_container = munin::view(

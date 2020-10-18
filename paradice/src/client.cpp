@@ -291,11 +291,11 @@ public :
         //         this->on_input_entered(input);
         //     });
 
-        // user_interface_->on_login.connect(
-        //     [this](auto const &name, auto const &pwd)
-        //     {
-        //         this->on_login(name, pwd);
-        //     });
+        user_interface_->on_login.connect(
+            [this](auto const &name, auto const &pwd)
+            {
+                return this->on_login(name, pwd);
+            });
 
         user_interface_->on_new_account.connect(
             [this](std::string const &name, encrypted_string const &password)
@@ -624,10 +624,12 @@ private :
     // ======================================================================
     // ON_LOGIN
     // ======================================================================
-    void on_login(
+    model::account on_login(
         std::string const &username,
-        std::string const &password)
+        paradice::encrypted_string const &password)
     {
+        return context_->load_account(username, password);
+
         /*
         using namespace terminalpp::literals;
         

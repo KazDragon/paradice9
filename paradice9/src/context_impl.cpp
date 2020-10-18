@@ -262,6 +262,70 @@ struct context_impl::impl
     }
 
     // ======================================================================
+    // LOAD_ACCOUNT_ID
+    // ======================================================================
+    int load_account_id(paradice::model::account const &account)
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT id"
+            "    FROM accounts"
+            "    WHERE name=?"
+            "      AND password=?"
+            ";");
+
+        account_query.bind(1, account.name);
+        account_query.bind(2, account.password.text);
+
+        if (!account_query.executeStep())
+        {
+            throw paradice::no_such_account_error{};
+        }
+
+        return account_query.getColumn(0);
+    }
+
+    // ======================================================================
+    // LOAD_ACCOUNT_CHARACTERS
+    // ======================================================================
+    std::vector<std::string> load_account_character_names(int account_id)
+    {
+        SQLite::Statement character_query(
+            database_,
+            "SELECT name"
+            "    FROM characters"
+            "    WHERE account_id=?"
+            ";");
+
+        character_query.bind(account_id);
+
+        std::vector<std::string> character_names;
+        while(character_query.executeStep())
+        {
+            std::string character_name = character_query.getColumn(0);
+            character_names.push_back(character_name);
+        }
+
+        return character_names;
+    }
+
+    // ======================================================================
+    // LOAD_ACCOUNT
+    // ======================================================================
+    paradice::model::account load_account(
+        std::string const &name,
+        paradice::encrypted_string const &password)
+    {
+        paradice::model::account account;
+        account.name = name;
+        account.password = password;
+        account.characters = 
+            load_account_character_names(load_account_id(account));
+
+        return account;
+    }
+
+    // ======================================================================
     // LOAD_CHARACTER
     // ======================================================================
     // void load_character(
@@ -465,6 +529,16 @@ paradice::model::account context_impl::new_account(
 void context_impl::save_account(paradice::model::account const &acct)
 {
     pimpl_->save_account(acct);
+}
+
+// ==========================================================================
+// LOAD_ACCOUNT
+// ==========================================================================
+paradice::model::account context_impl::load_account(
+    std::string const &name,
+    paradice::encrypted_string const &password)
+{
+    return pimpl_->load_account(name, password);
 }
 
 // ==========================================================================

@@ -105,6 +105,18 @@ public :
     void save_account(paradice::model::account const &acct) override;
 
     //* =====================================================================
+    /// \brief Loads an account
+    /// \throw no_such_account_error if no account with that name exists,
+    ///        or if the password was invalid.
+    /// \note  There is deliberately no distinction between an incorrect
+    ///        name or password so that a user cannot use the message to
+    ///        determine whether an account name exists.
+    //* =====================================================================
+    paradice::model::account load_account(
+        std::string const &name,
+        paradice::encrypted_string const &password) override;
+
+    //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and
     /// returns it.  Returns an empty shared_ptr<> if there was no character
     /// with that name found.

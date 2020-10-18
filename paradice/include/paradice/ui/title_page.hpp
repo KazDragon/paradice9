@@ -27,6 +27,7 @@
 #ifndef PARADICE_UI_TITLE_PAGE_HPP_
 #define PARADICE_UI_TITLE_PAGE_HPP_
 
+#include "paradice/cryptography.hpp"
 #include <munin/composite_component.hpp>
 #include <munin/button.hpp>
 #include <munin/image.hpp>
@@ -54,7 +55,9 @@ public :
     /// Register a callback for when the "login" button is pressed, with
     /// the account name and password attached.
     //* =====================================================================
-    boost::signals2::signal<void (std::string, std::string)> on_account_login;
+    boost::signals2::signal<
+        void (std::string const &, encrypted_string const &)
+    > on_account_login;
 
 private :
     std::shared_ptr<munin::button> new_button_;

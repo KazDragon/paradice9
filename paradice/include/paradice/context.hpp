@@ -39,6 +39,7 @@ struct active_encounter;
 
 struct unexpected_error {};
 struct duplicate_account_error {};
+struct no_such_account_error {};
 
 //* =========================================================================
 /// \brief Describes the interface for a context in which a Paradice server
@@ -102,6 +103,18 @@ public :
     /// \brief Saves an account.
     //* =====================================================================
     virtual void save_account(model::account const &acct) = 0;
+
+    //* =====================================================================
+    /// \brief Loads an account
+    /// \throw no_such_account_error if no account with that name exists,
+    ///        or if the password was invalid.
+    /// \note  There is deliberately no distinction between an incorrect
+    ///        name or password so that a user cannot use the message to
+    ///        determine whether an account name exists.
+    //* =====================================================================
+    virtual model::account load_account(
+        std::string const &name,
+        encrypted_string const &password) = 0;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and

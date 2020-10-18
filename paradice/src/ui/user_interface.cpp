@@ -37,6 +37,8 @@
 #include <munin/view.hpp>
 #include <boost/make_unique.hpp>
 
+using namespace terminalpp::literals;
+
 namespace paradice { namespace ui {
 
 // ==========================================================================
@@ -60,10 +62,24 @@ struct user_interface::impl
         new_page->on_new_account.connect(
             [this]{go_to_account_creation_page();});
 
-        go_to_page(new_page);
+        new_page->on_account_login.connect(
+            [this](std::string const &name, encrypted_string const &password)
+            {
+                try
+                {
+                    active_account_ = self_.on_login(name, password);
+                }
+                catch(...)
+                {
+                }
+                
+                if (!active_account_)
+                {
+                    status_bar_->set_message("Invalid name/password combination");
+                }
+            });
 
-        using namespace terminalpp::literals;
-        status_bar_->set_message("\\<550Enter name and password to enter the game"_ets);
+        go_to_page(new_page);
     }
 
     // ======================================================================
@@ -76,18 +92,15 @@ struct user_interface::impl
         new_page->on_next.connect(
             [this](std::string const &name, encrypted_string const &password)
             {
-                try
-                {
-                    active_account_ = self_.on_new_account(name, password);
+                active_account_ = self_.on_new_account(name, password);
 
-                    if (active_account_)
-                    {
-                        go_to_character_creation_page();
-                    }
-                }
-                catch(...)
+                if (active_account_)
                 {
-                    
+                    go_to_character_creation_page();
+                }
+                else
+                {
+                    status_bar_->set_message("Account creation disabled");
                 }
             });
 

@@ -68,6 +68,7 @@ struct user_interface::impl
                 try
                 {
                     active_account_ = self_.on_login(name, password);
+                    go_to_character_selection_page();
                 }
                 catch(...)
                 {

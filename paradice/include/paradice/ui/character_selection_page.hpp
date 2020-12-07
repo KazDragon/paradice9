@@ -42,6 +42,11 @@ public :
     character_selection_page();
 
     //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    ~character_selection_page() override;
+
+    //* =====================================================================
     /// \fn on_new_character
     /// Register a callback for when the "new" button is pressed.
     //* =====================================================================
@@ -53,6 +58,10 @@ public :
     /// the account name and password attached.
     //* =====================================================================
     boost::signals2::signal<void ()> on_character_selected;
+
+private:
+    struct impl;
+    std::unique_ptr<impl> pimpl_;
 };
 
 }}

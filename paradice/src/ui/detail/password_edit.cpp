@@ -49,7 +49,7 @@ void password_edit::do_draw(
             static constexpr auto password_element = terminalpp::element {
                 '*',
                 terminalpp::attribute { 
-                    terminalpp::ansi::graphics::colour::red 
+                    terminalpp::graphics::colour::red 
                 }
             };
 

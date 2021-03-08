@@ -29,6 +29,7 @@
 #include "paradice/ui/character_creation_page.hpp"
 #include "paradice/ui/character_selection_page.hpp"
 #include "paradice/ui/title_page.hpp"
+#include <terminalpp/mouse.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
 #include <munin/compass_layout.hpp>
@@ -147,7 +148,7 @@ struct user_interface::impl
     // ======================================================================
     // HANDLE_MOUSE_EVENT
     // ======================================================================
-    bool handle_mouse_event(terminalpp::ansi::mouse::report const &report)
+    bool handle_mouse_event(terminalpp::mouse::event const &event)
     {
         return false;
     }
@@ -237,7 +238,7 @@ void user_interface::do_event(boost::any const &event)
     if (!handled)
     {
         auto const *mouse_event = 
-            boost::any_cast<terminalpp::ansi::mouse::report>(&event);
+            boost::any_cast<terminalpp::mouse::event>(&event);
         handled = mouse_event != nullptr
               && pimpl_->handle_mouse_event(*mouse_event);
     }

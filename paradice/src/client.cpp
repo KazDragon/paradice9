@@ -50,8 +50,8 @@
 #include <terminalpp/terminal.hpp>
 #include <terminalpp/detail/lambda_visitor.hpp>
 #include <boost/asio/io_context_strand.hpp>
-#include <boost/range/algorithm/for_each.hpp>
 #include <boost/format.hpp>
+#include <boost/range/algorithm/for_each.hpp>
 #include <cstdio>
 #include <deque>
 #include <mutex>
@@ -169,7 +169,6 @@ class client::impl
     static terminalpp::behaviour create_behaviour()
     {
         terminalpp::behaviour behaviour;
-        behaviour.can_use_eight_bit_control_codes = true;
         behaviour.supports_basic_mouse_tracking = true;
         behaviour.supports_window_title_bel = true;
         
@@ -199,6 +198,37 @@ public :
     }
 
     // ======================================================================
+    // ON_TOKENS_READ
+    // ======================================================================
+    void on_tokens_read(terminalpp::tokens const &tokens)
+    {
+        const auto &apply_token = 
+            [this](terminalpp::token const &token)
+            {
+                boost::apply_visitor(
+                    terminalpp::detail::make_lambda_visitor(
+                        [this](terminalpp::virtual_key const &vk)
+                        {
+                            if (vk.key == terminalpp::vk::uppercase_q)
+                            {
+                                context_->shutdown();
+                            }
+                            else
+                            {
+                                this->run_on_ui_strand([this, vk]{ window_.event(vk); });
+                            }
+                        },
+                        [this](auto &&event)
+                        {
+                            this->run_on_ui_strand([this, event] { window_.event(event); });
+                        }),
+                        token);
+            };
+    
+        boost::for_each(tokens, apply_token);
+    }
+
+    // ======================================================================
     // SCHEDULE_NEXT_READ
     // ======================================================================
     void schedule_next_read()
@@ -208,33 +238,13 @@ public :
         connection_->async_read(
             [this](serverpp::bytes data)
             {
-                auto const tokens = terminal_.read(std::string(
-                    reinterpret_cast<char const *>(data.data()),
-                    data.size()));
+                auto const &read_tokens =
+                    [this](terminalpp::tokens const &tokens)
+                    {
+                        this->on_tokens_read(tokens);
+                    };
 
-                auto const &send_event_to_window = [this](auto const &token)
-                {
-                    boost::apply_visitor(
-                        terminalpp::detail::make_lambda_visitor(
-                            [this](terminalpp::virtual_key const &vk)
-                            {
-                                if (vk.key == terminalpp::vk::uppercase_q)
-                                {
-                                    context_->shutdown();
-                                }
-                                else
-                                {
-                                    this->run_on_ui_strand([this, vk]{ window_.event(vk); });
-                                }
-                            },
-                            [this](auto &&event)
-                            {
-                                this->run_on_ui_strand([this, event] { window_.event(event); });
-                            }),
-                            token);
-                };
-
-                boost::for_each(tokens, send_event_to_window);
+                terminal_.read(read_tokens) >> data;
             },
             [this]
             {
@@ -378,13 +388,12 @@ public :
         //         this->on_password_change_cancelled();
         //     });
 
-        // set_window_title("Paradice9");
-
         user_interface_->set_focus();
 
-        write_to_connection(terminal_.enable_mouse());
-
-        // window_->use_alternate_screen_buffer();
+        terminal_.write(write_to_connection) 
+            << terminalpp::set_window_title("Paradice9")
+            << terminalpp::enable_mouse()
+            << terminalpp::use_alternate_screen_buffer();
 
         schedule_next_read();
     }
@@ -436,13 +445,8 @@ public :
     // ======================================================================
     void set_window_title(std::string const &title)
     {
-        // {
-        //     std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-        //     dispatch_queue_.push_back(bind(
-        //         &munin::window::set_title, window_, title));
-        // }
-
-        // strand_.post(bind(&impl::dispatch_queue, shared_from_this()));
+        terminal_.write(write_to_connection) 
+            << terminalpp::set_window_title(title);
     }
 
     // ======================================================================
@@ -460,6 +464,10 @@ public :
     // ======================================================================
     void disconnect()
     {
+        terminal_.write(write_to_connection) 
+            << terminalpp::disable_mouse()
+            << terminalpp::use_normal_screen_buffer();
+
         connection_->close();
     }
 
@@ -497,18 +505,6 @@ private :
     }
 
     // ======================================================================
-    // WRITE_TO_CONNECTION
-    // ======================================================================
-    void write_to_connection(std::string const &text)
-    {
-        serverpp::bytes bytes(
-            reinterpret_cast<serverpp::byte const *>(text.data()),
-            text.size());
-
-        connection_->write(bytes);
-    }
-
-    // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
     void on_window_size_changed(std::uint16_t width, std::uint16_t height)
@@ -536,23 +532,37 @@ private :
     {
         repaint_requested_ = false;
 
-        auto repaint_string = window_.repaint(canvas_, terminal_);
+        serverpp::byte_storage paint_data;
+        auto const &append_to_paint_data =
+            [&paint_data](terminalpp::bytes data)
+            {
+                paint_data.append(data.cbegin(), data.cend());
+            };
+
+        window_.repaint(canvas_, terminal_, append_to_paint_data);
         auto const cursor_state = user_interface_->get_cursor_state();
             
         if (cursor_state_changed_.exchange(false))
         {
-            repaint_string += cursor_state
-              ? terminal_.show_cursor()
-              : terminal_.hide_cursor();
+            if (cursor_state)
+            {
+                terminal_.write(append_to_paint_data) 
+                    << terminalpp::show_cursor();
+            }
+            else
+            {
+                terminal_.write(append_to_paint_data)
+                    << terminalpp::hide_cursor();
+            }
         }
 
         if (cursor_state)
         {
-            repaint_string += terminal_.move_cursor(
-                user_interface_->get_cursor_position());
+            terminal_.write(append_to_paint_data) << 
+                terminalpp::move_cursor(user_interface_->get_cursor_position());
         }
 
-        write_to_connection(repaint_string);
+        connection_->write(paint_data);
     }
 
     // ======================================================================
@@ -1185,6 +1195,12 @@ private :
     std::shared_ptr<character>              character_;
 
     std::shared_ptr<connection>             connection_;
+
+    std::function<void (terminalpp::bytes)> write_to_connection{
+        [this](terminalpp::bytes data)
+        { 
+            connection_->write(data); 
+        }};
 
     terminalpp::canvas                      canvas_;
     terminalpp::terminal                    terminal_;

@@ -39,25 +39,25 @@ endif()
 
 
 set (PARADICE_SOURCE_FILES
-    #src/account.cpp
-    #src/active_encounter.cpp
-    src/admin.cpp
-    #src/beast.cpp
-    src/character.cpp
+#    src/account.cpp
+#    src/active_encounter.cpp
+#    src/admin.cpp
+#    src/beast.cpp
+#    src/character.cpp
     src/client.cpp
-    src/communication.cpp
-    src/configuration.cpp
+#    src/communication.cpp
+#    src/configuration.cpp
     src/connection.cpp
     src/cryptography.cpp
-    src/dice_roll_parser.cpp
-    #src/encounter.cpp
-    #src/gm.cpp
-    src/help.cpp
-    src/random.cpp
-    src/rules.cpp
-    src/tokenise.cpp
-    src/utility.cpp
-    src/who.cpp
+#    src/dice_roll_parser.cpp
+#    src/encounter.cpp
+#    src/gm.cpp
+#    src/help.cpp
+#    src/random.cpp
+#    src/rules.cpp
+#    src/tokenise.cpp
+#    src/utility.cpp
+#    src/who.cpp
 
     src/ui/detail/password_edit.cpp
     src/ui/account_creation_page.cpp
@@ -68,29 +68,29 @@ set (PARADICE_SOURCE_FILES
 )
 
 set (PARADICE_INCLUDE_FILES
-    #include/paradice/account.hpp
-    #include/paradice/active_encounter.hpp
-    include/paradice/admin.hpp
-    #include/paradice/beast.hpp
-    include/paradice/character.hpp
+#    include/paradice/account.hpp
+#    include/paradice/active_encounter.hpp
+#    include/paradice/admin.hpp
+#    include/paradice/beast.hpp
+#    include/paradice/character.hpp
     include/paradice/client.hpp
-    include/paradice/command.hpp
-    include/paradice/communication.hpp
-    include/paradice/configuration.hpp
+#    include/paradice/command.hpp
+#    include/paradice/communication.hpp
+#    include/paradice/configuration.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
-    include/paradice/cryptography.hpp
-    include/paradice/dice.hpp
-    include/paradice/dice_roll_parser.hpp
-    #include/paradice/encounter.hpp
+#    include/paradice/cryptography.hpp
+#    include/paradice/dice.hpp
+#    include/paradice/dice_roll_parser.hpp
+#    include/paradice/encounter.hpp
     include/paradice/export.hpp
-    #include/paradice/gm.hpp
-    include/paradice/help.hpp
-    include/paradice/random.hpp
-    include/paradice/rules.hpp
-    include/paradice/tokenise.hpp
-    include/paradice/utility.hpp
-    include/paradice/who.hpp
+#    include/paradice/gm.hpp
+#    include/paradice/help.hpp
+#    include/paradice/random.hpp
+#    include/paradice/rules.hpp
+#    include/paradice/tokenise.hpp
+#    include/paradice/utility.hpp
+#    include/paradice/who.hpp
 
     include/paradice/ui/detail/password_edit.hpp
     include/paradice/ui/account_creation_page.hpp

@@ -27,9 +27,7 @@
 #include "paradice9/paradice9.hpp"
 #include "paradice9/context_impl.hpp"
 
-#include <paradice/character.hpp>
 #include <paradice/client.hpp>
-#include <paradice/communication.hpp>
 #include <paradice/connection.hpp>
 
 #include <serverpp/tcp_server.hpp>
@@ -239,23 +237,6 @@ private :
         if (client)
         {
             context_->remove_client(client);
-            // context_->update_names();
-    
-            auto character = client->get_character();
-            
-            if (character)
-            {
-                auto name = character->get_name();
-            
-                if (!name.empty())
-                {
-                    // paradice::send_to_all(
-                    //     context_
-                    //   , "#SERVER: "
-                    //   + context_->get_moniker(character)
-                    //   + " has left Paradice.\n");
-                }
-            }
         }
     }
 

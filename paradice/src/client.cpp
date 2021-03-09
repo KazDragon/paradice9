@@ -466,6 +466,7 @@ public :
     {
         terminal_.write(write_to_connection) 
             << terminalpp::disable_mouse()
+            << terminalpp::show_cursor()
             << terminalpp::use_normal_screen_buffer();
 
         connection_->close();

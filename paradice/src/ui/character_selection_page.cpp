@@ -60,46 +60,13 @@ struct character_selection_page::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-character_selection_page::character_selection_page()
+character_selection_page::character_selection_page(
+    std::vector<terminalpp::string> characters)
   : pimpl_(boost::make_unique<impl>())
 {
     using namespace terminalpp::literals;
 
-    pimpl_->character_list_->set_items({
-        "Character 0"_ts,
-        "Character 1"_ts,
-        "Character 2"_ts,
-        "Character 3"_ts,
-        "Character 4"_ts,
-        "Character 5"_ts,
-        "Character 6"_ts,
-        "Character 7"_ts,
-        "Character 8"_ts,
-        "Character 9"_ts,
-        "Character 10"_ts,
-        "Character 11"_ts,
-        "Character 12"_ts,
-        "Character 13"_ts,
-        "Character 14"_ts,
-        "Character 15"_ts,
-        "Character 16"_ts,
-        "Character 17"_ts,
-        "Character 18"_ts,
-        "Character 19"_ts,
-        "Character 20"_ts,
-        "Character 21"_ts,
-        "Character 22"_ts,
-        "Character 23"_ts,
-        "Character 24"_ts,
-        "Character 25"_ts,
-        "Character 26"_ts,
-        "Character 27"_ts,
-        "Character 28"_ts,
-        "Character 29"_ts,
-        "Character 30"_ts,
-        "Character 31"_ts,
-        "Character 32"_ts
-    });
+    pimpl_->character_list_->set_items(characters);
 
     auto new_button = munin::make_button(" New ");
     auto select_button = munin::make_button(" Select ");
@@ -125,6 +92,15 @@ character_selection_page::character_selection_page()
     add_component(
         buttons_container,
         munin::compass_layout::heading::south);
+
+    auto const full_character_name = 
+        [](model::character const &character)
+        {
+            return
+                (character.prefix != "" ? (character.prefix + " ") : "")
+              + character.name
+              + (character.suffix != "" ? (" " + character.suffix) : "");
+        };
 
     pimpl_->character_list_->set_focus();
 }

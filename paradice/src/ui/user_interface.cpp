@@ -36,6 +36,7 @@
 #include <munin/grid_layout.hpp>
 #include <munin/status_bar.hpp>
 #include <munin/view.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 #include <boost/make_unique.hpp>
 
 using namespace terminalpp::literals;
@@ -125,7 +126,20 @@ struct user_interface::impl
     // ======================================================================
     void go_to_character_selection_page()
     {
-        auto new_page = std::make_shared<character_selection_page>();
+        auto const &string_to_terminal_string =
+            [](std::string const &character_name)
+            {
+                return terminalpp::string{character_name};
+            };
+
+        auto const &character_names = 
+            active_account_->character_names
+          | boost::adaptors::transformed(string_to_terminal_string);
+
+        std::vector<terminalpp::string> names{
+                character_names.begin(), character_names.end()};
+
+        auto new_page = std::make_shared<character_selection_page>(names);
 
         go_to_page(new_page);
     }

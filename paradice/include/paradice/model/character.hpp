@@ -35,6 +35,8 @@ namespace paradice { namespace model {
 struct character
 {
     std::string name;
+    std::string prefix;
+    std::string suffix;
 };
 
 }}

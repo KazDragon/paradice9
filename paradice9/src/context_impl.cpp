@@ -319,7 +319,7 @@ struct context_impl::impl
         paradice::model::account account;
         account.name = name;
         account.password = password;
-        account.characters = 
+        account.character_names = 
             load_account_character_names(load_account_id(account));
 
         return account;

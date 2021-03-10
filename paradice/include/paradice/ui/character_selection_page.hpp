@@ -27,7 +27,9 @@
 #ifndef PARADICE_UI_CHARACTER_SELECTION_PAGE_HPP_
 #define PARADICE_UI_CHARACTER_SELECTION_PAGE_HPP_
 
+#include "paradice/model/character.hpp"
 #include <munin/composite_component.hpp>
+#include <terminalpp/string.hpp>
 #include <boost/signals2/signal.hpp>
 
 namespace paradice { namespace ui { 
@@ -39,7 +41,7 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    character_selection_page();
+    character_selection_page(std::vector<terminalpp::string> character_names);
 
     //* =====================================================================
     /// \brief Destructor
@@ -54,10 +56,10 @@ public :
 
     //* =====================================================================
     /// \fn on_character_selected
-    /// Register a callback for when the "login" button is pressed, with
-    /// the account name and password attached.
+    /// Register a callback for when the a character is selected, with
+    /// the index referring to the index of the constructor argument.
     //* =====================================================================
-    boost::signals2::signal<void ()> on_character_selected;
+    boost::signals2::signal<void (int)> on_character_selected;
 
 private:
     struct impl;

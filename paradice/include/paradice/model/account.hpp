@@ -28,6 +28,7 @@
 #define PARADICE_MODEL_ACCOUNT_HPP_
 
 #include "paradice/cryptography.hpp"
+#include "paradice/model/character.hpp"
 #include <string>
 #include <vector>
 
@@ -37,7 +38,7 @@ struct account
 {
     std::string name;
     encrypted_string password;
-    std::vector<std::string> characters;
+    std::vector<std::string> character_names;
 };
 
 }}

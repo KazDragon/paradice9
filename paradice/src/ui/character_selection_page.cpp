@@ -69,7 +69,20 @@ character_selection_page::character_selection_page(
     pimpl_->character_list_->set_items(characters);
 
     auto new_button = munin::make_button(" New ");
+    new_button->on_click.connect(on_new_character);
+
     auto select_button = munin::make_button(" Select ");
+    select_button->on_click.connect(
+        [this]()
+        {
+            auto const selected_item = 
+                pimpl_->character_list_->get_selected_item_index();
+
+            if (selected_item)
+            {
+                on_character_selected(*selected_item);
+            }
+        });
 
     auto const buttons_container = munin::view(
         munin::make_compass_layout(),

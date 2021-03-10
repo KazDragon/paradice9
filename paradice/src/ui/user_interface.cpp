@@ -140,6 +140,13 @@ struct user_interface::impl
                 character_names.begin(), character_names.end()};
 
         auto new_page = std::make_shared<character_selection_page>(names);
+        new_page->on_new_character.connect([this](){go_to_character_creation_page();});
+        new_page->on_character_selected.connect(
+            [this](int /*selected_character*/)
+            {
+                // Enter main window with
+                // active_account_->character_names[selected_character]
+            });
 
         go_to_page(new_page);
     }

@@ -13,7 +13,7 @@ else()
 
     set(PARADICE9_PRIVATE_LIBRARIES
         paradice
-        serverpp
+        KazDragon::serverpp
         SQLiteCpp
         Boost::boost)
 endif()

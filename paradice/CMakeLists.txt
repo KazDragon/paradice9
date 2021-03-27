@@ -21,18 +21,19 @@ else()
     find_package(nlohmann_json REQUIRED)
     find_package(fmt REQUIRED)
     find_package(ZLIB REQUIRED)
+    find_package(Threads REQUIRED)
 
     set(PARADICE_PUBLIC_LIBRARIES
-        terminalpp
-        serverpp
+        KazDragon::terminalpp
+        KazDragon::serverpp
         Boost::boost
         Boost::program_options
     )
 
     set(PARADICE_PRIVATE_LIBRARIES
         cryptopp-static
-        munin
-        telnetpp
+        KazDragon::munin
+        KazDragon::telnetpp
         ZLIB::ZLIB)
 
 endif()

@@ -28,6 +28,7 @@
 #include "paradice/ui/account_creation_page.hpp"
 #include "paradice/ui/character_creation_page.hpp"
 #include "paradice/ui/character_selection_page.hpp"
+#include "paradice/ui/main_page.hpp"
 #include "paradice/ui/title_page.hpp"
 #include <terminalpp/mouse.hpp>
 #include <terminalpp/virtual_key.hpp>
@@ -117,7 +118,7 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<character_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
-        new_page->on_character_created.connect([this](auto){this->go_to_character_selection_page();});
+        new_page->on_character_created.connect([this](auto){this->go_to_main_page();});
         go_to_page(new_page);
     }
 
@@ -140,14 +141,18 @@ struct user_interface::impl
                 character_names.begin(), character_names.end()};
 
         auto new_page = std::make_shared<character_selection_page>(names);
-        new_page->on_new_character.connect([this](){go_to_character_creation_page();});
-        new_page->on_character_selected.connect(
-            [this](int /*selected_character*/)
-            {
-                // Enter main window with
-                // active_account_->character_names[selected_character]
-            });
+        new_page->on_new_character.connect([this]{go_to_character_creation_page();});
+        new_page->on_character_selected.connect([this](int){go_to_main_page();});
 
+        go_to_page(new_page);
+    }
+
+    // ======================================================================
+    // GO_TO_MAIN_PAGE
+    // ======================================================================
+    void go_to_main_page()
+    {
+        auto new_page = std::make_shared<main_page>();
         go_to_page(new_page);
     }
 

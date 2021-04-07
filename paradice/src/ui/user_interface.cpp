@@ -96,7 +96,13 @@ struct user_interface::impl
         new_page->on_next.connect(
             [this](std::string const &name, encrypted_string const &password)
             {
-                active_account_ = self_.on_new_account(name, password);
+                try
+                {
+                    active_account_ = self_.on_new_account(name, password);
+                }
+                catch(...)
+                {
+                }
 
                 if (active_account_)
                 {
@@ -121,8 +127,14 @@ struct user_interface::impl
         new_page->on_character_created.connect(
             [this](std::string const &character_name)
             {
-                active_character_ = self_.on_character_created(
-                    *active_account_, character_name);
+                try
+                {
+                    active_character_ = self_.on_character_created(
+                        *active_account_, character_name);
+                }
+                catch(...)
+                {
+                }
 
                 if (active_character_)
                 {

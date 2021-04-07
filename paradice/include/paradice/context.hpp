@@ -130,6 +130,9 @@ public :
 
     //* =====================================================================
     /// \brief Creates a character
+    /// \throw duplicate_character_error if an character with that name
+    ///        already exists.
+    /// \throw unexpected_error if any other error occurred.
     //* =====================================================================
     virtual model::character new_character(
         model::account &acct,

@@ -178,24 +178,6 @@ struct context_impl::impl
     }
 
     // ======================================================================
-    // LOAD_ACCOUNT
-    // ======================================================================
-    // void load_account(
-    //     std::string const &name, std::shared_ptr<paradice::account> &acct)
-    // {
-    //     auto account_path = get_accounts_path() / name;
-        
-    //     if (fs::exists(account_path))
-    //     {
-    //         std::ifstream in(account_path.string().c_str());
-    //         boost::archive::xml_iarchive ia(in);
-            
-    //         acct = std::make_shared<paradice::account>();
-    //         ia >> boost::serialization::make_nvp("account", *acct);
-    //     }
-    // }
-
-    // ======================================================================
     // NEW_ACCOUNT
     // ======================================================================
     paradice::model::account new_account(
@@ -297,7 +279,7 @@ struct context_impl::impl
             "    WHERE account_id=?"
             ";");
 
-        character_query.bind(account_id);
+        character_query.bind(1, account_id);
 
         std::vector<std::string> character_names;
         while(character_query.executeStep())
@@ -323,6 +305,52 @@ struct context_impl::impl
             load_account_character_names(load_account_id(account));
 
         return account;
+    }
+
+    // ======================================================================
+    // NEW_CHARACTER
+    // ======================================================================
+    paradice::model::character new_character(
+        paradice::model::account &acct,
+        std::string const &character_name)
+    try
+    {
+        SQLite::Statement stmt(
+            database_,
+            "INSERT INTO characters "
+            "    VALUES ("
+            "        NULL,"     // id is auto generated
+            "        ?,"        // name
+            "        ?,"        // account id
+            "        ?,"        // prefix
+            "        ?,"        // suffix
+            "        ?)"        // gm_level
+            ";");
+
+        stmt.bind(1, character_name);
+        stmt.bind(2, load_account_id(acct));
+        stmt.bind(3, std::string{});
+        stmt.bind(4, std::string{});
+        stmt.bind(5, 0);
+
+        stmt.exec();
+
+        return paradice::model::character {
+            character_name,
+            "",
+            ""
+        };
+    }
+    catch(SQLite::Exception const &ex)
+    {
+        switch (ex.getExtendedErrorCode())
+        {
+            case SQLITE_CONSTRAINT_UNIQUE:
+                throw paradice::duplicate_character_error{};
+
+            default:
+                throw paradice::unexpected_error{};
+        }
     }
 
     // ======================================================================
@@ -500,20 +528,6 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // }
  
 // ==========================================================================
-// LOAD_ACCOUNT
-// ==========================================================================
-// std::shared_ptr<paradice::account> context_impl::load_account(std::string const &name)
-// {
-//     std::shared_ptr<paradice::account> acct;
-
-//     pimpl_->strand_.dispatch([this, &name, &acct]{
-//         pimpl_->load_account(name, acct);
-//     });
-
-//     return acct;
-// }
-
-// ==========================================================================
 // NEW_ACCOUNT
 // ==========================================================================
 paradice::model::account context_impl::new_account(
@@ -539,6 +553,16 @@ paradice::model::account context_impl::load_account(
     paradice::encrypted_string const &password)
 {
     return pimpl_->load_account(name, password);
+}
+
+// ==========================================================================
+// NEW_CHARACTER
+// ==========================================================================
+paradice::model::character context_impl::new_character(
+    paradice::model::account &acct,
+    std::string const &character_name)
+{
+    return pimpl_->new_character(acct, character_name);
 }
 
 // ==========================================================================

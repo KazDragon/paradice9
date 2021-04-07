@@ -117,8 +117,22 @@ struct user_interface::impl
     void go_to_character_creation_page()
     {
         auto new_page = std::make_shared<character_creation_page>();
-        new_page->on_return.connect([this]{go_to_title_page();});
-        new_page->on_character_created.connect([this](auto){this->go_to_main_page();});
+        new_page->on_return.connect([this]{go_to_character_selection_page();});
+        new_page->on_character_created.connect(
+            [this](std::string const &character_name)
+            {
+                active_character_ = self_.on_character_created(
+                    *active_account_, character_name);
+
+                if (active_character_)
+                {
+                    go_to_main_page();
+                }
+                else
+                {
+                    status_bar_->set_message("Invalid character name");
+                }
+            });
         go_to_page(new_page);
     }
 

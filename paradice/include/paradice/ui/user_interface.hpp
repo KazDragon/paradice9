@@ -70,6 +70,14 @@ public:
             std::string const &name, encrypted_string const &password)
     > on_login;
 
+    //* =====================================================================
+    /// \brief Callback for when a new character is created
+    //* =====================================================================
+    boost::signals2::signal<
+        model::character (
+            model::account &acct, std::string const &character_name)
+    > on_character_created;
+
 protected:
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

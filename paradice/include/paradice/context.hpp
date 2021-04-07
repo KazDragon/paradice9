@@ -41,6 +41,10 @@ struct unexpected_error {};
 struct duplicate_account_error {};
 struct no_such_account_error {};
 
+struct duplicate_character_error {};
+struct invalid_character_name_error {};
+struct no_such_character_error {};
+
 //* =========================================================================
 /// \brief Describes the interface for a context in which a Paradice server
 /// can run.
@@ -123,6 +127,13 @@ public :
     //* =====================================================================
     // virtual std::shared_ptr<character> load_character(
     //     std::string const &name) = 0;
+
+    //* =====================================================================
+    /// \brief Creates a character
+    //* =====================================================================
+    virtual model::character new_character(
+        model::account &acct,
+        std::string const &character_name) = 0;
 
     //* =====================================================================
     /// \brief Saves a character.

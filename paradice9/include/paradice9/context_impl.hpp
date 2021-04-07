@@ -82,14 +82,6 @@ public :
     //     std::shared_ptr<paradice::character> const &ch) override;
 
     //* =====================================================================
-    /// \brief Loads an account from a specific account name and returns it.
-    /// Returns an empty shared_ptr<> if there was no account with that name
-    /// found.
-    //* =====================================================================
-    // std::shared_ptr<paradice::account> load_account(
-    //     std::string const &name) override;
-
-    //* =====================================================================
     /// \brief Creates a new account
     /// \throw duplicate_account_error if an account with that name already
     ///        exists.
@@ -115,6 +107,13 @@ public :
     paradice::model::account load_account(
         std::string const &name,
         paradice::encrypted_string const &password) override;
+
+    //* =====================================================================
+    /// \brief Creates a character
+    //* =====================================================================
+    paradice::model::character new_character(
+        paradice::model::account &acct,
+        std::string const &character_name) override;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed name and

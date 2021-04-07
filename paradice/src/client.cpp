@@ -235,11 +235,11 @@ public :
         //         this->on_character_selected(idx);
         //     });
 
-        // user_interface_->on_character_created.connect(
-        //     [this](auto const &name, auto const &is_gm)
-        //     {
-        //         this->on_character_created(name, is_gm);
-        //     });
+        user_interface_->on_character_created.connect(
+            [this](model::account &acct, std::string character_name)
+            {
+                return this->on_character_created(acct, character_name);
+            });
 
         // user_interface_->on_character_creation_cancelled.connect(
         //     [this]
@@ -472,6 +472,16 @@ private :
         encrypted_string const &password)
     {
         return context_->new_account(name, password);
+    }
+
+    // ======================================================================
+    // ON_CHARACTER_CREATED
+    // ======================================================================
+    model::character on_character_created(
+        model::account &acct,
+        std::string const &character_name)
+    {
+        return context_->new_character(acct, character_name);
     }
 
     client                                 &self_;

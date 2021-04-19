@@ -8,13 +8,15 @@ if (PARADICE9_USE_CONAN)
 else()
     find_package(serverpp REQUIRED)
     find_package(SQLiteCpp REQUIRED)
-    find_package(Boost REQUIRED)
+    find_package(Boost REQUIRED COMPONENTS filesystem)
     find_package(gsl-lite 0.34 REQUIRED)
+    find_package(Threads REQUIRED)
 
     set(PARADICE9_PRIVATE_LIBRARIES
         paradice
         KazDragon::serverpp
         SQLiteCpp
+        Boost::filesystem
         Boost::boost)
 endif()
 

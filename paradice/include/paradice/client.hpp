@@ -30,6 +30,7 @@
 #include "paradice/export.hpp"
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace paradice {

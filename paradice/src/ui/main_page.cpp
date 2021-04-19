@@ -42,6 +42,9 @@ namespace paradice { namespace ui {
 
 struct main_page::impl
 {
+    std::shared_ptr<munin::image> who_list_ { munin::make_image("You"_ts) };
+    std::shared_ptr<munin::text_area> text_area_ { munin::make_text_area() };
+    std::shared_ptr<munin::edit> command_line_ { munin::make_edit() };
 };
 
 main_page::main_page()
@@ -52,23 +55,24 @@ main_page::main_page()
     add_component(
         munin::make_framed_component(
             munin::make_titled_frame("Currently Playing"_ts),
-            munin::make_image("You"_ts)),
+            pimpl_->who_list_),
         munin::compass_layout::heading::north);
 
-    auto text_area = munin::make_text_area();
-    text_area->insert_text("Welcome to Paradice!\n");
+    pimpl_->text_area_->insert_text("Welcome to Paradice!\n");
 
     add_component(
         munin::make_framed_component(
             munin::make_solid_frame(),
-            munin::make_viewport(text_area)),
+            munin::make_viewport(pimpl_->text_area_)),
         munin::compass_layout::heading::centre);
 
     add_component(
         munin::make_framed_component(
             munin::make_solid_frame(),
-            munin::make_viewport(munin::make_edit())),
+            munin::make_viewport(pimpl_->command_line_)),
         munin::compass_layout::heading::south);
+
+    pimpl_->command_line_->set_focus();
 }
 
 main_page::~main_page() = default;

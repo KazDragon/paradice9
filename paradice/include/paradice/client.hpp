@@ -34,8 +34,6 @@
 #include <vector>
 
 namespace paradice {
-    class account;
-    class character;
     class connection;
     class context;
 }
@@ -79,26 +77,6 @@ public :
     /// \brief Sets the size of the client's window
     //* =====================================================================
     void set_window_size(std::uint16_t width, std::uint16_t height);
-
-    //* =====================================================================
-    /// \brief Sets the account that the client is currently using.
-    //* =====================================================================
-    void set_account(std::shared_ptr<account> const &acc);
-
-    //* =====================================================================
-    /// \brief Retrieves the account that the client is currently using.
-    //* =====================================================================
-    std::shared_ptr<account> get_account() const;
-
-    //* =====================================================================
-    /// \brief Sets the character that the client is currently using.
-    //* =====================================================================
-    void set_character(std::shared_ptr<character> const &ch);
-
-    //* =====================================================================
-    /// \brief Retreives the character that the client is currently using.
-    //* =====================================================================
-    std::shared_ptr<character> get_character() const;
 
     //* =====================================================================
     /// \brief Disconnects the client from the server.

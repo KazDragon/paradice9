@@ -297,38 +297,6 @@ public :
     }
 
     // ======================================================================
-    // SET_ACCOUNT
-    // ======================================================================
-    void set_account(std::shared_ptr<account> acc)
-    {
-        account_ = acc;
-    }
-
-    // ======================================================================
-    // GET_ACCOUNT
-    // ======================================================================
-    std::shared_ptr<account> get_account()
-    {
-        return account_;
-    }
-
-    // ======================================================================
-    // SET_CHARACTER
-    // ======================================================================
-    void set_character(std::shared_ptr<character> ch)
-    {
-        character_ = ch;
-    }
-
-    // ======================================================================
-    // GET_CHARACTER
-    // ======================================================================
-    std::shared_ptr<character> get_character()
-    {
-        return character_;
-    }
-
-    // ======================================================================
     // SET_WINDOW_TITLE
     // ======================================================================
     void set_window_title(std::string const &title)
@@ -498,9 +466,6 @@ private :
     boost::asio::io_context::strand         strand_;
 
     std::shared_ptr<context>                context_;
-    std::shared_ptr<account>                account_;
-    std::shared_ptr<character>              character_;
-
     std::shared_ptr<connection>             connection_;
 
     std::function<void (terminalpp::bytes)> write_to_connection{
@@ -568,38 +533,6 @@ void client::set_window_title(std::string const &title)
 void client::set_window_size(std::uint16_t width, std::uint16_t height)
 {
     pimpl_->set_window_size(width, height);
-}
-
-// ==========================================================================
-// SET_ACCOUNT
-// ==========================================================================
-void client::set_account(std::shared_ptr<account> const &acc)
-{
-    pimpl_->set_account(acc);
-}
-
-// ==========================================================================
-// GET_ACCOUNT
-// ==========================================================================
-std::shared_ptr<account> client::get_account() const
-{
-    return pimpl_->get_account();
-}
-
-// ==========================================================================
-// SET_CHARACTER
-// ==========================================================================
-void client::set_character(std::shared_ptr<character> const &ch)
-{
-    pimpl_->set_character(ch);
-}
-
-// ==========================================================================
-// GET_CHARACTER
-// ==========================================================================
-std::shared_ptr<character> client::get_character() const
-{
-    return pimpl_->get_character();
 }
 
 // ==========================================================================

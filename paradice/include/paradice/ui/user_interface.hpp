@@ -71,12 +71,19 @@ public:
     > on_login;
 
     //* =====================================================================
-    /// \brief Callback for when a new character is created
+    /// \brief Callback for when a new character is created.
     //* =====================================================================
     boost::signals2::signal<
         model::character (
             model::account &acct, std::string const &character_name)
     > on_character_created;
+
+    //* =====================================================================
+    /// \brief Callback for when a character is selected.
+    //* =====================================================================
+    boost::signals2::signal<
+        model::character (model::account &acct, int index)
+    > on_character_selected;
 
 protected:
     //* =====================================================================

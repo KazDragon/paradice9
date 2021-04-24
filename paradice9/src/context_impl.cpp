@@ -32,6 +32,7 @@
 // #include <boost/archive/xml_oarchive.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/make_unique.hpp>
+#include <boost/optional.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 // #include <algorithm>
 // #include <fstream>
@@ -356,21 +357,51 @@ struct context_impl::impl
     // ======================================================================
     // LOAD_CHARACTER
     // ======================================================================
-    // void load_character(
-    //     std::string const                    &name,
-    //     std::shared_ptr<paradice::character> &ch)
-    // {
-    //     auto character_path = get_characters_path() / name;
-        
-    //     if (fs::exists(character_path))
-    //     {
-    //         std::ifstream in(character_path.string().c_str());
-    //         boost::archive::xml_iarchive ia(in);
-            
-    //         ch = std::make_shared<paradice::character>();
-    //         ia >> boost::serialization::make_nvp("character", *ch);
-    //     }
-    // }
+    paradice::model::character load_character(
+        paradice::model::account const &acct,
+        int index)
+    try
+    {
+        assert(index < acct.character_names.size());
+
+        SQLite::Statement character_query(
+            database_,
+            "SELECT prefix, suffix"
+            "    FROM characters"
+            "    WHERE account_id=?"
+            "      AND name=?"
+            ";");
+
+        character_query.bind(1, load_account_id(acct));
+        character_query.bind(2, acct.character_names[index]);
+
+
+        boost::optional<paradice::model::character> character;
+
+        while(character_query.executeStep())
+        {
+            if (character != boost::none)
+            {
+                throw paradice::unexpected_error{};
+            }
+
+            character = paradice::model::character{};
+            character->name = acct.character_names[index];
+            character->prefix = std::string{character_query.getColumn(0)};
+            character->suffix = std::string{character_query.getColumn(1)};
+        }
+
+        if (character == boost::none)
+        {
+            throw paradice::unexpected_error{};
+        }
+
+        return *character;
+    }
+    catch(SQLite::Exception const &ex)
+    {
+        throw paradice::unexpected_error{};
+    }
 
     // ======================================================================
     // SAVE_CHARACTER
@@ -568,16 +599,12 @@ paradice::model::character context_impl::new_character(
 // ==========================================================================
 // LOAD_CHARACTER
 // ==========================================================================
-// std::shared_ptr<paradice::character> context_impl::load_character(
-//     std::string const &name)
-// {
-//     std::shared_ptr<paradice::character> ch;
-//     pimpl_->strand_.dispatch([this, &name, &ch]{
-//         pimpl_->load_character(name, ch);
-//     });
-    
-//     return ch;
-// }
+paradice::model::character context_impl::load_character(
+    paradice::model::account &acct,
+    int index)
+{
+    return pimpl_->load_character(acct, index);
+}
 
 // ==========================================================================
 // SAVE_CHARACTER

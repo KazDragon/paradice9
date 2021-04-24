@@ -168,7 +168,25 @@ struct user_interface::impl
 
         auto new_page = std::make_shared<character_selection_page>(names);
         new_page->on_new_character.connect([this]{go_to_character_creation_page();});
-        new_page->on_character_selected.connect([this](int){go_to_main_page();});
+        new_page->on_character_selected.connect(
+            [this](int index)
+            {
+                assert(active_account_.is_initialized());
+
+                try
+                {
+                    active_character_ = self_.on_character_selected(
+                        *active_account_, index);
+                }
+                catch(...)
+                {
+                }
+
+                if (active_character_)
+                {
+                    go_to_main_page();
+                }
+            });
 
         go_to_page(new_page);
     }

@@ -121,12 +121,13 @@ public :
         encrypted_string const &password) = 0;
 
     //* =====================================================================
-    /// \brief Loads a character that is identified by the passed name and
-    /// returns it.  Returns an empty shared_ptr<> if there was no character
-    /// with that name found.
+    /// \brief Loads a character that is identified by the passed account and
+    /// index and returns it.
+    /// \throw unexpected_error if any error occurs.
     //* =====================================================================
-    // virtual std::shared_ptr<character> load_character(
-    //     std::string const &name) = 0;
+    virtual model::character load_character(
+        model::account &acct,
+        int index) = 0;
 
     //* =====================================================================
     /// \brief Creates a character

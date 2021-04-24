@@ -109,6 +109,15 @@ public :
         paradice::encrypted_string const &password) override;
 
     //* =====================================================================
+    /// \brief Loads a character that is identified by the passed account and
+    /// index and returns it.
+    /// \throw unexpected_error if any error occurs.
+    //* =====================================================================
+    paradice::model::character load_character(
+        paradice::model::account &acct,
+        int index) override;
+
+    //* =====================================================================
     /// \brief Creates a character
     //* =====================================================================
     paradice::model::character new_character(

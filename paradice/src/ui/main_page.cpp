@@ -58,8 +58,6 @@ main_page::main_page()
             pimpl_->who_list_),
         munin::compass_layout::heading::north);
 
-    pimpl_->text_area_->insert_text("Welcome to Paradice!\n");
-
     add_component(
         munin::make_framed_component(
             munin::make_solid_frame(),

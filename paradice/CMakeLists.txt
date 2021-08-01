@@ -1,7 +1,6 @@
 if (PARADICE9_USE_CONAN)
     set(PARADICE_PUBLIC_LIBRARIES 
         CONAN_PKG::terminalpp
-        CONAN_PKG::serverpp
         CONAN_PKG::boost
     )
 
@@ -13,7 +12,6 @@ if (PARADICE9_USE_CONAN)
 else()
     find_package(terminalpp REQUIRED)
     find_package(munin 0.3.11 REQUIRED)
-    find_package(serverpp REQUIRED)
     find_package(telnetpp REQUIRED)
     find_package(Boost COMPONENTS container program_options REQUIRED)
     find_package(Cryptopp REQUIRED)
@@ -25,7 +23,6 @@ else()
 
     set(PARADICE_PUBLIC_LIBRARIES
         KazDragon::terminalpp
-        KazDragon::serverpp
         Boost::boost
         Boost::program_options
     )

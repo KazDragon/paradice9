@@ -134,7 +134,7 @@ public :
         assert(connection_);
 
         connection_->async_read(
-            [this](serverpp::bytes data)
+            [this](bytes data)
             {
                 auto const &read_tokens =
                     [this](terminalpp::tokens const &tokens)
@@ -389,7 +389,7 @@ private :
     {
         repaint_requested_ = false;
 
-        serverpp::byte_storage paint_data;
+        byte_storage paint_data;
         auto const &append_to_paint_data =
             [&paint_data](terminalpp::bytes data)
             {

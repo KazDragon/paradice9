@@ -27,33 +27,32 @@
 #ifndef PARADICE_CONNECTION_HPP_
 #define PARADICE_CONNECTION_HPP_
 
-#include "paradice/export.hpp"
-#include <serverpp/core.hpp>
+#include "paradice/core.hpp"
 #include <functional>
 #include <memory>
-#include <string>
 #include <utility>
-#include <vector>
-
-namespace serverpp {
-    class tcp_socket;
-}
 
 namespace paradice {
 
 //* =========================================================================
-/// \brief An connection to a socket that abstracts away details about the
-/// protocols used.
+/// \brief An connection to a communication endpoint (e.g. a TCP socket) that 
+/// abstracts away details about the protocols used.
 //* =========================================================================
 class PARADICE_EXPORT connection
 {
 public :
     //* =====================================================================
-    /// \brief Create a connection object that uses the passed socket as
-    /// a communications point, and calls the passed function whenever data
-    /// is received.
+    /// \brief Create a connection object that communicates with the passed-
+    /// in communications endpoint.
     //* =====================================================================
-    explicit connection(serverpp::tcp_socket &&socket);
+    template <class Endpoint>
+    explicit connection(Endpoint &&ep)
+      : connection(
+            std::unique_ptr<endpoint>(
+                std::make_unique<model<Endpoint>>(
+                    std::forward<Endpoint>(ep))))
+    {
+    }
 
     //* =====================================================================
     /// \brief Move constructor
@@ -91,13 +90,13 @@ public :
     /// new read request may be issued.
     //* =====================================================================
     void async_read(
-        std::function<void (serverpp::bytes)> const &data_continuation,
+        std::function<void (bytes)> const &data_continuation,
         std::function<void ()> const &read_complete_continuation);
 
     //* =====================================================================
     /// \brief Writes to the connection.
     //* =====================================================================
-    void write(serverpp::bytes data);
+    void write(bytes data);
 
     //* =====================================================================
     /// \brief Requests terminal type of the connection, calling the
@@ -113,7 +112,62 @@ public :
         std::function<void (std::uint16_t, std::uint16_t)> const &continuation);
 
 private :
+    struct endpoint
+    {
+        virtual ~endpoint() = default;
+        virtual void async_read(
+            std::function<void (bytes)> const &data_continuation,
+            std::function<void ()> const &read_complete_continuation) = 0;
+        virtual void write(bytes data) = 0;
+        virtual bool is_alive() const = 0;
+        virtual void close() = 0;
+    };
+
+    template <typename Endpoint>
+    struct model final : endpoint
+    {
+        model(Endpoint &&ep)
+          : endpoint_(std::forward<Endpoint>(ep))
+        {
+        }
+
+        void async_read(
+            std::function<void (bytes)> const &data_continuation,
+            std::function<void ()> const &read_complete_continuation) override
+        {
+            endpoint_.async_read(
+                [=](bytes data)
+                {
+                    data_continuation(data);
+                    read_complete_continuation();
+                });
+        }
+
+        void write(bytes data) override
+        {
+            endpoint_.write(data);
+        }
+
+        bool is_alive() const override
+        {
+            return endpoint_.is_alive();
+        }
+
+        void close() override
+        {
+            endpoint_.close();
+        }
+
+        Endpoint endpoint_;
+    };
+
+    // ======================================================================
+    // Internal Constructor
+    // ======================================================================
+    connection(std::unique_ptr<endpoint> ep);
+
     struct impl;
+    friend struct impl;
     std::unique_ptr<impl> pimpl_;
 };
 

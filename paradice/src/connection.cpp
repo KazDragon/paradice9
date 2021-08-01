@@ -26,7 +26,6 @@
 // ==========================================================================
 #include "paradice/connection.hpp"
 
-#include <serverpp/tcp_socket.hpp>
 #include <telnetpp/telnetpp.hpp>
 #include <telnetpp/options/echo/server.hpp>
 #include <telnetpp/options/mccp/codec.hpp>
@@ -35,7 +34,6 @@
 #include <telnetpp/options/naws/client.hpp>
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
-#include <boost/make_unique.hpp>
 
 namespace paradice {
 
@@ -47,8 +45,8 @@ struct connection::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(serverpp::tcp_socket &&socket)
-      : socket_(std::move(socket))
+    impl(std::unique_ptr<connection::endpoint> &&endpoint)
+      : endpoint_(std::move(endpoint))
     {
         telnet_naws_client_.on_window_size_changed.connect(
             [this](auto &&width, auto &&height, auto &&continuation)
@@ -106,7 +104,7 @@ struct connection::impl
     // ======================================================================
     void close()
     {
-        socket_.close();
+        endpoint_->close();
     }
 
     // ======================================================================
@@ -114,7 +112,7 @@ struct connection::impl
     // ======================================================================
     bool is_alive() const
     {
-        return socket_.is_alive();
+        return endpoint_->is_alive();
     }
 
     // ======================================================================
@@ -126,7 +124,7 @@ struct connection::impl
             data,
             [this](telnetpp::bytes compressed_data, bool)
             {
-                this->socket_.write(compressed_data);
+                this->endpoint_->write(compressed_data);
             });
     }
     
@@ -147,11 +145,11 @@ struct connection::impl
     // ASYNC_READ
     // ======================================================================
     void async_read(
-        std::function<void (serverpp::bytes)> const &data_continuation,
+        std::function<void (bytes)> const &data_continuation,
         std::function<void ()> const &read_complete_continuation)
     {
-        socket_.async_read(
-            [=](serverpp::bytes data)
+        endpoint_->async_read(
+            [=](bytes data)
             {
                 telnet_session_.receive(
                     data, 
@@ -163,7 +161,9 @@ struct connection::impl
                     {
                         this->raw_write(data);
                     });
-
+            },
+            [=]()
+            {
                 read_complete_continuation();
             });
     }
@@ -206,7 +206,7 @@ struct connection::impl
         }
     }
 
-    serverpp::tcp_socket socket_;
+    std::unique_ptr<connection::endpoint>                endpoint_;
 
     telnetpp::session                                    telnet_session_;
     telnetpp::options::echo::server                      telnet_echo_server_;
@@ -225,8 +225,8 @@ struct connection::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-connection::connection(serverpp::tcp_socket &&new_socket)
-    : pimpl_(boost::make_unique<impl>(std::move(new_socket)))
+connection::connection(std::unique_ptr<endpoint> ep)
+    : pimpl_(std::make_unique<impl>(std::move(ep)))
 {
 }
 
@@ -265,7 +265,7 @@ bool connection::is_alive() const
 // ASYNC_READ
 // ==========================================================================
 void connection::async_read(
-    std::function<void (serverpp::bytes)> const &data_continuation,
+    std::function<void (bytes)> const &data_continuation,
     std::function<void ()> const &read_complete_continuation)
 {
     pimpl_->async_read(data_continuation, read_complete_continuation);
@@ -274,7 +274,7 @@ void connection::async_read(
 // ==========================================================================
 // WRITE
 // ==========================================================================
-void connection::write(serverpp::bytes data)
+void connection::write(bytes data)
 {
     pimpl_->write(data);
 }

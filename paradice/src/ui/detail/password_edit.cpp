@@ -25,17 +25,51 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/ui/detail/password_edit.hpp"
+#include <munin/grid_layout.hpp>
+#include <munin/edit.hpp>
 #include <munin/render_surface.hpp>
 #include <terminalpp/algorithm/for_each_in_region.hpp>
+#include <boost/make_unique.hpp>
 
 namespace paradice { namespace ui { namespace detail { 
+
+// ==========================================================================
+// PASSWORD_EDIT::IMPLEMENTATION_STRUCTURE
+// ==========================================================================
+struct password_edit::impl
+{
+    std::shared_ptr<munin::edit> edit_ { munin::make_edit() };
+};
+
+// ==========================================================================
+// CONSTRUCTOR
+// ==========================================================================
+password_edit::password_edit()
+  : pimpl_(boost::make_unique<impl>())
+{
+    set_layout(munin::make_grid_layout({1, 1}));
+    add_component(pimpl_->edit_);
+}
+
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
+password_edit::~password_edit() = default;
+
+// ==========================================================================
+// GET_TEXT
+// ==========================================================================
+terminalpp::string password_edit::get_text() const
+{
+    return pimpl_->edit_->get_text();
+}
 
 // ==========================================================================
 // DO_DRAW
 // ==========================================================================
 void password_edit::do_draw(
-        munin::render_surface &surface,
-        terminalpp::rectangle const &region) const
+    munin::render_surface &surface,
+    terminalpp::rectangle const &region) const
 {
     auto const content_size = get_text().size();
     

@@ -27,12 +27,29 @@
 #ifndef PARADICE_UI_DETAIL_PASSWORD_EDIT
 #define PARADICE_UI_DETAIL_PASSWORD_EDIT
 
-#include <munin/edit.hpp>
+#include <munin/composite_component.hpp>
+#include <terminalpp/string.hpp>
 
 namespace paradice { namespace ui { namespace detail { 
 
-class password_edit : public munin::edit
+class password_edit : public munin::composite_component
 {
+public:
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    password_edit();
+
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    ~password_edit();
+
+    //* =====================================================================
+    /// \brief Retrieves the underlying text
+    //* =====================================================================
+    terminalpp::string get_text() const;
+
 private:
     //* =====================================================================
     /// \brief Called by draw().  Derived classes must override this function
@@ -46,6 +63,9 @@ private:
     void do_draw(
         munin::render_surface &surface,
         terminalpp::rectangle const &region) const;
+
+    struct impl;
+    std::unique_ptr<impl> pimpl_;
 };
 
 //* =========================================================================

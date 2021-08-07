@@ -36,11 +36,10 @@
 #include <munin/grid_layout.hpp>
 #include <munin/image.hpp>
 #include <munin/render_surface.hpp>
-#include <munin/solid_frame.hpp>
+#include <munin/scroll_pane.hpp>
 #include <munin/titled_frame.hpp>
 #include <munin/vertical_strip_layout.hpp>
 #include <munin/view.hpp>
-#include <munin/viewport.hpp>
 #include <terminalpp/algorithm/for_each_in_region.hpp>
 
 using namespace terminalpp::literals;
@@ -107,12 +106,8 @@ title_page::title_page()
 
     auto const edits_container = munin::view(
         munin::make_grid_layout({1, 2}),
-        munin::make_framed_component(
-            munin::make_solid_frame(), 
-            munin::make_viewport(name_edit)),
-        munin::make_framed_component(
-            munin::make_solid_frame(),
-            munin::make_viewport(password_edit)));
+        munin::make_scroll_pane(name_edit),
+        munin::make_scroll_pane(password_edit));
 
     auto const fields_container = munin::view(
         munin::make_compass_layout(),

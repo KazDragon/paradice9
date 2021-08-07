@@ -51,15 +51,13 @@ namespace paradice { namespace ui {
 // ==========================================================================
 character_creation_page::character_creation_page()
 {
-    set_layout(munin::make_grid_layout({1, 1}));
-
     auto name_edit = munin::make_edit();
 
     auto fields = munin::view(
         munin::make_grid_layout({1, 1}),
         munin::make_framed_component(
             munin::make_titled_frame("Name"),
-            name_edit));
+            munin::make_viewport(name_edit)));
 
     auto return_button = munin::make_button("Return");
     auto next_button = munin::make_button("Next");
@@ -77,15 +75,15 @@ character_creation_page::character_creation_page()
         munin::make_fill(' '), munin::compass_layout::heading::centre,
         next_button, munin::compass_layout::heading::east);
 
-    add_component(munin::view(
-        munin::make_grid_layout({1, 1}),
+    set_layout(munin::make_grid_layout({1, 1}));
+    add_component(
         munin::make_framed_component(
             munin::make_titled_frame("Create New Character"),
             munin::view(
                 munin::make_compass_layout(),
                 fields, munin::compass_layout::heading::north,
                 munin::make_fill(' '), munin::compass_layout::heading::centre,
-                buttons, munin::compass_layout::heading::south))));
+                buttons, munin::compass_layout::heading::south)));
 
     name_edit->set_focus();
 }

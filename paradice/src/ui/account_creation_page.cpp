@@ -51,8 +51,6 @@ namespace paradice { namespace ui {
 // ==========================================================================
 account_creation_page::account_creation_page()
 {
-    set_layout(munin::make_grid_layout({1, 1}));
-
     auto name_edit = munin::make_edit();
     auto password_edit = detail::make_password_edit();
     auto repeat_password_edit = detail::make_password_edit();
@@ -61,13 +59,13 @@ account_creation_page::account_creation_page()
         munin::make_grid_layout({1, 3}),
         munin::make_framed_component(
             munin::make_titled_frame("Name"),
-            name_edit),
+            munin::make_viewport(name_edit)),
         munin::make_framed_component(
             munin::make_titled_frame("Password"),
-            password_edit),
+            munin::make_viewport(password_edit)),
         munin::make_framed_component(
             munin::make_titled_frame("Password (Repeat)"),
-            repeat_password_edit));
+            munin::make_viewport(repeat_password_edit)));
 
     auto return_button = munin::make_button("Return");
     auto next_button = munin::make_button("Next");
@@ -87,15 +85,15 @@ account_creation_page::account_creation_page()
         munin::make_fill(' '), munin::compass_layout::heading::centre,
         next_button, munin::compass_layout::heading::east);
 
-    add_component(munin::view(
-        munin::make_grid_layout({1, 1}),
+    set_layout(munin::make_grid_layout({1, 1}));
+    add_component(
         munin::make_framed_component(
             munin::make_titled_frame("Create New Account"),
             munin::view(
                 munin::make_compass_layout(),
                 fields, munin::compass_layout::heading::north,
                 munin::make_fill(' '), munin::compass_layout::heading::centre,
-                buttons, munin::compass_layout::heading::south))));
+                buttons, munin::compass_layout::heading::south)));
 
     name_edit->set_focus();
 }

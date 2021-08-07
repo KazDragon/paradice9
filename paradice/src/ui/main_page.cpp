@@ -29,11 +29,10 @@
 #include <munin/edit.hpp>
 #include <munin/framed_component.hpp>
 #include <munin/image.hpp>
-#include <munin/solid_frame.hpp>
+#include <munin/scroll_pane.hpp>
 #include <munin/titled_frame.hpp>
 #include <munin/text_area.hpp>
 #include <munin/view.hpp>
-#include <munin/viewport.hpp>
 #include <boost/make_unique.hpp>
 
 using namespace terminalpp::literals;
@@ -59,15 +58,11 @@ main_page::main_page()
         munin::compass_layout::heading::north);
 
     add_component(
-        munin::make_framed_component(
-            munin::make_solid_frame(),
-            munin::make_viewport(pimpl_->text_area_)),
+        munin::make_scroll_pane(pimpl_->text_area_),
         munin::compass_layout::heading::centre);
 
     add_component(
-        munin::make_framed_component(
-            munin::make_solid_frame(),
-            munin::make_viewport(pimpl_->command_line_)),
+        munin::make_scroll_pane(pimpl_->command_line_),
         munin::compass_layout::heading::south);
 
     pimpl_->command_line_->set_focus();

@@ -7,3 +7,4 @@
 /paradice/include/paradice/export.hpp
 /CMakeSettings.json
 build
+.vscode

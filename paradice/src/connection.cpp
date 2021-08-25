@@ -35,6 +35,8 @@
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
 
+#include <iostream>
+
 namespace paradice {
 
 // ==========================================================================
@@ -73,7 +75,9 @@ struct connection::impl
         telnet_mccp_server_.on_state_changed.connect(
             [this](auto &&continuation)
             {
-                if (telnet_mccp_server_.active())
+                mccp_active_ = telnet_mccp_server_.active();
+
+                if (mccp_active_)
                 {
                     telnet_mccp_server_.start_compression(continuation);
                 }
@@ -120,12 +124,19 @@ struct connection::impl
     // ======================================================================
     void raw_write(telnetpp::bytes data)
     {
-        telnet_mccp_compressor_(
-            data,
-            [this](telnetpp::bytes compressed_data, bool)
-            {
-                this->endpoint_->write(compressed_data);
-            });
+        if (mccp_active_)
+        {
+            telnet_mccp_compressor_(
+                data,
+                [this](telnetpp::bytes compressed_data, bool)
+                {
+                    this->endpoint_->write(compressed_data);
+                });
+        }
+        else
+        {
+            endpoint_->write(data);
+        }
     }
     
     // ======================================================================
@@ -193,7 +204,7 @@ struct connection::impl
     // ======================================================================
     void announce_terminal_type()
     {
-        // Announcing a terminal type request could plausibly disconnect and
+        // Announcing a terminal type request ld plausibly disconnect and
         // destroy this connection object.  Therefore, we move the requests
         // structure out of the object proper before handling them.
         decltype(terminal_type_requests_) requests{
@@ -220,6 +231,8 @@ struct connection::impl
 
     std::string                                          terminal_type_;
     std::vector<std::function<void (std::string)>>       terminal_type_requests_;
+
+    bool                                                 mccp_active_{false};
 };
 
 // ==========================================================================

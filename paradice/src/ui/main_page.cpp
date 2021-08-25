@@ -58,7 +58,9 @@ main_page::main_page()
         munin::compass_layout::heading::north);
 
     add_component(
-        munin::make_scroll_pane(pimpl_->text_area_),
+        munin::make_scroll_pane(
+            pimpl_->text_area_,
+            munin::make_vertical_viewport_resize_strategy()),
         munin::compass_layout::heading::centre);
 
     add_component(

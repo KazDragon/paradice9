@@ -85,7 +85,17 @@ public :
         strand_{io_context},
         context_{ctx},
         canvas_{default_window_size},
-        terminal_{create_behaviour()},
+        terminal_{
+            [this](terminalpp::tokens const &tokens)
+            {
+                on_tokens_read(tokens);
+            },
+            [this](terminalpp::bytes data)
+            {
+                connection_->write(data);
+            },
+            create_behaviour()
+        },
         animator_(strand_),
         user_interface_{std::make_shared<ui::user_interface>(animator_)},
         window_{user_interface_},
@@ -136,13 +146,7 @@ public :
         connection_->async_read(
             [this](bytes data)
             {
-                auto const &read_tokens =
-                    [this](terminalpp::tokens const &tokens)
-                    {
-                        this->on_tokens_read(tokens);
-                    };
-
-                terminal_.read(read_tokens) >> data;
+                terminal_ >> data;
             },
             [this]
             {
@@ -288,7 +292,7 @@ public :
 
         user_interface_->set_focus();
 
-        terminal_.write(write_to_connection) 
+        terminal_
             << terminalpp::set_window_title("Paradice9")
             << terminalpp::enable_mouse()
             << terminalpp::use_alternate_screen_buffer();
@@ -301,8 +305,7 @@ public :
     // ======================================================================
     void set_window_title(std::string const &title)
     {
-        terminal_.write(write_to_connection) 
-            << terminalpp::set_window_title(title);
+        terminal_ << terminalpp::set_window_title(title);
     }
 
     // ======================================================================
@@ -320,7 +323,7 @@ public :
     // ======================================================================
     void disconnect()
     {
-        terminal_.write(write_to_connection) 
+        terminal_
             << terminalpp::disable_mouse()
             << terminalpp::show_cursor()
             << terminalpp::use_normal_screen_buffer();
@@ -388,38 +391,27 @@ private :
     void do_repaint()
     {
         repaint_requested_ = false;
+        window_.repaint(canvas_, terminal_);
 
-        byte_storage paint_data;
-        auto const &append_to_paint_data =
-            [&paint_data](terminalpp::bytes data)
-            {
-                paint_data.append(data.cbegin(), data.cend());
-            };
-
-        window_.repaint(canvas_, terminal_, append_to_paint_data);
         auto const cursor_state = user_interface_->get_cursor_state();
             
         if (cursor_state_changed_.exchange(false))
         {
             if (cursor_state)
             {
-                terminal_.write(append_to_paint_data) 
-                    << terminalpp::show_cursor();
+                terminal_ << terminalpp::show_cursor();
             }
             else
             {
-                terminal_.write(append_to_paint_data)
-                    << terminalpp::hide_cursor();
+                terminal_ << terminalpp::hide_cursor();
             }
         }
 
         if (cursor_state)
         {
-            terminal_.write(append_to_paint_data) << 
-                terminalpp::move_cursor(user_interface_->get_cursor_position());
+            terminal_ 
+                 << terminalpp::move_cursor(user_interface_->get_cursor_position());
         }
-
-        connection_->write(paint_data);
     }
 
     // ======================================================================

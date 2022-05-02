@@ -10,7 +10,7 @@ if (PARADICE9_USE_CONAN)
         CONAN_PKG::telnetpp
     )
 else()
-    find_package(terminalpp REQUIRED)
+    find_package(terminalpp 2.2.0 REQUIRED)
     find_package(munin 0.3.11 REQUIRED)
     find_package(telnetpp REQUIRED)
     find_package(Boost COMPONENTS container program_options REQUIRED)

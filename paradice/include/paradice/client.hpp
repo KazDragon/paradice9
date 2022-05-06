@@ -28,6 +28,8 @@
 #define PARADICE_CLIENT_HPP_
 
 #include "paradice/export.hpp"
+#include "paradice/ui/message.hpp"
+#include <terminalpp/string.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -87,6 +89,11 @@ public :
     /// \brief Sets up a callback for if the client's connection dies.
     //* =====================================================================
     void on_connection_death(std::function<void ()> const &callback);
+
+    //* =====================================================================
+    /// \brief Sends a message to be displayed on the client.
+    //* =====================================================================
+    void send_message(terminalpp::string const &message);
 
 private :
     class impl;

@@ -31,12 +31,19 @@
 
 namespace paradice { namespace ui {
 
-class main_page : public munin::composite_component
+class main_page final : public munin::composite_component
 {
 public:
     main_page();
     ~main_page() override;
     
+protected:
+    //* =====================================================================
+    /// \brief Called by event().  Derived classes must override this 
+    /// function in order to handle events in a custom manner.
+    //* =====================================================================
+    void do_event(boost::any const &event) override;
+
 private:
     struct impl;
     std::unique_ptr<impl> pimpl_;

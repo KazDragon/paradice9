@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Character Model
+// Paradice Room Model
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,26 +24,17 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_MODEL_CHARACTER_HPP_
-#define PARADICE_MODEL_CHARACTER_HPP_
+#ifndef PARADICE_MODEL_ROOM_HPP_
+#define PARADICE_MODEL_ROOM_HPP_
 
-#include "paradice/core.hpp"
-#include <terminalpp/string.hpp>
-#include <string>
-#include <vector>
+#include <list>
 
 namespace paradice { namespace model {
 
-struct room;
+struct character;
 
-struct character
-{
-    std::string name;
-    std::string prefix;
-    std::string suffix;
-
-    std::function<void (terminalpp::string const &)> send_message;
-    room *in_room;
+struct room {
+    std::list<character *> characters_;
 };
 
 }}

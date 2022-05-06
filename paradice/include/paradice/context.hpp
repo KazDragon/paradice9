@@ -28,6 +28,7 @@
 #define PARADICE_CONTEXT_HPP_
 
 #include "paradice/model/account.hpp"
+#include "paradice/model/room.hpp"
 #include <memory>
 #include <vector>
 
@@ -84,14 +85,6 @@ public :
     /// and suffix.
     //* =====================================================================
     // virtual std::string get_moniker(std::shared_ptr<character> const &ch) = 0;
-
-    //* =====================================================================
-    /// \brief Loads an account from a specific account name and returns it.
-    /// Returns an empty shared_ptr<> if there was no account with that name
-    /// found.
-    //* =====================================================================
-    // virtual std::shared_ptr<account> load_account(
-    //     std::string const &name) = 0;
 
     //* =====================================================================
     /// \brief Creates a new account
@@ -175,6 +168,34 @@ public :
     /// active encounter and that any related views should be updated.
     //* =====================================================================
     // virtual void update_active_encounter() = 0;
+
+    //* =====================================================================
+    /// \brief Sends a message to a character
+    //* =====================================================================
+    virtual void send_message(
+        model::character &character,
+        terminalpp::string const &message) = 0;
+
+    //* =====================================================================
+    /// \brief Sends a message to all characters in a room.
+    //* =====================================================================
+    virtual void send_message(
+        model::room &room,
+        terminalpp::string const &message) = 0;
+
+    //* =====================================================================
+    /// \brief Sends a message to all characters in a room except for the
+    /// specified character.
+    //* =====================================================================
+    virtual void send_message(
+        model::room &room,
+        model::character &character,
+        terminalpp::string const &message) = 0;
+
+    //* =====================================================================
+    /// \brief Gets the main room of Paradice
+    //* =====================================================================
+    virtual model::room &get_main_room() = 0;
 };
 
 }

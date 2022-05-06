@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Character Model
+// Paradice Message
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,26 +24,17 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_MODEL_CHARACTER_HPP_
-#define PARADICE_MODEL_CHARACTER_HPP_
+#ifndef PARADICE_MESSAGE_HPP_
+#define PARADICE_MESSAGE_HPP_
 
-#include "paradice/core.hpp"
 #include <terminalpp/string.hpp>
-#include <string>
-#include <vector>
 
-namespace paradice { namespace model {
+namespace paradice { namespace ui {
 
-struct room;
-
-struct character
+/// \brief A message that is displayed to a client.
+struct message
 {
-    std::string name;
-    std::string prefix;
-    std::string suffix;
-
-    std::function<void (terminalpp::string const &)> send_message;
-    room *in_room;
+    terminalpp::string content;
 };
 
 }}

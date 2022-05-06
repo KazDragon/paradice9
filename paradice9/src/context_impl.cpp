@@ -455,6 +455,14 @@ struct context_impl::impl
         shutdown_();
     }
 
+    // ======================================================================
+    // GET_MAIN_ROOM
+    // ======================================================================
+    paradice::model::room &get_main_room()
+    {
+        return main_room_;
+    }
+
 private:
     // ======================================================================
     // ENSURE_ACCOUNT_TABLE_CREATED
@@ -507,6 +515,7 @@ private:
     SQLite::Database                               database_;
     std::function<void ()>                         shutdown_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
+    paradice::model::room                          main_room_;
 };
 
 // ==========================================================================
@@ -716,5 +725,53 @@ void context_impl::shutdown()
 //         }
 //     }
 // }
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void context_impl::send_message(
+    paradice::model::character &character,
+    terminalpp::string const &message)
+{
+    character.send_message(message);
+}
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void context_impl::send_message(
+    paradice::model::room &room,
+    terminalpp::string const &message)
+{
+    for (auto *character : room.characters_)
+    {
+        character->send_message(message);
+    }
+}
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void context_impl::send_message(
+    paradice::model::room &room,
+    paradice::model::character &character,
+    terminalpp::string const &message)
+{
+    for (auto *character_in_room : room.characters_)
+    {
+        if (character_in_room != &character)
+        {
+            character_in_room->send_message(message);
+        }
+    }
+}
+
+// ==========================================================================
+// GET_MAIN_ROOM
+// ==========================================================================
+paradice::model::room &context_impl::get_main_room()
+{
+    return pimpl_->get_main_room();
+}
 
 }

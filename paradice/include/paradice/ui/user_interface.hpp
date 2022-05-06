@@ -85,6 +85,13 @@ public:
         model::character (model::account &acct, int index)
     > on_character_selected;
 
+    //* =====================================================================
+    /// \brief Callback for when the client enters the game.
+    //* =====================================================================
+    boost::signals2::signal<
+        void (model::character &)
+    > on_entered_game;
+
 protected:
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

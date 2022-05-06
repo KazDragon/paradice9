@@ -171,6 +171,34 @@ public :
     //* =====================================================================
     // void update_active_encounter() override;
 
+    //* =====================================================================
+    /// \brief Sends a message to a character
+    //* =====================================================================
+    void send_message(
+        paradice::model::character &character,
+        terminalpp::string const &message) override;
+
+    //* =====================================================================
+    /// \brief Sends a message to all characters in a room.
+    //* =====================================================================
+    void send_message(
+        paradice::model::room &room,
+        terminalpp::string const &message) override;
+
+    //* =====================================================================
+    /// \brief Sends a message to all characters in a room except for the
+    /// specified character.
+    //* =====================================================================
+    void send_message(
+        paradice::model::room &room,
+        paradice::model::character &character,
+        terminalpp::string const &message) override;
+
+    //* =====================================================================
+    /// \brief Gets the main room of Paradice
+    //* =====================================================================
+    paradice::model::room &get_main_room() override;
+
 private :
     struct impl;
     std::shared_ptr<impl> pimpl_;

@@ -27,6 +27,7 @@
 #include "paradice/client.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
+#include "paradice/ui/message.hpp"
 #include "paradice/ui/user_interface.hpp"
 #include <munin/container.hpp>
 #include <munin/background_animator.hpp>
@@ -102,6 +103,17 @@ public :
         repaint_requested_{false},
         cursor_state_changed_{true}
     {
+    }
+
+    ~impl()
+    {
+        if (character_ && character_->in_room)
+        {
+            context_.send_message(
+                *character_->in_room,
+                *character_, 
+                character_->name + " has left Paradice");
+        }
     }
 
     // ======================================================================
@@ -213,24 +225,6 @@ public :
                 return this->on_new_account(name, password);
             });
 
-        // user_interface_->on_account_created.connect(
-        //     [this](auto const &name, auto const &pwd, auto const &pwd_verify)
-        //     {
-        //         this->on_account_created(name, pwd, pwd_verify);
-        //     });
-
-        // user_interface_->on_account_creation_cancelled.connect(
-        //     [this]
-        //     {
-        //         this->on_account_creation_cancelled();
-        //     });
-
-        // user_interface_->on_new_character.connect(
-        //     [this]
-        //     {
-        //         this->on_new_character();
-        //     });
-
         user_interface_->on_character_selected.connect(
             [this](model::account &acct, int index)
             {
@@ -243,12 +237,22 @@ public :
                 return this->on_character_created(acct, character_name);
             });
 
-        // user_interface_->on_character_creation_cancelled.connect(
-        //     [this]
-        //     {
-        //         this->on_character_creation_cancelled();
-        //     });
+        user_interface_->on_entered_game.connect(
+            [this](model::character &chr)
+            {
+                chr.send_message = [this](terminalpp::string const &message) {
+                    self_.send_message(message);
+                };
+                character_ = chr;
 
+                paradice::model::room &main_room = context_.get_main_room();
+                character_->in_room = &main_room;
+                main_room.characters_.push_back(&chr);
+
+                context_.send_message(chr, "You have entered Paradice!");
+                context_.send_message(main_room, chr, chr.name + " has entered Paradice!");
+            });
+            
         // user_interface_->on_gm_tools_back.connect(
         //     [this]
         //     {
@@ -334,6 +338,16 @@ public :
     void on_connection_death(std::function<void ()> const &callback)
     {
         on_connection_death_ = callback;
+    }
+
+    // ======================================================================
+    // SEND_MESSAGE
+    // ======================================================================
+    void send_message(terminalpp::string const &message)
+    {
+        run_on_ui_strand([this, message]{ 
+            user_interface_->event(ui::message{message});
+        });
     }
 
 private :
@@ -463,6 +477,8 @@ private :
             connection_->write(data); 
         }};
 
+    boost::optional<model::character &>     character_;
+
     terminalpp::canvas                      canvas_;
     terminalpp::terminal                    terminal_;
 
@@ -539,6 +555,14 @@ void client::disconnect()
 void client::on_connection_death(std::function<void ()> const &callback)
 {
     pimpl_->on_connection_death(callback);
+}
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void client::send_message(terminalpp::string const &msg)
+{
+    pimpl_->send_message(msg);
 }
 
 }

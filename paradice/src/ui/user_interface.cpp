@@ -200,6 +200,7 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<main_page>();
         go_to_page(new_page);
+        self_.on_entered_game(*active_character_);
     }
 
     // ======================================================================

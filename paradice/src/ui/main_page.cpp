@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/ui/main_page.hpp"
+#include "paradice/ui/message.hpp"
 #include <munin/compass_layout.hpp>
 #include <munin/edit.hpp>
 #include <munin/framed_component.hpp>
@@ -71,5 +72,19 @@ main_page::main_page()
 }
 
 main_page::~main_page() = default;
+
+// ==========================================================================
+// DO_EVENT
+// ==========================================================================
+void main_page::do_event(boost::any const &ev)
+{
+    auto *msg = boost::any_cast<message>(&ev);
+
+    if (msg)
+    {
+        pimpl_->text_area_->insert_text(msg->content);
+        pimpl_->text_area_->insert_text("\n\n");
+    }
+}
 
 }}

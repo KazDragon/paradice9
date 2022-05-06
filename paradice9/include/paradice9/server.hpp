@@ -27,9 +27,9 @@
 #ifndef PARADICE9_HPP_
 #define PARADICE9_HPP_
 
+#include "paradice/context.hpp"
 #include <serverpp/core.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/filesystem/path.hpp>
 #include <memory>
 
 namespace paradice9 {
@@ -47,7 +47,7 @@ public :
     server(
         boost::asio::io_context &io_context, 
         serverpp::port_identifier port,
-        boost::filesystem::path const &database_path);
+        paradice::context &context);
     
     //* =====================================================================
     /// Destructor

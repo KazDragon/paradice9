@@ -56,7 +56,7 @@ public :
     /// \brief Constructor
     //* =====================================================================
     client(
-        boost::asio::io_context &io_context, std::shared_ptr<context> ctx);
+        boost::asio::io_context &io_context, context &ctx);
 
     //* =====================================================================
     /// \brief Destructor

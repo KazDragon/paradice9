@@ -53,7 +53,7 @@ public :
     impl(
         boost::asio::io_context &io_context,
         serverpp::port_identifier port,
-        boost::filesystem::path const &database_path)
+        paradice::context &context)
       : io_context_(io_context),
         server_{
           io_context, 
@@ -62,10 +62,7 @@ public :
           {
               on_accept(std::move(new_socket));
           }},
-        context_(std::make_shared<context_impl>(
-              io_context, 
-              database_path,
-              [this](){shutdown();}))
+        context_{context}
     {
     }
 
@@ -197,8 +194,8 @@ private :
                 });
             client->set_connection(cnx);
 
-            context_->add_client(client);
-            // context_->update_names();
+            context_.add_client(client);
+            // context_.update_names();
             
             // If the window's size has been set by the NAWS process,
             // then update it to that.  Otherwise, use the standard 80,24.
@@ -238,7 +235,7 @@ private :
         
         if (client)
         {
-            context_->remove_client(client);
+            context_.remove_client(client);
         }
     }
 
@@ -264,8 +261,7 @@ private :
     
     boost::asio::io_context &io_context_;
     serverpp::tcp_server server_;
-    
-    std::shared_ptr<paradice::context>  context_;
+    paradice::context &context_;
 
     // Clients whose connections are being negotiated.
     std::mutex pending_connections_mutex_;
@@ -283,8 +279,8 @@ private :
 server::server(
     boost::asio::io_context &io_context, 
     serverpp::port_identifier port,
-    boost::filesystem::path const &database_path)
-  : pimpl_(boost::make_unique<impl>(io_context, port, database_path))
+    paradice::context &context)
+  : pimpl_(boost::make_unique<impl>(io_context, port, context))
 {
 }
 

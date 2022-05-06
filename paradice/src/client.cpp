@@ -78,9 +78,9 @@ public :
     // CONSTRUCTOR
     // ======================================================================
     impl(
-        client                  &self,
+        client &self,
         boost::asio::io_context &io_context,
-        std::shared_ptr<context> ctx)
+        context &ctx)
       : self_{self},
         strand_{io_context},
         context_{ctx},
@@ -118,7 +118,7 @@ public :
                         {
                             if (vk.key == terminalpp::vk::uppercase_q)
                             {
-                                context_->shutdown();
+                                context_.shutdown();
                             }
                             else
                             {
@@ -418,7 +418,7 @@ private :
         std::string const &username,
         std::string const &password)
     {
-        return context_->load_account(username, password);
+        return context_.load_account(username, password);
     }
 
     // ======================================================================
@@ -428,7 +428,7 @@ private :
         std::string const &name,
         std::string const &password)
     {
-        return context_->new_account(name, password);
+        return context_.new_account(name, password);
     }
 
     // ======================================================================
@@ -438,7 +438,7 @@ private :
         model::account &acct,
         int index)
     {
-        return context_->load_character(acct, index);
+        return context_.load_character(acct, index);
     }
 
     // ======================================================================
@@ -448,13 +448,13 @@ private :
         model::account &acct,
         std::string const &character_name)
     {
-        return context_->new_character(acct, character_name);
+        return context_.new_character(acct, character_name);
     }
 
     client                                 &self_;
     boost::asio::io_context::strand         strand_;
 
-    std::shared_ptr<context>                context_;
+    context                                &context_;
     std::shared_ptr<connection>             connection_;
 
     std::function<void (terminalpp::bytes)> write_to_connection{
@@ -481,8 +481,8 @@ private :
 // CONSTRUCTOR
 // ==========================================================================
 client::client(
-    boost::asio::io_context &io_context, std::shared_ptr<context> ctx)
-  : pimpl_(std::make_shared<impl>(*this, io_context, std::move(ctx)))
+    boost::asio::io_context &io_context, context &ctx)
+  : pimpl_(std::make_shared<impl>(*this, io_context, ctx))
 {
 }
 

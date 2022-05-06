@@ -25,7 +25,9 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/server.hpp"
+#include "paradice9/context_impl.hpp"
 #include <boost/format.hpp>
+#include <boost/make_unique.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
@@ -127,8 +129,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    std::unique_ptr<paradice9::server> server;
+
     boost::asio::io_context io_context;
-    paradice9::server server{io_context, port, database_path};
+    paradice9::context_impl context{
+        io_context,
+        database_path,
+        [&] { server->shutdown(); }
+    };
+    server = boost::make_unique<paradice9::server>(io_context, port, context);
  
     std::vector<std::thread> threadpool;
 

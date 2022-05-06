@@ -74,13 +74,13 @@ struct user_interface::impl
                     active_account_ = self_.on_login(name, password);
                     go_to_character_selection_page();
                 }
-                catch(...)
-                {
-                }
-                
-                if (!active_account_)
+                catch (no_such_account_error const &)
                 {
                     status_bar_->set_message("Invalid name/password combination");
+                }
+                catch (...)
+                {
+                    status_bar_->set_message("Unable to retrieve account details");
                 }
             });
 

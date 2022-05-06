@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice9 Application
+// Paradice9 Server
 //
 // Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice9/paradice9.hpp"
+#include "paradice9/server.hpp"
 #include "paradice9/context_impl.hpp"
 
 #include <paradice/client.hpp>
@@ -39,10 +39,12 @@
 #include <map>
 #include <utility>
 
+namespace paradice9 {
+
 // ==========================================================================
-// PARADICE9::IMPLEMENTATION STRUCTURE
+// SERVER::IMPLEMENTATION STRUCTURE
 // ==========================================================================
-struct paradice9::impl
+struct server::impl
 {
 public :
     // ======================================================================
@@ -278,7 +280,7 @@ private :
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-paradice9::paradice9(
+server::server(
     boost::asio::io_context &io_context, 
     serverpp::port_identifier port,
     boost::filesystem::path const &database_path)
@@ -289,13 +291,14 @@ paradice9::paradice9(
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-paradice9::~paradice9() = default;
+server::~server() = default;
 
 // ==========================================================================
 // SHUTDOWN
 // ==========================================================================
-void paradice9::shutdown()
+void server::shutdown()
 {
     pimpl_->shutdown();
 }
 
+}

@@ -5,7 +5,6 @@ if (PARADICE9_USE_CONAN)
     )
 
     set(PARADICE_PRIVATE_LIBRARIES
-        CONAN_PKG::cryptopp
         CONAN_PKG::munin
         CONAN_PKG::telnetpp
     )
@@ -14,7 +13,6 @@ else()
     find_package(munin 0.3.11 REQUIRED)
     find_package(telnetpp REQUIRED)
     find_package(Boost COMPONENTS container program_options REQUIRED)
-    find_package(Cryptopp REQUIRED)
     find_package(gsl-lite 0.34 REQUIRED)
     find_package(nlohmann_json REQUIRED)
     find_package(fmt REQUIRED)
@@ -28,11 +26,9 @@ else()
     )
 
     set(PARADICE_PRIVATE_LIBRARIES
-        cryptopp-static
         KazDragon::munin
         KazDragon::telnetpp
         ZLIB::ZLIB)
-
 endif()
 
 
@@ -46,7 +42,6 @@ set (PARADICE_SOURCE_FILES
 #    src/communication.cpp
 #    src/configuration.cpp
     src/connection.cpp
-    src/cryptography.cpp
 #    src/dice_roll_parser.cpp
 #    src/encounter.cpp
 #    src/gm.cpp
@@ -78,7 +73,6 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/configuration.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
-#    include/paradice/cryptography.hpp
 #    include/paradice/dice.hpp
 #    include/paradice/dice_roll_parser.hpp
 #    include/paradice/encounter.hpp
@@ -91,6 +85,9 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/utility.hpp
 #    include/paradice/who.hpp
 
+    include/paradice/model/account.hpp
+    include/paradice/model/character.hpp
+    
     include/paradice/ui/detail/password_edit.hpp
     include/paradice/ui/account_creation_page.hpp
     include/paradice/ui/character_creation_page.hpp

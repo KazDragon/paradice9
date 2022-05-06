@@ -27,7 +27,6 @@
 #ifndef PARADICE_UI_TITLE_PAGE_HPP_
 #define PARADICE_UI_TITLE_PAGE_HPP_
 
-#include "paradice/cryptography.hpp"
 #include <munin/composite_component.hpp>
 #include <munin/button.hpp>
 #include <munin/image.hpp>
@@ -56,7 +55,7 @@ public :
     /// the account name and password attached.
     //* =====================================================================
     boost::signals2::signal<
-        void (std::string const &, encrypted_string const &)
+        void (std::string const &, std::string const &)
     > on_account_login;
 
 private :

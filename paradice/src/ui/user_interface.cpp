@@ -30,6 +30,7 @@
 #include "paradice/ui/character_selection_page.hpp"
 #include "paradice/ui/main_page.hpp"
 #include "paradice/ui/title_page.hpp"
+#include "paradice/context.hpp"
 #include <terminalpp/mouse.hpp>
 #include <terminalpp/virtual_key.hpp>
 #include <munin/brush.hpp>
@@ -66,7 +67,7 @@ struct user_interface::impl
             [this]{go_to_account_creation_page();});
 
         new_page->on_account_login.connect(
-            [this](std::string const &name, encrypted_string const &password)
+            [this](std::string const &name, std::string const &password)
             {
                 try
                 {
@@ -94,23 +95,24 @@ struct user_interface::impl
         auto new_page = std::make_shared<account_creation_page>();
         new_page->on_return.connect([this]{go_to_title_page();});
         new_page->on_next.connect(
-            [this](std::string const &name, encrypted_string const &password)
+            [this](std::string const &name, std::string const &password)
             {
                 try
                 {
                     active_account_ = self_.on_new_account(name, password);
                 }
+                catch (duplicate_account_error const &)
+                {
+                    status_bar_->set_message("An account with that name already exists");
+                }
                 catch(...)
                 {
+                    status_bar_->set_message("Account creation disabled");
                 }
 
                 if (active_account_)
                 {
                     go_to_character_creation_page();
-                }
-                else
-                {
-                    status_bar_->set_message("Account creation disabled");
                 }
             });
 

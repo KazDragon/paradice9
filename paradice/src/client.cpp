@@ -100,8 +100,7 @@ public :
         user_interface_{std::make_shared<ui::user_interface>(animator_)},
         window_{terminal_, user_interface_},
         repaint_requested_{false},
-        cursor_state_changed_{true},
-        cursor_position_changed_{true}
+        cursor_state_changed_{true}
     {
     }
 
@@ -193,7 +192,6 @@ public :
         user_interface_->on_cursor_position_changed.connect(
             [this]()
             {
-                cursor_position_changed_ = true;
                 this->on_repaint();
             });
 
@@ -210,7 +208,7 @@ public :
             });
 
         user_interface_->on_new_account.connect(
-            [this](std::string const &name, encrypted_string const &password)
+            [this](std::string const &name, std::string const &password)
             {
                 return this->on_new_account(name, password);
             });
@@ -314,7 +312,6 @@ public :
     void set_window_size(std::uint16_t width, std::uint16_t height)
     {
         canvas_.resize({width, height});
-        cursor_position_changed_ = true;
         on_repaint();
     }
 
@@ -419,7 +416,7 @@ private :
     // ======================================================================
     model::account on_login(
         std::string const &username,
-        paradice::encrypted_string const &password)
+        std::string const &password)
     {
         return context_->load_account(username, password);
     }
@@ -429,7 +426,7 @@ private :
     // ======================================================================
     model::account on_new_account(
         std::string const &name,
-        encrypted_string const &password)
+        std::string const &password)
     {
         return context_->new_account(name, password);
     }
@@ -478,7 +475,6 @@ private :
     std::string                             last_command_;
     std::atomic_bool                        repaint_requested_;
     std::atomic_bool                        cursor_state_changed_;
-    std::atomic_bool                        cursor_position_changed_;
 };
 
 // ==========================================================================

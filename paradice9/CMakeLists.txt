@@ -4,11 +4,13 @@ if (PARADICE9_USE_CONAN)
         CONAN_PKG::boost
         CONAN_PKG::serverpp
         CONAN_PKG::sqlitecpp
+        CONAN_PKG::cryptopp
 )
 else()
     find_package(serverpp REQUIRED)
     find_package(SQLiteCpp REQUIRED)
     find_package(Boost REQUIRED COMPONENTS filesystem)
+    find_package(Cryptopp REQUIRED)
     find_package(gsl-lite 0.34 REQUIRED)
     find_package(Threads REQUIRED)
 
@@ -16,19 +18,22 @@ else()
         paradice
         KazDragon::serverpp
         SQLiteCpp
+        cryptopp-static
         Boost::filesystem
         Boost::boost)
 endif()
 
 set (PARADICE9_SOURCE_FILES
     src/context_impl.cpp
+    src/cryptography.cpp
     src/main.cpp
-    src/paradice9.cpp
+    src/server.cpp
 )
 
 set (PARADICE9_INCLUDE_FILES
     include/paradice9/context_impl.hpp
-    include/paradice9/paradice9.hpp
+    include/paradice9/cryptography.hpp
+    include/paradice9/server.hpp
 )
 
 add_executable(paradice9

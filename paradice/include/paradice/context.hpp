@@ -101,12 +101,12 @@ public :
     //* =====================================================================
     virtual model::account new_account(
         std::string const &name,
-        encrypted_string const &password) = 0;
+        std::string const &password) = 0;
 
     //* =====================================================================
     /// \brief Saves an account.
     //* =====================================================================
-    virtual void save_account(model::account const &acct) = 0;
+    // virtual void save_account(model::account const &acct) = 0;
 
     //* =====================================================================
     /// \brief Loads an account
@@ -118,7 +118,7 @@ public :
     //* =====================================================================
     virtual model::account load_account(
         std::string const &name,
-        encrypted_string const &password) = 0;
+        std::string const &password) = 0;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and

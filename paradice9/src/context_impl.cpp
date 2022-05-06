@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice9/context_impl.hpp"
+#include "paradice9/cryptography.hpp"
 // #include "paradice/account.hpp"
 // #include "paradice/character.hpp"
 #include "paradice/client.hpp"
@@ -46,6 +47,8 @@
 #include <iostream>
 
 // namespace fs = boost::filesystem;
+
+namespace paradice9 {
 
 // namespace {
 //     static std::shared_ptr<paradice::active_encounter> gm_encounter;
@@ -183,7 +186,7 @@ struct context_impl::impl
     // ======================================================================
     paradice::model::account new_account(
         std::string const &name,
-        paradice::encrypted_string const &password)
+        std::string const &password)
     try
     {
         SQLite::Statement stmt(
@@ -198,15 +201,13 @@ struct context_impl::impl
             ";");
 
         stmt.bind(1, name);
-        stmt.bind(2, password.text);
+        stmt.bind(2, encrypt(password).text);
         stmt.bind(3, 0);
         stmt.bind(4, 0);
 
         stmt.exec();
 
-        return paradice::model::account {
-            name, password
-        };
+        return paradice::model::account{name};
     }
     catch(SQLite::Exception const& ex)
     {
@@ -223,6 +224,7 @@ struct context_impl::impl
     // ======================================================================
     // SAVE_ACCOUNT
     // ======================================================================
+    /*
     void save_account(paradice::model::account const &acct)
     {
         SQLite::Statement stmt(
@@ -243,6 +245,33 @@ struct context_impl::impl
 
         stmt.exec();
     }
+    */
+
+    // ======================================================================
+    // LOAD_ACCOUNT_ID_PASSWORD
+    // ======================================================================
+    int load_account_id_password(
+        paradice::model::account const &account,
+        std::string const &password)
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT id"
+            "    FROM accounts"
+            "    WHERE name=?"
+            "      AND password=?"
+            ";");
+
+        account_query.bind(1, account.name);
+        account_query.bind(2, encrypt(password).text);
+
+        if (!account_query.executeStep())
+        {
+            throw paradice::no_such_account_error{};
+        }
+
+        return account_query.getColumn(0);
+    }
 
     // ======================================================================
     // LOAD_ACCOUNT_ID
@@ -254,11 +283,9 @@ struct context_impl::impl
             "SELECT id"
             "    FROM accounts"
             "    WHERE name=?"
-            "      AND password=?"
             ";");
 
         account_query.bind(1, account.name);
-        account_query.bind(2, account.password.text);
 
         if (!account_query.executeStep())
         {
@@ -297,13 +324,13 @@ struct context_impl::impl
     // ======================================================================
     paradice::model::account load_account(
         std::string const &name,
-        paradice::encrypted_string const &password)
+        std::string const &password)
     {
         paradice::model::account account;
         account.name = name;
-        account.password = password;
         account.character_names = 
-            load_account_character_names(load_account_id(account));
+            load_account_character_names(
+                load_account_id_password(account, password));
 
         return account;
     }
@@ -563,7 +590,7 @@ void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 paradice::model::account context_impl::new_account(
     std::string const &name,
-    paradice::encrypted_string const &password)
+    std::string const &password)
 {
     return pimpl_->new_account(name, password);
 }
@@ -571,17 +598,19 @@ paradice::model::account context_impl::new_account(
 // ==========================================================================
 // SAVE_ACCOUNT
 // ==========================================================================
+/*
 void context_impl::save_account(paradice::model::account const &acct)
 {
     pimpl_->save_account(acct);
 }
+*/
 
 // ==========================================================================
 // LOAD_ACCOUNT
 // ==========================================================================
 paradice::model::account context_impl::load_account(
     std::string const &name,
-    paradice::encrypted_string const &password)
+    std::string const &password)
 {
     return pimpl_->load_account(name, password);
 }
@@ -687,3 +716,5 @@ void context_impl::shutdown()
 //         }
 //     }
 // }
+
+}

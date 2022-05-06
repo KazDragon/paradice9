@@ -31,6 +31,8 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/filesystem/path.hpp>
 
+namespace paradice9 {
+
 //* =========================================================================
 /// \brief Describes the context in which a Paradice server runs.
 //* =========================================================================
@@ -89,12 +91,12 @@ public :
     //* =====================================================================
     paradice::model::account new_account(
         std::string const &name,
-        paradice::encrypted_string const &password) override;
+        std::string const &password) override;
 
     //* =====================================================================
     /// \brief Saves an account.
     //* =====================================================================
-    void save_account(paradice::model::account const &acct) override;
+    // void save_account(paradice::model::account const &acct) override;
 
     //* =====================================================================
     /// \brief Loads an account
@@ -106,7 +108,7 @@ public :
     //* =====================================================================
     paradice::model::account load_account(
         std::string const &name,
-        paradice::encrypted_string const &password) override;
+        std::string const &password) override;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
@@ -173,5 +175,7 @@ private :
     struct impl;
     std::shared_ptr<impl> pimpl_;
 };
+
+}
 
 #endif

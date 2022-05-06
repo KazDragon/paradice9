@@ -59,7 +59,7 @@ public:
     //* =====================================================================
     boost::signals2::signal<
         model::account (
-            std::string const &name, encrypted_string const &password)
+            std::string const &name, std::string const &password)
     > on_new_account;
 
     //* =====================================================================
@@ -67,7 +67,7 @@ public:
     //* =====================================================================
     boost::signals2::signal<
         model::account (
-            std::string const &name, encrypted_string const &password)
+            std::string const &name, std::string const &password)
     > on_login;
 
     //* =====================================================================

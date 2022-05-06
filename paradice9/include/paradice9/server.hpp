@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Cryptography
+// Paradice9 Server
 //
-// Copyright (C) 2011 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,21 +24,45 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#ifndef PARADICE_CRYPTOGRAPHY_HPP_
-#define PARADICE_CRYPTOGRAPHY_HPP_
+#ifndef PARADICE9_HPP_
+#define PARADICE9_HPP_
 
-#include "paradice/export.hpp"
-#include <string>
+#include <serverpp/core.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/filesystem/path.hpp>
+#include <memory>
 
-namespace paradice {
+namespace paradice9 {
+
+//* =========================================================================
+/// \brief A class that implements the main engine for the Paradice9 server.
+/// \brief port - The server will be set up on this port number.
+//* =========================================================================
+class server final
+{
+public :
+    //* =====================================================================
+    /// Constructor
+    //* =====================================================================
+    server(
+        boost::asio::io_context &io_context, 
+        serverpp::port_identifier port,
+        boost::filesystem::path const &database_path);
     
-struct encrypted_string { std::string text; };
+    //* =====================================================================
+    /// Destructor
+    //* =====================================================================
+    ~server();
 
-//* =========================================================================
-/// \brief Encrypts a string.
-//* =========================================================================
-PARADICE_EXPORT 
-encrypted_string encrypt(std::string const &text);
+    //* =====================================================================
+    /// Shuts Paradice9 down.  All running threads are released.
+    //* =====================================================================
+    void shutdown();
+
+private :
+    struct impl;
+    std::unique_ptr<impl> pimpl_;
+};
 
 }
 

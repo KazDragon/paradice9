@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
-#include "paradice9/paradice9.hpp"
+#include "paradice9/server.hpp"
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     }
 
     boost::asio::io_context io_context;
-    paradice9 application{io_context, port, database_path};
+    paradice9::server server{io_context, port, database_path};
  
     std::vector<std::thread> threadpool;
 

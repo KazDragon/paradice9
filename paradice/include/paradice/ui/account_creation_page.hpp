@@ -27,7 +27,6 @@
 #ifndef PARADICE_UI_ACCOUNT_CREATION_PAGE_HPP_
 #define PARADICE_UI_ACCOUNT_CREATION_PAGE_HPP_
 
-#include "paradice/cryptography.hpp"
 #include <munin/composite_component.hpp>
 
 namespace paradice { namespace ui { 
@@ -46,7 +45,7 @@ public :
     > on_return;
 
     boost::signals2::signal<
-        void (std::string const &name, encrypted_string const &password)
+        void (std::string const &name, std::string const &password)
     > on_next;
 
 private :

@@ -98,7 +98,7 @@ public :
         },
         animator_(strand_),
         user_interface_{std::make_shared<ui::user_interface>(animator_)},
-        window_{user_interface_},
+        window_{terminal_, user_interface_},
         repaint_requested_{false},
         cursor_state_changed_{true},
         cursor_position_changed_{true}
@@ -391,7 +391,7 @@ private :
     void do_repaint()
     {
         repaint_requested_ = false;
-        window_.repaint(canvas_, terminal_);
+        window_.repaint(canvas_);
 
         auto const cursor_state = user_interface_->get_cursor_state();
             

@@ -28,6 +28,7 @@ else()
     set(PARADICE_PRIVATE_LIBRARIES
         KazDragon::munin
         KazDragon::telnetpp
+        fmt::fmt
         ZLIB::ZLIB)
 endif()
 

@@ -41,8 +41,8 @@
 #include <terminalpp/terminal.hpp>
 #include <terminalpp/detail/lambda_visitor.hpp>
 #include <boost/asio/io_context_strand.hpp>
-#include <boost/format.hpp>
 #include <boost/range/algorithm/for_each.hpp>
+#include <fmt/format.h>
 #include <cstdio>
 #include <deque>
 #include <mutex>
@@ -207,11 +207,11 @@ public :
                 this->on_repaint();
             });
 
-        // user_interface_->on_input_entered.connect(
-        //     [this](auto const &input)
-        //     {
-        //         this->on_input_entered(input);
-        //     });
+        user_interface_->on_command.connect(
+            [this](auto const &input)
+            {
+                this->on_command(input);
+            });
 
         user_interface_->on_login.connect(
             [this](auto const &name, auto const &pwd)
@@ -463,6 +463,20 @@ private :
         std::string const &character_name)
     {
         return context_.new_character(acct, character_name);
+    }
+
+    // ======================================================================
+    // ON_COMMAND
+    // ======================================================================
+    void on_command(std::string const &input)
+    {
+        context_.send_message(
+            *character_,
+            fmt::format("you say, \"{}\"", input));
+        context_.send_message(
+            context_.get_main_room(),
+            *character_,
+            fmt::format("{} says, \"{}\"", character_->name, input));
     }
 
     client                                 &self_;

@@ -69,6 +69,7 @@ main_page::main_page()
         munin::make_scroll_pane(pimpl_->command_prompt_),
         munin::compass_layout::heading::south);
 
+    pimpl_->command_prompt_->on_command.connect(on_command);
     pimpl_->command_prompt_->set_focus();
 }
 

@@ -37,6 +37,14 @@ public:
     main_page();
     ~main_page() override;
     
+    //* =====================================================================
+    /// \brief Callback for when the player enters a line into the command
+    /// prompt.
+    //* =====================================================================
+    boost::signals2::signal<
+        void (std::string const &)
+    > on_command;
+
 protected:
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this 

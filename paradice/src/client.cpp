@@ -44,6 +44,7 @@
 #include <boost/range/algorithm/for_each.hpp>
 #include <fmt/format.h>
 #include <cstdio>
+#include <array>
 #include <deque>
 #include <mutex>
 #include <string>
@@ -93,7 +94,7 @@ public :
             },
             [this](terminalpp::bytes data)
             {
-                connection_->write(data);
+                write(data);
             },
             create_behaviour()
         },
@@ -113,6 +114,59 @@ public :
                 *character_->in_room,
                 *character_, 
                 character_->name + " has left Paradice");
+        }
+    }
+
+    // ======================================================================
+    // WRITE
+    // ======================================================================
+    void write(terminalpp::bytes data)
+    {
+        do
+        {
+            auto const amount = 
+                std::min(buffer_.size() - buffer_top_,
+                data.size());
+
+            std::copy_n(data.begin(), amount, buffer_.begin() + buffer_top_);
+            buffer_top_ += amount;
+            data = data.subspan(amount);
+
+            if (buffer_top_ == data.size())
+            {
+                flush_immediately();
+            }
+        } while (!data.empty());
+
+        flush();
+    }
+
+    // ======================================================================
+    // FLUSH_IMMEDIATELY
+    // ======================================================================
+    void flush_immediately()
+    {
+        strand_.dispatch(
+            [this]()
+            {
+                flush_requested_ = false;
+                connection_->write({buffer_.begin(), buffer_top_});
+                buffer_top_ = 0;
+            });
+    }
+
+    // ======================================================================
+    // FLUSH
+    // ======================================================================
+    void flush()
+    {
+        if (!std::atomic_exchange(&flush_requested_, true))
+        {
+            strand_.post(
+                [this]()
+                {
+                    flush_immediately();
+                });
         }
     }
 
@@ -485,11 +539,9 @@ private :
     context                                &context_;
     std::shared_ptr<connection>             connection_;
 
-    std::function<void (terminalpp::bytes)> write_to_connection{
-        [this](terminalpp::bytes data)
-        { 
-            connection_->write(data); 
-        }};
+    std::array<terminalpp::byte, 4096>      buffer_;
+    std::array<terminalpp::byte, 4096>::size_type buffer_top_{0};
+    std::atomic<bool>                       flush_requested_{false};
 
     boost::optional<model::character &>     character_;
 

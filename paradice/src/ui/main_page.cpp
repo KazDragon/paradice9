@@ -25,6 +25,7 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 // ==========================================================================
 #include "paradice/ui/main_page.hpp"
+#include "paradice/ui/command_prompt.hpp"
 #include "paradice/ui/message.hpp"
 #include <munin/compass_layout.hpp>
 #include <munin/edit.hpp>
@@ -44,7 +45,7 @@ struct main_page::impl
 {
     std::shared_ptr<munin::image> who_list_ { munin::make_image("You"_ts) };
     std::shared_ptr<munin::text_area> text_area_ { munin::make_text_area() };
-    std::shared_ptr<munin::edit> command_line_ { munin::make_edit() };
+    std::shared_ptr<command_prompt> command_prompt_ { make_command_prompt() };
 };
 
 main_page::main_page()
@@ -65,10 +66,10 @@ main_page::main_page()
         munin::compass_layout::heading::centre);
 
     add_component(
-        munin::make_scroll_pane(pimpl_->command_line_),
+        munin::make_scroll_pane(pimpl_->command_prompt_),
         munin::compass_layout::heading::south);
 
-    pimpl_->command_line_->set_focus();
+    pimpl_->command_prompt_->set_focus();
 }
 
 main_page::~main_page() = default;
@@ -84,6 +85,10 @@ void main_page::do_event(boost::any const &ev)
     {
         pimpl_->text_area_->insert_text(msg->content);
         pimpl_->text_area_->insert_text("\n\n");
+    }
+    else
+    {
+        composite_component::do_event(ev);
     }
 }
 

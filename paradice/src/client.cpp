@@ -39,7 +39,6 @@
 #include <terminalpp/encoder.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/terminal.hpp>
-#include <terminalpp/detail/lambda_visitor.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include <fmt/format.h>
@@ -57,6 +56,9 @@ namespace paradice {
 namespace {
 
 constexpr terminalpp::extent default_window_size{80, 24};
+
+template <typename... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <typename... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 }
 
@@ -178,8 +180,8 @@ public :
         const auto &apply_token = 
             [this](terminalpp::token const &token)
             {
-                boost::apply_visitor(
-                    terminalpp::detail::make_lambda_visitor(
+                std::visit(
+                    overloaded{
                         [this](terminalpp::virtual_key const &vk)
                         {
                             if (vk.key == terminalpp::vk::uppercase_q)
@@ -191,11 +193,16 @@ public :
                                 this->run_on_ui_strand([this, vk]{ window_.event(vk); });
                             }
                         },
-                        [this](auto &&event)
+                        [this](terminalpp::mouse::event const &ev)
                         {
-                            this->run_on_ui_strand([this, event] { window_.event(event); });
-                        }),
-                        token);
+                            this->run_on_ui_strand([this, ev] { window_.event(ev); });
+                        },
+                        [this](terminalpp::control_sequence const &cs)
+                        {
+                            this->run_on_ui_strand([this, cs] { window_.event(cs); });
+                        }
+                    },
+                    token);
             };
     
         boost::for_each(tokens, apply_token);

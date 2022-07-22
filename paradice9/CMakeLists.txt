@@ -7,11 +7,11 @@ if (PARADICE9_USE_CONAN)
         CONAN_PKG::cryptopp
 )
 else()
-    find_package(serverpp REQUIRED)
+    find_package(serverpp 0.2.0 REQUIRED)
     find_package(SQLiteCpp REQUIRED)
     find_package(Boost REQUIRED COMPONENTS filesystem)
     find_package(Cryptopp REQUIRED)
-    find_package(gsl-lite 0.34 REQUIRED)
+    find_package(gsl-lite 0.38 REQUIRED)
     find_package(Threads REQUIRED)
 
     set(PARADICE9_PRIVATE_LIBRARIES

@@ -41,6 +41,23 @@
 
 namespace paradice9 {
 
+namespace {
+
+// ==========================================================================
+// MAKE_BEHAVIOUR
+// ==========================================================================
+terminalpp::behaviour make_behaviour(std::string terminal_type)
+{
+    // TODO: In which we consult a database of terminal types and assign 
+    // their behaviours.
+    terminalpp::behaviour behaviour;
+    behaviour.supports_basic_mouse_tracking = true;
+    behaviour.supports_window_title_bel = true;
+    return behaviour;
+}
+
+}
+
 // ==========================================================================
 // SERVER::IMPLEMENTATION STRUCTURE
 // ==========================================================================
@@ -85,32 +102,20 @@ private :
         // the connection (window size, etc.) are being negotiated.  After
         // that point, this responsibility is handed off to the client object.
         cnx->async_read(
-            [this, wcnx = std::weak_ptr<paradice::connection>(cnx)](
-                serverpp::bytes) 
+            [this, wcnx = std::weak_ptr<paradice::connection>(cnx)](serverpp::bytes)
             {
-                std::shared_ptr<paradice::connection> cnx = wcnx.lock();
-
-                std::unique_lock<std::mutex> lock(pending_connections_mutex_);
-                auto const &pending_cnx = 
-                    boost::find(pending_connections_, cnx);
-
-                if (pending_cnx != pending_connections_.end())
+                // At this point in the negotiation process, we discard all
+                // non-Telnet traffic.
+                // TODO: later, cache it up and feed it into the client as the
+                // first result of async_read, somehow.
+                // Even if data received at the socket was all Telnet protocol,
+                // there will still be a callback here of empty data.  That 
+                // means that if this is called on the received packet with the
+                // terminal type, this callback will occur afterwards.  In that
+                // instance, the shared_ptr will have been destroyed.
+                if (std::shared_ptr<paradice::connection> cnx = wcnx.lock();
+                    cnx)
                 {
-                    lock.unlock();
-                    schedule_next_read(cnx);
-                }
-            },
-            [this, wcnx = std::weak_ptr<paradice::connection>(cnx)]() 
-            {
-                std::shared_ptr<paradice::connection> cnx = wcnx.lock();
-
-                std::unique_lock<std::mutex> lock(pending_connections_mutex_);
-                auto const &pending_cnx = 
-                    boost::find(pending_connections_, cnx);
-
-                if (pending_cnx != pending_connections_.end())
-                {
-                    lock.unlock();
                     if (cnx->is_alive())
                     {
                         schedule_next_read(cnx);
@@ -119,7 +124,6 @@ private :
                     {
                         on_connection_death(cnx);
                     }
-                    
                 }
             });
     }
@@ -167,9 +171,7 @@ private :
     {
         std::cout << "Terminal type is: " << terminal_type << "\n";
         
-        auto cnx = weak_connection.lock();
-        
-        if (cnx)
+        if (auto cnx = weak_connection.lock(); cnx)
         {
             std::unique_lock<std::mutex> lock(pending_connections_mutex_);
             auto pending_cnx = boost::find(pending_connections_, cnx);
@@ -184,59 +186,56 @@ private :
             pending_connections_.erase(pending_cnx);
             lock.unlock();
 
+            // If the window's size has been set by the NAWS process,
+            // then update it to that.  Otherwise, use the standard 80,24.
+            std::unique_lock<std::mutex> pending_size_lock(pending_sizes_mutex_);
+            std::pair<std::uint16_t, std::uint16_t> window_size{80, 24};
+
+            if (auto psize = pending_sizes_.find(cnx);
+                psize != pending_sizes_.end())
+            {
+                window_size = psize->second;
+                pending_sizes_.erase(cnx);
+            }
+
             auto client =
-                std::make_shared<paradice::client>(io_context_, context_);
+                std::make_shared<paradice::client>(
+                    io_context_, 
+                    context_,
+                    std::move(*cnx),
+                    make_behaviour(terminal_type));
+
+            client->set_window_size(window_size.first, window_size.second);
             
             client->on_connection_death(
                 [this, wclient = std::weak_ptr<paradice::client>(client)]
                 {
-                    on_client_death(wclient);
+                    if (auto client = wclient.lock(); client)
+                    {
+                        on_client_death(client);
+                    }
                 });
-            client->set_connection(cnx);
 
             context_.add_client(client);
             // context_.update_names();
-            
-            // If the window's size has been set by the NAWS process,
-            // then update it to that.  Otherwise, use the standard 80,24.
-            std::unique_lock<std::mutex> pending_size_lock(pending_sizes_mutex_);
-            auto psize = pending_sizes_.find(cnx);
-            
-            if (psize != pending_sizes_.end())
-            {
-                client->set_window_size(
-                    psize->second.first
-                  , psize->second.second);
-                pending_sizes_.erase(cnx);
-            }
-            else
-            {
-                pending_size_lock.unlock();
-                client->set_window_size(80, 24);
-            }
         }
     }
     
     // ======================================================================
     // ON_CONNECTION_DEATH
     // ======================================================================
-    void on_connection_death(std::weak_ptr<paradice::connection> const &wcnx)
+    void on_connection_death(std::shared_ptr<paradice::connection> const &cnx)
     {
         std::lock_guard<std::mutex> _(pending_connections_mutex_);
-        boost::remove_erase(pending_connections_, wcnx.lock());
+        boost::remove_erase(pending_connections_, cnx);
     }
     
     // ======================================================================
     // ON_CLIENT_DEATH
     // ======================================================================
-    void on_client_death(std::weak_ptr<paradice::client> const &weak_client)
+    void on_client_death(std::shared_ptr<paradice::client> const &client)
     {
-        auto client = weak_client.lock();
-        
-        if (client)
-        {
-            context_.remove_client(client);
-        }
+        context_.remove_client(client);
     }
 
     // ======================================================================
@@ -244,8 +243,8 @@ private :
     // ======================================================================
     void on_window_size_changed(
         std::weak_ptr<paradice::connection> weak_connection,
-        std::uint16_t                           width,
-        std::uint16_t                           height)
+        std::uint16_t width,
+        std::uint16_t height)
     {
         // This is only called during the negotiation process.  We save
         // the size so that it can be given to the client once the process

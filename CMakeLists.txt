@@ -6,7 +6,7 @@ if (POLICY CMP0063)
     cmake_policy(SET CMP0063 NEW)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)

@@ -47,39 +47,39 @@ struct connection::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(std::unique_ptr<connection::endpoint> &&endpoint)
-      : endpoint_(std::move(endpoint))
+    impl(std::unique_ptr<connection::channel_concept> &&channel)
+      : channel_(std::move(channel))
     {
         telnet_naws_client_.on_window_size_changed.connect(
-            [this](auto &&width, auto &&height, auto &&continuation)
+            [this](auto &&width, auto &&height)
             {
                 this->on_window_size_changed(width, height);
             });
 
         telnet_terminal_type_client_.on_terminal_type.connect(
-            [this](auto &&type, auto &&continuation)
+            [this](auto &&type)
             {
                 std::string user_type(type.begin(), type.end());
                 this->on_terminal_type_detected(user_type);
             });
 
         telnet_terminal_type_client_.on_state_changed.connect(
-            [this](auto &&continuation)
+            [this]()
             {
                 if (telnet_terminal_type_client_.active())
                 {
-                    telnet_terminal_type_client_.request_terminal_type(continuation);
+                    telnet_terminal_type_client_.request_terminal_type();
                 }
             });
 
         telnet_mccp_server_.on_state_changed.connect(
-            [this](auto &&continuation)
+            [this]()
             {
                 mccp_active_ = telnet_mccp_server_.active();
 
                 if (mccp_active_)
                 {
-                    telnet_mccp_server_.start_compression(continuation);
+                    telnet_mccp_server_.start_compression();
                 }
             });
 
@@ -90,17 +90,11 @@ struct connection::impl
         telnet_session_.install(telnet_mccp_server_);
         
         // Send the required activations.
-        auto const &write_continuation = 
-            [this](telnetpp::element const &elem)
-            {
-                this->write(elem);
-            };
-
-        telnet_echo_server_.activate(write_continuation);
-        telnet_suppress_ga_server_.activate(write_continuation);
-        telnet_naws_client_.activate(write_continuation);
-        telnet_terminal_type_client_.activate(write_continuation);
-        telnet_mccp_server_.activate(write_continuation);
+        telnet_echo_server_.activate();
+        telnet_suppress_ga_server_.activate();
+        telnet_naws_client_.activate();
+        telnet_terminal_type_client_.activate();
+        telnet_mccp_server_.activate();
     }
 
     // ======================================================================
@@ -108,7 +102,7 @@ struct connection::impl
     // ======================================================================
     void close()
     {
-        endpoint_->close();
+        channel_->close();
     }
 
     // ======================================================================
@@ -116,7 +110,7 @@ struct connection::impl
     // ======================================================================
     bool is_alive() const
     {
-        return endpoint_->is_alive();
+        return channel_->is_alive();
     }
 
     // ======================================================================
@@ -130,12 +124,12 @@ struct connection::impl
                 data,
                 [this](telnetpp::bytes compressed_data, bool)
                 {
-                    this->endpoint_->write(compressed_data);
+                    this->channel_->write(compressed_data);
                 });
         }
         else
         {
-            endpoint_->write(data);
+            channel_->write(data);
         }
     }
     
@@ -144,39 +138,26 @@ struct connection::impl
     // ======================================================================
     void write(telnetpp::element const &data)
     {
-        telnet_session_.send(
-            data, 
-            [this](telnetpp::bytes data)
-            {
-                this->raw_write(data);
-            });
+        telnet_session_.write(data);
     }
 
     // ======================================================================
     // ASYNC_READ
     // ======================================================================
-    void async_read(
-        std::function<void (bytes)> const &data_continuation,
-        std::function<void ()> const &read_complete_continuation)
+    void async_read(std::function<void (bytes)> const &callback)
     {
-        endpoint_->async_read(
-            [=](bytes data)
+        telnet_session_.async_read([this, callback](bytes data) {
+            if (data.empty())
             {
-                telnet_session_.receive(
-                    data, 
-                    [=](telnetpp::bytes data, auto &&send)
-                    {
-                        data_continuation(data);
-                    },
-                    [=](telnetpp::bytes data)
-                    {
-                        this->raw_write(data);
-                    });
-            },
-            [=]()
+                telnetpp::byte_storage result;
+                std::swap(telnet_read_cache_, result);
+                callback(result);
+            }
+            else
             {
-                read_complete_continuation();
-            });
+                telnet_read_cache_.append(data.begin(), data.end());
+            }
+        });
     }
 
     // ======================================================================
@@ -217,15 +198,16 @@ struct connection::impl
         }
     }
 
-    std::unique_ptr<connection::endpoint>                endpoint_;
+    std::unique_ptr<connection::channel_concept>         channel_;
 
-    telnetpp::session                                    telnet_session_;
-    telnetpp::options::echo::server                      telnet_echo_server_;
-    telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_;
+    telnetpp::session                                    telnet_session_{*channel_};
+    telnetpp::options::echo::server                      telnet_echo_server_{telnet_session_};
+    telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_{telnet_session_};
     telnetpp::options::mccp::zlib::compressor            telnet_mccp_compressor_;
-    telnetpp::options::mccp::server                      telnet_mccp_server_{telnet_mccp_compressor_};
-    telnetpp::options::naws::client                      telnet_naws_client_;
-    telnetpp::options::terminal_type::client             telnet_terminal_type_client_;
+    telnetpp::options::mccp::server                      telnet_mccp_server_{telnet_session_, telnet_mccp_compressor_};
+    telnetpp::options::naws::client                      telnet_naws_client_{telnet_session_};
+    telnetpp::options::terminal_type::client             telnet_terminal_type_client_{telnet_session_};
+    telnetpp::byte_storage                               telnet_read_cache_;
     
     std::function<void (std::uint16_t, std::uint16_t)>   on_window_size_changed_;
 
@@ -238,7 +220,7 @@ struct connection::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-connection::connection(std::unique_ptr<endpoint> ep)
+connection::connection(std::unique_ptr<channel_concept> ep)
     : pimpl_(std::make_unique<impl>(std::move(ep)))
 {
 }
@@ -277,11 +259,9 @@ bool connection::is_alive() const
 // ==========================================================================
 // ASYNC_READ
 // ==========================================================================
-void connection::async_read(
-    std::function<void (bytes)> const &data_continuation,
-    std::function<void ()> const &read_complete_continuation)
+void connection::async_read(std::function<void (bytes)> const &callback)
 {
-    pimpl_->async_read(data_continuation, read_complete_continuation);
+    pimpl_->async_read(callback);
 }
 
 // ==========================================================================

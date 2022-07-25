@@ -29,6 +29,7 @@
 
 #include "paradice/export.hpp"
 #include "paradice/ui/message.hpp"
+#include <terminalpp/behaviour.hpp>
 #include <terminalpp/string.hpp>
 #include <functional>
 #include <memory>
@@ -51,24 +52,21 @@ namespace boost { namespace asio {
 namespace paradice {
 
 class PARADICE_EXPORT client
-    : public std::enable_shared_from_this<client>
 {
 public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
     client(
-        boost::asio::io_context &io_context, context &ctx);
+        boost::asio::io_context &io_context, 
+        context &ctx,
+        connection &&cnx,
+        terminalpp::behaviour beh);
 
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
     ~client();
-
-    //* =====================================================================
-    /// \brief Sets the connection on which this client operates.
-    //* =====================================================================
-    void set_connection(std::shared_ptr<connection> const &new_connection);
 
     //* =====================================================================
     /// \brief Sets the title of the client's window

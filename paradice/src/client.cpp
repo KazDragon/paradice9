@@ -68,15 +68,6 @@ template <typename... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 class client::impl
     : public std::enable_shared_from_this<client::impl>
 {
-    static terminalpp::behaviour create_behaviour()
-    {
-        terminalpp::behaviour behaviour;
-        behaviour.supports_basic_mouse_tracking = true;
-        behaviour.supports_window_title_bel = true;
-        
-        return behaviour;
-    }
-    
 public :
     // ======================================================================
     // CONSTRUCTOR
@@ -84,164 +75,23 @@ public :
     impl(
         client &self,
         boost::asio::io_context &io_context,
-        context &ctx)
+        context &ctx,
+        connection &&cnx,
+        terminalpp::behaviour beh)
       : self_{self},
         strand_{io_context},
         context_{ctx},
         canvas_{default_window_size},
-        terminal_{
-            [this](terminalpp::tokens const &tokens)
-            {
-                on_tokens_read(tokens);
-            },
-            [this](terminalpp::bytes data)
-            {
-                write(data);
-            },
-            create_behaviour()
-        },
+        connection_{std::move(cnx)},
+        terminal_{connection_, beh},
         animator_(strand_),
         user_interface_{std::make_shared<ui::user_interface>(animator_)},
         window_{terminal_, user_interface_},
         repaint_requested_{false},
         cursor_state_changed_{true}
     {
-    }
-
-    ~impl()
-    {
-        if (character_ && character_->in_room)
-        {
-            context_.send_message(
-                *character_->in_room,
-                *character_, 
-                character_->name + " has left Paradice");
-        }
-    }
-
-    // ======================================================================
-    // WRITE
-    // ======================================================================
-    void write(terminalpp::bytes data)
-    {
-        do
-        {
-            auto const amount = 
-                std::min(buffer_.size() - buffer_top_,
-                data.size());
-
-            std::copy_n(data.begin(), amount, buffer_.begin() + buffer_top_);
-            buffer_top_ += amount;
-            data = data.subspan(amount);
-
-            if (buffer_top_ == data.size())
-            {
-                flush_immediately();
-            }
-        } while (!data.empty());
-
-        flush();
-    }
-
-    // ======================================================================
-    // FLUSH_IMMEDIATELY
-    // ======================================================================
-    void flush_immediately()
-    {
-        strand_.dispatch(
-            [this]()
-            {
-                flush_requested_ = false;
-                connection_->write({buffer_.begin(), buffer_top_});
-                buffer_top_ = 0;
-            });
-    }
-
-    // ======================================================================
-    // FLUSH
-    // ======================================================================
-    void flush()
-    {
-        if (!std::atomic_exchange(&flush_requested_, true))
-        {
-            strand_.post(
-                [this]()
-                {
-                    flush_immediately();
-                });
-        }
-    }
-
-    // ======================================================================
-    // ON_TOKENS_READ
-    // ======================================================================
-    void on_tokens_read(terminalpp::tokens const &tokens)
-    {
-        const auto &apply_token = 
-            [this](terminalpp::token const &token)
-            {
-                std::visit(
-                    overloaded{
-                        [this](terminalpp::virtual_key const &vk)
-                        {
-                            if (vk.key == terminalpp::vk::uppercase_q)
-                            {
-                                context_.shutdown();
-                            }
-                            else
-                            {
-                                this->run_on_ui_strand([this, vk]{ window_.event(vk); });
-                            }
-                        },
-                        [this](terminalpp::mouse::event const &ev)
-                        {
-                            this->run_on_ui_strand([this, ev] { window_.event(ev); });
-                        },
-                        [this](terminalpp::control_sequence const &cs)
-                        {
-                            this->run_on_ui_strand([this, cs] { window_.event(cs); });
-                        }
-                    },
-                    token);
-            };
-    
-        boost::for_each(tokens, apply_token);
-    }
-
-    // ======================================================================
-    // SCHEDULE_NEXT_READ
-    // ======================================================================
-    void schedule_next_read()
-    {
-        assert(connection_);
-
-        connection_->async_read(
-            [this](bytes data)
-            {
-                terminal_ >> data;
-            },
-            [this]
-            {
-                if (connection_->is_alive())
-                {
-                    schedule_next_read();
-                }
-                else
-                {
-                    on_connection_death_();
-                }
-            });
-    }
-
-    // ======================================================================
-    // SET_CONNECTION
-    // ======================================================================
-    void set_connection(std::shared_ptr<connection> cnx)
-    {
-        connection_ = cnx;
-
         // CONNECTION CALLBACKS
-        connection_->on_window_size_changed(
+        connection_.on_window_size_changed(
             [this](auto const &width, auto const &height)
             {
                 this->on_window_size_changed(width, height);
@@ -363,6 +213,127 @@ public :
         schedule_next_read();
     }
 
+    ~impl()
+    {
+        if (character_ && character_->in_room)
+        {
+            context_.send_message(
+                *character_->in_room,
+                *character_, 
+                character_->name + " has left Paradice");
+        }
+    }
+
+    // ======================================================================
+    // WRITE
+    // ======================================================================
+    void write(terminalpp::bytes data)
+    {
+        do
+        {
+            auto const amount = 
+                std::min(buffer_.size() - buffer_top_,
+                data.size());
+
+            std::copy_n(data.begin(), amount, buffer_.begin() + buffer_top_);
+            buffer_top_ += amount;
+            data = data.subspan(amount);
+
+            if (buffer_top_ == data.size())
+            {
+                flush_immediately();
+            }
+        } while (!data.empty());
+
+        flush();
+    }
+
+    // ======================================================================
+    // FLUSH_IMMEDIATELY
+    // ======================================================================
+    void flush_immediately()
+    {
+        strand_.dispatch(
+            [this]()
+            {
+                flush_requested_ = false;
+                terminal_.write({buffer_.begin(), buffer_top_});
+                buffer_top_ = 0;
+            });
+    }
+
+    // ======================================================================
+    // FLUSH
+    // ======================================================================
+    void flush()
+    {
+        if (!std::atomic_exchange(&flush_requested_, true))
+        {
+            strand_.post(
+                [this]()
+                {
+                    flush_immediately();
+                });
+        }
+    }
+
+    // ======================================================================
+    // ON_TOKENS_READ
+    // ======================================================================
+    void on_tokens_read(terminalpp::tokens const &tokens)
+    {
+        const auto &apply_token = 
+            [this](terminalpp::token const &token)
+            {
+                std::visit(
+                    overloaded{
+                        [this](terminalpp::virtual_key const &vk)
+                        {
+                            if (vk.key == terminalpp::vk::uppercase_q)
+                            {
+                                context_.shutdown();
+                            }
+                            else
+                            {
+                                this->run_on_ui_strand([this, vk]{ window_.event(vk); });
+                            }
+                        },
+                        [this](terminalpp::mouse::event const &ev)
+                        {
+                            this->run_on_ui_strand([this, ev] { window_.event(ev); });
+                        },
+                        [this](terminalpp::control_sequence const &cs)
+                        {
+                            this->run_on_ui_strand([this, cs] { window_.event(cs); });
+                        }
+                    },
+                    token);
+            };
+    
+        boost::for_each(tokens, apply_token);
+    }
+
+    // ======================================================================
+    // SCHEDULE_NEXT_READ
+    // ======================================================================
+    void schedule_next_read()
+    {
+        terminal_.async_read(
+            [this](terminalpp::tokens data)
+            {
+                on_tokens_read(data);
+
+                if (terminal_.is_alive())
+                {
+                    schedule_next_read();
+                }
+                else
+                {
+                    on_connection_death_();
+                }
+            });
+    }
+
     // ======================================================================
     // SET_WINDOW_TITLE
     // ======================================================================
@@ -390,7 +361,7 @@ public :
             << terminalpp::show_cursor()
             << terminalpp::use_normal_screen_buffer();
 
-        connection_->close();
+        connection_.close();
     }
 
     // ======================================================================
@@ -544,7 +515,7 @@ private :
     boost::asio::io_context::strand         strand_;
 
     context                                &context_;
-    std::shared_ptr<connection>             connection_;
+    connection                              connection_;
 
     std::array<terminalpp::byte, 4096>      buffer_;
     std::array<terminalpp::byte, 4096>::size_type buffer_top_{0};
@@ -570,8 +541,11 @@ private :
 // CONSTRUCTOR
 // ==========================================================================
 client::client(
-    boost::asio::io_context &io_context, context &ctx)
-  : pimpl_(std::make_shared<impl>(*this, io_context, ctx))
+    boost::asio::io_context &io_context, 
+    context &ctx,
+    connection &&cnx,
+    terminalpp::behaviour beh)
+  : pimpl_(std::make_shared<impl>(*this, io_context, ctx, std::move(cnx), beh))
 {
 }
 
@@ -579,22 +553,6 @@ client::client(
 // DESTRUCTOR
 // ==========================================================================
 client::~client() = default;
-
-// ==========================================================================
-// SET_CONNECTION
-// ==========================================================================
-void client::set_connection(std::shared_ptr<connection> const &cnx)
-{
-    pimpl_->set_connection(cnx);
-}
-
-// ==========================================================================
-// GET_USER_INTERFACE
-// ==========================================================================
-// std::shared_ptr<hugin::user_interface> client::get_user_interface()
-// {
-//     return pimpl_->get_user_interface();
-// }
 
 // ==========================================================================
 // SET_WINDOW_TITLE
@@ -617,8 +575,6 @@ void client::set_window_size(std::uint16_t width, std::uint16_t height)
 // ==========================================================================
 void client::disconnect()
 {
-    // pimpl_->get_window()->use_normal_screen_buffer();
-    // pimpl_->get_window()->disable_mouse_tracking();
     pimpl_->disconnect();
 }
 

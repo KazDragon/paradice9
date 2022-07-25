@@ -35,7 +35,7 @@
 namespace paradice {
 
 //* =========================================================================
-/// \brief An connection to a communication endpoint (e.g. a TCP socket) that 
+/// \brief An connection to a communication channel (e.g. a TCP socket) that 
 /// abstracts away details about the protocols used.
 //* =========================================================================
 class PARADICE_EXPORT connection
@@ -43,14 +43,14 @@ class PARADICE_EXPORT connection
 public :
     //* =====================================================================
     /// \brief Create a connection object that communicates with the passed-
-    /// in communications endpoint.
+    /// in communications channel.
     //* =====================================================================
-    template <class Endpoint>
-    explicit connection(Endpoint &&ep)
+    template <class Channel>
+    explicit connection(Channel &&ep)
       : connection(
-            std::unique_ptr<endpoint>(
-                std::make_unique<model<Endpoint>>(
-                    std::forward<Endpoint>(ep))))
+            std::unique_ptr<channel_concept>(
+                std::make_unique<channel_model<Channel>>(
+                    std::forward<Channel>(ep))))
     {
     }
 
@@ -75,7 +75,7 @@ public :
     void close();
 
     //* =====================================================================
-    /// \brief Returns whether the endpoint of the connection is still
+    /// \brief Returns whether the channel of the connection is still
     ///        alive.
     //* =====================================================================
     bool is_alive() const;
@@ -89,9 +89,7 @@ public :
     /// provided to show that the requested read has been completed and a
     /// new read request may be issued.
     //* =====================================================================
-    void async_read(
-        std::function<void (bytes)> const &data_continuation,
-        std::function<void ()> const &read_complete_continuation);
+    void async_read(std::function<void (bytes)> const &data_continuation);
 
     //* =====================================================================
     /// \brief Writes to the connection.
@@ -112,59 +110,50 @@ public :
         std::function<void (std::uint16_t, std::uint16_t)> const &continuation);
 
 private :
-    struct endpoint
+    struct channel_concept
     {
-        virtual ~endpoint() = default;
-        virtual void async_read(
-            std::function<void (bytes)> const &data_continuation,
-            std::function<void ()> const &read_complete_continuation) = 0;
+        virtual ~channel_concept() = default;
+        virtual void async_read(std::function<void (bytes)> const &callback) = 0;
         virtual void write(bytes data) = 0;
         virtual bool is_alive() const = 0;
         virtual void close() = 0;
     };
 
-    template <typename Endpoint>
-    struct model final : endpoint
+    template <typename Channel>
+    struct channel_model final : channel_concept
     {
-        model(Endpoint &&ep)
-          : endpoint_(std::forward<Endpoint>(ep))
+        channel_model(Channel &&ep)
+          : channel_(std::forward<Channel>(ep))
         {
         }
 
-        void async_read(
-            std::function<void (bytes)> const &data_continuation,
-            std::function<void ()> const &read_complete_continuation) override
+        void async_read(std::function<void (bytes)> const &callback) override
         {
-            endpoint_.async_read(
-                [=](bytes data)
-                {
-                    data_continuation(data);
-                    read_complete_continuation();
-                });
+            channel_.async_read(callback);
         }
 
         void write(bytes data) override
         {
-            endpoint_.write(data);
+            channel_.write(data);
         }
 
         bool is_alive() const override
         {
-            return endpoint_.is_alive();
+            return channel_.is_alive();
         }
 
         void close() override
         {
-            endpoint_.close();
+            channel_.close();
         }
 
-        Endpoint endpoint_;
+        Channel channel_;
     };
 
     // ======================================================================
     // Internal Constructor
     // ======================================================================
-    connection(std::unique_ptr<endpoint> ep);
+    connection(std::unique_ptr<channel_concept> ep);
 
     struct impl;
     friend struct impl;

@@ -12,7 +12,7 @@ else()
     find_package(terminalpp 3.0.0 REQUIRED)
     find_package(munin 0.7.1 REQUIRED)
     find_package(telnetpp 3.0.0 REQUIRED)
-    find_package(consolepp 0.1.1) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+    find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
     find_package(Boost COMPONENTS program_options container REQUIRED)
     find_package(gsl-lite 0.38 REQUIRED)
     find_package(nlohmann_json REQUIRED)

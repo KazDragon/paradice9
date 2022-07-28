@@ -24,6 +24,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Get latest cmake
+      shell: bash
+      run: pip install --upgrade cmake
+
     - name: Install latest Boost
       shell: bash
       run: |

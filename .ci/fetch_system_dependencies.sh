@@ -5,7 +5,7 @@ export EXTERNAL_BUILD_ROOT=$HOME/external_build
 
 mkdir "$EXTERNAL_BUILD_ROOT" || true
 
-# Note: Crypto++ and libfmt are installed from apt in build.yml.
+# Note: libfmt is installed from apt in build.yml.
 
 # Install nlohmann_json dependency
 if [ ! -f "$EXTERNAL_ROOT/include/nlohmann/json.hpp" ]; then
@@ -39,6 +39,18 @@ if [ ! -f "$EXTERNAL_ROOT/include/SQLiteCpp/SQLiteCpp.h" ]; then
     cd ..;
 fi
 
+# Install Crypto++ dependency
+if [ ! -f "$EXTERNAL_ROOT/include/cryptopp/cryptlib.h" ]; then
+    cd "$EXTERNAL_BUILD_ROOT";
+    wget https://github.com/weidai11/cryptopp/archive/refs/tags/CRYPTOPP_8_6_0.tar.gz -O - | tar xz;
+    cd cryptopp-CRYPTOPP_8_6_0;
+    wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt;
+    wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake;
+    cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DBUILD_TESTING=OFF -DCRYPTOPP_DATA_DIR="" .;
+    cmake --build . -j2 --target=install --verbose;
+    cd ..;
+fi
+
 # Install gtest dependency
 if [ ! -f "$EXTERNAL_ROOT/include/gtest/gtest.h" ]; then
     cd "$EXTERNAL_BUILD_ROOT";
@@ -51,7 +63,7 @@ if [ ! -f "$EXTERNAL_ROOT/include/gtest/gtest.h" ]; then
 fi
 
 # Install Server++ dependency
-if [ ! -f "$EXTERNAL_ROOT/include/serverpp/version.hpp" ]; then
+if [ ! -f "$EXTERNAL_ROOT/include/serverpp-0.2.0/serverpp/version.hpp" ]; then
     wget https://github.com/KazDragon/serverpp/archive/refs/tags/v0.2.0.tar.gz;
     tar -xzf v0.2.0.tar.gz;
     cd serverpp-0.2.0;
@@ -61,7 +73,7 @@ if [ ! -f "$EXTERNAL_ROOT/include/serverpp/version.hpp" ]; then
 fi
 
 # Install Telnet++ dependency
-if [ ! -f "$EXTERNAL_ROOT/include/telnetpp/version.hpp" ]; then
+if [ ! -f "$EXTERNAL_ROOT/include/telnetpp-3.0.0/telnetpp/version.hpp" ]; then
     wget https://github.com/KazDragon/telnetpp/archive/v3.0.0.tar.gz -O - | tar xz;
     cd telnetpp-3.0.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DTELNETPP_WITH_TESTS=False -DTELNETPP_WITH_ZLIB=ON -DTELNETPP_VERSION="3.0.0" .;
@@ -70,16 +82,16 @@ if [ ! -f "$EXTERNAL_ROOT/include/telnetpp/version.hpp" ]; then
 fi
 
 # Install Terminal++ dependency
-if [ ! -f "$EXTERNAL_ROOT/include/terminalpp/version.hpp" ]; then
+if [ ! -f "$EXTERNAL_ROOT/include/terminalpp-3.0.2/terminalpp/version.hpp" ]; then
     wget https://github.com/KazDragon/terminalpp/archive/v3.0.2.tar.gz -O - | tar xz;
     cd terminalpp-3.0.2;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DTERMINALPP_WITH_TESTS=False -DTERMINALPP_VERSION="3.0.2" .;
-    make VERBOSE=1 && make install;
+    make -j2 && make install;
     cd ..;
 fi
 
 # Install Munin dependency
-if [ ! -f "$EXTERNAL_ROOT/include/munin/version.hpp" ]; then
+if [ ! -f "$EXTERNAL_ROOT/include/munin-0.7.1/munin/version.hpp" ]; then
     wget https://github.com/KazDragon/munin/archive/refs/tags/v0.7.1.tar.gz;
     tar -xzf v0.7.1.tar.gz;
     cd munin-0.7.1;
@@ -87,3 +99,5 @@ if [ ! -f "$EXTERNAL_ROOT/include/munin/version.hpp" ]; then
     make -j2 && make install;
     cd ..;
 fi
+
+echo Finished installing dependencies.

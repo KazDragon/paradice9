@@ -9,7 +9,7 @@ if (PARADICE9_USE_CONAN)
         CONAN_PKG::telnetpp
     )
 else()
-    find_package(terminalpp 3.0.1 REQUIRED)
+    find_package(terminalpp 3.0.2 REQUIRED)
     find_package(munin 0.7.1 REQUIRED)
     find_package(telnetpp 3.0.0 REQUIRED)
     find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.

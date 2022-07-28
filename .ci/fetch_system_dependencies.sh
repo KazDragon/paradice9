@@ -10,32 +10,29 @@ mkdir "$EXTERNAL_BUILD_ROOT" || true
 # Install nlohmann_json dependency
 if [ ! -f "$EXTERNAL_ROOT/include/nlohmann/json.hpp" ]; then
     cd "$EXTERNAL_BUILD_ROOT";
-    wget https://github.com/nlohmann/json/archive/v3.3.0.tar.gz;
-    tar -xzf v3.3.0.tar.gz;
+    wget https://github.com/nlohmann/json/archive/v3.3.0.tar.gz -O - | tar xz;
     cd json-3.3.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DJSON_BuildTests=Off .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..
 fi
 
 # Install gsl-lite dependency
 if [ ! -f "$EXTERNAL_ROOT/include/gsl/gsl-lite.hpp" ]; then
     cd "$EXTERNAL_BUILD_ROOT";
-    wget https://github.com/gsl-lite/gsl-lite/archive/v0.38.0.tar.gz;
-    tar -xzf v0.38.0.tar.gz;
+    wget https://github.com/gsl-lite/gsl-lite/archive/v0.38.0.tar.gz -O - | tar xz;
     cd gsl-lite-0.38.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DGSL_LITE_OPT_BUILD_TESTS=Off .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 
 # Install SQLiteCpp dependency
 if [ ! -f "$EXTERNAL_ROOT/include/SQLiteCpp/SQLiteCpp.h" ]; then
-    wget https://github.com/SRombauts/SQLiteCpp/archive/refs/tags/3.1.1.tar.gz;
-    tar -xzf 3.1.1.tar.gz;
+    wget https://github.com/SRombauts/SQLiteCpp/archive/refs/tags/3.1.1.tar.gz -O - | tar xz;
     cd SQLiteCpp-3.1.1
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 
@@ -47,28 +44,26 @@ if [ ! -f "$EXTERNAL_ROOT/include/cryptopp/cryptlib.h" ]; then
     wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt;
     wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DBUILD_TESTING=OFF -DCRYPTOPP_DATA_DIR="" .;
-    cmake --build . -j2 --target=install --verbose;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 
 # Install gtest dependency
 if [ ! -f "$EXTERNAL_ROOT/include/gtest/gtest.h" ]; then
     cd "$EXTERNAL_BUILD_ROOT";
-    wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz;
-    tar -xzf release-1.10.0.tar.gz;
+    wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz -O - | tar xz;
     cd googletest-release-1.10.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..
 fi
 
 # Install Server++ dependency
 if [ ! -f "$EXTERNAL_ROOT/include/serverpp-0.2.0/serverpp/version.hpp" ]; then
-    wget https://github.com/KazDragon/serverpp/archive/refs/tags/v0.2.0.tar.gz;
-    tar -xzf v0.2.0.tar.gz;
+    wget https://github.com/KazDragon/serverpp/archive/refs/tags/v0.2.0.tar.gz -O - | tar xz;
     cd serverpp-0.2.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DSERVERPP_WITH_TESTS=False -DSERVERPP_VERSION="0.2.0" .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 
@@ -77,7 +72,7 @@ if [ ! -f "$EXTERNAL_ROOT/include/telnetpp-3.0.0/telnetpp/version.hpp" ]; then
     wget https://github.com/KazDragon/telnetpp/archive/v3.0.0.tar.gz -O - | tar xz;
     cd telnetpp-3.0.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DTELNETPP_WITH_TESTS=False -DTELNETPP_WITH_ZLIB=ON -DTELNETPP_VERSION="3.0.0" .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 
@@ -86,17 +81,16 @@ if [ ! -f "$EXTERNAL_ROOT/include/terminalpp-3.0.2/terminalpp/version.hpp" ]; th
     wget https://github.com/KazDragon/terminalpp/archive/v3.0.2.tar.gz -O - | tar xz;
     cd terminalpp-3.0.2;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DTERMINALPP_WITH_TESTS=False -DTERMINALPP_VERSION="3.0.2" .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 
 # Install Munin dependency
 if [ ! -f "$EXTERNAL_ROOT/include/munin-0.7.1/munin/version.hpp" ]; then
-    wget https://github.com/KazDragon/munin/archive/refs/tags/v0.7.1.tar.gz;
-    tar -xzf v0.7.1.tar.gz;
+    wget https://github.com/KazDragon/munin/archive/refs/tags/v0.7.1.tar.gz -O - | tar xz;
     cd munin-0.7.1;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DMUNIN_WITH_TESTS=False -DMUNIN_VERSION="0.7.1" .;
-    make -j2 && make install;
+    cmake --build . -j2 --target=install;
     cd ..;
 fi
 

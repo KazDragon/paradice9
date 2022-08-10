@@ -41,7 +41,8 @@ public :
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    character_selection_page(std::vector<terminalpp::string> character_names);
+    explicit character_selection_page(
+      std::vector<terminalpp::string> character_names);
 
     //* =====================================================================
     /// \brief Destructor

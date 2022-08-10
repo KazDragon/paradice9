@@ -47,7 +47,7 @@ struct connection::impl
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(std::unique_ptr<connection::channel_concept> &&channel)
+    explicit impl(std::unique_ptr<connection::channel_concept> &&channel)
       : channel_(std::move(channel))
     {
         telnet_naws_client_.on_window_size_changed.connect(
@@ -180,7 +180,8 @@ struct connection::impl
 
     struct mccp_channel
     {
-        mccp_channel(std::unique_ptr<connection::channel_concept> &&channel)
+        explicit mccp_channel(
+            std::unique_ptr<connection::channel_concept> &&channel)
           : channel_{std::move(channel)}
         {
         }

@@ -302,20 +302,18 @@ void user_interface::do_event(boost::any const &event)
 {
     bool handled = false;
 
-    if (!handled)
-    {
-        auto const *vk_event = 
+    if (auto const *vk_event = 
             boost::any_cast<terminalpp::virtual_key>(&event);
-        handled = vk_event != nullptr 
-              && pimpl_->handle_virtual_key_event(*vk_event);
-    }
-
-    if (!handled)
+        vk_event)
     {
-        auto const *mouse_event = 
+        handled = pimpl_->handle_virtual_key_event(*vk_event);
+    }
+    
+    if (auto const *mouse_event = 
             boost::any_cast<terminalpp::mouse::event>(&event);
-        handled = mouse_event != nullptr
-              && pimpl_->handle_mouse_event(*mouse_event);
+        mouse_event)
+    {
+        handled = pimpl_->handle_mouse_event(*mouse_event);
     }
 
     if (!handled)

@@ -46,7 +46,7 @@ namespace {
 // ==========================================================================
 // MAKE_BEHAVIOUR
 // ==========================================================================
-terminalpp::behaviour make_behaviour(std::string terminal_type)
+terminalpp::behaviour make_behaviour(std::string const &/*terminal_type*/)
 {
     // TODO: In which we consult a database of terminal types and assign 
     // their behaviours.

@@ -122,7 +122,7 @@ private :
     template <typename Channel>
     struct channel_model final : channel_concept
     {
-        channel_model(Channel &&ep)
+        explicit channel_model(Channel &&ep)
           : channel_(std::forward<Channel>(ep))
         {
         }

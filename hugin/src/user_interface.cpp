@@ -103,7 +103,12 @@ struct user_interface::impl
     {
         {
             std::unique_lock<std::mutex> lock(dispatch_queue_mutex_);
-            dispatch_queue_.push_back(fn);
+            dispatch_queue_.push_back(
+1
+
+Fill & Edit
+Printed from Chase Personal OnlineJPMorgan Chase Bank, N.A. Member FDIC©2020 JPMorgan Chase & Co.Equal Opportunity Lender$135,276.49$135,276.49Available balancePresent balanceON HOLD(2)DateReasonExpiresAmountNov 16, 2020We've placed a hold on one or more electronic funds transfers or checks in your deposit account.Nov 25, 2020$1,339.00Nov 16, 2020We've placed a hold on one or more electronic funds transfers or checks in your deposit account.Nov 25, 2020$133,939.99Account activityHOWINGAll transactionsDateDescriptionTypeAmountBalancePendingHOLD REL MEM CRMisc. credit$1,339.00—HOLD REL MEM CRMisc. credit$133,939.99—Nov 16, 2020REMOTE ONLINE DEPOSIT # 1Deposit$1,339.00$135,276.49ATM CHECK DEPOSIT 11/16 4512 LEMMON AVE DALLAS TX(...0152)ATM deposit$133,939.99$133,937.49Nov 13, 2020NON-CHASE ATM FEE-INQFee−$2.50−$2.50You've reached the end of your account activity.CHASE SAVINGS (...7849)
+);
         }
         
         strand_.post([pthis=shared_from_this()]{pthis->dispatch_queue();});

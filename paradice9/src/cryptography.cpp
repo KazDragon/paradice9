@@ -37,18 +37,16 @@ namespace paradice9 {
 // ==========================================================================
 encrypted_string encrypt(std::string const &text)
 {
-    CryptoPP::SHA256 hash;
+  CryptoPP::SHA256 hash;
 
-    std::string result;
-    CryptoPP::StringSource(
-        text,
-        true,
-        new CryptoPP::HashFilter(
-            hash,
-            new CryptoPP::HexEncoder(new CryptoPP::StringSink(result))));
+  std::string result;
+  static_cast<void>(CryptoPP::StringSource(
+      text,
+      true,
+      new CryptoPP::HashFilter(
+          hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(result)))));
 
-    return { result };
+  return {result};
 }
 
-}
-
+}  // namespace paradice9

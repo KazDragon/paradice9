@@ -68,27 +68,27 @@ if [ ! -f "$EXTERNAL_ROOT/include/serverpp-0.2.0/serverpp/version.hpp" ]; then
 fi
 
 # Install Telnet++ dependency
-if [ ! -f "$EXTERNAL_ROOT/include/telnetpp-3.0.0/telnetpp/version.hpp" ]; then
-    wget https://github.com/KazDragon/telnetpp/archive/v3.0.0.tar.gz -O - | tar xz;
-    cd telnetpp-3.0.0;
+if [ ! -f "$EXTERNAL_ROOT/include/telnetpp-3.1.0/telnetpp/version.hpp" ]; then
+    wget https://github.com/KazDragon/telnetpp/archive/v3.1.0.tar.gz -O - | tar xz;
+    cd telnetpp-3.1.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DTELNETPP_WITH_TESTS=False -DTELNETPP_WITH_ZLIB=ON -DTELNETPP_VERSION="3.0.0" .;
     cmake --build . -j2 --target=install;
     cd ..;
 fi
 
 # Install Terminal++ dependency
-if [ ! -f "$EXTERNAL_ROOT/include/terminalpp-3.0.2/terminalpp/version.hpp" ]; then
-    wget https://github.com/KazDragon/terminalpp/archive/v3.0.2.tar.gz -O - | tar xz;
-    cd terminalpp-3.0.2;
+if [ ! -f "$EXTERNAL_ROOT/include/terminalpp-3.1.0/terminalpp/version.hpp" ]; then
+    wget https://github.com/KazDragon/terminalpp/archive/v3.1.0.tar.gz -O - | tar xz;
+    cd terminalpp-3.1.0;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DTERMINALPP_WITH_TESTS=False -DTERMINALPP_VERSION="3.0.2" .;
     cmake --build . -j2 --target=install;
     cd ..;
 fi
 
 # Install Munin dependency
-if [ ! -f "$EXTERNAL_ROOT/include/munin-0.7.1/munin/version.hpp" ]; then
-    wget https://github.com/KazDragon/munin/archive/refs/tags/v0.7.1.tar.gz -O - | tar xz;
-    cd munin-0.7.1;
+if [ ! -f "$EXTERNAL_ROOT/include/munin-0.7.2/munin/version.hpp" ]; then
+    wget https://github.com/KazDragon/munin/archive/refs/tags/v0.7.2.tar.gz -O - | tar xz;
+    cd munin-0.7.2;
     cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DMUNIN_WITH_TESTS=False -DMUNIN_VERSION="0.7.1" .;
     cmake --build . -j2 --target=install;
     cd ..;

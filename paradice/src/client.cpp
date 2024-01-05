@@ -29,25 +29,26 @@
 #include "paradice/context.hpp"
 #include "paradice/ui/message.hpp"
 #include "paradice/ui/user_interface.hpp"
-#include <munin/container.hpp>
-#include <munin/background_animator.hpp>
-#include <munin/brush.hpp>
-#include <munin/grid_layout.hpp>
-#include <munin/window.hpp>
 #include <terminalpp/behaviour.hpp>
 #include <terminalpp/canvas.hpp>
 #include <terminalpp/encoder.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/terminal.hpp>
+#include <munin/background_animator.hpp>
+#include <munin/brush.hpp>
+#include <munin/container.hpp>
+#include <munin/grid_layout.hpp>
+#include <munin/window.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include <fmt/format.h>
-#include <cstdio>
 #include <array>
+#include <cstdio>
 #include <deque>
 #include <mutex>
 #include <string>
 #include <vector>
+
 
 using namespace terminalpp::literals;
 
@@ -57,491 +58,450 @@ namespace {
 
 constexpr terminalpp::extent default_window_size{80, 24};
 
-template <typename... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template <typename... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <typename... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <typename... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
-}
+}  // namespace
 
 // ==========================================================================
 // CLIENT IMPLEMENTATION STRUCTURE
 // ==========================================================================
-class client::impl
-    : public std::enable_shared_from_this<client::impl>
+class client::impl : public std::enable_shared_from_this<client::impl>
 {
-public :
-    // ======================================================================
-    // CONSTRUCTOR
-    // ======================================================================
-    impl(
-        client &self,
-        boost::asio::io_context &io_context,
-        context &ctx,
-        connection &&cnx,
-        terminalpp::behaviour beh)
-      : self_{self},
-        strand_{io_context},
-        context_{ctx},
-        canvas_{default_window_size},
-        connection_{std::move(cnx)},
-        terminal_{connection_, beh},
-        animator_(strand_),
-        user_interface_{std::make_shared<ui::user_interface>(animator_)},
-        window_{terminal_, user_interface_},
-        repaint_requested_{false},
-        cursor_state_changed_{true}
-    {
-        // CONNECTION CALLBACKS
-        connection_.on_window_size_changed(
-            [this](auto const &width, auto const &height)
-            {
-                this->on_window_size_changed(width, height);
-            });
+ public:
+  // ======================================================================
+  // CONSTRUCTOR
+  // ======================================================================
+  impl(
+      client &self,
+      boost::asio::io_context &io_context,
+      context &ctx,
+      connection &&cnx,
+      terminalpp::behaviour beh)
+    : self_{self},
+      strand_{io_context},
+      context_{ctx},
+      canvas_{default_window_size},
+      connection_{std::move(cnx)},
+      terminal_{connection_, beh},
+      animator_(strand_),
+      user_interface_{std::make_shared<ui::user_interface>(animator_)},
+      window_{terminal_, user_interface_},
+      repaint_requested_{false},
+      cursor_state_changed_{true}
+  {
+    // CONNECTION CALLBACKS
+    connection_.on_window_size_changed(
+        [this](auto const &width, auto const &height)
+        { this->on_window_size_changed(width, height); });
 
-        // WINDOW CALLBACKS
-        window_.on_repaint_request.connect(
-            [this]()
-            {
-                this->on_repaint();
-            });
+    // WINDOW CALLBACKS
+    window_.on_repaint_request.connect([this]() { this->on_repaint(); });
 
-        // USER INTERFACE CALLBACKS
-        user_interface_->on_cursor_state_changed.connect(
-            [this]()
-            {
-                cursor_state_changed_ = true;
-                this->on_repaint();
-            });
-
-        user_interface_->on_cursor_position_changed.connect(
-            [this]()
-            {
-                this->on_repaint();
-            });
-
-        user_interface_->on_command.connect(
-            [this](auto const &input)
-            {
-                this->on_command(input);
-            });
-
-        user_interface_->on_login.connect(
-            [this](auto const &name, auto const &pwd)
-            {
-                return this->on_login(name, pwd);
-            });
-
-        user_interface_->on_new_account.connect(
-            [this](std::string const &name, std::string const &password)
-            {
-                return this->on_new_account(name, password);
-            });
-
-        user_interface_->on_character_selected.connect(
-            [this](model::account &acct, int index)
-            {
-                return this->on_character_selected(acct, index);
-            });
-
-        user_interface_->on_character_created.connect(
-            [this](model::account &acct, std::string character_name)
-            {
-                return this->on_character_created(acct, character_name);
-            });
-
-        user_interface_->on_entered_game.connect(
-            [this](model::character &chr)
-            {
-                chr.send_message = [this](terminalpp::string const &message) {
-                    self_.send_message(message);
-                };
-                character_ = chr;
-
-                paradice::model::room &main_room = context_.get_main_room();
-                character_->in_room = &main_room;
-                main_room.characters_.push_back(&chr);
-
-                context_.send_message(chr, "You have entered Paradice!");
-                context_.send_message(main_room, chr, chr.name + " has entered Paradice!");
-            });
-            
-        // user_interface_->on_gm_tools_back.connect(
-        //     [this]
-        //     {
-        //         this->on_gm_tools_back();
-        //     });
-
-        // user_interface_->on_gm_fight_beast.connect(
-        //     [this](auto const &beast)
-        //     {
-        //         this->on_gm_fight_beast(beast);
-        //     });
-
-        // user_interface_->on_gm_fight_encounter.connect(
-        //     [this](auto const &encounter)
-        //     {
-        //         this->on_gm_fight_encounter(encounter);
-        //     });
-
-        // user_interface_->on_help_closed.connect(
-        //     [this]
-        //     {
-        //         this->on_help_closed();
-        //     });
-
-        // user_interface_->on_password_changed.connect(
-        //     [this](
-        //         auto const &old_pwd,
-        //         auto const &new_pwd,
-        //         auto const &new_pwd_verify)
-        //     {
-        //         this->on_password_changed(old_pwd, new_pwd, new_pwd_verify);
-        //     });
-
-        // user_interface_->on_password_change_cancelled.connect(
-        //     [this]
-        //     {
-        //         this->on_password_change_cancelled();
-        //     });
-
-        user_interface_->set_focus();
-
-        terminal_
-            << terminalpp::set_window_title("Paradice9")
-            << terminalpp::enable_mouse()
-            << terminalpp::use_alternate_screen_buffer();
-
-        schedule_next_read();
-    }
-
-    ~impl()
-    {
-        if (character_ && character_->in_room)
+    // USER INTERFACE CALLBACKS
+    user_interface_->on_cursor_state_changed.connect(
+        [this]()
         {
-            context_.send_message(
-                *character_->in_room,
-                *character_, 
-                character_->name + " has left Paradice");
-        }
-    }
+          cursor_state_changed_ = true;
+          this->on_repaint();
+        });
 
-    // ======================================================================
-    // WRITE
-    // ======================================================================
-    void write(terminalpp::bytes data)
-    {
-        do
+    user_interface_->on_cursor_position_changed.connect(
+        [this]() { this->on_repaint(); });
+
+    user_interface_->on_command.connect([this](auto const &input)
+                                        { this->on_command(input); });
+
+    user_interface_->on_login.connect([this](auto const &name, auto const &pwd)
+                                      { return this->on_login(name, pwd); });
+
+    user_interface_->on_new_account.connect(
+        [this](std::string const &name, std::string const &password)
+        { return this->on_new_account(name, password); });
+
+    user_interface_->on_character_selected.connect(
+        [this](model::account &acct, int index)
+        { return this->on_character_selected(acct, index); });
+
+    user_interface_->on_character_created.connect(
+        [this](model::account &acct, std::string character_name)
+        { return this->on_character_created(acct, character_name); });
+
+    user_interface_->on_entered_game.connect(
+        [this](model::character &chr)
         {
-            auto const amount = 
-                std::min(buffer_.size() - buffer_top_,
-                data.size());
+          chr.send_message = [this](terminalpp::string const &message)
+          { self_.send_message(message); };
+          character_ = chr;
 
-            std::copy_n(data.begin(), amount, buffer_.begin() + buffer_top_);
-            buffer_top_ += amount;
-            data = data.subspan(amount);
+          paradice::model::room &main_room = context_.get_main_room();
+          character_->in_room = &main_room;
+          main_room.characters.push_back(&chr);
 
-            if (buffer_top_ == data.size())
-            {
-                flush_immediately();
-            }
-        } while (!data.empty());
+          context_.send_message(chr, "You have entered Paradice!");
+          context_.send_message(
+              main_room, chr, chr.name + " has entered Paradice!");
+        });
 
-        flush();
-    }
+    // user_interface_->on_gm_tools_back.connect(
+    //     [this]
+    //     {
+    //         this->on_gm_tools_back();
+    //     });
 
-    // ======================================================================
-    // FLUSH_IMMEDIATELY
-    // ======================================================================
-    void flush_immediately()
+    // user_interface_->on_gm_fight_beast.connect(
+    //     [this](auto const &beast)
+    //     {
+    //         this->on_gm_fight_beast(beast);
+    //     });
+
+    // user_interface_->on_gm_fight_encounter.connect(
+    //     [this](auto const &encounter)
+    //     {
+    //         this->on_gm_fight_encounter(encounter);
+    //     });
+
+    // user_interface_->on_help_closed.connect(
+    //     [this]
+    //     {
+    //         this->on_help_closed();
+    //     });
+
+    // user_interface_->on_password_changed.connect(
+    //     [this](
+    //         auto const &old_pwd,
+    //         auto const &new_pwd,
+    //         auto const &new_pwd_verify)
+    //     {
+    //         this->on_password_changed(old_pwd, new_pwd, new_pwd_verify);
+    //     });
+
+    // user_interface_->on_password_change_cancelled.connect(
+    //     [this]
+    //     {
+    //         this->on_password_change_cancelled();
+    //     });
+
+    user_interface_->set_focus();
+
+    terminal_ << terminalpp::set_window_title("Paradice9")
+              << terminalpp::enable_mouse()
+              << terminalpp::use_alternate_screen_buffer();
+
+    schedule_next_read();
+  }
+
+  ~impl()
+  {
+    if (character_ && character_->in_room)
     {
-        strand_.dispatch(
-            [this]()
-            {
-                flush_requested_ = false;
-                terminal_.write({buffer_.begin(), buffer_top_});
-                buffer_top_ = 0;
-            });
+      context_.send_message(
+          *character_->in_room,
+          *character_,
+          character_->name + " has left Paradice");
     }
+  }
 
-    // ======================================================================
-    // FLUSH
-    // ======================================================================
-    void flush()
+  // ======================================================================
+  // WRITE
+  // ======================================================================
+  void write(terminalpp::bytes data)
+  {
+    do
     {
-        if (!std::atomic_exchange(&flush_requested_, true))
+      auto const amount = std::min(buffer_.size() - buffer_top_, data.size());
+
+      std::copy_n(data.begin(), amount, buffer_.begin() + buffer_top_);
+      buffer_top_ += amount;
+      data = data.subspan(amount);
+
+      if (buffer_top_ == data.size())
+      {
+        flush_immediately();
+      }
+    } while (!data.empty());
+
+    flush();
+  }
+
+  // ======================================================================
+  // FLUSH_IMMEDIATELY
+  // ======================================================================
+  void flush_immediately()
+  {
+    strand_.dispatch(
+        [this]()
         {
-            strand_.post(
-                [this]()
+          flush_requested_ = false;
+          terminal_.write({buffer_.begin(), buffer_top_});
+          buffer_top_ = 0;
+        });
+  }
+
+  // ======================================================================
+  // FLUSH
+  // ======================================================================
+  void flush()
+  {
+    if (!std::atomic_exchange(&flush_requested_, true))
+    {
+      strand_.post([this]() { flush_immediately(); });
+    }
+  }
+
+  // ======================================================================
+  // ON_TOKENS_READ
+  // ======================================================================
+  void on_tokens_read(terminalpp::tokens const &tokens)
+  {
+    auto const &apply_token = [this](terminalpp::token const &token)
+    {
+      std::visit(
+          overloaded{
+              [this](terminalpp::virtual_key const &vk)
+              {
+                if (vk.key == terminalpp::vk::uppercase_q)
                 {
-                    flush_immediately();
-                });
-        }
-    }
-
-    // ======================================================================
-    // ON_TOKENS_READ
-    // ======================================================================
-    void on_tokens_read(terminalpp::tokens const &tokens)
-    {
-        const auto &apply_token = 
-            [this](terminalpp::token const &token)
-            {
-                std::visit(
-                    overloaded{
-                        [this](terminalpp::virtual_key const &vk)
-                        {
-                            if (vk.key == terminalpp::vk::uppercase_q)
-                            {
-                                context_.shutdown();
-                            }
-                            else
-                            {
-                                this->run_on_ui_strand([this, vk]{ window_.event(vk); });
-                            }
-                        },
-                        [this](terminalpp::mouse::event const &ev)
-                        {
-                            this->run_on_ui_strand([this, ev] { window_.event(ev); });
-                        },
-                        [this](terminalpp::control_sequence const &cs)
-                        {
-                            this->run_on_ui_strand([this, cs] { window_.event(cs); });
-                        }
-                    },
-                    token);
-            };
-    
-        boost::for_each(tokens, apply_token);
-    }
-
-    // ======================================================================
-    // SCHEDULE_NEXT_READ
-    // ======================================================================
-    void schedule_next_read()
-    {
-        terminal_.async_read(
-            [this](terminalpp::tokens data)
-            {
-                on_tokens_read(data);
-
-                if (terminal_.is_alive())
-                {
-                    schedule_next_read();
+                  context_.shutdown();
                 }
                 else
                 {
-                    on_connection_death_();
+                  this->run_on_ui_strand([this, vk] { window_.event(vk); });
                 }
-            });
-    }
+              },
+              [this](terminalpp::mouse::event const &ev)
+              { this->run_on_ui_strand([this, ev] { window_.event(ev); }); },
+              [this](terminalpp::control_sequence const &cs)
+              { this->run_on_ui_strand([this, cs] { window_.event(cs); }); }},
+          token);
+    };
 
-    // ======================================================================
-    // SET_WINDOW_TITLE
-    // ======================================================================
-    void set_window_title(std::string const &title)
-    {
-        terminal_ << terminalpp::set_window_title(title);
-    }
+    boost::for_each(tokens, apply_token);
+  }
 
-    // ======================================================================
-    // SET_WINDOW_SIZE
-    // ======================================================================
-    void set_window_size(std::uint16_t width, std::uint16_t height)
-    {
-        canvas_.resize({width, height});
-        on_repaint();
-    }
+  // ======================================================================
+  // SCHEDULE_NEXT_READ
+  // ======================================================================
+  void schedule_next_read()
+  {
+    terminal_.async_read(
+        [this](terminalpp::tokens data)
+        {
+          on_tokens_read(data);
 
-    // ======================================================================
-    // DISCONNECT
-    // ======================================================================
-    void disconnect()
-    {
-        terminal_
-            << terminalpp::disable_mouse()
-            << terminalpp::show_cursor()
-            << terminalpp::use_normal_screen_buffer();
-
-        connection_.close();
-    }
-
-    // ======================================================================
-    // ON_CONNECTION_DEATH
-    // ======================================================================
-    void on_connection_death(std::function<void ()> const &callback)
-    {
-        on_connection_death_ = callback;
-    }
-
-    // ======================================================================
-    // SEND_MESSAGE
-    // ======================================================================
-    void send_message(terminalpp::string const &message)
-    {
-        run_on_ui_strand([this, message]{ 
-            user_interface_->event(ui::message{message});
+          if (terminal_.is_alive())
+          {
+            schedule_next_read();
+          }
+          else
+          {
+            on_connection_death_();
+          }
         });
-    }
+  }
 
-private :
-    // ======================================================================
-    // RUN_ON_UI_STRAND
-    // ======================================================================
-    template <class Function>
-    void run_on_ui_strand(Function &&function)
+  // ======================================================================
+  // SET_WINDOW_TITLE
+  // ======================================================================
+  void set_window_title(std::string const &title)
+  {
+    terminal_ << terminalpp::set_window_title(title);
+  }
+
+  // ======================================================================
+  // SET_WINDOW_SIZE
+  // ======================================================================
+  void set_window_size(std::uint16_t width, std::uint16_t height)
+  {
+    canvas_.resize({width, height});
+    on_repaint();
+  }
+
+  // ======================================================================
+  // DISCONNECT
+  // ======================================================================
+  void disconnect()
+  {
+    terminal_ << terminalpp::disable_mouse() << terminalpp::show_cursor()
+              << terminalpp::use_normal_screen_buffer();
+
+    connection_.close();
+  }
+
+  // ======================================================================
+  // ON_CONNECTION_DEATH
+  // ======================================================================
+  void on_connection_death(std::function<void()> const &callback)
+  {
+    on_connection_death_ = callback;
+  }
+
+  // ======================================================================
+  // SEND_MESSAGE
+  // ======================================================================
+  void send_message(terminalpp::string const &message)
+  {
+    run_on_ui_strand([this, message]
+                     { user_interface_->event(ui::message{message}); });
+  }
+
+ private:
+  // ======================================================================
+  // RUN_ON_UI_STRAND
+  // ======================================================================
+  template <class Function>
+  void run_on_ui_strand(Function &&function)
+  {
+    // Here we capture a weak pointer to the impl.  Since all the
+    // deferred functions required that this object still exists, locking
+    // the weak pointer ensures that this is the case.
+    auto const exec = [wp = std::weak_ptr<impl>(shared_from_this()),
+                       function = std::forward<Function>(function)]
     {
-        // Here we capture a weak pointer to the impl.  Since all the
-        // deferred functions required that this object still exists, locking
-        // the weak pointer ensures that this is the case.
-        auto const exec = 
-            [wp = std::weak_ptr<impl>(shared_from_this()),
-             function = std::forward<Function>(function)]
-            {
-                auto const pthis = wp.lock();
+      auto const pthis = wp.lock();
 
-                if (pthis)
-                {
-                    function();
-                }
-            };
+      if (pthis)
+      {
+        function();
+      }
+    };
 
-        strand_.post(exec);
-    }
+    strand_.post(exec);
+  }
 
-    // ======================================================================
-    // ON_WINDOW_SIZE_CHANGED
-    // ======================================================================
-    void on_window_size_changed(std::uint16_t width, std::uint16_t height)
+  // ======================================================================
+  // ON_WINDOW_SIZE_CHANGED
+  // ======================================================================
+  void on_window_size_changed(std::uint16_t width, std::uint16_t height)
+  {
+    set_window_size(width, height);
+  }
+
+  // ======================================================================
+  // ON_REPAINT
+  // ======================================================================
+  void on_repaint()
+  {
+    // Set up a repaint event only if another repaint hasn't already been
+    // requested.
+    if (!repaint_requested_.exchange(true))
     {
-        set_window_size(width, height);
+      run_on_ui_strand([this] { do_repaint(); });
     }
+  }
 
-    // ======================================================================
-    // ON_REPAINT
-    // ======================================================================
-    void on_repaint()
+  // ======================================================================
+  // DO_REPAINT
+  // ======================================================================
+  void do_repaint()
+  {
+    repaint_requested_ = false;
+    window_.repaint(canvas_);
+
+    auto const cursor_state = user_interface_->get_cursor_state();
+
+    if (cursor_state_changed_.exchange(false))
     {
-        // Set up a repaint event only if another repaint hasn't already been
-        // requested.
-        if (!repaint_requested_.exchange(true))
-        {
-            run_on_ui_strand([this]{ do_repaint(); });
-        }
+      if (cursor_state)
+      {
+        terminal_ << terminalpp::show_cursor();
+      }
+      else
+      {
+        terminal_ << terminalpp::hide_cursor();
+      }
     }
 
-    // ======================================================================
-    // DO_REPAINT
-    // ======================================================================
-    void do_repaint()
+    if (cursor_state)
     {
-        repaint_requested_ = false;
-        window_.repaint(canvas_);
-
-        auto const cursor_state = user_interface_->get_cursor_state();
-            
-        if (cursor_state_changed_.exchange(false))
-        {
-            if (cursor_state)
-            {
-                terminal_ << terminalpp::show_cursor();
-            }
-            else
-            {
-                terminal_ << terminalpp::hide_cursor();
-            }
-        }
-
-        if (cursor_state)
-        {
-            terminal_ 
-                 << terminalpp::move_cursor(user_interface_->get_cursor_position());
-        }
+      terminal_ << terminalpp::move_cursor(
+          user_interface_->get_cursor_position());
     }
+  }
 
-    // ======================================================================
-    // ON_LOGIN
-    // ======================================================================
-    model::account on_login(
-        std::string const &username,
-        std::string const &password)
-    {
-        return context_.load_account(username, password);
-    }
+  // ======================================================================
+  // ON_LOGIN
+  // ======================================================================
+  model::account on_login(
+      std::string const &username, std::string const &password)
+  {
+    return context_.load_account(username, password);
+  }
 
-    // ======================================================================
-    // ON_NEW_ACCOUNT
-    // ======================================================================
-    model::account on_new_account(
-        std::string const &name,
-        std::string const &password)
-    {
-        return context_.new_account(name, password);
-    }
+  // ======================================================================
+  // ON_NEW_ACCOUNT
+  // ======================================================================
+  model::account on_new_account(
+      std::string const &name, std::string const &password)
+  {
+    return context_.new_account(name, password);
+  }
 
-    // ======================================================================
-    // ON_CHARACTER_SELECTED
-    // ======================================================================
-    model::character on_character_selected(
-        model::account &acct,
-        int index)
-    {
-        return context_.load_character(acct, index);
-    }
+  // ======================================================================
+  // ON_CHARACTER_SELECTED
+  // ======================================================================
+  model::character on_character_selected(model::account &acct, int index)
+  {
+    return context_.load_character(acct, index);
+  }
 
-    // ======================================================================
-    // ON_CHARACTER_CREATED
-    // ======================================================================
-    model::character on_character_created(
-        model::account &acct,
-        std::string const &character_name)
-    {
-        return context_.new_character(acct, character_name);
-    }
+  // ======================================================================
+  // ON_CHARACTER_CREATED
+  // ======================================================================
+  model::character on_character_created(
+      model::account &acct, std::string const &character_name)
+  {
+    return context_.new_character(acct, character_name);
+  }
 
-    // ======================================================================
-    // ON_COMMAND
-    // ======================================================================
-    void on_command(std::string const &input)
-    {
-        context_.send_message(
-            *character_,
-            fmt::format("you say, \"{}\"", input));
-        context_.send_message(
-            context_.get_main_room(),
-            *character_,
-            fmt::format("{} says, \"{}\"", character_->name, input));
-    }
+  // ======================================================================
+  // ON_COMMAND
+  // ======================================================================
+  void on_command(std::string const &input)
+  {
+    context_.send_message(*character_, fmt::format("you say, \"{}\"", input));
+    context_.send_message(
+        context_.get_main_room(),
+        *character_,
+        fmt::format("{} says, \"{}\"", character_->name, input));
+  }
 
-    client                                 &self_;
-    boost::asio::io_context::strand         strand_;
+  client &self_;
+  boost::asio::io_context::strand strand_;
 
-    context                                &context_;
-    connection                              connection_;
+  context &context_;
+  connection connection_;
 
-    std::array<terminalpp::byte, 4096>      buffer_;
-    std::array<terminalpp::byte, 4096>::size_type buffer_top_{0};
-    std::atomic<bool>                       flush_requested_{false};
+  std::array<terminalpp::byte, 4096> buffer_;
+  std::array<terminalpp::byte, 4096>::size_type buffer_top_{0};
+  std::atomic<bool> flush_requested_{false};
 
-    boost::optional<model::character &>     character_;
+  boost::optional<model::character &> character_;
 
-    terminalpp::canvas                      canvas_;
-    terminalpp::terminal                    terminal_;
+  terminalpp::canvas canvas_;
+  terminalpp::terminal terminal_;
 
-    munin::background_animator              animator_;
-    std::shared_ptr<ui::user_interface>     user_interface_;
-    munin::window                           window_;
+  munin::background_animator animator_;
+  std::shared_ptr<ui::user_interface> user_interface_;
+  munin::window window_;
 
-    std::function<void ()>                  on_connection_death_;
+  std::function<void()> on_connection_death_;
 
-    std::string                             last_command_;
-    std::atomic_bool                        repaint_requested_;
-    std::atomic_bool                        cursor_state_changed_;
+  std::string last_command_;
+  std::atomic_bool repaint_requested_;
+  std::atomic_bool cursor_state_changed_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 client::client(
-    boost::asio::io_context &io_context, 
+    boost::asio::io_context &io_context,
     context &ctx,
     connection &&cnx,
     terminalpp::behaviour beh)
@@ -559,7 +519,7 @@ client::~client() = default;
 // ==========================================================================
 void client::set_window_title(std::string const &title)
 {
-    pimpl_->set_window_title(title);
+  pimpl_->set_window_title(title);
 }
 
 // ==========================================================================
@@ -567,7 +527,7 @@ void client::set_window_title(std::string const &title)
 // ==========================================================================
 void client::set_window_size(std::uint16_t width, std::uint16_t height)
 {
-    pimpl_->set_window_size(width, height);
+  pimpl_->set_window_size(width, height);
 }
 
 // ==========================================================================
@@ -575,15 +535,15 @@ void client::set_window_size(std::uint16_t width, std::uint16_t height)
 // ==========================================================================
 void client::disconnect()
 {
-    pimpl_->disconnect();
+  pimpl_->disconnect();
 }
 
 // ==========================================================================
 // ON_CONNECTION_DEATH
 // ==========================================================================
-void client::on_connection_death(std::function<void ()> const &callback)
+void client::on_connection_death(std::function<void()> const &callback)
 {
-    pimpl_->on_connection_death(callback);
+  pimpl_->on_connection_death(callback);
 }
 
 // ==========================================================================
@@ -591,7 +551,7 @@ void client::on_connection_death(std::function<void ()> const &callback)
 // ==========================================================================
 void client::send_message(terminalpp::string const &msg)
 {
-    pimpl_->send_message(msg);
+  pimpl_->send_message(msg);
 }
 
-}
+}  // namespace paradice

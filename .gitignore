@@ -9,3 +9,5 @@
 build
 .vscode
 .venv
+.cache
+compile_commands.json

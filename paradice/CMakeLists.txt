@@ -1,38 +1,13 @@
-if (PARADICE9_USE_CONAN)
-    set(PARADICE_PUBLIC_LIBRARIES 
-        CONAN_PKG::terminalpp
-        CONAN_PKG::boost
-    )
-
-    set(PARADICE_PRIVATE_LIBRARIES
-        CONAN_PKG::munin
-        CONAN_PKG::telnetpp
-    )
-else()
-    find_package(terminalpp 3.0.2 REQUIRED)
-    find_package(munin 0.7.1 REQUIRED)
-    find_package(telnetpp 3.0.0 REQUIRED)
-    find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
-    find_package(Boost COMPONENTS program_options container REQUIRED)
-    find_package(gsl-lite 0.38 REQUIRED)
-    find_package(nlohmann_json REQUIRED)
-    find_package(fmt REQUIRED)
-    find_package(ZLIB REQUIRED)
-    find_package(Threads REQUIRED)
-
-    set(PARADICE_PUBLIC_LIBRARIES
-        KazDragon::terminalpp
-        Boost::boost
-        Boost::program_options
-    )
-
-    set(PARADICE_PRIVATE_LIBRARIES
-        KazDragon::munin
-        KazDragon::telnetpp
-        fmt::fmt
-        ZLIB::ZLIB)
-endif()
-
+find_package(terminalpp 3.0.2 REQUIRED)
+find_package(munin 0.7.1 REQUIRED)
+find_package(telnetpp 3.0.0 REQUIRED)
+find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+find_package(Boost COMPONENTS program_options container REQUIRED)
+find_package(gsl-lite 0.38 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(fmt REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
 
 set (PARADICE_SOURCE_FILES
 #    src/account.cpp
@@ -118,9 +93,14 @@ target_include_directories(paradice
 
 target_link_libraries(paradice
     PUBLIC
-        ${PARADICE_PUBLIC_LIBRARIES}
+        KazDragon::terminalpp
+        Boost::boost
+        Boost::program_options
     PRIVATE
-        ${PARADICE_PRIVATE_LIBRARIES}
+        KazDragon::munin
+        KazDragon::telnetpp
+        fmt::fmt
+        ZLIB::ZLIB
 )
 
 

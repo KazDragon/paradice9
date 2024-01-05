@@ -1,0 +1,56 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - build_type: Debug
+
+    env:
+      EXTERNAL_ROOT: /home/runner/3party
+      BUILD_TYPE: ${{ matrix.build_type }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get latest cmake
+        shell: bash
+        run: pip install --upgrade cmake
+
+      - name: Install latest Boost
+        shell: bash
+        run: |
+          apt search boost
+          sudo apt install libboost-all-dev
+
+      - name: Install libfmt
+        shell: bash
+        run: |
+          sudo apt install libfmt-dev
+
+      - name: Install dependencies from source
+        run: .ci/fetch_system_dependencies.sh
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/munin/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/munin/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$EXTERNAL_ROOT
+
+      - name: Build
+        shell: bash
+        working-directory: ${{runner.workspace}}/munin/build
+        run: cmake --build . --config $BUILD_TYPE

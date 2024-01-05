@@ -25,22 +25,17 @@
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/connection.hpp"
-#include "odin/net/socket.hpp"
+
 #include <telnetpp/telnetpp.hpp>
-#include <telnetpp/byte_converter.hpp>
 #include <telnetpp/options/echo/server.hpp>
 #include <telnetpp/options/mccp/codec.hpp>
 #include <telnetpp/options/mccp/server.hpp>
 #include <telnetpp/options/mccp/zlib/compressor.hpp>
-#include <telnetpp/options/mccp/zlib/decompressor.hpp>
 #include <telnetpp/options/naws/client.hpp>
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/placeholders.hpp>
-#include <deque>
-#include <string>
-#include <utility>
+
+#include <iostream>
 
 namespace paradice {
 
@@ -48,177 +43,107 @@ namespace paradice {
 // CONNECTION::IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct connection::impl
-    : public std::enable_shared_from_this<impl>
 {
     // ======================================================================
     // CONSTRUCTOR
     // ======================================================================
-    impl(std::shared_ptr<odin::net::socket> const &socket)
-      : socket_(socket),
-        telnet_session_(
-            [this](auto &&text) -> std::vector<telnetpp::token>
-            {
-                this->on_text(text);
-                return {};
-            }),
-        telnet_mccp_codec_(
-            std::make_shared<telnetpp::options::mccp::zlib::compressor>(),
-            std::make_shared<telnetpp::options::mccp::zlib::decompressor>())
+    explicit impl(std::unique_ptr<connection::channel_concept> &&channel)
+      : channel_(std::move(channel))
     {
-        telnet_echo_server_.set_activatable();
-        telnet_session_.install(telnet_echo_server_);
-        
-        telnet_suppress_ga_server_.set_activatable();
-        telnet_session_.install(telnet_suppress_ga_server_);
-         
-        telnet_naws_client_.set_activatable();
         telnet_naws_client_.on_window_size_changed.connect(
-            [this](auto &&width, auto &&height) -> std::vector<telnetpp::token>
+            [this](auto &&width, auto &&height)
             {
                 this->on_window_size_changed(width, height);
-                return {};
             });
-        telnet_session_.install(telnet_naws_client_);
 
-        telnet_terminal_type_client_.set_activatable();
         telnet_terminal_type_client_.on_terminal_type.connect(
-            [this](auto &&type) -> std::vector<telnetpp::token>
+            [this](auto &&type)
             {
-                this->on_terminal_type_detected(type);
-                return {};
+                std::string user_type(type.begin(), type.end());
+                this->on_terminal_type_detected(user_type);
             });
-        telnet_terminal_type_client_.on_state_changed.connect(
-            [this](auto &&state) -> std::vector<telnetpp::token>
-            {
-                if (telnet_terminal_type_client_.is_active())
-                {
-                    return telnet_terminal_type_client_.request_terminal_type();
-                }
-                
-                return {};
-            });
-        telnet_session_.install(telnet_terminal_type_client_);
 
-        telnet_mccp_server_.set_activatable();
-        write(telnet_session_.send(telnet_mccp_server_.begin_compression()));
+        telnet_terminal_type_client_.on_state_changed.connect(
+            [this]()
+            {
+                if (telnet_terminal_type_client_.active())
+                {
+                    telnet_terminal_type_client_.request_terminal_type();
+                }
+            });
+
+        telnet_mccp_server_.on_state_changed.connect(
+            [this]()
+            {
+                channel_.mccp_active_ = telnet_mccp_server_.active();
+
+                if (channel_.mccp_active_)
+                {
+                    telnet_mccp_server_.start_compression();
+                }
+            });
+
+        telnet_session_.install(telnet_echo_server_);
+        telnet_session_.install(telnet_suppress_ga_server_);
+        telnet_session_.install(telnet_naws_client_);
+        telnet_session_.install(telnet_terminal_type_client_);
         telnet_session_.install(telnet_mccp_server_);
         
-        // Begin the keepalive process.  This sends regular heartbeats to the
-        // client to help guard against his network settings timing him out
-        // due to lack of activity.
-        keepalive_timer_ =
-            std::make_shared<boost::asio::deadline_timer>(
-                std::ref(socket_->get_io_service()));
-        schedule_keepalive();
-        
         // Send the required activations.
-        write(telnet_session_.send(telnet_echo_server_.activate()));
-        write(telnet_session_.send(telnet_suppress_ga_server_.activate()));
-        write(telnet_session_.send(telnet_naws_client_.activate()));
-        write(telnet_session_.send(telnet_terminal_type_client_.activate()));
-        write(telnet_session_.send(telnet_mccp_server_.activate()));
+        telnet_echo_server_.activate();
+        telnet_suppress_ga_server_.activate();
+        telnet_naws_client_.activate();
+        telnet_terminal_type_client_.activate();
+        telnet_mccp_server_.activate();
     }
 
     // ======================================================================
-    // START
+    // CLOSE
     // ======================================================================
-    void start()
+    void close()
     {
-        schedule_next_read();
+        channel_.close();
+    }
+
+    // ======================================================================
+    // IS_ALIVE
+    // ======================================================================
+    bool is_alive() const
+    {
+        return channel_.is_alive();
     }
     
     // ======================================================================
     // WRITE
     // ======================================================================
-    void write(std::vector<telnetpp::stream_token> const &data)
+    void write(telnetpp::element const &data)
     {
-        auto const &compressed_data = telnet_mccp_codec_.send(data);
-        auto const &stream = telnet_byte_converter_.send(compressed_data);
-        
-        if (stream.size() != 0)
-        {
-            socket_->write({stream.begin(), stream.end()});
-        }
-        
+        telnet_session_.write(data);
     }
 
     // ======================================================================
-    // SCHEDULE_NEXT_READ
+    // ASYNC_READ
     // ======================================================================
-    void schedule_next_read()
+    void async_read(std::function<void (bytes)> const &callback)
     {
-        if (!socket_->is_alive())
-        {
-            return;
-        }
-
-        auto available = socket_->available();
-        auto amount = available 
-                    ? *available 
-                    : odin::net::socket::input_size_type{1};
-                    
-        socket_->async_read(
-            amount,
-            [this](auto &&data)
+        telnet_session_.async_read([this, callback](bytes data) {
+            if (data.empty())
             {
-                this->on_data(data);
-            });
-    }
-
-    // ======================================================================
-    // ON_DATA
-    // ======================================================================
-    void on_data(std::vector<odin::u8> const &data)
-    {
-        write(telnet_session_.send(
-            telnet_session_.receive({data.begin(), data.end()})));
-            
-        schedule_next_read();
-    }
-    
-    // ======================================================================
-    // ON_KEEPALIVE
-    // ======================================================================
-    void on_keepalive(boost::system::error_code const &error)
-    {
-        if (!error && socket_->is_alive())
-        {
-            write(telnet_session_.send({
-                    telnetpp::element(telnetpp::command(telnetpp::nop))
-                }));
-
-            schedule_keepalive();
-        }
-    }
-
-    // ======================================================================
-    // SCHEDULE_KEEPALIVE
-    // ======================================================================
-    void schedule_keepalive()
-    {
-        keepalive_timer_->expires_from_now(boost::posix_time::seconds(30));
-        keepalive_timer_->async_wait(
-            [this](auto const &error_code)
+                telnetpp::byte_storage result;
+                std::swap(telnet_read_cache_, result);
+                callback(result);
+            }
+            else
             {
-                this->on_keepalive(error_code);
-            });
-    }
-
-    // ======================================================================
-    // ON_TEXT
-    // ======================================================================
-    void on_text(std::string const &text)
-    {
-        if (on_data_read_)
-        {
-            on_data_read_(text);
-        }
+                telnet_read_cache_.append(data.begin(), data.end());
+            }
+        });
     }
 
     // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
-    void on_window_size_changed(odin::u16 width, odin::u16 height)
+    void on_window_size_changed(std::uint16_t width, std::uint16_t height)
     {
         if (on_window_size_changed_)
         {
@@ -240,30 +165,76 @@ struct connection::impl
     // ======================================================================
     void announce_terminal_type()
     {
-        for (auto const &callback : terminal_type_requests_)
+        // Announcing a terminal type request ld plausibly disconnect and
+        // destroy this connection object.  Therefore, we move the requests
+        // structure out of the object proper before handling them.
+        decltype(terminal_type_requests_) requests{
+            std::move(terminal_type_requests_)};
+        terminal_type_requests_.clear();
+
+        for (auto const &callback : requests)
         {
             callback(terminal_type_);
         }
-
-        terminal_type_requests_.clear();
     }
+
+    struct mccp_channel
+    {
+        explicit mccp_channel(
+            std::unique_ptr<connection::channel_concept> &&channel)
+          : channel_{std::move(channel)}
+        {
+        }
+
+        void async_read(std::function<void (bytes)> const &callback)
+        {
+            channel_->async_read(callback);
+        }
+
+        void write(bytes data)
+        {
+            if (mccp_active_)
+            {
+                telnet_mccp_compressor_(
+                    data,
+                    [this](telnetpp::bytes compressed_data, bool)
+                    {
+                        channel_->write(compressed_data);
+                    });
+            }
+            else
+            {
+                channel_->write(data);
+            }
+        }
+
+        bool is_alive() const
+        {
+            return channel_->is_alive();
+        }
+
+        void close()
+        {
+            return channel_->close();
+        }
+
+        std::unique_ptr<connection::channel_concept> channel_;
+        telnetpp::options::mccp::zlib::compressor telnet_mccp_compressor_;
+        bool mccp_active_{false};
+    };
+
     
-    std::shared_ptr<odin::net::socket>                   socket_;
-    std::vector<odin::u8>                                unparsed_bytes_;
+    mccp_channel                                         channel_;
+
+    telnetpp::session                                    telnet_session_{channel_};
+    telnetpp::options::echo::server                      telnet_echo_server_{telnet_session_};
+    telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_{telnet_session_};
+    telnetpp::options::mccp::server                      telnet_mccp_server_{telnet_session_, channel_.telnet_mccp_compressor_};
+    telnetpp::options::naws::client                      telnet_naws_client_{telnet_session_};
+    telnetpp::options::terminal_type::client             telnet_terminal_type_client_{telnet_session_};
+    telnetpp::byte_storage                               telnet_read_cache_;
     
-    std::function<void (std::string const &)>            on_data_read_;
-    telnetpp::session                                    telnet_session_;
-    telnetpp::options::echo::server                      telnet_echo_server_;
-    telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_;
-    telnetpp::options::mccp::server                      telnet_mccp_server_;
-    telnetpp::options::mccp::codec                       telnet_mccp_codec_;
-    telnetpp::options::naws::client                      telnet_naws_client_;
-    telnetpp::options::terminal_type::client             telnet_terminal_type_client_;
-    
-    telnetpp::byte_converter                             telnet_byte_converter_;
-    
-    std::function<void (odin::u16, odin::u16)>           on_window_size_changed_;
-    std::shared_ptr<boost::asio::deadline_timer>         keepalive_timer_;
+    std::function<void (std::uint16_t, std::uint16_t)>   on_window_size_changed_;
 
     std::string                                          terminal_type_;
     std::vector<std::function<void (std::string)>>       terminal_type_requests_;
@@ -272,88 +243,74 @@ struct connection::impl
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-connection::connection(std::shared_ptr<odin::net::socket> const &socket)
-    : pimpl_(std::make_shared<impl>(socket))
+connection::connection(std::unique_ptr<channel_concept> ep)
+    : pimpl_(std::make_unique<impl>(std::move(ep)))
 {
 }
+
+// ==========================================================================
+// MOVE CONSTRUCTOR
+// ==========================================================================
+connection::connection(connection &&other) noexcept = default;
 
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-connection::~connection()
+connection::~connection() = default;
+
+// ==========================================================================
+// MOVE ASSIGNMENT
+// ==========================================================================
+connection &connection::operator=(connection &&other) noexcept = default;
+
+// ==========================================================================
+// CLOSE
+// ==========================================================================
+void connection::close()
 {
-    disconnect();
+    pimpl_->close();
 }
 
 // ==========================================================================
-// START
+// IS_ALIVE
 // ==========================================================================
-void connection::start()
+bool connection::is_alive() const
 {
-    pimpl_->start();
+    return pimpl_->is_alive();
+}
+
+// ==========================================================================
+// ASYNC_READ
+// ==========================================================================
+void connection::async_read(std::function<void (bytes)> const &callback)
+{
+    pimpl_->async_read(callback);
 }
 
 // ==========================================================================
 // WRITE
 // ==========================================================================
-void connection::write(std::string const &data)
+void connection::write(bytes data)
 {
-    pimpl_->write(pimpl_->telnet_session_.send({
-        telnetpp::element(data)
-    }));
-}
-
-// ==========================================================================
-// ON_DATA_READ
-// ==========================================================================
-void connection::on_data_read(
-    std::function<void (std::string const &)> const &callback)
-{
-    pimpl_->on_data_read_ = callback;
-}
-
-// ==========================================================================
-// ON_WINDOW_SIZE_CHANGED
-// ==========================================================================
-void connection::on_window_size_changed(
-    std::function<void (odin::u16, odin::u16)> const &callback)
-{
-    pimpl_->on_window_size_changed_ = callback;
-}
-
-// ==========================================================================
-// ON_SOCKET_DEATH
-// ==========================================================================
-void connection::on_socket_death(std::function<void ()> const &callback)
-{
-    pimpl_->socket_->on_death(callback);
-}
-
-// ==========================================================================
-// DISCONNECT
-// ==========================================================================
-void connection::disconnect()
-{
-    if (pimpl_->keepalive_timer_ != nullptr)
-    {
-        boost::system::error_code unused_error_code;
-        pimpl_->keepalive_timer_->cancel(unused_error_code);
-    }
-
-    if (pimpl_->socket_ != nullptr)
-    {
-        pimpl_->socket_->close();
-        pimpl_->socket_.reset();
-    }
+    pimpl_->write(data);
 }
 
 // ==========================================================================
 // ASYNC_GET_TERMINAL_TYPE
 // ==========================================================================
 void connection::async_get_terminal_type(
-    std::function<void (std::string const &)> const &callback)
+    std::function<void (std::string const &)> const &continuation)
 {
-    pimpl_->terminal_type_requests_.push_back(callback);
+    pimpl_->terminal_type_requests_.push_back(continuation);
+}
+
+// ==========================================================================
+// ON_WINDOW_SIZE_CHANGED
+// ==========================================================================
+void connection::on_window_size_changed(
+    std::function<void (std::uint16_t, std::uint16_t)> const &continuation)
+{
+    pimpl_->on_window_size_changed_ = continuation;
 }
 
 }

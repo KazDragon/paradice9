@@ -30,9 +30,9 @@ TEST(dice_parser, test_roll_no_bonus)
     
     paradice::dice_roll result = roll.get();
     
-    ASSERT_EQ(odin::u32(2), result.amount_);
-    ASSERT_EQ(odin::u32(6), result.sides_);
-    ASSERT_EQ(odin::s32(0), result.bonus_);
+    ASSERT_EQ(std::uint32_t(2), result.amount_);
+    ASSERT_EQ(std::uint32_t(6), result.sides_);
+    ASSERT_EQ(std::int32_t(0), result.bonus_);
 }
 
 //* =========================================================================
@@ -50,9 +50,9 @@ TEST(dice_parser, test_roll_with_bonus)
     
     paradice::dice_roll result = roll.get();
     
-    ASSERT_EQ(odin::u32(3), result.amount_);
-    ASSERT_EQ(odin::u32(9), result.sides_);
-    ASSERT_EQ(odin::s32(3), result.bonus_);
+    ASSERT_EQ(std::uint32_t(3), result.amount_);
+    ASSERT_EQ(std::uint32_t(9), result.sides_);
+    ASSERT_EQ(std::int32_t(3), result.bonus_);
 }
 
 //* =========================================================================
@@ -70,9 +70,9 @@ TEST(dice_parser, test_roll_extended_bonus)
     
     paradice::dice_roll result = roll.get();
     
-    ASSERT_EQ(odin::u32(10), result.amount_);
-    ASSERT_EQ(odin::u32(20), result.sides_);
-    ASSERT_EQ(odin::s32(-5), result.bonus_);
+    ASSERT_EQ(std::uint32_t(10), result.amount_);
+    ASSERT_EQ(std::uint32_t(20), result.sides_);
+    ASSERT_EQ(std::int32_t(-5), result.bonus_);
     
     // Also check that the text after the roll is preserved.
     ASSERT_EQ(std::string("FOO"), std::string(begin, end));

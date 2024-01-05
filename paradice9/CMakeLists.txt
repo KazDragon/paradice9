@@ -1,12 +1,21 @@
+find_package(serverpp 0.2.0 REQUIRED)
+find_package(SQLiteCpp REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem)
+find_package(cryptopp REQUIRED)
+find_package(gsl-lite 0.38 REQUIRED)
+find_package(Threads REQUIRED)
+
 set (PARADICE9_SOURCE_FILES
     src/context_impl.cpp
+    src/cryptography.cpp
     src/main.cpp
-    src/paradice9.cpp
+    src/server.cpp
 )
 
 set (PARADICE9_INCLUDE_FILES
     include/paradice9/context_impl.hpp
-    include/paradice9/paradice9.hpp
+    include/paradice9/cryptography.hpp
+    include/paradice9/server.hpp
 )
 
 add_executable(paradice9
@@ -19,11 +28,6 @@ target_include_directories(paradice9
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_compile_definitions(paradice9
-    PRIVATE
-        BOOST_SIGNALS_NO_DEPRECATION_WARNING
-)
-
 target_compile_features(paradice9
     PRIVATE
         cxx_generic_lambdas
@@ -32,9 +36,9 @@ target_compile_features(paradice9
 target_link_libraries(paradice9
     PRIVATE
         paradice
-        hugin
-        ${Boost_FILESYSTEM_LIBRARY}
-        ${Boost_PROGRAM_OPTIONS_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
-        ${CMAKE_THREAD_LIBS_INIT}
+        KazDragon::serverpp
+        SQLiteCpp
+        cryptopp::cryptopp
+        Boost::filesystem
+        Boost::boost
 )

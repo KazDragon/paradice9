@@ -27,35 +27,37 @@
 #ifndef PARADICE_CONNECTION_HPP_
 #define PARADICE_CONNECTION_HPP_
 
-#include "paradice/export.hpp"
-#include "odin/core.hpp"
-#include <terminalpp/ansi/control_sequence.hpp>
-#include <terminalpp/ansi/mouse.hpp>
-#include <terminalpp/virtual_key.hpp>
+#include "paradice/core.hpp"
+#include <functional>
 #include <memory>
-#include <string>
 #include <utility>
-#include <vector>
-
-namespace odin { namespace net {
-    class socket;
-}}
 
 namespace paradice {
 
 //* =========================================================================
-/// \brief An connection to a socket that abstracts away details about the
-/// protocols used.
+/// \brief An connection to a communication channel (e.g. a TCP socket) that 
+/// abstracts away details about the protocols used.
 //* =========================================================================
 class PARADICE_EXPORT connection
 {
 public :
     //* =====================================================================
-    /// \brief Create a connection object that uses the passed socket as
-    /// a communications point, and calls the passed function whenever data
-    /// is received.
+    /// \brief Create a connection object that communicates with the passed-
+    /// in communications channel.
     //* =====================================================================
-    connection(std::shared_ptr<odin::net::socket> const &socket);
+    template <class Channel>
+    explicit connection(Channel &&ep)
+      : connection(
+            std::unique_ptr<channel_concept>(
+                std::make_unique<channel_model<Channel>>(
+                    std::forward<Channel>(ep))))
+    {
+    }
+
+    //* =====================================================================
+    /// \brief Move constructor
+    //* =====================================================================
+    connection(connection &&other) noexcept;
 
     //* =====================================================================
     /// \brief Destructor.
@@ -63,49 +65,99 @@ public :
     ~connection();
 
     //* =====================================================================
-    /// \brief Starts reading from the other end of the connection.  Until
-    /// this is called, no reads will take place.
+    /// \brief Move assignment
     //* =====================================================================
-    void start();
+    connection &operator=(connection &&other) noexcept;
 
     //* =====================================================================
-    /// \brief Writes data to the connection.
+    /// \brief Closes the connection.
     //* =====================================================================
-    void write(std::string const &data);
+    void close();
 
     //* =====================================================================
-    /// \brief Set a function to be called when data arrives from the
-    /// connection.
+    /// \brief Returns whether the channel of the connection is still
+    ///        alive.
     //* =====================================================================
-    void on_data_read(
-        std::function<void (std::string const &)> const &callback);
-    
+    bool is_alive() const;
+
+    //* =====================================================================
+    /// \brief Asynchronously reads from the connection.
+    ///
+    /// A single read may yield zero or more callbacks to the data 
+    /// continuation.  This is because parts or all of the data may be
+    /// consumed by Telnet handling.  Therefore, a second continuation is
+    /// provided to show that the requested read has been completed and a
+    /// new read request may be issued.
+    //* =====================================================================
+    void async_read(std::function<void (bytes)> const &data_continuation);
+
+    //* =====================================================================
+    /// \brief Writes to the connection.
+    //* =====================================================================
+    void write(bytes data);
+
+    //* =====================================================================
+    /// \brief Requests terminal type of the connection, calling the
+    ///        supplied continuation with the results.
+    //* =====================================================================
+    void async_get_terminal_type(
+        std::function<void (std::string const &)> const &continuation);
+
     //* =====================================================================
     /// \brief Set a function to be called when the window size changes.
     //* =====================================================================
     void on_window_size_changed(
-        std::function<void (odin::u16, odin::u16)> const &callback);
-
-    //* =====================================================================
-    /// \brief Set up a callback to be called when the underlying socket
-    /// dies.
-    //* =====================================================================
-    void on_socket_death(std::function<void ()> const &callback);
-
-    //* =====================================================================
-    /// \brief Disconnects the socket.
-    //* =====================================================================
-    void disconnect();
-
-    //* =====================================================================
-    /// \brief Asynchronously retrieves the terminal type of the connection.
-    //* =====================================================================
-    void async_get_terminal_type(
-        std::function<void (std::string const &)> const &callback);
+        std::function<void (std::uint16_t, std::uint16_t)> const &continuation);
 
 private :
+    struct channel_concept
+    {
+        virtual ~channel_concept() = default;
+        virtual void async_read(std::function<void (bytes)> const &callback) = 0;
+        virtual void write(bytes data) = 0;
+        virtual bool is_alive() const = 0;
+        virtual void close() = 0;
+    };
+
+    template <typename Channel>
+    struct channel_model final : channel_concept
+    {
+        explicit channel_model(Channel &&ep)
+          : channel_(std::forward<Channel>(ep))
+        {
+        }
+
+        void async_read(std::function<void (bytes)> const &callback) override
+        {
+            channel_.async_read(callback);
+        }
+
+        void write(bytes data) override
+        {
+            channel_.write(data);
+        }
+
+        bool is_alive() const override
+        {
+            return channel_.is_alive();
+        }
+
+        void close() override
+        {
+            channel_.close();
+        }
+
+        Channel channel_;
+    };
+
+    // ======================================================================
+    // Internal Constructor
+    // ======================================================================
+    connection(std::unique_ptr<channel_concept> ep);
+
     struct impl;
-    std::shared_ptr<impl> pimpl_;
+    friend struct impl;
+    std::unique_ptr<impl> pimpl_;
 };
 
 }

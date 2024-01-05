@@ -39,13 +39,13 @@ fi
 # Install Crypto++ dependency
 if [ ! -f "$EXTERNAL_ROOT/include/cryptopp/cryptlib.h" ]; then
     cd "$EXTERNAL_BUILD_ROOT";
-    wget https://github.com/weidai11/cryptopp/archive/refs/tags/CRYPTOPP_8_6_0.tar.gz -O - | tar xz;
-    cd cryptopp-CRYPTOPP_8_6_0;
-    wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt;
-    wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake;
-    cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DBUILD_TESTING=OFF -DCRYPTOPP_DATA_DIR="" .;
+    wget https://github.com/abdes/cryptopp-cmake/archive/refs/tags/CRYPTOPP_8_9_0.tar.gz -O - | tar xz;
+    cd cryptopp-cmake-CRYPTOPP_8_9_0;
+    mkdir build;
+    cd build;
+    cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DBUILD_TESTING=OFF -DCRYPTOPP_DATA_DIR="" ..;
     cmake --build . -j2 --target=install;
-    cd ..;
+    cd ../..;
 fi
 
 # Install gtest dependency

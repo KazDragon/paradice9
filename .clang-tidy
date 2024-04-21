@@ -12,9 +12,9 @@ Checks: >
   -google-readability-todo,
   -misc-no-recursion,
   -misc-unused-parameters,
+  -misc-non-private-member-variables-in-classes,
   -modernize-avoid-c-arrays,
   -modernize-use-trailing-return-type,
-  -modernize-use-default-member-init,
   -readability-convert-member-functions-to-static,
   -readability-else-after-return,
   -readability-identifier-length,
@@ -26,8 +26,8 @@ Checks: >
 WarningsAsErrors: "*"
 
 CheckOptions:
-  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
-    value: true
+  - key: bugprone-reserved-identifier.AllowedIdentifiers
+    value: _
   - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value: true
   - key: cppcoreguidelines-special-member-functions.AllowMissingMoveFunctions
@@ -45,8 +45,6 @@ CheckOptions:
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
   - key: readability-identifier-naming.VariableCase
-    value: lower_case
-  - key: readability-identifier-naming.PublicMemberCase
     value: lower_case
   - key: readability-identifier-naming.ProtectedMemberCase
     value: lower_case

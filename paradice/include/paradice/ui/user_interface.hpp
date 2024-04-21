@@ -30,18 +30,19 @@
 #include "paradice/export.hpp"
 #include "paradice/model/account.hpp"
 #include "paradice/model/character.hpp"
+
 #include <munin/animator.hpp>
 #include <munin/composite_component.hpp>
+
 #include <memory>
 
-namespace paradice { namespace ui {
+namespace paradice::ui {
 
 //* =========================================================================
 /// \brief An abstraction of the primary user interface for the Paradice
 /// application.
 //* =========================================================================
-class PARADICE_EXPORT user_interface
-  : public munin::composite_component
+class PARADICE_EXPORT user_interface : public munin::composite_component
 {
 public:
     //* =====================================================================
@@ -57,52 +58,44 @@ public:
     //* =====================================================================
     /// \brief Callback for when a new account is created.
     //* =====================================================================
-    boost::signals2::signal<
-        model::account (
-            std::string const &name, std::string const &password)
-    > on_new_account;
+    boost::signals2::signal<model::account(
+        std::string const &name, std::string const &password)>
+        on_new_account;
 
     //* =====================================================================
     /// \brief Callback for when an attempt to log in to an account is made.
     //* =====================================================================
-    boost::signals2::signal<
-        model::account (
-            std::string const &name, std::string const &password)
-    > on_login;
+    boost::signals2::signal<model::account(
+        std::string const &name, std::string const &password)>
+        on_login;
 
     //* =====================================================================
     /// \brief Callback for when a new character is created.
     //* =====================================================================
-    boost::signals2::signal<
-        model::character (
-            model::account &acct, std::string const &character_name)
-    > on_character_created;
+    boost::signals2::signal<model::character(
+        model::account &acct, std::string const &character_name)>
+        on_character_created;
 
     //* =====================================================================
     /// \brief Callback for when a character is selected.
     //* =====================================================================
-    boost::signals2::signal<
-        model::character (model::account &acct, int index)
-    > on_character_selected;
+    boost::signals2::signal<model::character(model::account &acct, int index)>
+        on_character_selected;
 
     //* =====================================================================
     /// \brief Callback for when the client enters the game.
     //* =====================================================================
-    boost::signals2::signal<
-        void (model::character &)
-    > on_entered_game;
+    boost::signals2::signal<void(model::character &)> on_entered_game;
 
     //* =====================================================================
     /// \brief Callback for when the player enters a line into the command
     /// prompt.
     //* =====================================================================
-    boost::signals2::signal<
-        void (std::string const &)
-    > on_command;
+    boost::signals2::signal<void(std::string const &)> on_command;
 
 protected:
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this 
+    /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
     void do_event(boost::any const &event) override;
@@ -112,6 +105,6 @@ private:
     std::unique_ptr<impl> pimpl_;
 };
 
-}}
+}  // namespace paradice::ui
 
 #endif

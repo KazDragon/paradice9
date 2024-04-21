@@ -6,44 +6,46 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice/ui/user_interface.hpp"
+
+#include "paradice/context.hpp"
 #include "paradice/ui/account_creation_page.hpp"
 #include "paradice/ui/character_creation_page.hpp"
 #include "paradice/ui/character_selection_page.hpp"
 #include "paradice/ui/main_page.hpp"
 #include "paradice/ui/title_page.hpp"
-#include "paradice/context.hpp"
-#include <terminalpp/mouse.hpp>
-#include <terminalpp/virtual_key.hpp>
+
 #include <munin/brush.hpp>
 #include <munin/compass_layout.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/status_bar.hpp>
 #include <munin/view.hpp>
-#include <boost/range/adaptor/transformed.hpp>
+#include <terminalpp/mouse.hpp>
+#include <terminalpp/virtual_key.hpp>
 #include <boost/make_unique.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 
-using namespace terminalpp::literals;
+using namespace terminalpp::literals;  // NOLINT
 
-namespace paradice { namespace ui {
+namespace paradice::ui {
 
 // ==========================================================================
 // USER_INTERFACE::IMPLEMENTATION STRUCTURE
@@ -51,8 +53,7 @@ namespace paradice { namespace ui {
 struct user_interface::impl
 {
     impl(user_interface &self, munin::animator &anim)
-      : self_(self),
-        animator_(anim)
+      : self_(self), animator_(anim)
     {
         content_->set_layout(munin::make_grid_layout({1, 1}));
     }
@@ -64,25 +65,25 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<title_page>();
         new_page->on_new_account.connect(
-            [this]{go_to_account_creation_page();});
+            [this] { go_to_account_creation_page(); });
 
-        new_page->on_account_login.connect(
-            [this](std::string const &name, std::string const &password)
+        new_page->on_account_login.connect([this](
+                                               std::string const &name,
+                                               std::string const &password) {
+            try
             {
-                try
-                {
-                    active_account_ = self_.on_login(name, password);
-                    go_to_character_selection_page();
-                }
-                catch (no_such_account_error const &)
-                {
-                    status_bar_->set_message("Invalid name/password combination");
-                }
-                catch (...)
-                {
-                    status_bar_->set_message("Unable to retrieve account details");
-                }
-            });
+                active_account_ = self_.on_login(name, password);
+                go_to_character_selection_page();
+            }
+            catch (no_such_account_error const &)
+            {
+                status_bar_->set_message("Invalid name/password combination");
+            }
+            catch (...)
+            {
+                status_bar_->set_message("Unable to retrieve account details");
+            }
+        });
 
         go_to_page(new_page);
     }
@@ -93,19 +94,19 @@ struct user_interface::impl
     void go_to_account_creation_page()
     {
         auto new_page = std::make_shared<account_creation_page>();
-        new_page->on_return.connect([this]{go_to_title_page();});
+        new_page->on_return.connect([this] { go_to_title_page(); });
         new_page->on_next.connect(
-            [this](std::string const &name, std::string const &password)
-            {
+            [this](std::string const &name, std::string const &password) {
                 try
                 {
                     active_account_ = self_.on_new_account(name, password);
                 }
                 catch (duplicate_account_error const &)
                 {
-                    status_bar_->set_message("An account with that name already exists");
+                    status_bar_->set_message(
+                        "An account with that name already exists");
                 }
-                catch(...)
+                catch (...)
                 {
                     status_bar_->set_message("Account creation disabled");
                 }
@@ -125,16 +126,16 @@ struct user_interface::impl
     void go_to_character_creation_page()
     {
         auto new_page = std::make_shared<character_creation_page>();
-        new_page->on_return.connect([this]{go_to_character_selection_page();});
+        new_page->on_return.connect(
+            [this] { go_to_character_selection_page(); });
         new_page->on_character_created.connect(
-            [this](std::string const &character_name)
-            {
+            [this](std::string const &character_name) {
                 try
                 {
                     active_character_ = self_.on_character_created(
                         *active_account_, character_name);
                 }
-                catch(...)
+                catch (...)
                 {
                 }
 
@@ -156,39 +157,37 @@ struct user_interface::impl
     void go_to_character_selection_page()
     {
         auto const &string_to_terminal_string =
-            [](std::string const &character_name)
-            {
+            [](std::string const &character_name) {
                 return terminalpp::string{character_name};
             };
 
-        auto const &character_names = 
+        auto const &character_names =
             active_account_->character_names
-          | boost::adaptors::transformed(string_to_terminal_string);
+            | boost::adaptors::transformed(string_to_terminal_string);
 
         std::vector<terminalpp::string> names{
-                character_names.begin(), character_names.end()};
+            character_names.begin(), character_names.end()};
 
         auto new_page = std::make_shared<character_selection_page>(names);
-        new_page->on_new_character.connect([this]{go_to_character_creation_page();});
-        new_page->on_character_selected.connect(
-            [this](int index)
+        new_page->on_new_character.connect(
+            [this] { go_to_character_creation_page(); });
+        new_page->on_character_selected.connect([this](int index) {
+            assert(active_account_.is_initialized());
+
+            try
             {
-                assert(active_account_.is_initialized());
+                active_character_ =
+                    self_.on_character_selected(*active_account_, index);
+            }
+            catch (...)
+            {
+            }
 
-                try
-                {
-                    active_character_ = self_.on_character_selected(
-                        *active_account_, index);
-                }
-                catch(...)
-                {
-                }
-
-                if (active_character_)
-                {
-                    go_to_main_page();
-                }
-            });
+            if (active_character_)
+            {
+                go_to_main_page();
+            }
+        });
 
         go_to_page(new_page);
     }
@@ -217,7 +216,9 @@ struct user_interface::impl
         content_->set_focus();
 
         last_content_ = new_page;
-        self_.on_redraw({{{}, self_.get_size()}});
+        self_.on_redraw({
+            {{}, self_.get_size()}
+        });
     }
 
     // ======================================================================
@@ -260,14 +261,15 @@ struct user_interface::impl
         }
     }
 
-    user_interface                    &self_;
-    munin::animator                   &animator_;
+    user_interface &self_;
+    munin::animator &animator_;
 
-    std::shared_ptr<munin::container>  content_{munin::make_container()};
-    std::shared_ptr<munin::status_bar> status_bar_{munin::make_status_bar(animator_)};
-    std::shared_ptr<munin::component>  last_content_;
+    std::shared_ptr<munin::container> content_{munin::make_container()};
+    std::shared_ptr<munin::status_bar> status_bar_{
+        munin::make_status_bar(animator_)};
+    std::shared_ptr<munin::component> last_content_;
 
-    boost::optional<model::account>   active_account_;
+    boost::optional<model::account> active_account_;
     boost::optional<model::character> active_character_;
 };
 
@@ -277,16 +279,13 @@ struct user_interface::impl
 user_interface::user_interface(munin::animator &anim)
   : pimpl_(boost::make_unique<impl>(*this, anim))
 {
-    using namespace terminalpp::literals;
-
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(
-        munin::view(
-            munin::make_compass_layout(),
-            pimpl_->content_,
-            munin::compass_layout::heading::centre,
-            pimpl_->status_bar_,
-            munin::compass_layout::heading::south));
+    add_component(munin::view(
+        munin::make_compass_layout(),
+        pimpl_->content_,
+        munin::compass_layout::heading::centre,
+        pimpl_->status_bar_,
+        munin::compass_layout::heading::south));
     pimpl_->go_to_title_page();
 };
 
@@ -302,14 +301,13 @@ void user_interface::do_event(boost::any const &event)
 {
     bool handled = false;
 
-    if (auto const *vk_event = 
-            boost::any_cast<terminalpp::virtual_key>(&event);
+    if (auto const *vk_event = boost::any_cast<terminalpp::virtual_key>(&event);
         vk_event)
     {
         handled = pimpl_->handle_virtual_key_event(*vk_event);
     }
-    
-    if (auto const *mouse_event = 
+
+    if (auto const *mouse_event =
             boost::any_cast<terminalpp::mouse::event>(&event);
         mouse_event)
     {
@@ -322,4 +320,4 @@ void user_interface::do_event(boost::any const &event)
     }
 }
 
-}}
+}  // namespace paradice::ui

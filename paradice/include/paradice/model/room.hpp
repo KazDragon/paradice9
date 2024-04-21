@@ -35,7 +35,7 @@ struct character;
 
 struct room
 {
-  std::list<character *> characters;
+    std::list<character *> characters;
 };
 
 }  // namespace paradice::model

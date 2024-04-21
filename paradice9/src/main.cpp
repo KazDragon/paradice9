@@ -26,9 +26,11 @@
 // ==========================================================================
 #include "paradice9/context_impl.hpp"
 #include "paradice9/server.hpp"
+
 #include <boost/format.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/program_options.hpp>
+
 #include <iostream>
 #include <string>
 #include <thread>
@@ -38,115 +40,114 @@ namespace po = boost::program_options;
 
 int main(int argc, char *argv[])
 {
-  serverpp::port_identifier port = 4000;
-  std::string threads;
-  std::string database_path = "paradice.db3";
-  unsigned int concurrency = 0;
+    serverpp::port_identifier port = 4000;
+    std::string threads;
+    std::string database_path = "paradice.db3";
+    unsigned int concurrency = 0;
 
-  po::options_description description("Available options");
-  description.add_options()("help,h", "show this help message")(
-      "port,p", po::value<serverpp::port_identifier>(&port), "port number")(
-      "threads,t",
-      po::value<std::string>(&threads),
-      "number of threads of execution (0 for autodetect)")(
-      "database,d",
-      po::value<std::string>(&database_path),
-      "path to the database");
+    po::options_description description("Available options");
+    description.add_options()("help,h", "show this help message")(
+        "port,p", po::value<serverpp::port_identifier>(&port), "port number")(
+        "threads,t",
+        po::value<std::string>(&threads),
+        "number of threads of execution (0 for autodetect)")(
+        "database,d",
+        po::value<std::string>(&database_path),
+        "path to the database");
 
-  po::positional_options_description pos_description;
-  pos_description.add("port", -1);
+    po::positional_options_description pos_description;
+    pos_description.add("port", -1);
 
-  try
-  {
-    po::variables_map vm;
-    po::store(
-        po::command_line_parser(argc, argv)
-            .options(description)
-            .positional(pos_description)
-            .run(),
-        vm);
-
-    po::notify(vm);
-
-    if (vm.count("help") != 0)
+    try
     {
-      throw po::error("");
+        po::variables_map vm;
+        po::store(
+            po::command_line_parser(argc, argv)
+                .options(description)
+                .positional(pos_description)
+                .run(),
+            vm);
+
+        po::notify(vm);
+
+        if (vm.count("help") != 0)
+        {
+            throw po::error("");
+        }
+        else if (vm.count("port") == 0)
+        {
+            throw po::error("Port number must be specified");
+        }
+
+        if (vm.count("threads") == 0)
+        {
+            concurrency = 1;
+        }
+        else
+        {
+            try
+            {
+                concurrency = boost::lexical_cast<unsigned int>(threads);
+            }
+            catch (...)
+            {
+                // Failure is to be expected here, since it might be an empty
+                // string.  In this case, concurrency will be a detectable 0.
+            }
+
+            if (concurrency == 0)
+            {
+                concurrency = std::thread::hardware_concurrency();
+            }
+
+            // "thread::hardware_concurrency()" may return 0 on platforms that
+            // don't have information available about cores/hyper-threading
+            // units, etc.  In this case, we will default to one thread.
+            if (concurrency == 0)
+            {
+                concurrency = 1;
+            }
+        }
     }
-    else if (vm.count("port") == 0)
+    catch (po::error &err)
     {
-      throw po::error("Port number must be specified");
+        if (strlen(err.what()) == 0)
+        {
+            std::cout << boost::format("USAGE: %s <port number>|<options>\n")
+                             % argv[0]
+                      << description << std::endl;
+
+            return EXIT_SUCCESS;
+        }
+        else
+        {
+            std::cerr << boost::format(
+                             "ERROR: %s\n\nUSAGE: %s <port number>|<options>\n")
+                             % err.what() % argv[0]
+                      << description << std::endl;
+        }
+
+        return EXIT_FAILURE;
     }
 
-    if (vm.count("threads") == 0)
+    std::unique_ptr<paradice9::server> server;
+
+    boost::asio::io_context io_context;
+    paradice9::context_impl context{
+        io_context, database_path, [&] { server->shutdown(); }};
+    server = boost::make_unique<paradice9::server>(io_context, port, context);
+
+    std::vector<std::thread> thread_pool;
+
+    for (unsigned int thr = 0; thr < concurrency; ++thr)
     {
-      concurrency = 1;
+        thread_pool.emplace_back([&io_context] { io_context.run(); });
     }
-    else
+
+    for (auto &pthread : thread_pool)
     {
-      try
-      {
-        concurrency = boost::lexical_cast<unsigned int>(threads);
-      }
-      catch (...)
-      {
-        // Failure is to be expected here, since it might be an empty
-        // string.  In this case, concurrency will be a detectable 0.
-      }
-
-      if (concurrency == 0)
-      {
-        concurrency = std::thread::hardware_concurrency();
-      }
-
-      // According to the Boost docs, "thread::hardware_concurrency()"
-      // may return 0 on platforms that don't have information available
-      // about cores/hyper-threading units, etc.  In this case, we will
-      // default to one thread.
-      if (concurrency == 0)
-      {
-        concurrency = 1;
-      }
-    }
-  }
-  catch (po::error &err)
-  {
-    if (strlen(err.what()) == 0)
-    {
-      std::cout << boost::format("USAGE: %s <port number>|<options>\n")
-                       % argv[0]
-                << description << std::endl;
-
-      return EXIT_SUCCESS;
-    }
-    else
-    {
-      std::cerr << boost::format(
-                       "ERROR: %s\n\nUSAGE: %s <port number>|<options>\n")
-                       % err.what() % argv[0]
-                << description << std::endl;
+        pthread.join();
     }
 
-    return EXIT_FAILURE;
-  }
-
-  std::unique_ptr<paradice9::server> server;
-
-  boost::asio::io_context io_context;
-  paradice9::context_impl context{
-      io_context, database_path, [&] { server->shutdown(); }};
-  server = boost::make_unique<paradice9::server>(io_context, port, context);
-
-  std::vector<std::thread> thread_pool;
-
-  for (unsigned int thr = 0; thr < concurrency; ++thr)
-  {
-    thread_pool.emplace_back([&io_context] { io_context.run(); });
-  }
-
-  for (auto &pthread : thread_pool)
-  {
-    pthread.join();
-  }
-
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

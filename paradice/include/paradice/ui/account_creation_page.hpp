@@ -33,19 +33,19 @@ namespace paradice::ui {
 
 class account_creation_page : public munin::composite_component
 {
- public:
-  //* =====================================================================
-  /// \brief Constructor
-  //* =====================================================================
-  account_creation_page();
+public:
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    account_creation_page();
 
-  boost::signals2::signal<void()> on_return;
+    boost::signals2::signal<void()> on_return;
 
-  boost::signals2::signal<void(
-      std::string const &name, std::string const &password)>
-      on_next;
+    boost::signals2::signal<void(
+        std::string const &name, std::string const &password)>
+        on_next;
 
- private:
+private:
 };
 
 }  // namespace paradice::ui

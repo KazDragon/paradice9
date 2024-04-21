@@ -1,9 +1,11 @@
 #pragma once
 
 #include "export.hpp"  // IWYU pragma: export
+
 #include <gsl/gsl-lite.hpp>
-#include <cstdint>
+
 #include <string>
+#include <cstdint>
 
 namespace paradice {
 

@@ -26,7 +26,6 @@
 // ==========================================================================
 #include "paradice/connection.hpp"
 
-#include <telnetpp/telnetpp.hpp>
 #include <telnetpp/options/echo/server.hpp>
 #include <telnetpp/options/mccp/codec.hpp>
 #include <telnetpp/options/mccp/server.hpp>
@@ -34,8 +33,7 @@
 #include <telnetpp/options/naws/client.hpp>
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
-
-#include <iostream>
+#include <telnetpp/telnetpp.hpp>
 
 namespace paradice {
 
@@ -51,44 +49,38 @@ struct connection::impl
       : channel_(std::move(channel))
     {
         telnet_naws_client_.on_window_size_changed.connect(
-            [this](auto &&width, auto &&height)
-            {
+            [this](auto &&width, auto &&height) {
                 this->on_window_size_changed(width, height);
             });
 
         telnet_terminal_type_client_.on_terminal_type.connect(
-            [this](auto &&type)
-            {
+            [this](auto &&type) {
                 std::string user_type(type.begin(), type.end());
                 this->on_terminal_type_detected(user_type);
             });
 
-        telnet_terminal_type_client_.on_state_changed.connect(
-            [this]()
+        telnet_terminal_type_client_.on_state_changed.connect([this]() {
+            if (telnet_terminal_type_client_.active())
             {
-                if (telnet_terminal_type_client_.active())
-                {
-                    telnet_terminal_type_client_.request_terminal_type();
-                }
-            });
+                telnet_terminal_type_client_.request_terminal_type();
+            }
+        });
 
-        telnet_mccp_server_.on_state_changed.connect(
-            [this]()
+        telnet_mccp_server_.on_state_changed.connect([this]() {
+            channel_.mccp_active_ = telnet_mccp_server_.active();
+
+            if (channel_.mccp_active_)
             {
-                channel_.mccp_active_ = telnet_mccp_server_.active();
-
-                if (channel_.mccp_active_)
-                {
-                    telnet_mccp_server_.start_compression();
-                }
-            });
+                telnet_mccp_server_.start_compression();
+            }
+        });
 
         telnet_session_.install(telnet_echo_server_);
         telnet_session_.install(telnet_suppress_ga_server_);
         telnet_session_.install(telnet_naws_client_);
         telnet_session_.install(telnet_terminal_type_client_);
         telnet_session_.install(telnet_mccp_server_);
-        
+
         // Send the required activations.
         telnet_echo_server_.activate();
         telnet_suppress_ga_server_.activate();
@@ -100,7 +92,7 @@ struct connection::impl
     // ======================================================================
     // CLOSE
     // ======================================================================
-    void close()
+    void close() const
     {
         channel_.close();
     }
@@ -108,11 +100,11 @@ struct connection::impl
     // ======================================================================
     // IS_ALIVE
     // ======================================================================
-    bool is_alive() const
+    [[nodiscard]] bool is_alive() const
     {
         return channel_.is_alive();
     }
-    
+
     // ======================================================================
     // WRITE
     // ======================================================================
@@ -124,7 +116,7 @@ struct connection::impl
     // ======================================================================
     // ASYNC_READ
     // ======================================================================
-    void async_read(std::function<void (bytes)> const &callback)
+    void async_read(std::function<void(bytes)> const &callback)
     {
         telnet_session_.async_read([this, callback](bytes data) {
             if (data.empty())
@@ -143,7 +135,7 @@ struct connection::impl
     // ======================================================================
     // ON_WINDOW_SIZE_CHANGED
     // ======================================================================
-    void on_window_size_changed(std::uint16_t width, std::uint16_t height)
+    void on_window_size_changed(std::uint16_t width, std::uint16_t height) const
     {
         if (on_window_size_changed_)
         {
@@ -186,7 +178,7 @@ struct connection::impl
         {
         }
 
-        void async_read(std::function<void (bytes)> const &callback)
+        void async_read(std::function<void(bytes)> const &callback) const
         {
             channel_->async_read(callback);
         }
@@ -196,9 +188,7 @@ struct connection::impl
             if (mccp_active_)
             {
                 telnet_mccp_compressor_(
-                    data,
-                    [this](telnetpp::bytes compressed_data, bool)
-                    {
+                    data, [this](telnetpp::bytes compressed_data, bool) {
                         channel_->write(compressed_data);
                     });
             }
@@ -208,12 +198,12 @@ struct connection::impl
             }
         }
 
-        bool is_alive() const
+        [[nodiscard]] bool is_alive() const
         {
             return channel_->is_alive();
         }
 
-        void close()
+        void close() const
         {
             return channel_->close();
         }
@@ -223,28 +213,30 @@ struct connection::impl
         bool mccp_active_{false};
     };
 
-    
-    mccp_channel                                         channel_;
+    mccp_channel channel_;
 
-    telnetpp::session                                    telnet_session_{channel_};
-    telnetpp::options::echo::server                      telnet_echo_server_{telnet_session_};
-    telnetpp::options::suppress_ga::server               telnet_suppress_ga_server_{telnet_session_};
-    telnetpp::options::mccp::server                      telnet_mccp_server_{telnet_session_, channel_.telnet_mccp_compressor_};
-    telnetpp::options::naws::client                      telnet_naws_client_{telnet_session_};
-    telnetpp::options::terminal_type::client             telnet_terminal_type_client_{telnet_session_};
-    telnetpp::byte_storage                               telnet_read_cache_;
-    
-    std::function<void (std::uint16_t, std::uint16_t)>   on_window_size_changed_;
+    telnetpp::session telnet_session_{channel_};
+    telnetpp::options::echo::server telnet_echo_server_{telnet_session_};
+    telnetpp::options::suppress_ga::server telnet_suppress_ga_server_{
+        telnet_session_};
+    telnetpp::options::mccp::server telnet_mccp_server_{
+        telnet_session_, channel_.telnet_mccp_compressor_};
+    telnetpp::options::naws::client telnet_naws_client_{telnet_session_};
+    telnetpp::options::terminal_type::client telnet_terminal_type_client_{
+        telnet_session_};
+    telnetpp::byte_storage telnet_read_cache_;
 
-    std::string                                          terminal_type_;
-    std::vector<std::function<void (std::string)>>       terminal_type_requests_;
+    std::function<void(std::uint16_t, std::uint16_t)> on_window_size_changed_;
+
+    std::string terminal_type_;
+    std::vector<std::function<void(std::string)>> terminal_type_requests_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 connection::connection(std::unique_ptr<channel_concept> ep)
-    : pimpl_(std::make_unique<impl>(std::move(ep)))
+  : pimpl_(std::make_unique<impl>(std::move(ep)))
 {
 }
 
@@ -282,9 +274,9 @@ bool connection::is_alive() const
 // ==========================================================================
 // ASYNC_READ
 // ==========================================================================
-void connection::async_read(std::function<void (bytes)> const &callback)
+void connection::async_read(std::function<void(bytes)> const &data_continuation)
 {
-    pimpl_->async_read(callback);
+    pimpl_->async_read(data_continuation);
 }
 
 // ==========================================================================
@@ -299,18 +291,18 @@ void connection::write(bytes data)
 // ASYNC_GET_TERMINAL_TYPE
 // ==========================================================================
 void connection::async_get_terminal_type(
-    std::function<void (std::string const &)> const &continuation)
+    std::function<void(std::string const &)> const &continuation)
 {
-    pimpl_->terminal_type_requests_.push_back(continuation);
+    pimpl_->terminal_type_requests_.emplace_back(continuation);
 }
 
 // ==========================================================================
 // ON_WINDOW_SIZE_CHANGED
 // ==========================================================================
 void connection::on_window_size_changed(
-    std::function<void (std::uint16_t, std::uint16_t)> const &continuation)
+    std::function<void(std::uint16_t, std::uint16_t)> const &continuation)
 {
     pimpl_->on_window_size_changed_ = continuation;
 }
 
-}
+}  // namespace paradice

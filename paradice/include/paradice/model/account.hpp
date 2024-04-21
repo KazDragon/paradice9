@@ -34,8 +34,8 @@ namespace paradice::model {
 
 struct account
 {
-  std::string name;
-  std::vector<std::string> character_names;
+    std::string name;
+    std::vector<std::string> character_names;
 };
 
 }  // namespace paradice::model

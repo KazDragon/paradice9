@@ -27,45 +27,45 @@
 #ifndef PARADICE_UI_DETAIL_PASSWORD_EDIT
 #define PARADICE_UI_DETAIL_PASSWORD_EDIT
 
-#include <terminalpp/string.hpp>
 #include <munin/composite_component.hpp>
+#include <terminalpp/string.hpp>
 
 namespace paradice::ui::detail {
 
 class password_edit : public munin::composite_component  // NOLINT
 {
- public:
-  //* =====================================================================
-  /// \brief Constructor
-  //* =====================================================================
-  password_edit();
+public:
+    //* =====================================================================
+    /// \brief Constructor
+    //* =====================================================================
+    password_edit();
 
-  //* =====================================================================
-  /// \brief Destructor
-  //* =====================================================================
-  ~password_edit() override;
+    //* =====================================================================
+    /// \brief Destructor
+    //* =====================================================================
+    ~password_edit() override;
 
-  //* =====================================================================
-  /// \brief Retrieves the underlying text
-  //* =====================================================================
-  [[nodiscard]] terminalpp::string get_text() const;
+    //* =====================================================================
+    /// \brief Retrieves the underlying text
+    //* =====================================================================
+    [[nodiscard]] terminalpp::string get_text() const;
 
- private:
-  //* =====================================================================
-  /// \brief Called by draw().  Derived classes must override this function
-  /// in order to draw onto the passed canvas.  A component must only draw
-  /// the part of itself specified by the region.
-  ///
-  /// \param surface the surface on which the component should draw itself.
-  /// \param region the region relative to this component's origin that
-  /// should be drawn.
-  //* =====================================================================
-  void do_draw(
-      munin::render_surface &surface,
-      terminalpp::rectangle const &region) const override;
+private:
+    //* =====================================================================
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw
+    /// the part of itself specified by the region.
+    ///
+    /// \param surface the surface on which the component should draw itself.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
+    //* =====================================================================
+    void do_draw(
+        munin::render_surface &surface,
+        terminalpp::rectangle const &region) const override;
 
-  struct impl;
-  std::unique_ptr<impl> pimpl_;
+    struct impl;
+    std::unique_ptr<impl> pimpl_;
 };
 
 //* =========================================================================

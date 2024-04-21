@@ -28,37 +28,37 @@
 #define PARADICE_CLIENT_HPP_
 
 #include "paradice/export.hpp"
-#include "paradice/ui/message.hpp"
+
 #include <terminalpp/behaviour.hpp>
 #include <terminalpp/string.hpp>
+
 #include <functional>
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace paradice {
-    class connection;
-    class context;
-}
+class connection;
+class context;
+}  // namespace paradice
 
 namespace munin {
-    class window;
+class window;
 }
 
-namespace boost { namespace asio {
-    class io_context;
-}}
+namespace boost::asio {
+class io_context;
+}
 
 namespace paradice {
 
 class PARADICE_EXPORT client
 {
-public :
+public:
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
     client(
-        boost::asio::io_context &io_context, 
+        boost::asio::io_context &io_context,
         context &ctx,
         connection &&cnx,
         terminalpp::behaviour beh);
@@ -86,18 +86,18 @@ public :
     //* =====================================================================
     /// \brief Sets up a callback for if the client's connection dies.
     //* =====================================================================
-    void on_connection_death(std::function<void ()> const &callback);
+    void on_connection_death(std::function<void()> const &callback);
 
     //* =====================================================================
     /// \brief Sends a message to be displayed on the client.
     //* =====================================================================
     void send_message(terminalpp::string const &message);
 
-private :
+private:
     class impl;
     std::shared_ptr<impl> pimpl_;
 };
 
-}
+}  // namespace paradice
 
 #endif

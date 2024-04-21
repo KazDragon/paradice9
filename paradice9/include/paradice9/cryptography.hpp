@@ -33,7 +33,7 @@ namespace paradice9 {
 
 struct encrypted_string
 {
-  std::string text;
+    std::string text;
 };
 
 //* =========================================================================

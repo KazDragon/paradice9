@@ -27,10 +27,9 @@
 #ifndef PARADICE_MODEL_CHARACTER_HPP_
 #define PARADICE_MODEL_CHARACTER_HPP_
 
-#include "paradice/core.hpp"
 #include <terminalpp/string.hpp>
+
 #include <string>
-#include <vector>
 
 namespace paradice::model {
 
@@ -38,12 +37,12 @@ struct room;
 
 struct character
 {
-  std::string name;
-  std::string prefix;
-  std::string suffix;
+    std::string name;
+    std::string prefix;
+    std::string suffix;
 
-  std::function<void(terminalpp::string const &)> send_message;
-  room *in_room;
+    std::function<void(terminalpp::string const &)> send_message;
+    room *in_room;
 };
 
 }  // namespace paradice::model

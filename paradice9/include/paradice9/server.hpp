@@ -28,8 +28,10 @@
 #define PARADICE9_HPP_
 
 #include "paradice/context.hpp"
+
 #include <serverpp/core.hpp>
 #include <boost/asio/io_context.hpp>
+
 #include <memory>
 
 namespace paradice9 {
@@ -40,28 +42,28 @@ namespace paradice9 {
 //* =========================================================================
 class server final  // NOLINT
 {
- public:
-  //* =====================================================================
-  /// Constructor
-  //* =====================================================================
-  server(
-      boost::asio::io_context &io_context,
-      serverpp::port_identifier port,
-      paradice::context &context);
+public:
+    //* =====================================================================
+    /// Constructor
+    //* =====================================================================
+    server(
+        boost::asio::io_context &io_context,
+        serverpp::port_identifier port,
+        paradice::context &context);
 
-  //* =====================================================================
-  /// Destructor
-  //* =====================================================================
-  ~server();
+    //* =====================================================================
+    /// Destructor
+    //* =====================================================================
+    ~server();
 
-  //* =====================================================================
-  /// Shuts Paradice9 down.  All running threads are released.
-  //* =====================================================================
-  void shutdown();
+    //* =====================================================================
+    /// Shuts Paradice9 down.  All running threads are released.
+    //* =====================================================================
+    void shutdown();
 
- private:
-  struct impl;
-  std::unique_ptr<impl> pimpl_;
+private:
+    struct impl;
+    std::unique_ptr<impl> pimpl_;
 };
 
 }  // namespace paradice9

@@ -29,6 +29,7 @@
 
 #include <terminalpp/string.hpp>
 
+#include <functional>
 #include <string>
 
 namespace paradice::model {

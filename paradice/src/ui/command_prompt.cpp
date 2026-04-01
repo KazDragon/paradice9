@@ -47,11 +47,11 @@ struct command_prompt::impl
     // ======================================================================
     // EVENT
     // ======================================================================
-    bool event(boost::any const &ev)
+    bool event(std::any const &ev)
     {
         bool handled = false;
 
-        auto const *vk_event = boost::any_cast<terminalpp::virtual_key>(&ev);
+        auto const *vk_event = std::any_cast<terminalpp::virtual_key>(&ev);
 
         if (vk_event != nullptr)
         {
@@ -112,7 +112,7 @@ command_prompt::~command_prompt() = default;
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void command_prompt::do_event(boost::any const &event)
+void command_prompt::do_event(std::any const &event)
 {
     if (!pimpl_->event(event))
     {

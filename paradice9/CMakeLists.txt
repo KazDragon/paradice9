@@ -4,7 +4,7 @@ endif()
 find_package(SQLiteCpp REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(cryptopp REQUIRED)
-find_package(gsl-lite 0.38 REQUIRED)
+find_package(gsl-lite REQUIRED)
 find_package(Threads REQUIRED)
 
 set (PARADICE9_SOURCE_FILES

@@ -14,7 +14,7 @@ if (NOT TARGET KazDragon::consolepp)
     find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
 endif()
 find_package(Boost COMPONENTS program_options container REQUIRED)
-find_package(gsl-lite 0.38 REQUIRED)
+find_package(gsl-lite REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(fmt REQUIRED)
 find_package(ZLIB REQUIRED)

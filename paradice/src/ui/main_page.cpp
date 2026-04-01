@@ -79,9 +79,9 @@ main_page::~main_page() = default;
 // ==========================================================================
 // DO_EVENT
 // ==========================================================================
-void main_page::do_event(boost::any const &ev)
+void main_page::do_event(std::any const &ev)
 {
-    auto const *msg = boost::any_cast<message>(&ev);
+    auto const *msg = std::any_cast<message>(&ev);
 
     if (msg != nullptr)
     {

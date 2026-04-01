@@ -30,6 +30,7 @@
 
 #include <paradice/client.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <boost/asio/post.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/optional.hpp>
@@ -138,7 +139,7 @@ struct context_impl::impl
     // ======================================================================
     void add_client(std::shared_ptr<paradice::client> const &cli)
     {
-        strand_.dispatch([this, cli] { clients_.push_back(cli); });
+        boost::asio::post(strand_, [this, cli] { clients_.push_back(cli); });
     }
 
     // ======================================================================
@@ -146,7 +147,8 @@ struct context_impl::impl
     // ======================================================================
     void remove_client(std::shared_ptr<paradice::client> const &cli)
     {
-        strand_.dispatch([this, cli] { boost::remove_erase(clients_, cli); });
+        boost::asio::post(
+            strand_, [this, cli] { boost::remove_erase(clients_, cli); });
     }
 
     // ======================================================================

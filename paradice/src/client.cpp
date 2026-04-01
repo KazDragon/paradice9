@@ -38,10 +38,11 @@
 #include <munin/window.hpp>
 #include <terminalpp/behaviour.hpp>
 #include <terminalpp/canvas.hpp>
-#include <terminalpp/encoder.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/terminal.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/asio/io_context_strand.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include <fmt/format.h>
 
@@ -242,7 +243,7 @@ public:
     // ======================================================================
     void flush_immediately()
     {
-        strand_.dispatch([this]() {
+        boost::asio::dispatch(strand_, [this]() {
             flush_requested_ = false;
             terminal_.write({buffer_.begin(), buffer_top_});
             buffer_top_ = 0;
@@ -256,7 +257,7 @@ public:
     {
         if (!std::atomic_exchange(&flush_requested_, true))
         {
-            strand_.post([this]() { flush_immediately(); });
+            boost::asio::post(strand_, [this]() { flush_immediately(); });
         }
     }
 
@@ -290,7 +291,10 @@ public:
                 token);
         };
 
-        boost::for_each(tokens, apply_token);
+        for (auto const &token : tokens)
+        {
+            apply_token(token);
+        }
     }
 
     // ======================================================================
@@ -377,7 +381,7 @@ private:
             }
         };
 
-        strand_.post(exec);
+        boost::asio::post(strand_, exec);
     }
 
     // ======================================================================

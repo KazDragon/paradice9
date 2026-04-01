@@ -17,16 +17,6 @@ if [ ! -f "$EXTERNAL_ROOT/include/nlohmann/json.hpp" ]; then
     cd ..
 fi
 
-# Install gsl-lite dependency
-if [ ! -f "$EXTERNAL_ROOT/include/gsl/gsl-lite.hpp" ]; then
-    cd "$EXTERNAL_BUILD_ROOT";
-    wget https://github.com/gsl-lite/gsl-lite/archive/v0.38.0.tar.gz -O - | tar xz;
-    cd gsl-lite-0.38.0;
-    cmake -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" -DGSL_LITE_OPT_BUILD_TESTS=Off .;
-    cmake --build . -j2 --target=install;
-    cd ..;
-fi
-
 # Install SQLiteCpp dependency
 if [ ! -f "$EXTERNAL_ROOT/include/SQLiteCpp/SQLiteCpp.h" ]; then
     wget https://github.com/SRombauts/SQLiteCpp/archive/refs/tags/3.1.1.tar.gz -O - | tar xz;

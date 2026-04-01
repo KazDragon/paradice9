@@ -24,14 +24,14 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/user_interface.hpp"
+#include "paradice/ui/shell/user_interface.hpp"
 
 #include "paradice/context.hpp"
-#include "paradice/ui/account_creation_page.hpp"
-#include "paradice/ui/character_creation_page.hpp"
-#include "paradice/ui/character_selection_page.hpp"
-#include "paradice/ui/main_page.hpp"
-#include "paradice/ui/title_page.hpp"
+#include "paradice/ui/pages/account_creation_page.hpp"
+#include "paradice/ui/pages/character_creation_page.hpp"
+#include "paradice/ui/pages/character_selection_page.hpp"
+#include "paradice/ui/pages/main_page.hpp"
+#include "paradice/ui/pages/title_page.hpp"
 
 #include <munin/brush.hpp>
 #include <munin/compass_layout.hpp>

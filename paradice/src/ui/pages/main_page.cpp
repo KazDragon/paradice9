@@ -24,9 +24,9 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/main_page.hpp"
+#include "paradice/ui/pages/main_page.hpp"
 
-#include "paradice/ui/command_prompt.hpp"
+#include "paradice/ui/components/command_prompt.hpp"
 #include "paradice/ui/message.hpp"
 
 #include <munin/compass_layout.hpp>

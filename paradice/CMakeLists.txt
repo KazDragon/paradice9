@@ -39,14 +39,14 @@ set (PARADICE_SOURCE_FILES
 #    src/utility.cpp
 #    src/who.cpp
 
-    src/ui/detail/password_edit.cpp
-    src/ui/account_creation_page.cpp
-    src/ui/character_creation_page.cpp
-    src/ui/character_selection_page.cpp
-    src/ui/command_prompt.cpp
-    src/ui/main_page.cpp
-    src/ui/title_page.cpp
-    src/ui/user_interface.cpp
+    src/ui/components/password_edit.cpp
+    src/ui/pages/account_creation_page.cpp
+    src/ui/pages/character_creation_page.cpp
+    src/ui/pages/character_selection_page.cpp
+    src/ui/components/command_prompt.cpp
+    src/ui/pages/main_page.cpp
+    src/ui/pages/title_page.cpp
+    src/ui/shell/user_interface.cpp
 )
 
 set (PARADICE_INCLUDE_FILES
@@ -76,14 +76,14 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/model/account.hpp
     include/paradice/model/character.hpp
     
-    include/paradice/ui/detail/password_edit.hpp
-    include/paradice/ui/account_creation_page.hpp
-    include/paradice/ui/character_creation_page.hpp
-    include/paradice/ui/character_selection_page.hpp
-    include/paradice/ui/command_prompt.hpp
-    include/paradice/ui/main_page.hpp
-    include/paradice/ui/title_page.hpp
-    include/paradice/ui/user_interface.hpp
+    include/paradice/ui/components/password_edit.hpp
+    include/paradice/ui/pages/account_creation_page.hpp
+    include/paradice/ui/pages/character_creation_page.hpp
+    include/paradice/ui/pages/character_selection_page.hpp
+    include/paradice/ui/components/command_prompt.hpp
+    include/paradice/ui/pages/main_page.hpp
+    include/paradice/ui/pages/title_page.hpp
+    include/paradice/ui/shell/user_interface.hpp
 )
 
 add_library(paradice

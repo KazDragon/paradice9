@@ -29,7 +29,7 @@
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
 #include "paradice/ui/message.hpp"
-#include "paradice/ui/user_interface.hpp"
+#include "paradice/ui/shell/user_interface.hpp"
 
 #include <munin/background_animator.hpp>
 #include <munin/brush.hpp>

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Character Creation Page
+// Paradice Character Selection Page
 //
 // Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,9 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/character_creation_page.hpp"
+#include "paradice/ui/pages/character_selection_page.hpp"
+
+#include "paradice/model/character.hpp"
 
 #include <munin/aligned_layout.hpp>
 #include <munin/button.hpp>
@@ -34,6 +36,7 @@
 #include <munin/framed_component.hpp>
 #include <munin/grid_layout.hpp>
 #include <munin/image.hpp>
+#include <munin/list.hpp>
 #include <munin/render_surface.hpp>
 #include <munin/solid_frame.hpp>
 #include <munin/titled_frame.hpp>
@@ -41,52 +44,74 @@
 #include <munin/view.hpp>
 #include <munin/viewport.hpp>
 #include <terminalpp/algorithm/for_each_in_region.hpp>
+#include <terminalpp/string.hpp>
+#include <boost/make_unique.hpp>
 
 using namespace terminalpp::literals;  // NOLINT
 
 namespace paradice::ui {
 
 // ==========================================================================
+// CHARACTER_SELECTION_PAGE::IMPLEMENTATION STRUCTURE
+// ==========================================================================
+struct character_selection_page::impl
+{
+    std::shared_ptr<munin::list> character_list_{munin::make_list()};
+};
+
+// ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
-character_creation_page::character_creation_page()
+character_selection_page::character_selection_page(
+    std::vector<terminalpp::string> const &character_names)
+  : pimpl_(boost::make_unique<impl>())
 {
-    auto name_edit = munin::make_edit();
+    pimpl_->character_list_->set_items(character_names);
 
-    auto fields = munin::view(
-        munin::make_grid_layout({1, 1}),
-        munin::make_framed_component(
-            munin::make_titled_frame("Name"), munin::make_viewport(name_edit)));
+    auto new_button = munin::make_button(" New ");
+    new_button->on_click.connect(on_new_character);
 
-    auto return_button = munin::make_button("Return");
-    auto next_button = munin::make_button("Next");
+    auto select_button = munin::make_button(" Select ");
+    select_button->on_click.connect([this]() {
+        auto const selected_item =
+            pimpl_->character_list_->get_selected_item_index();
 
-    return_button->on_click.connect(on_return);
-    next_button->on_click.connect(
-        [=] { on_character_created(to_string(name_edit->get_text())); });
+        if (selected_item)
+        {
+            on_character_selected(*selected_item);
+        }
+    });
 
-    auto buttons = munin::view(
+    auto const buttons_container = munin::view(
         munin::make_compass_layout(),
-        return_button,
-        munin::compass_layout::heading::west,
         munin::make_fill(' '),
         munin::compass_layout::heading::centre,
-        next_button,
+        munin::view(
+            munin::make_vertical_strip_layout(), new_button, select_button),
         munin::compass_layout::heading::east);
 
-    set_layout(munin::make_grid_layout({1, 1}));
-    add_component(munin::make_framed_component(
-        munin::make_titled_frame("Create New Character"),
-        munin::view(
-            munin::make_compass_layout(),
-            fields,
-            munin::compass_layout::heading::north,
-            munin::make_fill(' '),
-            munin::compass_layout::heading::centre,
-            buttons,
-            munin::compass_layout::heading::south)));
+    set_layout(munin::make_compass_layout());
+    add_component(
+        munin::make_framed_component(
+            munin::make_titled_frame("Select Your Character"),
+            munin::view(
+                munin::make_compass_layout(),
+                munin::make_viewport(pimpl_->character_list_))),
+        munin::compass_layout::heading::centre);
+    add_component(buttons_container, munin::compass_layout::heading::south);
 
-    name_edit->set_focus();
+    auto const full_character_name = [](model::character const &character) {
+        return (character.prefix != "" ? (character.prefix + " ") : "")
+             + character.name
+             + (character.suffix != "" ? (" " + character.suffix) : "");
+    };
+
+    pimpl_->character_list_->set_focus();
 }
+
+// ==========================================================================
+// DESTRUCTOR
+// ==========================================================================
+character_selection_page::~character_selection_page() = default;
 
 }  // namespace paradice::ui

@@ -24,13 +24,13 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef PARADICE_UI_DETAIL_PASSWORD_EDIT
-#define PARADICE_UI_DETAIL_PASSWORD_EDIT
+#ifndef PARADICE_UI_PASSWORD_EDIT
+#define PARADICE_UI_PASSWORD_EDIT
 
 #include <munin/composite_component.hpp>
 #include <terminalpp/string.hpp>
 
-namespace paradice::ui::detail {
+namespace paradice::ui {
 
 class password_edit : public munin::composite_component  // NOLINT
 {
@@ -73,6 +73,6 @@ private:
 //* =========================================================================
 std::shared_ptr<password_edit> make_password_edit();
 
-}  // namespace paradice::ui::detail
+}  // namespace paradice::ui
 
 #endif

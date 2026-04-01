@@ -1,4 +1,6 @@
-find_package(serverpp 0.2.0 REQUIRED)
+if (NOT TARGET KazDragon::serverpp)
+    find_package(serverpp 0.2.0 CONFIG REQUIRED)
+endif()
 find_package(SQLiteCpp REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(cryptopp REQUIRED)

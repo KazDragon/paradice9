@@ -1,7 +1,18 @@
-find_package(terminalpp 3.0.2 REQUIRED)
-find_package(munin 0.7.1 REQUIRED)
-find_package(telnetpp 3.0.0 REQUIRED)
-find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+if (NOT TARGET KazDragon::terminalpp)
+    find_package(terminalpp 3.0.2 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::munin)
+    find_package(munin 0.7.1 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::telnetpp)
+    find_package(telnetpp 3.0.0 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::consolepp)
+    find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+endif()
 find_package(Boost COMPONENTS program_options container REQUIRED)
 find_package(gsl-lite 0.38 REQUIRED)
 find_package(nlohmann_json REQUIRED)

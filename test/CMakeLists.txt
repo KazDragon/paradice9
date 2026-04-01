@@ -1,32 +1,22 @@
-if (GTEST_FOUND)
+find_package(GTest CONFIG REQUIRED)
 
-    set (test_SOURCES
-        dice_parser_fixture.cpp
-        munin_algorithm_fixture.cpp
-    )
+add_executable(paradice_ui_tester
+    who_list_fixture.cpp
+)
 
-    add_executable(paradice_tester ${test_SOURCES})
+target_include_directories(paradice_ui_tester
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../paradice/include
+)
 
-    target_include_directories(paradice_tester
-        PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+target_link_libraries(paradice_ui_tester
+    PRIVATE
+        paradice
+        munin
+        GTest::gtest
+        GTest::gtest_main
+        Threads::Threads
+)
 
-    target_compile_features(paradice_tester
-        PRIVATE
-            cxx_generic_lambdas
-    )
-
-    target_link_libraries(paradice_tester
-        PRIVATE
-            paradice
-            munin
-            odin
-            ${GTEST_LIBRARY}
-            ${GTEST_MAIN_LIBRARY}
-#            ${Boost_SYSTEM_LIBRARY}
-            ${CMAKE_THREAD_LIBS_INIT}
-    )
-
-    add_test(paradice_test paradice_tester)
-endif()
+add_test(NAME paradice_ui_test COMMAND paradice_ui_tester)

@@ -40,6 +40,7 @@ set (PARADICE_SOURCE_FILES
 #    src/who.cpp
 
     src/ui/components/password_edit.cpp
+    src/ui/components/who_list.cpp
     src/ui/pages/account_creation_page.cpp
     src/ui/pages/character_creation_page.cpp
     src/ui/pages/character_selection_page.cpp
@@ -77,6 +78,7 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/model/character.hpp
     
     include/paradice/ui/components/password_edit.hpp
+    include/paradice/ui/components/who_list.hpp
     include/paradice/ui/pages/account_creation_page.hpp
     include/paradice/ui/pages/character_creation_page.hpp
     include/paradice/ui/pages/character_selection_page.hpp
@@ -117,4 +119,3 @@ target_link_libraries(paradice
 generate_export_header(paradice
     EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/paradice/export.hpp"
 )
-

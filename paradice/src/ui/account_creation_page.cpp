@@ -88,16 +88,17 @@ account_creation_page::account_creation_page()
         munin::compass_layout::heading::east);
 
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(munin::make_framed_component(
-        munin::make_titled_frame("Create New Account"),
-        munin::view(
-            munin::make_compass_layout(),
-            fields,
-            munin::compass_layout::heading::north,
-            munin::make_fill(' '),
-            munin::compass_layout::heading::centre,
-            buttons,
-            munin::compass_layout::heading::south)));
+    add_component(
+        munin::make_framed_component(
+            munin::make_titled_frame("Create New Account"),
+            munin::view(
+                munin::make_compass_layout(),
+                fields,
+                munin::compass_layout::heading::north,
+                munin::make_fill(' '),
+                munin::compass_layout::heading::centre,
+                buttons,
+                munin::compass_layout::heading::south)));
 
     name_edit->set_focus();
 }

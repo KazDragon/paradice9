@@ -318,6 +318,38 @@ TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
         lines);
 }
 
+TEST(a_who_list, returns_to_the_first_page_when_player_characters_shrink_below_the_current_page)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"You"_ts,
+         "Bob"_ts,
+         "Alice"_ts,
+         "Eve"_ts,
+         "Mallory"_ts,
+         "Trent"_ts,
+         "Peggy"_ts});
+    who_list->set_current_page(1);
+
+    who_list->set_player_characters(
+        {"You"_ts,
+         "Bob"_ts,
+         "Alice"_ts,
+         "Eve"_ts,
+         "Mallory"_ts,
+         "Trent"_ts});
+
+    auto const lines = render_lines(*who_list, {20, 4});
+
+    ASSERT_EQ(
+        std::vector<std::string>(
+            {" You       Bob      ",
+             " Alice     Eve      ",
+             " Mallory   Trent    ",
+             "                    "}),
+        lines);
+}
+
 TEST(a_who_list, truncates_an_overlong_left_column_name_with_an_ellipsis)
 {
     auto who_list = paradice::ui::make_who_list();

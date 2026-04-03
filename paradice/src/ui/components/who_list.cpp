@@ -48,6 +48,20 @@ constexpr auto page_row =
 void who_list::set_player_characters(std::vector<terminalpp::string> names)
 {
     names_ = std::move(names);
+
+    auto const total_pages =
+        names_.empty() ? std::size_t{0}
+                       : (names_.size() + names_per_page - 1) / names_per_page;
+
+    if (total_pages == 0)
+    {
+        current_page_ = 0;
+    }
+    else
+    {
+        current_page_ = std::min(current_page_, total_pages - 1);
+    }
+
     on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
 }
 

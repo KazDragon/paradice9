@@ -63,7 +63,7 @@ character_creation_page::character_creation_page()
 
     return_button->on_click.connect(on_return);
     next_button->on_click.connect(
-        [=] { on_character_created(to_string(name_edit->get_text())); });
+        [=, this] { on_character_created(to_string(name_edit->get_text())); });
 
     auto buttons = munin::view(
         munin::make_compass_layout(),
@@ -75,16 +75,17 @@ character_creation_page::character_creation_page()
         munin::compass_layout::heading::east);
 
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(munin::make_framed_component(
-        munin::make_titled_frame("Create New Character"),
-        munin::view(
-            munin::make_compass_layout(),
-            fields,
-            munin::compass_layout::heading::north,
-            munin::make_fill(' '),
-            munin::compass_layout::heading::centre,
-            buttons,
-            munin::compass_layout::heading::south)));
+    add_component(
+        munin::make_framed_component(
+            munin::make_titled_frame("Create New Character"),
+            munin::view(
+                munin::make_compass_layout(),
+                fields,
+                munin::compass_layout::heading::north,
+                munin::make_fill(' '),
+                munin::compass_layout::heading::centre,
+                buttons,
+                munin::compass_layout::heading::south)));
 
     name_edit->set_focus();
 }

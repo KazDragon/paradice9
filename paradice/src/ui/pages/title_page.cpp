@@ -79,7 +79,7 @@ title_page::title_page()
     auto const password_edit = make_password_edit();
 
     new_button_->on_click.connect(on_new_account);
-    login_button_->on_click.connect([=] {
+    login_button_->on_click.connect([=, this] {
         auto const &account_name = terminalpp::to_string(name_edit->get_text());
         auto const &password = terminalpp::to_string(password_edit->get_text());
 

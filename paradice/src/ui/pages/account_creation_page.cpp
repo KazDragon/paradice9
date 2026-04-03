@@ -72,7 +72,7 @@ account_creation_page::account_creation_page()
     auto next_button = munin::make_button("Next");
 
     return_button->on_click.connect(on_return);
-    next_button->on_click.connect([=] {
+    next_button->on_click.connect([=, this] {
         on_next(
             terminalpp::to_string(name_edit->get_text()),
             terminalpp::to_string(password_edit->get_text()));

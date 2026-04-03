@@ -57,6 +57,7 @@ struct fake_context : paradice::context
         paradice::model::character &character,
         terminalpp::string const &message) override
     {
+        ++room_message_count;
         room_message_room = &room;
         room_message_excluded_character = &character;
         room_message = message;
@@ -71,6 +72,7 @@ struct fake_context : paradice::context
     paradice::model::room *room_message_room = nullptr;
     paradice::model::character *room_message_excluded_character = nullptr;
     terminalpp::string room_message;
+    int room_message_count = 0;
 };
 
 }  // namespace
@@ -122,4 +124,25 @@ TEST(an_already_disconnected_character, does_nothing_when_disconnected)
     ASSERT_EQ(nullptr, context.room_message_room);
     ASSERT_EQ(nullptr, context.room_message_excluded_character);
     ASSERT_TRUE(context.room_message.empty());
+}
+
+TEST(a_disconnected_character, is_not_reannounced_when_disconnected_again)
+{
+    fake_context context;
+    paradice::model::room room;
+    paradice::model::character character{};
+
+    character.name = "Alice";
+    character.in_room = &room;
+    room.characters.push_back(&character);
+
+    paradice::disconnect_character(context, character);
+    paradice::disconnect_character(context, character);
+
+    ASSERT_EQ(nullptr, character.in_room);
+    ASSERT_TRUE(room.characters.empty());
+    ASSERT_EQ(1, context.room_message_count);
+    ASSERT_EQ(&room, context.room_message_room);
+    ASSERT_EQ(&character, context.room_message_excluded_character);
+    ASSERT_EQ("Alice has left Paradice"_ts, context.room_message);
 }

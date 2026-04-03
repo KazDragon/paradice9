@@ -107,3 +107,19 @@ TEST(a_connected_character, leaves_their_room_before_their_departure_is_announce
     ASSERT_EQ(&character, context.room_message_excluded_character);
     ASSERT_EQ("Alice has left Paradice"_ts, context.room_message);
 }
+
+TEST(an_already_disconnected_character, does_nothing_when_disconnected)
+{
+    fake_context context;
+    paradice::model::character character{};
+
+    character.name = "Alice";
+    character.in_room = nullptr;
+
+    paradice::disconnect_character(context, character);
+
+    ASSERT_EQ(nullptr, character.in_room);
+    ASSERT_EQ(nullptr, context.room_message_room);
+    ASSERT_EQ(nullptr, context.room_message_excluded_character);
+    ASSERT_TRUE(context.room_message.empty());
+}

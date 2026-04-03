@@ -6,6 +6,7 @@
 #include <paradice/model/account.hpp>
 #include <paradice/model/character.hpp>
 #include <paradice/model/room.hpp>
+#include <paradice/model/room_membership.hpp>
 
 #include <boost/asio/io_context.hpp>
 
@@ -223,4 +224,46 @@ TEST(a_client, refreshes_the_who_list_when_a_later_room_member_is_observed_after
     drain(io_context);
 
     ASSERT_NE(std::string::npos, to_string(channel->written_).find("Peggy"));
+}
+
+TEST(a_client, refreshes_the_who_list_when_a_later_room_member_leaves_after_entry)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+
+    channel->receive(bytes("account\tpassword\t\t\r\n"));
+    drain(io_context);
+
+    channel->receive(bytes("\x1B[B\t\t\r\n"));
+    drain(io_context);
+
+    paradice::model::character peggy{
+        .name = "Peggy",
+        .prefix = "",
+        .suffix = "",
+        .send_message = {},
+        .in_room = &context.main_room};
+    context.main_room.characters.push_back(&peggy);
+
+    auto *mallory = find_character(context.main_room, "Mallory");
+    ASSERT_NE(nullptr, mallory);
+
+    context.send_message(*mallory, ""_ts);
+    drain(io_context);
+    ASSERT_NE(std::string::npos, to_string(channel->written_).find("Peggy"));
+
+    channel->written_.clear();
+    paradice::model::leave_room(peggy);
+
+    context.send_message(*mallory, ""_ts);
+    drain(io_context);
+
+    ASSERT_EQ(std::string::npos, to_string(channel->written_).find("Peggy"));
 }

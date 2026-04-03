@@ -355,8 +355,10 @@ public:
     // ======================================================================
     void send_message(terminalpp::string const &message)
     {
-        run_on_ui_strand(
-            [this, message] { user_interface_->event(ui::message{message}); });
+        run_on_ui_strand([this, message] {
+            update_who_list_from_current_room();
+            user_interface_->event(ui::message{message});
+        });
     }
 
 private:

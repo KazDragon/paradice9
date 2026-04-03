@@ -1,6 +1,7 @@
 find_package(GTest CONFIG REQUIRED)
 
 add_executable(paradice_ui_tester
+    room_membership_fixture.cpp
     who_list_fixture.cpp
 )
 

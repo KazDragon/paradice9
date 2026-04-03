@@ -76,6 +76,7 @@ set (PARADICE_INCLUDE_FILES
 
     include/paradice/model/account.hpp
     include/paradice/model/character.hpp
+    include/paradice/model/room_membership.hpp
     
     include/paradice/ui/components/password_edit.hpp
     include/paradice/ui/components/who_list.hpp

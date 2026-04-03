@@ -1,11 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <munin/background_animator.hpp>
 #include <munin/render_surface.hpp>
 #include <paradice/ui/components/who_list.hpp>
 #include <paradice/ui/pages/main_page.hpp>
+#include <paradice/ui/shell/user_interface.hpp>
 #include <terminalpp/canvas.hpp>
 #include <terminalpp/string.hpp>
 #include <terminalpp/virtual_key.hpp>
+
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context_strand.hpp>
 
 #include <string>
 #include <vector>
@@ -20,6 +25,48 @@ std::vector<std::string> render_lines(
     component.set_size(size);
 
     terminalpp::canvas canvas{size};
+    munin::render_surface surface{canvas};
+    component.draw(surface, {{}, size});
+
+    std::vector<std::string> result;
+    result.reserve(size.height_);
+
+    for (terminalpp::coordinate_type row = 0; row < size.height_; ++row)
+    {
+        std::string line;
+        line.reserve(size.width_);
+
+        for (terminalpp::coordinate_type column = 0; column < size.width_;
+             ++column)
+        {
+            line.push_back(
+                static_cast<char>(canvas[column][row].glyph_.character_));
+        }
+
+        result.push_back(std::move(line));
+    }
+
+    return result;
+}
+
+std::vector<std::string> render_lines_on_prefilled_canvas(
+    munin::component &component,
+    terminalpp::extent const size,
+    char const fill_character)
+{
+    component.set_size(size);
+
+    terminalpp::canvas canvas{size};
+
+    for (terminalpp::coordinate_type row = 0; row < size.height_; ++row)
+    {
+        for (terminalpp::coordinate_type column = 0; column < size.width_;
+             ++column)
+        {
+            canvas[column][row] = fill_character;
+        }
+    }
+
     munin::render_surface surface{canvas};
     component.draw(surface, {{}, size});
 
@@ -63,6 +110,20 @@ bool contains(
         });
 }
 
+void send_key(munin::component &component, terminalpp::vk const key)
+{
+    component.event(terminalpp::virtual_key{key});
+}
+
+void type_text(munin::component &component, std::string const &text)
+{
+    for (auto const ch : text)
+    {
+        component.event(
+            terminalpp::virtual_key{static_cast<terminalpp::vk>(ch)});
+    }
+}
+
 }  // namespace
 
 TEST(a_who_list, prefers_a_height_of_four)
@@ -78,6 +139,22 @@ TEST(a_who_list, draws_the_first_player_character_on_the_left_with_a_margin)
     who_list->set_player_characters({"You"_ts});
 
     auto const lines = render_lines(*who_list, {20, 4});
+
+    ASSERT_EQ(
+        std::vector<std::string>(
+            {" You                ",
+             "                    ",
+             "                    ",
+             "                    "}),
+        lines);
+}
+
+TEST(a_who_list, blanks_every_unoccupied_cell_when_drawing_the_first_name)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters({"You"_ts});
+
+    auto const lines = render_lines_on_prefilled_canvas(*who_list, {20, 4}, 'x');
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -540,5 +617,48 @@ TEST(a_main_page, displays_player_character_names_in_the_hosted_who_list)
         lines.end(),
         [](std::string const &line) {
             return line.find("Peggy") != std::string::npos;
+        }));
+}
+
+TEST(a_user_interface, displays_the_entered_character_in_the_active_main_page_who_list)
+{
+    boost::asio::io_context io_context;
+    boost::asio::io_context::strand strand(io_context);
+    munin::background_animator animator(strand);
+
+    paradice::ui::user_interface user_interface(animator);
+    user_interface.on_login.connect([](auto const &, auto const &) {
+        return paradice::model::account{
+            .name = "account",
+            .character_names = {"Mallory"}};
+    });
+    user_interface.on_character_selected.connect([](auto &, int) {
+        return paradice::model::character{
+            .name = "Mallory",
+            .prefix = "",
+            .suffix = "",
+            .send_message = {},
+            .in_room = nullptr};
+    });
+
+    type_text(user_interface, "account");
+    send_key(user_interface, terminalpp::vk::ht);
+    type_text(user_interface, "password");
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::enter);
+
+    send_key(user_interface, terminalpp::vk::cursor_down);
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::enter);
+
+    auto const lines = render_lines(user_interface, {80, 24});
+
+    ASSERT_TRUE(std::any_of(
+        lines.begin(),
+        lines.end(),
+        [](std::string const &line) {
+            return line.find("Mallory") != std::string::npos;
         }));
 }

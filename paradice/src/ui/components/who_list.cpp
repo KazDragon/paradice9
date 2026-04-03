@@ -100,6 +100,17 @@ void who_list::do_event(std::any const &event)
 void who_list::do_draw(
     munin::render_surface &surface, terminalpp::rectangle const &) const
 {
+    for (auto row = terminalpp::coordinate_type{0}; row < get_size().height_;
+         ++row)
+    {
+        for (auto column = terminalpp::coordinate_type{0};
+             column < get_size().width_;
+             ++column)
+        {
+            surface[column][row] = ' ';
+        }
+    }
+
     if (names_.empty())
     {
         return;

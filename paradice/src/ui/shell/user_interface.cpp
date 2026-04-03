@@ -199,6 +199,8 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<main_page>();
         new_page->on_command.connect(self_.on_command);
+        new_page->set_player_characters(
+            {terminalpp::string{active_character_->name}});
 
         go_to_page(new_page);
         self_.on_entered_game(*active_character_);

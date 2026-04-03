@@ -287,7 +287,8 @@ TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page
          "Mallory"_ts,
          "Trent"_ts,
          "Peggy"_ts});
-    who_list->set_current_page(1);
+    who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -305,7 +306,8 @@ TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
          "Mallory"_ts,
          "Trent"_ts,
          "Peggy"_ts});
-    who_list->set_current_page(1);
+    who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -329,7 +331,8 @@ TEST(a_who_list, returns_to_the_first_page_when_player_characters_shrink_below_t
          "Mallory"_ts,
          "Trent"_ts,
          "Peggy"_ts});
-    who_list->set_current_page(1);
+    who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     who_list->set_player_characters(
         {"You"_ts,
@@ -437,7 +440,8 @@ TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_current_page(1);
+    who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     ASSERT_EQ(
         std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, {20, 4}}}),
@@ -464,7 +468,8 @@ TEST(a_who_list, page_change_redraw_covers_the_changed_roster_rows)
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_current_page(1);
+    who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     ASSERT_TRUE(contains(redraw_regions, {0, 0}));
     ASSERT_TRUE(contains(redraw_regions, {19, 0}));
@@ -550,8 +555,8 @@ TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_whe
          "Mallory"_ts,
          "Trent"_ts,
          "Peggy"_ts});
-    who_list->set_current_page(1);
     who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_right});
 
@@ -603,8 +608,8 @@ TEST(a_who_list, returns_to_the_previous_page_on_left_arrow_input_when_focused)
          "Mallory"_ts,
          "Trent"_ts,
          "Peggy"_ts});
-    who_list->set_current_page(1);
     who_list->set_focus();
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_left});
 

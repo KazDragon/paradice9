@@ -151,6 +151,7 @@ public:
             paradice::model::room &main_room = context_.get_main_room();
             character_->in_room = &main_room;
             main_room.characters.push_back(&chr);
+            update_who_list_from_current_room();
 
             context_.send_message(chr, "You have entered Paradice!");
             context_.send_message(
@@ -359,6 +360,23 @@ public:
     }
 
 private:
+    void update_who_list_from_current_room()
+    {
+        if (!character_ || character_->in_room == nullptr)
+        {
+            return;
+        }
+
+        std::vector<terminalpp::string> names;
+
+        for (auto const *occupant : character_->in_room->characters)
+        {
+            names.emplace_back(occupant->name);
+        }
+
+        user_interface_->set_player_characters(std::move(names));
+    }
+
     void disconnect_character_if_present()
     {
         if (character_)

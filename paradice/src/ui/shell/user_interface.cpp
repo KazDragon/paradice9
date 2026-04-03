@@ -199,8 +199,14 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<main_page>();
         new_page->on_command.connect(self_.on_command);
-        new_page->set_player_characters(
-            {terminalpp::string{active_character_->name}});
+        main_page_ = new_page;
+
+        if (player_characters_.empty())
+        {
+            player_characters_ = {terminalpp::string{active_character_->name}};
+        }
+
+        new_page->set_player_characters(player_characters_);
 
         go_to_page(new_page);
         self_.on_entered_game(*active_character_);
@@ -270,6 +276,8 @@ struct user_interface::impl
     std::shared_ptr<munin::status_bar> status_bar_{
         munin::make_status_bar(animator_)};
     std::shared_ptr<munin::component> last_content_;
+    std::shared_ptr<main_page> main_page_;
+    std::vector<terminalpp::string> player_characters_;
 
     boost::optional<model::account> active_account_;
     boost::optional<model::character> active_character_;
@@ -295,6 +303,16 @@ user_interface::user_interface(munin::animator &anim)
 // DESTRUCTOR
 // ==========================================================================
 user_interface::~user_interface() = default;
+
+void user_interface::set_player_characters(std::vector<terminalpp::string> names)
+{
+    pimpl_->player_characters_ = std::move(names);
+
+    if (pimpl_->main_page_)
+    {
+        pimpl_->main_page_->set_player_characters(pimpl_->player_characters_);
+    }
+}
 
 // ==========================================================================
 // EVENT

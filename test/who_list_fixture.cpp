@@ -662,3 +662,48 @@ TEST(a_user_interface, displays_the_entered_character_in_the_active_main_page_wh
             return line.find("Mallory") != std::string::npos;
         }));
 }
+
+TEST(a_user_interface, updates_the_active_main_page_who_list_from_explicit_player_character_input)
+{
+    boost::asio::io_context io_context;
+    boost::asio::io_context::strand strand(io_context);
+    munin::background_animator animator(strand);
+
+    paradice::ui::user_interface user_interface(animator);
+    user_interface.on_login.connect([](auto const &, auto const &) {
+        return paradice::model::account{
+            .name = "account",
+            .character_names = {"Mallory"}};
+    });
+    user_interface.on_character_selected.connect([](auto &, int) {
+        return paradice::model::character{
+            .name = "Mallory",
+            .prefix = "",
+            .suffix = "",
+            .send_message = {},
+            .in_room = nullptr};
+    });
+
+    type_text(user_interface, "account");
+    send_key(user_interface, terminalpp::vk::ht);
+    type_text(user_interface, "password");
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::enter);
+
+    send_key(user_interface, terminalpp::vk::cursor_down);
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::ht);
+    send_key(user_interface, terminalpp::vk::enter);
+
+    user_interface.set_player_characters({"Mallory"_ts, "Peggy"_ts});
+
+    auto const lines = render_lines(user_interface, {80, 24});
+
+    ASSERT_TRUE(std::any_of(
+        lines.begin(),
+        lines.end(),
+        [](std::string const &line) {
+            return line.find("Peggy") != std::string::npos;
+        }));
+}

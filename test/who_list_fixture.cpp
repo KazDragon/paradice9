@@ -568,6 +568,22 @@ TEST(a_who_list, shrinks_two_truncated_columns_to_single_dots_when_drawn_at_widt
         lines);
 }
 
+TEST(a_who_list, draws_blank_space_when_drawn_narrower_than_the_two_dot_skeleton)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters({"Alexandria"_ts, "Benedicta"_ts});
+
+    auto const lines = render_lines(*who_list, {4, 4});
+
+    ASSERT_EQ(
+        std::vector<std::string>(
+            {"    ",
+             "    ",
+             "    ",
+             "    "}),
+        lines);
+}
+
 TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
 {
     auto who_list = paradice::ui::make_who_list();

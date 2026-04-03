@@ -177,6 +177,11 @@ void who_list::do_draw(
         return;
     }
 
+    if (get_size().width_ < 5)
+    {
+        return;
+    }
+
     auto draw_name = [&surface](
                          terminalpp::string const &name,
                          terminalpp::coordinate_type x,

@@ -197,7 +197,11 @@ void who_list::do_draw(
             auto &cell =
                 surface[x + static_cast<terminalpp::coordinate_type>(column)][y];
 
-            if (truncated && max_width >= 3 && column >= max_width - 3)
+            if (truncated && max_width < 3)
+            {
+                cell = '.';
+            }
+            else if (truncated && max_width >= 3 && column >= max_width - 3)
             {
                 cell = '.';
             }

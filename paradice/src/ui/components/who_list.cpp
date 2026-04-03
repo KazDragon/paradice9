@@ -39,9 +39,22 @@ constexpr std::size_t column_count = 2;
 constexpr std::size_t visible_name_row_count = 3;
 constexpr std::size_t names_per_page = column_count * visible_name_row_count;
 constexpr auto left_column_margin = terminalpp::coordinate_type{1};
+constexpr auto right_column_margin = terminalpp::coordinate_type{1};
+constexpr auto inter_column_spacing = terminalpp::coordinate_type{1};
 constexpr auto page_text_right_margin = terminalpp::coordinate_type{2};
 constexpr auto page_row =
     terminalpp::coordinate_type{visible_name_row_count};
+constexpr auto ellipsis_width = std::size_t{3};
+constexpr auto single_dot_width = std::size_t{1};
+constexpr auto minimum_two_column_dot_skeleton_width =
+    left_column_margin + static_cast<terminalpp::coordinate_type>(single_dot_width)
+    + inter_column_spacing
+    + static_cast<terminalpp::coordinate_type>(single_dot_width)
+    + right_column_margin;
+constexpr auto single_column_padding_width =
+    left_column_margin + right_column_margin;
+constexpr auto two_column_padding_width =
+    left_column_margin + inter_column_spacing + right_column_margin;
 
 }  // namespace
 
@@ -111,8 +124,10 @@ terminalpp::extent who_list::do_get_preferred_size() const
         left_column_width == 0
             ? terminalpp::coordinate_type{0}
             : static_cast<terminalpp::coordinate_type>(
-                  left_column_margin + left_column_width
-                  + (right_column_width == 0 ? 1 : 2 + right_column_width));
+                  left_column_width
+                  + (right_column_width == 0 ? single_column_padding_width
+                                             : two_column_padding_width
+                                                   + right_column_width));
 
     if (names_.size() > names_per_page)
     {
@@ -177,7 +192,7 @@ void who_list::do_draw(
         return;
     }
 
-    if (get_size().width_ < 5)
+    if (get_size().width_ < minimum_two_column_dot_skeleton_width)
     {
         return;
     }
@@ -202,11 +217,13 @@ void who_list::do_draw(
             auto &cell =
                 surface[x + static_cast<terminalpp::coordinate_type>(column)][y];
 
-            if (truncated && max_width < 3)
+            if (truncated && max_width < ellipsis_width)
             {
                 cell = '.';
             }
-            else if (truncated && max_width >= 3 && column >= max_width - 3)
+            else if (
+                truncated && max_width >= ellipsis_width
+                && column >= max_width - ellipsis_width)
             {
                 cell = '.';
             }
@@ -221,9 +238,9 @@ void who_list::do_draw(
     auto const right_column = get_size().width_ / column_count +
                               left_column_margin;
     auto const left_column_width = static_cast<std::size_t>(
-        right_column - left_column_margin - terminalpp::coordinate_type{1});
+        right_column - left_column_margin - inter_column_spacing);
     auto const right_column_width = static_cast<std::size_t>(
-        get_size().width_ - right_column - terminalpp::coordinate_type{1});
+        get_size().width_ - right_column - right_column_margin);
     auto const first_visible_index = current_page_ * names_per_page;
 
     if (first_visible_index >= names_.size())

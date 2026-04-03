@@ -133,6 +133,64 @@ TEST(a_who_list, prefers_a_height_of_four)
     ASSERT_EQ(terminalpp::extent(0, 4), who_list->get_preferred_size());
 }
 
+TEST(a_who_list, prefers_a_width_that_fits_a_single_left_column_name_without_truncation)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters({"You"_ts});
+
+    ASSERT_EQ(terminalpp::extent(5, 4), who_list->get_preferred_size());
+}
+
+TEST(a_who_list, prefers_a_width_that_fits_both_visible_columns_without_truncation)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters({"You"_ts, "Bob"_ts});
+
+    ASSERT_EQ(terminalpp::extent(9, 4), who_list->get_preferred_size());
+}
+
+TEST(a_who_list, prefers_a_width_that_fits_the_widest_left_column_name_without_truncation)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters({"You"_ts, "Bob"_ts, "Mallory"_ts});
+
+    ASSERT_EQ(terminalpp::extent(13, 4), who_list->get_preferred_size());
+}
+
+TEST(a_who_list, prefers_a_width_that_fits_the_widest_right_column_name_without_truncation)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"You"_ts, "Bob"_ts, "Alice"_ts, "Mallory"_ts});
+
+    ASSERT_EQ(terminalpp::extent(15, 4), who_list->get_preferred_size());
+}
+
+TEST(a_who_list, prefers_a_width_that_fits_page_information_without_truncation)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"A"_ts, "B"_ts, "C"_ts, "D"_ts, "E"_ts, "F"_ts, "G"_ts});
+
+    ASSERT_EQ(terminalpp::extent(7, 4), who_list->get_preferred_size());
+}
+
+TEST(a_who_list, announces_a_preferred_size_change_when_player_characters_change_its_width)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters({"You"_ts});
+
+    std::optional<terminalpp::extent> preferred_size;
+    who_list->on_preferred_size_changed.connect([&preferred_size, &who_list]() {
+        preferred_size = who_list->get_preferred_size();
+    });
+
+    who_list->set_player_characters({"You"_ts, "Mallory"_ts});
+
+    ASSERT_TRUE(preferred_size.has_value());
+    ASSERT_EQ(terminalpp::extent(13, 4), *preferred_size);
+}
+
 TEST(a_who_list, draws_the_first_player_character_on_the_left_with_a_margin)
 {
     auto who_list = paradice::ui::make_who_list();

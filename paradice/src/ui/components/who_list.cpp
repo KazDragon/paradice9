@@ -47,6 +47,8 @@ constexpr auto page_row =
 
 void who_list::set_player_characters(std::vector<terminalpp::string> names)
 {
+    auto const old_preferred_size = get_preferred_size();
+
     names_ = std::move(names);
 
     auto const total_pages =
@@ -60,6 +62,11 @@ void who_list::set_player_characters(std::vector<terminalpp::string> names)
     else
     {
         current_page_ = std::min(current_page_, total_pages - 1);
+    }
+
+    if (get_preferred_size() != old_preferred_size)
+    {
+        on_preferred_size_changed();
     }
 
     on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
@@ -90,7 +97,35 @@ bool who_list::do_can_receive_focus() const
 
 terminalpp::extent who_list::do_get_preferred_size() const
 {
-    return {0, 4};
+    auto left_column_width = std::size_t{0};
+    auto right_column_width = std::size_t{0};
+
+    for (std::size_t index = 0; index < names_.size(); ++index)
+    {
+        auto &column_width =
+            index % column_count == 0 ? left_column_width : right_column_width;
+        column_width = std::max(column_width, names_[index].size());
+    }
+
+    auto preferred_width =
+        left_column_width == 0
+            ? terminalpp::coordinate_type{0}
+            : static_cast<terminalpp::coordinate_type>(
+                  left_column_margin + left_column_width
+                  + (right_column_width == 0 ? 1 : 2 + right_column_width));
+
+    if (names_.size() > names_per_page)
+    {
+        auto const total_pages =
+            (names_.size() + names_per_page - 1) / names_per_page;
+        auto const page_text_width = static_cast<terminalpp::coordinate_type>(
+            (std::to_string(total_pages) + " / " + std::to_string(total_pages) + "  ")
+                .size());
+
+        preferred_width = std::max(preferred_width, page_text_width);
+    }
+
+    return {preferred_width, 4};
 }
 
 void who_list::do_event(std::any const &event)

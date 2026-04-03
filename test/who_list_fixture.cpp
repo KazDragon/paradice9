@@ -334,6 +334,83 @@ TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
         lines);
 }
 
+TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"You"_ts,
+         "Bob"_ts,
+         "Alice"_ts,
+         "Eve"_ts,
+         "Mallory"_ts,
+         "Trent"_ts,
+         "Peggy"_ts});
+
+    auto const lines = render_lines(*who_list, {20, 3});
+
+    ASSERT_EQ(
+        std::vector<std::string>(
+            {" You       Bob      ",
+             " Alice     Eve      ",
+             " Mallory   Trent    "}),
+        lines);
+}
+
+TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"You"_ts,
+         "Bob"_ts,
+         "Alice"_ts,
+         "Eve"_ts,
+         "Mallory"_ts,
+         "Trent"_ts,
+         "Peggy"_ts});
+
+    auto const lines = render_lines(*who_list, {20, 2});
+
+    ASSERT_EQ(
+        std::vector<std::string>(
+            {" You       Bob      ",
+             " Alice     Eve      "}),
+        lines);
+}
+
+TEST(a_who_list, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"You"_ts,
+         "Bob"_ts,
+         "Alice"_ts,
+         "Eve"_ts,
+         "Mallory"_ts,
+         "Trent"_ts,
+         "Peggy"_ts});
+
+    auto const lines = render_lines(*who_list, {20, 1});
+
+    ASSERT_EQ(std::vector<std::string>({" You       Bob      "}), lines);
+}
+
+TEST(a_who_list, draws_nothing_when_drawn_at_height_zero)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(
+        {"You"_ts,
+         "Bob"_ts,
+         "Alice"_ts,
+         "Eve"_ts,
+         "Mallory"_ts,
+         "Trent"_ts,
+         "Peggy"_ts});
+
+    auto const lines = render_lines(*who_list, {20, 0});
+
+    ASSERT_TRUE(lines.empty());
+}
+
 TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page)
 {
     auto who_list = paradice::ui::make_who_list();

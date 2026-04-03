@@ -182,6 +182,11 @@ void who_list::do_draw(
                          terminalpp::coordinate_type x,
                          terminalpp::coordinate_type y,
                          std::size_t max_width) {
+        if (y >= surface.size().height_)
+        {
+            return;
+        }
+
         auto const truncated = name.size() > max_width;
         auto const visible_columns =
             std::min<std::size_t>(name.size(), max_width);
@@ -246,10 +251,13 @@ void who_list::do_draw(
         auto const page_x = static_cast<terminalpp::coordinate_type>(
             get_size().width_ - page_text.size() - page_text_right_margin);
 
-        for (std::size_t index = 0; index < page_text.size(); ++index)
+        if (page_row < surface.size().height_)
         {
-            surface[page_x + static_cast<terminalpp::coordinate_type>(index)]
-                   [page_row] = page_text[index];
+            for (std::size_t index = 0; index < page_text.size(); ++index)
+            {
+                surface[page_x + static_cast<terminalpp::coordinate_type>(index)]
+                       [page_row] = page_text[index];
+            }
         }
     }
 }

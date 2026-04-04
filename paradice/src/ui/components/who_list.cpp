@@ -36,6 +36,7 @@ namespace paradice::ui {
 namespace {
 
 constexpr std::size_t column_count = 2;
+constexpr auto column_count_in_coordinates = terminalpp::coordinate_type{2};
 constexpr std::size_t visible_name_row_count = 3;
 constexpr std::size_t names_per_page = column_count * visible_name_row_count;
 constexpr std::size_t ellipsis_width = 3;
@@ -58,6 +59,25 @@ constexpr auto page_row =
     std::size_t name_count, std::size_t first_index)
 {
     return std::min<std::size_t>(name_count - first_index, names_per_page);
+}
+
+struct draw_layout
+{
+    terminalpp::coordinate_type right_column = 0;
+    std::size_t left_column_width = 0;
+    std::size_t right_column_width = 0;
+};
+
+[[nodiscard]] draw_layout compute_draw_layout(terminalpp::extent const size)
+{
+    auto const right_column =
+        size.width_ / column_count_in_coordinates + left_column_margin;
+    auto const left_column_width = static_cast<std::size_t>(
+        right_column - left_column_margin - terminalpp::coordinate_type{1});
+    auto const right_column_width = static_cast<std::size_t>(
+        size.width_ - right_column - terminalpp::coordinate_type{1});
+
+    return {right_column, left_column_width, right_column_width};
 }
 
 void draw_truncated_name(
@@ -167,17 +187,14 @@ void who_list::do_event(std::any const &event)
 void who_list::do_draw(
     munin::render_surface &surface, terminalpp::rectangle const &) const
 {
+    auto const size = get_size();
+
     if (names_.empty())
     {
         return;
     }
 
-    auto const right_column = get_size().width_ / column_count +
-                              left_column_margin;
-    auto const left_column_width = static_cast<std::size_t>(
-        right_column - left_column_margin - terminalpp::coordinate_type{1});
-    auto const right_column_width = static_cast<std::size_t>(
-        get_size().width_ - right_column - terminalpp::coordinate_type{1});
+    auto const layout = compute_draw_layout(size);
     auto const first_visible = first_visible_index(current_page_);
 
     if (first_visible >= names_.size())
@@ -191,12 +208,12 @@ void who_list::do_draw(
     {
         auto const &name = names_[first_visible + index];
         auto const column =
-            index % column_count == 0 ? left_column_margin : right_column;
+            index % column_count == 0 ? left_column_margin : layout.right_column;
         auto const row =
             static_cast<terminalpp::coordinate_type>(index / column_count);
         auto const max_width =
-            column == left_column_margin ? left_column_width
-                                         : right_column_width;
+            column == left_column_margin ? layout.left_column_width
+                                         : layout.right_column_width;
 
         draw_truncated_name(surface, name, column, row, max_width);
     }
@@ -204,7 +221,7 @@ void who_list::do_draw(
     if (names_.size() > names_per_page)
     {
         auto const page_count = total_pages(names_.size());
-        draw_page_indicator(surface, get_size(), current_page_, page_count);
+        draw_page_indicator(surface, size, current_page_, page_count);
     }
 }
 

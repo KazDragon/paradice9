@@ -112,12 +112,17 @@ void draw_page_indicator(
 void who_list::set_player_characters(std::vector<terminalpp::string> names)
 {
     names_ = std::move(names);
-    on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
+    request_full_redraw();
 }
 
 void who_list::set_current_page(std::size_t page)
 {
     current_page_ = page;
+    request_full_redraw();
+}
+
+void who_list::request_full_redraw()
+{
     on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
 }
 

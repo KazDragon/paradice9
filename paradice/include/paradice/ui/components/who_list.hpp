@@ -52,6 +52,8 @@ protected:
         terminalpp::rectangle const &region) const override;
 
 private:
+    void request_full_redraw();
+
     std::size_t current_page_ = 0;
     std::vector<terminalpp::string> names_;
 };

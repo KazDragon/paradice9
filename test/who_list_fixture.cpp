@@ -78,6 +78,17 @@ std::vector<terminalpp::string> overflowing_roster()
         "Peggy"_ts};
 }
 
+void collect_redraw_regions(
+    paradice::ui::who_list &who_list,
+    std::vector<terminalpp::rectangle> &redraw_regions)
+{
+    who_list.on_redraw.connect(
+        [&redraw_regions](auto const &regions) {
+            redraw_regions.insert(
+                redraw_regions.end(), regions.begin(), regions.end());
+        });
+}
+
 }  // namespace
 
 TEST(a_who_list, prefers_a_height_of_four)
@@ -291,11 +302,7 @@ TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
     who_list->set_size(who_list_size);
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
-        [&redraw_regions](auto const &regions) {
-            redraw_regions.insert(
-                redraw_regions.end(), regions.begin(), regions.end());
-        });
+    collect_redraw_regions(*who_list, redraw_regions);
 
     who_list->set_player_characters({"You"_ts});
 
@@ -311,11 +318,7 @@ TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
     who_list->set_player_characters(overflowing_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
-        [&redraw_regions](auto const &regions) {
-            redraw_regions.insert(
-                redraw_regions.end(), regions.begin(), regions.end());
-        });
+    collect_redraw_regions(*who_list, redraw_regions);
 
     who_list->set_current_page(1);
 
@@ -331,11 +334,7 @@ TEST(a_who_list, page_change_redraw_covers_the_changed_roster_rows)
     who_list->set_player_characters(overflowing_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
-        [&redraw_regions](auto const &regions) {
-            redraw_regions.insert(
-                redraw_regions.end(), regions.begin(), regions.end());
-        });
+    collect_redraw_regions(*who_list, redraw_regions);
 
     who_list->set_current_page(1);
 
@@ -358,11 +357,7 @@ TEST(a_who_list, player_character_change_redraw_covers_the_page_information_row)
          "Trent"_ts});
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
-        [&redraw_regions](auto const &regions) {
-            redraw_regions.insert(
-                redraw_regions.end(), regions.begin(), regions.end());
-        });
+    collect_redraw_regions(*who_list, redraw_regions);
 
     who_list->set_player_characters(overflowing_roster());
 

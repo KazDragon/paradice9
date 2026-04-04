@@ -38,12 +38,15 @@ namespace {
 constexpr std::size_t column_count = 2;
 constexpr auto column_count_in_coordinates = terminalpp::coordinate_type{2};
 constexpr std::size_t visible_name_row_count = 3;
+constexpr auto visible_name_row_count_in_coordinates =
+    terminalpp::coordinate_type{3};
 constexpr std::size_t names_per_page = column_count * visible_name_row_count;
 constexpr std::size_t ellipsis_width = 3;
 constexpr auto left_column_margin = terminalpp::coordinate_type{1};
 constexpr auto page_text_right_margin = terminalpp::coordinate_type{2};
-constexpr auto page_row =
-    terminalpp::coordinate_type{visible_name_row_count};
+constexpr auto page_row = visible_name_row_count_in_coordinates;
+constexpr auto preferred_height =
+    visible_name_row_count_in_coordinates + terminalpp::coordinate_type{1};
 
 [[nodiscard]] std::size_t total_pages(std::size_t name_count)
 {
@@ -173,7 +176,7 @@ bool who_list::do_can_receive_focus() const
 
 terminalpp::extent who_list::do_get_preferred_size() const
 {
-    return {0, 4};
+    return {0, preferred_height};
 }
 
 void who_list::do_event(std::any const &event)

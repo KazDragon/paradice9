@@ -38,6 +38,7 @@ namespace {
 constexpr std::size_t column_count = 2;
 constexpr std::size_t visible_name_row_count = 3;
 constexpr std::size_t names_per_page = column_count * visible_name_row_count;
+constexpr std::size_t ellipsis_width = 3;
 constexpr auto left_column_margin = terminalpp::coordinate_type{1};
 constexpr auto page_text_right_margin = terminalpp::coordinate_type{2};
 constexpr auto page_row =
@@ -57,6 +58,33 @@ constexpr auto page_row =
     std::size_t name_count, std::size_t first_index)
 {
     return std::min<std::size_t>(name_count - first_index, names_per_page);
+}
+
+void draw_truncated_name(
+    munin::render_surface &surface,
+    terminalpp::string const &name,
+    terminalpp::coordinate_type x,
+    terminalpp::coordinate_type y,
+    std::size_t max_width)
+{
+    auto const truncated = name.size() > max_width;
+    auto const visible_columns = std::min<std::size_t>(name.size(), max_width);
+
+    for (std::size_t column = 0; column < visible_columns; ++column)
+    {
+        auto &cell =
+            surface[x + static_cast<terminalpp::coordinate_type>(column)][y];
+
+        if (truncated && max_width >= ellipsis_width
+            && column >= max_width - ellipsis_width)
+        {
+            cell = '.';
+        }
+        else
+        {
+            cell = name[static_cast<terminalpp::string::size_type>(column)];
+        }
+    }
 }
 
 }  // namespace
@@ -119,33 +147,6 @@ void who_list::do_draw(
         return;
     }
 
-    auto draw_name = [&surface](
-                         terminalpp::string const &name,
-                         terminalpp::coordinate_type x,
-                         terminalpp::coordinate_type y,
-                         std::size_t max_width) {
-        auto const truncated = name.size() > max_width;
-        auto const visible_columns =
-            std::min<std::size_t>(name.size(), max_width);
-
-        for (std::size_t column = 0; column < visible_columns;
-             ++column)
-        {
-            auto &cell =
-                surface[x + static_cast<terminalpp::coordinate_type>(column)][y];
-
-            if (truncated && max_width >= 3 && column >= max_width - 3)
-            {
-                cell = '.';
-            }
-            else
-            {
-                cell =
-                    name[static_cast<terminalpp::string::size_type>(column)];
-            }
-        }
-    };
-
     auto const right_column = get_size().width_ / column_count +
                               left_column_margin;
     auto const left_column_width = static_cast<std::size_t>(
@@ -172,7 +173,7 @@ void who_list::do_draw(
             column == left_column_margin ? left_column_width
                                          : right_column_width;
 
-        draw_name(name, column, row, max_width);
+        draw_truncated_name(surface, name, column, row, max_width);
     }
 
     if (names_.size() > names_per_page)

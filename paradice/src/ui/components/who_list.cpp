@@ -43,6 +43,22 @@ constexpr auto page_text_right_margin = terminalpp::coordinate_type{2};
 constexpr auto page_row =
     terminalpp::coordinate_type{visible_name_row_count};
 
+[[nodiscard]] std::size_t total_pages(std::size_t name_count)
+{
+    return name_count == 0 ? 0 : (name_count + names_per_page - 1) / names_per_page;
+}
+
+[[nodiscard]] std::size_t first_visible_index(std::size_t current_page)
+{
+    return current_page * names_per_page;
+}
+
+[[nodiscard]] std::size_t visible_name_count(
+    std::size_t name_count, std::size_t first_index)
+{
+    return std::min<std::size_t>(name_count - first_index, names_per_page);
+}
+
 }  // namespace
 
 void who_list::set_player_characters(std::vector<terminalpp::string> names)
@@ -72,24 +88,22 @@ void who_list::do_event(std::any const &event)
     if (auto const *key = std::any_cast<terminalpp::virtual_key>(&event);
         key != nullptr && has_focus())
     {
-        auto const total_pages =
-            names_.empty() ? std::size_t{0}
-                           : (names_.size() + names_per_page - 1) / names_per_page;
+        auto const page_count = total_pages(names_.size());
 
-        if (total_pages == 0)
+        if (page_count == 0)
         {
             return;
         }
 
         if (key->key == terminalpp::vk::cursor_right)
         {
-            set_current_page((current_page_ + 1) % total_pages);
+            set_current_page((current_page_ + 1) % page_count);
             return;
         }
 
         if (key->key == terminalpp::vk::cursor_left)
         {
-            set_current_page((current_page_ + total_pages - 1) % total_pages);
+            set_current_page((current_page_ + page_count - 1) % page_count);
             return;
         }
     }
@@ -138,19 +152,18 @@ void who_list::do_draw(
         right_column - left_column_margin - terminalpp::coordinate_type{1});
     auto const right_column_width = static_cast<std::size_t>(
         get_size().width_ - right_column - terminalpp::coordinate_type{1});
-    auto const first_visible_index = current_page_ * names_per_page;
+    auto const first_visible = first_visible_index(current_page_);
 
-    if (first_visible_index >= names_.size())
+    if (first_visible >= names_.size())
     {
         return;
     }
 
-    auto const visible_names =
-        std::min<std::size_t>(names_.size() - first_visible_index, names_per_page);
+    auto const visible_names = visible_name_count(names_.size(), first_visible);
 
     for (std::size_t index = 0; index < visible_names; ++index)
     {
-        auto const &name = names_[first_visible_index + index];
+        auto const &name = names_[first_visible + index];
         auto const column =
             index % column_count == 0 ? left_column_margin : right_column;
         auto const row =
@@ -164,11 +177,10 @@ void who_list::do_draw(
 
     if (names_.size() > names_per_page)
     {
-        auto const total_pages =
-            (names_.size() + names_per_page - 1) / names_per_page;
+        auto const page_count = total_pages(names_.size());
 
         std::ostringstream stream;
-        stream << current_page_ + 1 << " / " << total_pages;
+        stream << current_page_ + 1 << " / " << page_count;
 
         auto const page_text = stream.str();
         auto const page_x = static_cast<terminalpp::coordinate_type>(

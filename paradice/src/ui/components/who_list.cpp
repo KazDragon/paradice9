@@ -87,6 +87,26 @@ void draw_truncated_name(
     }
 }
 
+void draw_page_indicator(
+    munin::render_surface &surface,
+    terminalpp::extent const size,
+    std::size_t current_page,
+    std::size_t page_count)
+{
+    std::ostringstream stream;
+    stream << current_page + 1 << " / " << page_count;
+
+    auto const page_text = stream.str();
+    auto const page_x = static_cast<terminalpp::coordinate_type>(
+        size.width_ - page_text.size() - page_text_right_margin);
+
+    for (std::size_t index = 0; index < page_text.size(); ++index)
+    {
+        surface[page_x + static_cast<terminalpp::coordinate_type>(index)]
+               [page_row] = page_text[index];
+    }
+}
+
 }  // namespace
 
 void who_list::set_player_characters(std::vector<terminalpp::string> names)
@@ -179,19 +199,7 @@ void who_list::do_draw(
     if (names_.size() > names_per_page)
     {
         auto const page_count = total_pages(names_.size());
-
-        std::ostringstream stream;
-        stream << current_page_ + 1 << " / " << page_count;
-
-        auto const page_text = stream.str();
-        auto const page_x = static_cast<terminalpp::coordinate_type>(
-            get_size().width_ - page_text.size() - page_text_right_margin);
-
-        for (std::size_t index = 0; index < page_text.size(); ++index)
-        {
-            surface[page_x + static_cast<terminalpp::coordinate_type>(index)]
-                   [page_row] = page_text[index];
-        }
+        draw_page_indicator(surface, get_size(), current_page_, page_count);
     }
 }
 

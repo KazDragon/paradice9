@@ -80,6 +80,26 @@ struct draw_layout
     return {right_column, left_column_width, right_column_width};
 }
 
+struct entry_placement
+{
+    terminalpp::coordinate_type column = 0;
+    terminalpp::coordinate_type row = 0;
+    std::size_t max_width = 0;
+};
+
+[[nodiscard]] entry_placement compute_entry_placement(
+    std::size_t index, draw_layout const &layout)
+{
+    auto const is_left_column = index % column_count == 0;
+    auto const column =
+        is_left_column ? left_column_margin : layout.right_column;
+    auto const row = static_cast<terminalpp::coordinate_type>(index / column_count);
+    auto const max_width =
+        is_left_column ? layout.left_column_width : layout.right_column_width;
+
+    return {column, row, max_width};
+}
+
 void draw_truncated_name(
     munin::render_surface &surface,
     terminalpp::string const &name,
@@ -207,15 +227,9 @@ void who_list::do_draw(
     for (std::size_t index = 0; index < visible_names; ++index)
     {
         auto const &name = names_[first_visible + index];
-        auto const column =
-            index % column_count == 0 ? left_column_margin : layout.right_column;
-        auto const row =
-            static_cast<terminalpp::coordinate_type>(index / column_count);
-        auto const max_width =
-            column == left_column_margin ? layout.left_column_width
-                                         : layout.right_column_width;
-
-        draw_truncated_name(surface, name, column, row, max_width);
+        auto const placement = compute_entry_placement(index, layout);
+        draw_truncated_name(
+            surface, name, placement.column, placement.row, placement.max_width);
     }
 
     if (names_.size() > names_per_page)

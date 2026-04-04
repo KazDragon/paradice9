@@ -14,6 +14,9 @@ using namespace terminalpp::literals;  // NOLINT
 
 namespace {
 
+constexpr terminalpp::extent who_list_size{20, 4};
+constexpr terminalpp::extent main_page_size{40, 12};
+
 std::vector<std::string> render_lines(
     munin::component &component, terminalpp::extent const size)
 {
@@ -69,7 +72,9 @@ TEST(a_who_list, prefers_a_height_of_four)
 {
     auto who_list = paradice::ui::make_who_list();
 
-    ASSERT_EQ(terminalpp::extent(0, 4), who_list->get_preferred_size());
+    ASSERT_EQ(
+        terminalpp::extent(0, who_list_size.height_),
+        who_list->get_preferred_size());
 }
 
 TEST(a_who_list, draws_the_first_player_character_on_the_left_with_a_margin)
@@ -77,7 +82,7 @@ TEST(a_who_list, draws_the_first_player_character_on_the_left_with_a_margin)
     auto who_list = paradice::ui::make_who_list();
     who_list->set_player_characters({"You"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -93,7 +98,7 @@ TEST(a_who_list, draws_the_second_player_character_in_the_right_column)
     auto who_list = paradice::ui::make_who_list();
     who_list->set_player_characters({"You"_ts, "Bob"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -109,7 +114,7 @@ TEST(a_who_list, draws_the_third_player_character_on_the_left_of_the_second_row)
     auto who_list = paradice::ui::make_who_list();
     who_list->set_player_characters({"You"_ts, "Bob"_ts, "Alice"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -126,7 +131,7 @@ TEST(a_who_list, draws_the_fourth_player_character_in_the_right_column_of_the_se
     who_list->set_player_characters(
         {"You"_ts, "Bob"_ts, "Alice"_ts, "Eve"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -143,7 +148,7 @@ TEST(a_who_list, draws_the_fifth_player_character_on_the_left_of_the_third_row)
     who_list->set_player_characters(
         {"You"_ts, "Bob"_ts, "Alice"_ts, "Eve"_ts, "Mallory"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -165,7 +170,7 @@ TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
          "Mallory"_ts,
          "Trent"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -188,7 +193,7 @@ TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
          "Trent"_ts,
          "Peggy"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -212,7 +217,7 @@ TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page
          "Peggy"_ts});
     who_list->set_current_page(1);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ("             2 / 2  ", lines[3]);
 }
@@ -230,7 +235,7 @@ TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
          "Peggy"_ts});
     who_list->set_current_page(1);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -246,7 +251,7 @@ TEST(a_who_list, truncates_an_overlong_left_column_name_with_an_ellipsis)
     auto who_list = paradice::ui::make_who_list();
     who_list->set_player_characters({"Alexandria"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -262,7 +267,7 @@ TEST(a_who_list, truncates_an_overlong_right_column_name_with_an_ellipsis)
     auto who_list = paradice::ui::make_who_list();
     who_list->set_player_characters({"You"_ts, "Alexandria"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -278,7 +283,7 @@ TEST(a_who_list, preserves_a_blank_middle_column_between_left_and_right_entries)
     auto who_list = paradice::ui::make_who_list();
     who_list->set_player_characters({"Alexandria"_ts, "Benedicta"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -292,7 +297,7 @@ TEST(a_who_list, preserves_a_blank_middle_column_between_left_and_right_entries)
 TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_size({20, 4});
+    who_list->set_size(who_list_size);
 
     std::vector<terminalpp::rectangle> redraw_regions;
     who_list->on_redraw.connect(
@@ -304,14 +309,14 @@ TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
     who_list->set_player_characters({"You"_ts});
 
     ASSERT_EQ(
-        std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, {20, 4}}}),
+        std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, who_list_size}}),
         redraw_regions);
 }
 
 TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_size({20, 4});
+    who_list->set_size(who_list_size);
     who_list->set_player_characters(
         {"You"_ts,
          "Bob"_ts,
@@ -331,14 +336,14 @@ TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
     who_list->set_current_page(1);
 
     ASSERT_EQ(
-        std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, {20, 4}}}),
+        std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, who_list_size}}),
         redraw_regions);
 }
 
 TEST(a_who_list, page_change_redraw_covers_the_changed_roster_rows)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_size({20, 4});
+    who_list->set_size(who_list_size);
     who_list->set_player_characters(
         {"You"_ts,
          "Bob"_ts,
@@ -366,7 +371,7 @@ TEST(a_who_list, page_change_redraw_covers_the_changed_roster_rows)
 TEST(a_who_list, player_character_change_redraw_covers_the_page_information_row)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_size({20, 4});
+    who_list->set_size(who_list_size);
     who_list->set_player_characters(
         {"You"_ts,
          "Bob"_ts,
@@ -419,7 +424,7 @@ TEST(a_who_list, advances_to_the_next_page_on_right_arrow_input_when_focused)
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_right});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -446,7 +451,7 @@ TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_whe
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_right});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -472,7 +477,7 @@ TEST(a_who_list, cycles_from_the_first_page_to_the_last_on_left_arrow_input_when
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_left});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -499,7 +504,7 @@ TEST(a_who_list, returns_to_the_previous_page_on_left_arrow_input_when_focused)
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_left});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*who_list, who_list_size);
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -514,7 +519,7 @@ TEST(a_main_page, does_not_render_the_old_you_placeholder_in_the_who_list_area)
 {
     paradice::ui::main_page page;
 
-    auto const lines = render_lines(page, {40, 12});
+    auto const lines = render_lines(page, main_page_size);
 
     ASSERT_TRUE(std::none_of(
         lines.begin(),
@@ -527,7 +532,7 @@ TEST(a_main_page, displays_player_character_names_in_the_hosted_who_list)
     paradice::ui::main_page page;
     page.set_player_characters({"Mallory"_ts, "Peggy"_ts});
 
-    auto const lines = render_lines(page, {40, 12});
+    auto const lines = render_lines(page, main_page_size);
 
     ASSERT_TRUE(std::any_of(
         lines.begin(),

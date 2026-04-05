@@ -539,16 +539,9 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
-        if (input.rfind("/", 0) == 0)
+        if (input.rfind("/tell ", 0) == 0)
         {
-            context_.send_message(
-                *character_, std::format("Unknown command: {}", input));
-            return;
-        }
-
-        if (input.rfind("tell ", 0) == 0)
-        {
-            auto const tell_arguments = input.substr(5);
+            auto const tell_arguments = input.substr(6);
             auto const split = tell_arguments.find(' ');
 
             if (split != std::string::npos)
@@ -563,6 +556,13 @@ private:
                     return;
                 }
             }
+        }
+
+        if (input.rfind("/", 0) == 0)
+        {
+            context_.send_message(
+                *character_, std::format("Unknown command: {}", input));
+            return;
         }
 
         std::string spoken_text = input;

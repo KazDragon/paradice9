@@ -362,6 +362,16 @@ public:
     }
 
 private:
+    void emit_say_messages(std::string const &spoken_text)
+    {
+        context_.send_message(
+            *character_, std::format("you say, \"{}\"", spoken_text));
+        context_.send_message(
+            context_.get_main_room(),
+            *character_,
+            std::format("{} says, \"{}\"", character_->name, spoken_text));
+    }
+
     void update_who_list_from_current_room()
     {
         if (!character_ || character_->in_room == nullptr)
@@ -506,12 +516,7 @@ private:
             spoken_text = input.substr(4);
         }
 
-        context_.send_message(
-            *character_, std::format("you say, \"{}\"", spoken_text));
-        context_.send_message(
-            context_.get_main_room(),
-            *character_,
-            std::format("{} says, \"{}\"", character_->name, spoken_text));
+        emit_say_messages(spoken_text);
     }
 
     client &self_;

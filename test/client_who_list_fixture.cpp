@@ -186,6 +186,19 @@ void enter_command_and_capture_messages(
     drain(io_context);
 }
 
+void assert_public_speech_messages(
+    fake_context const &context, std::string const &speaker, std::string const &message)
+{
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(1u, context.room_messages.size());
+    ASSERT_EQ(
+        "you say, \"" + message + "\"",
+        terminalpp::to_string(context.direct_messages[0]));
+    ASSERT_EQ(
+        speaker + " says, \"" + message + "\"",
+        terminalpp::to_string(context.room_messages[0]));
+}
+
 }  // namespace
 
 TEST(a_client, displays_existing_room_members_in_the_who_list_when_entering_the_game)
@@ -309,10 +322,7 @@ TEST(a_client, emits_expected_speech_text_when_a_command_is_entered_in_game)
     enter_game(io_context, channel);
     enter_command_and_capture_messages(io_context, context, channel, "hello");
 
-    ASSERT_EQ(1u, context.direct_messages.size());
-    ASSERT_EQ(1u, context.room_messages.size());
-    ASSERT_EQ("you say, \"hello\""_ts, context.direct_messages[0]);
-    ASSERT_EQ("Mallory says, \"hello\""_ts, context.room_messages[0]);
+    assert_public_speech_messages(context, "Mallory", "hello");
 }
 
 TEST(a_client, treats_say_prefixed_input_as_a_command_and_not_literal_speech)
@@ -330,10 +340,7 @@ TEST(a_client, treats_say_prefixed_input_as_a_command_and_not_literal_speech)
     enter_command_and_capture_messages(
         io_context, context, channel, "say hello");
 
-    ASSERT_EQ(1u, context.direct_messages.size());
-    ASSERT_EQ(1u, context.room_messages.size());
-    ASSERT_EQ("you say, \"hello\""_ts, context.direct_messages[0]);
-    ASSERT_EQ("Mallory says, \"hello\""_ts, context.room_messages[0]);
+    assert_public_speech_messages(context, "Mallory", "hello");
 }
 
 TEST(a_client, routes_tell_prefixed_input_as_private_messaging)

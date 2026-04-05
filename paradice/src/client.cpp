@@ -45,9 +45,9 @@
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/range/algorithm/for_each.hpp>
-#include <fmt/format.h>
 
 #include <array>
+#include <format>
 #include <string>
 #include <cstdio>
 
@@ -500,11 +500,11 @@ private:
     void on_command(std::string const &input)
     {
         context_.send_message(
-            *character_, fmt::format("you say, \"{}\"", input));
+            *character_, std::format("you say, \"{}\"", input));
         context_.send_message(
             context_.get_main_room(),
             *character_,
-            fmt::format("{} says, \"{}\"", character_->name, input));
+            std::format("{} says, \"{}\"", character_->name, input));
     }
 
     client &self_;

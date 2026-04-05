@@ -509,6 +509,36 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
+        if (input.rfind("tell ", 0) == 0)
+        {
+            auto const tell_arguments = input.substr(5);
+            auto const split = tell_arguments.find(' ');
+
+            if (split != std::string::npos && character_->in_room != nullptr)
+            {
+                auto const recipient_name = tell_arguments.substr(0, split);
+                auto const message = tell_arguments.substr(split + 1);
+
+                for (auto *occupant : character_->in_room->characters)
+                {
+                    if (occupant->name == recipient_name)
+                    {
+                        context_.send_message(
+                            *character_,
+                            std::format(
+                                "you tell {}, \"{}\"", recipient_name, message));
+                        context_.send_message(
+                            *occupant,
+                            std::format(
+                                "{} tells you, \"{}\"",
+                                character_->name,
+                                message));
+                        return;
+                    }
+                }
+            }
+        }
+
         std::string spoken_text = input;
 
         if (input.rfind("say ", 0) == 0)

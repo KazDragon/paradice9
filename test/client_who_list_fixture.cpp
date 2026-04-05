@@ -335,3 +335,33 @@ TEST(a_client, treats_say_prefixed_input_as_a_command_and_not_literal_speech)
     ASSERT_EQ("you say, \"hello\""_ts, context.direct_messages[0]);
     ASSERT_EQ("Mallory says, \"hello\""_ts, context.room_messages[0]);
 }
+
+TEST(a_client, routes_tell_prefixed_input_as_private_messaging)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+
+    paradice::model::character peggy{
+        .name = "Peggy",
+        .prefix = "",
+        .suffix = "",
+        .send_message = {},
+        .in_room = &context.main_room};
+    context.main_room.characters.push_back(&peggy);
+
+    enter_command_and_capture_messages(
+        io_context, context, channel, "tell Peggy hello");
+
+    ASSERT_EQ(2u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("you tell Peggy, \"hello\""_ts, context.direct_messages[0]);
+    ASSERT_EQ("Mallory tells you, \"hello\""_ts, context.direct_messages[1]);
+}

@@ -362,6 +362,36 @@ public:
     }
 
 private:
+    model::character *find_current_room_occupant_by_name(
+        std::string const &name) const
+    {
+        if (!character_ || character_->in_room == nullptr)
+        {
+            return nullptr;
+        }
+
+        for (auto *occupant : character_->in_room->characters)
+        {
+            if (occupant->name == name)
+            {
+                return occupant;
+            }
+        }
+
+        return nullptr;
+    }
+
+    void emit_tell_messages(
+        model::character &recipient, std::string const &message)
+    {
+        context_.send_message(
+            *character_,
+            std::format("you tell {}, \"{}\"", recipient.name, message));
+        context_.send_message(
+            recipient,
+            std::format("{} tells you, \"{}\"", character_->name, message));
+    }
+
     void emit_say_messages(std::string const &spoken_text)
     {
         context_.send_message(
@@ -514,27 +544,16 @@ private:
             auto const tell_arguments = input.substr(5);
             auto const split = tell_arguments.find(' ');
 
-            if (split != std::string::npos && character_->in_room != nullptr)
+            if (split != std::string::npos)
             {
                 auto const recipient_name = tell_arguments.substr(0, split);
                 auto const message = tell_arguments.substr(split + 1);
-
-                for (auto *occupant : character_->in_room->characters)
+                auto *recipient =
+                    find_current_room_occupant_by_name(recipient_name);
+                if (recipient != nullptr)
                 {
-                    if (occupant->name == recipient_name)
-                    {
-                        context_.send_message(
-                            *character_,
-                            std::format(
-                                "you tell {}, \"{}\"", recipient_name, message));
-                        context_.send_message(
-                            *occupant,
-                            std::format(
-                                "{} tells you, \"{}\"",
-                                character_->name,
-                                message));
-                        return;
-                    }
+                    emit_tell_messages(*recipient, message);
+                    return;
                 }
             }
         }

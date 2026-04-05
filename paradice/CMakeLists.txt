@@ -15,7 +15,6 @@ if (NOT TARGET KazDragon::consolepp)
 endif()
 find_package(Boost COMPONENTS program_options container REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(fmt REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -113,7 +112,6 @@ target_link_libraries(paradice
     PRIVATE
         KazDragon::munin
         KazDragon::telnetpp
-        fmt::fmt
         ZLIB::ZLIB
 )
 

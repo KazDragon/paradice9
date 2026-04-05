@@ -103,6 +103,7 @@ struct fake_context : paradice::context
         paradice::model::character &character,
         terminalpp::string const &message) override
     {
+        direct_messages.push_back(message);
         if (character.send_message)
         {
             character.send_message(message);
@@ -117,8 +118,9 @@ struct fake_context : paradice::context
     void send_message(
         paradice::model::room &,
         paradice::model::character &,
-        terminalpp::string const &) override
+        terminalpp::string const &message) override
     {
+        room_messages.push_back(message);
     }
 
     paradice::model::room &get_main_room() override
@@ -127,6 +129,8 @@ struct fake_context : paradice::context
     }
 
     paradice::model::room main_room;
+    std::vector<terminalpp::string> direct_messages;
+    std::vector<terminalpp::string> room_messages;
 };
 
 void drain(boost::asio::io_context &io_context)
@@ -266,4 +270,34 @@ TEST(a_client, refreshes_the_who_list_when_a_later_room_member_leaves_after_entr
     drain(io_context);
 
     ASSERT_EQ(std::string::npos, to_string(channel->written_).find("Peggy"));
+}
+
+TEST(a_client, emits_expected_speech_text_when_a_command_is_entered_in_game)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+
+    channel->receive(bytes("account\tpassword\t\t\r\n"));
+    drain(io_context);
+
+    channel->receive(bytes("\x1B[B\t\t\r\n"));
+    drain(io_context);
+
+    context.direct_messages.clear();
+    context.room_messages.clear();
+
+    channel->receive(bytes("hello\r\n"));
+    drain(io_context);
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(1u, context.room_messages.size());
+    ASSERT_EQ("you say, \"hello\""_ts, context.direct_messages[0]);
+    ASSERT_EQ("Mallory says, \"hello\""_ts, context.room_messages[0]);
 }

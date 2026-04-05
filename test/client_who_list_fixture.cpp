@@ -372,3 +372,22 @@ TEST(a_client, routes_tell_prefixed_input_as_private_messaging)
     ASSERT_EQ("you tell Peggy, \"hello\""_ts, context.direct_messages[0]);
     ASSERT_EQ("Mallory tells you, \"hello\""_ts, context.direct_messages[1]);
 }
+
+TEST(a_client, reports_unknown_slash_commands_to_the_sender_without_room_broadcast)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/xyzzy");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("Unknown command: /xyzzy"_ts, context.direct_messages[0]);
+}

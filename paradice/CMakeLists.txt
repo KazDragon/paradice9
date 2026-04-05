@@ -62,6 +62,7 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/configuration.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
+    include/paradice/room_lifecycle.hpp
 #    include/paradice/dice.hpp
 #    include/paradice/dice_roll_parser.hpp
 #    include/paradice/encounter.hpp
@@ -76,6 +77,7 @@ set (PARADICE_INCLUDE_FILES
 
     include/paradice/model/account.hpp
     include/paradice/model/character.hpp
+    include/paradice/model/room_membership.hpp
     
     include/paradice/ui/components/password_edit.hpp
     include/paradice/ui/components/who_list.hpp

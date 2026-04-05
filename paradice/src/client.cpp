@@ -28,6 +28,7 @@
 
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
+#include "paradice/room_lifecycle.hpp"
 #include "paradice/ui/message.hpp"
 #include "paradice/ui/shell/user_interface.hpp"
 
@@ -150,6 +151,7 @@ public:
             paradice::model::room &main_room = context_.get_main_room();
             character_->in_room = &main_room;
             main_room.characters.push_back(&chr);
+            update_who_list_from_current_room();
 
             context_.send_message(chr, "You have entered Paradice!");
             context_.send_message(
@@ -206,13 +208,7 @@ public:
 
     ~impl()
     {
-        if (character_ && (character_->in_room != nullptr))
-        {
-            context_.send_message(
-                *character_->in_room,
-                *character_,
-                character_->name + " has left Paradice");
-        }
+        disconnect_character_if_present();
     }
 
     // ======================================================================
@@ -311,6 +307,7 @@ public:
             }
             else
             {
+                disconnect_character_if_present();
                 on_connection_death_();
             }
         });
@@ -338,6 +335,7 @@ public:
     // ======================================================================
     void disconnect()
     {
+        disconnect_character_if_present();
         terminal_ << terminalpp::disable_mouse() << terminalpp::show_cursor()
                   << terminalpp::use_normal_screen_buffer();
 
@@ -357,11 +355,38 @@ public:
     // ======================================================================
     void send_message(terminalpp::string const &message)
     {
-        run_on_ui_strand(
-            [this, message] { user_interface_->event(ui::message{message}); });
+        run_on_ui_strand([this, message] {
+            update_who_list_from_current_room();
+            user_interface_->event(ui::message{message});
+        });
     }
 
 private:
+    void update_who_list_from_current_room()
+    {
+        if (!character_ || character_->in_room == nullptr)
+        {
+            return;
+        }
+
+        std::vector<terminalpp::string> names;
+
+        for (auto const *occupant : character_->in_room->characters)
+        {
+            names.emplace_back(occupant->name);
+        }
+
+        user_interface_->set_player_characters(std::move(names));
+    }
+
+    void disconnect_character_if_present()
+    {
+        if (character_)
+        {
+            paradice::disconnect_character(context_, *character_);
+        }
+    }
+
     // ======================================================================
     // RUN_ON_UI_STRAND
     // ======================================================================

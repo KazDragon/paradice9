@@ -36,136 +36,70 @@ namespace paradice::ui {
 namespace {
 
 constexpr std::size_t column_count = 2;
-constexpr auto column_count_in_coordinates = terminalpp::coordinate_type{2};
 constexpr std::size_t visible_name_row_count = 3;
-constexpr auto visible_name_row_count_in_coordinates =
-    terminalpp::coordinate_type{3};
 constexpr std::size_t names_per_page = column_count * visible_name_row_count;
-constexpr std::size_t ellipsis_width = 3;
 constexpr auto left_column_margin = terminalpp::coordinate_type{1};
+constexpr auto right_column_margin = terminalpp::coordinate_type{1};
+constexpr auto inter_column_spacing = terminalpp::coordinate_type{1};
 constexpr auto page_text_right_margin = terminalpp::coordinate_type{2};
-constexpr auto page_row = visible_name_row_count_in_coordinates;
-constexpr auto preferred_height =
-    visible_name_row_count_in_coordinates + terminalpp::coordinate_type{1};
-
-[[nodiscard]] std::size_t total_pages(std::size_t name_count)
-{
-    return name_count == 0 ? 0 : (name_count + names_per_page - 1) / names_per_page;
-}
-
-[[nodiscard]] std::size_t first_visible_index(std::size_t current_page)
-{
-    return current_page * names_per_page;
-}
-
-[[nodiscard]] std::size_t visible_name_count(
-    std::size_t name_count, std::size_t first_index)
-{
-    return std::min<std::size_t>(name_count - first_index, names_per_page);
-}
-
-struct draw_layout
-{
-    terminalpp::coordinate_type right_column = 0;
-    std::size_t left_column_width = 0;
-    std::size_t right_column_width = 0;
-};
-
-[[nodiscard]] draw_layout compute_draw_layout(terminalpp::extent const size)
-{
-    auto const right_column =
-        size.width_ / column_count_in_coordinates + left_column_margin;
-    auto const left_column_width = static_cast<std::size_t>(
-        right_column - left_column_margin - terminalpp::coordinate_type{1});
-    auto const right_column_width = static_cast<std::size_t>(
-        size.width_ - right_column - terminalpp::coordinate_type{1});
-
-    return {right_column, left_column_width, right_column_width};
-}
-
-struct entry_placement
-{
-    terminalpp::coordinate_type column = 0;
-    terminalpp::coordinate_type row = 0;
-    std::size_t max_width = 0;
-};
-
-[[nodiscard]] entry_placement compute_entry_placement(
-    std::size_t index, draw_layout const &layout)
-{
-    auto const is_left_column = index % column_count == 0;
-    auto const column =
-        is_left_column ? left_column_margin : layout.right_column;
-    auto const row = static_cast<terminalpp::coordinate_type>(index / column_count);
-    auto const max_width =
-        is_left_column ? layout.left_column_width : layout.right_column_width;
-
-    return {column, row, max_width};
-}
-
-void draw_truncated_name(
-    munin::render_surface &surface,
-    terminalpp::string const &name,
-    terminalpp::coordinate_type x,
-    terminalpp::coordinate_type y,
-    std::size_t max_width)
-{
-    auto const truncated = name.size() > max_width;
-    auto const visible_columns = std::min<std::size_t>(name.size(), max_width);
-
-    for (std::size_t column = 0; column < visible_columns; ++column)
-    {
-        auto &cell =
-            surface[x + static_cast<terminalpp::coordinate_type>(column)][y];
-
-        if (truncated && max_width >= ellipsis_width
-            && column >= max_width - ellipsis_width)
-        {
-            cell = '.';
-        }
-        else
-        {
-            cell = name[static_cast<terminalpp::string::size_type>(column)];
-        }
-    }
-}
-
-void draw_page_indicator(
-    munin::render_surface &surface,
-    terminalpp::extent const size,
-    std::size_t current_page,
-    std::size_t page_count)
-{
-    std::ostringstream stream;
-    stream << current_page + 1 << " / " << page_count;
-
-    auto const page_text = stream.str();
-    auto const page_x = static_cast<terminalpp::coordinate_type>(
-        size.width_ - page_text.size() - page_text_right_margin);
-
-    for (std::size_t index = 0; index < page_text.size(); ++index)
-    {
-        surface[page_x + static_cast<terminalpp::coordinate_type>(index)]
-               [page_row] = page_text[index];
-    }
-}
+constexpr auto page_row =
+    terminalpp::coordinate_type{visible_name_row_count};
+constexpr auto ellipsis_width = std::size_t{3};
+constexpr auto single_dot_width = std::size_t{1};
+constexpr auto minimum_two_column_dot_skeleton_width =
+    left_column_margin + static_cast<terminalpp::coordinate_type>(single_dot_width)
+    + inter_column_spacing
+    + static_cast<terminalpp::coordinate_type>(single_dot_width)
+    + right_column_margin;
+constexpr auto single_column_padding_width =
+    left_column_margin + right_column_margin;
+constexpr auto two_column_padding_width =
+    left_column_margin + inter_column_spacing + right_column_margin;
 
 }  // namespace
 
 void who_list::set_player_characters(std::vector<terminalpp::string> names)
 {
+    auto const old_preferred_size = get_preferred_size();
+
     names_ = std::move(names);
-    request_full_redraw();
+
+    auto const total_pages =
+        names_.empty() ? std::size_t{0}
+                       : (names_.size() + names_per_page - 1) / names_per_page;
+
+    if (total_pages == 0)
+    {
+        current_page_ = 0;
+    }
+    else
+    {
+        current_page_ = std::min(current_page_, total_pages - 1);
+    }
+
+    if (get_preferred_size() != old_preferred_size)
+    {
+        on_preferred_size_changed();
+    }
+
+    on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
 }
 
 void who_list::set_current_page(std::size_t page)
 {
-    current_page_ = page;
-    request_full_redraw();
-}
+    auto const total_pages =
+        names_.empty() ? std::size_t{0}
+                       : (names_.size() + names_per_page - 1) / names_per_page;
 
-void who_list::request_full_redraw()
-{
+    if (total_pages == 0)
+    {
+        current_page_ = 0;
+    }
+    else
+    {
+        current_page_ = std::min(page, total_pages - 1);
+    }
+
     on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
 }
 
@@ -176,7 +110,37 @@ bool who_list::do_can_receive_focus() const
 
 terminalpp::extent who_list::do_get_preferred_size() const
 {
-    return {0, preferred_height};
+    auto left_column_width = std::size_t{0};
+    auto right_column_width = std::size_t{0};
+
+    for (std::size_t index = 0; index < names_.size(); ++index)
+    {
+        auto &column_width =
+            index % column_count == 0 ? left_column_width : right_column_width;
+        column_width = std::max(column_width, names_[index].size());
+    }
+
+    auto preferred_width =
+        left_column_width == 0
+            ? terminalpp::coordinate_type{0}
+            : static_cast<terminalpp::coordinate_type>(
+                  left_column_width
+                  + (right_column_width == 0 ? single_column_padding_width
+                                             : two_column_padding_width
+                                                   + right_column_width));
+
+    if (names_.size() > names_per_page)
+    {
+        auto const total_pages =
+            (names_.size() + names_per_page - 1) / names_per_page;
+        auto const page_text_width = static_cast<terminalpp::coordinate_type>(
+            (std::to_string(total_pages) + " / " + std::to_string(total_pages) + "  ")
+                .size());
+
+        preferred_width = std::max(preferred_width, page_text_width);
+    }
+
+    return {preferred_width, 4};
 }
 
 void who_list::do_event(std::any const &event)
@@ -184,22 +148,24 @@ void who_list::do_event(std::any const &event)
     if (auto const *key = std::any_cast<terminalpp::virtual_key>(&event);
         key != nullptr && has_focus())
     {
-        auto const page_count = total_pages(names_.size());
+        auto const total_pages =
+            names_.empty() ? std::size_t{0}
+                           : (names_.size() + names_per_page - 1) / names_per_page;
 
-        if (page_count == 0)
+        if (total_pages == 0)
         {
             return;
         }
 
         if (key->key == terminalpp::vk::cursor_right)
         {
-            set_current_page((current_page_ + 1) % page_count);
+            set_current_page((current_page_ + 1) % total_pages);
             return;
         }
 
         if (key->key == terminalpp::vk::cursor_left)
         {
-            set_current_page((current_page_ + page_count - 1) % page_count);
+            set_current_page((current_page_ + total_pages - 1) % total_pages);
             return;
         }
     }
@@ -210,35 +176,115 @@ void who_list::do_event(std::any const &event)
 void who_list::do_draw(
     munin::render_surface &surface, terminalpp::rectangle const &) const
 {
-    auto const size = get_size();
+    for (auto row = terminalpp::coordinate_type{0}; row < get_size().height_;
+         ++row)
+    {
+        for (auto column = terminalpp::coordinate_type{0};
+             column < get_size().width_;
+             ++column)
+        {
+            surface[column][row] = ' ';
+        }
+    }
 
     if (names_.empty())
     {
         return;
     }
 
-    auto const layout = compute_draw_layout(size);
-    auto const first_visible = first_visible_index(current_page_);
-
-    if (first_visible >= names_.size())
+    if (get_size().width_ < minimum_two_column_dot_skeleton_width)
     {
         return;
     }
 
-    auto const visible_names = visible_name_count(names_.size(), first_visible);
+    auto draw_name = [&surface](
+                         terminalpp::string const &name,
+                         terminalpp::coordinate_type x,
+                         terminalpp::coordinate_type y,
+                         std::size_t max_width) {
+        if (y >= surface.size().height_)
+        {
+            return;
+        }
+
+        auto const truncated = name.size() > max_width;
+        auto const visible_columns =
+            std::min<std::size_t>(name.size(), max_width);
+
+        for (std::size_t column = 0; column < visible_columns;
+             ++column)
+        {
+            auto &cell =
+                surface[x + static_cast<terminalpp::coordinate_type>(column)][y];
+
+            if (truncated && max_width < ellipsis_width)
+            {
+                cell = '.';
+            }
+            else if (
+                truncated && max_width >= ellipsis_width
+                && column >= max_width - ellipsis_width)
+            {
+                cell = '.';
+            }
+            else
+            {
+                cell =
+                    name[static_cast<terminalpp::string::size_type>(column)];
+            }
+        }
+    };
+
+    auto const right_column = get_size().width_ / column_count +
+                              left_column_margin;
+    auto const left_column_width = static_cast<std::size_t>(
+        right_column - left_column_margin - inter_column_spacing);
+    auto const right_column_width = static_cast<std::size_t>(
+        get_size().width_ - right_column - right_column_margin);
+    auto const first_visible_index = current_page_ * names_per_page;
+
+    if (first_visible_index >= names_.size())
+    {
+        return;
+    }
+
+    auto const visible_names =
+        std::min<std::size_t>(names_.size() - first_visible_index, names_per_page);
 
     for (std::size_t index = 0; index < visible_names; ++index)
     {
-        auto const &name = names_[first_visible + index];
-        auto const placement = compute_entry_placement(index, layout);
-        draw_truncated_name(
-            surface, name, placement.column, placement.row, placement.max_width);
+        auto const &name = names_[first_visible_index + index];
+        auto const column =
+            index % column_count == 0 ? left_column_margin : right_column;
+        auto const row =
+            static_cast<terminalpp::coordinate_type>(index / column_count);
+        auto const max_width =
+            column == left_column_margin ? left_column_width
+                                         : right_column_width;
+
+        draw_name(name, column, row, max_width);
     }
 
     if (names_.size() > names_per_page)
     {
-        auto const page_count = total_pages(names_.size());
-        draw_page_indicator(surface, size, current_page_, page_count);
+        auto const total_pages =
+            (names_.size() + names_per_page - 1) / names_per_page;
+
+        std::ostringstream stream;
+        stream << current_page_ + 1 << " / " << total_pages;
+
+        auto const page_text = stream.str();
+        auto const page_x = static_cast<terminalpp::coordinate_type>(
+            get_size().width_ - page_text.size() - page_text_right_margin);
+
+        if (page_row < surface.size().height_)
+        {
+            for (std::size_t index = 0; index < page_text.size(); ++index)
+            {
+                surface[page_x + static_cast<terminalpp::coordinate_type>(index)]
+                       [page_row] = page_text[index];
+            }
+        }
     }
 }
 

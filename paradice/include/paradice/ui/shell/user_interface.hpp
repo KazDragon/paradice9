@@ -33,9 +33,11 @@
 
 #include <munin/animator.hpp>
 #include <munin/composite_component.hpp>
+#include <terminalpp/string.hpp>
 
 #include <any>
 #include <memory>
+#include <vector>
 
 namespace paradice::ui {
 
@@ -93,6 +95,8 @@ public:
     /// prompt.
     //* =====================================================================
     boost::signals2::signal<void(std::string const &)> on_command;
+
+    void set_player_characters(std::vector<terminalpp::string> names);
 
 protected:
     //* =====================================================================

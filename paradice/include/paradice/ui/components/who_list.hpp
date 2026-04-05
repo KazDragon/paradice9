@@ -41,7 +41,6 @@ class PARADICE_EXPORT who_list final : public munin::basic_component
 {
 public:
     void set_player_characters(std::vector<terminalpp::string> names);
-    void set_current_page(std::size_t page);
 
 protected:
     [[nodiscard]] bool do_can_receive_focus() const override;
@@ -52,7 +51,7 @@ protected:
         terminalpp::rectangle const &region) const override;
 
 private:
-    void request_full_redraw();
+    void set_current_page(std::size_t page);
 
     std::size_t current_page_ = 0;
     std::vector<terminalpp::string> names_;

@@ -163,6 +163,29 @@ paradice::model::character *find_character(
     return it == room.characters.end() ? nullptr : *it;
 }
 
+void enter_game(
+    boost::asio::io_context &io_context, std::shared_ptr<fake_channel> channel)
+{
+    channel->receive(bytes("account\tpassword\t\t\r\n"));
+    drain(io_context);
+
+    channel->receive(bytes("\x1B[B\t\t\r\n"));
+    drain(io_context);
+}
+
+void enter_command_and_capture_messages(
+    boost::asio::io_context &io_context,
+    fake_context &context,
+    std::shared_ptr<fake_channel> channel,
+    std::string const &command)
+{
+    context.direct_messages.clear();
+    context.room_messages.clear();
+
+    channel->receive(bytes(command + "\r\n"));
+    drain(io_context);
+}
+
 }  // namespace
 
 TEST(a_client, displays_existing_room_members_in_the_who_list_when_entering_the_game)
@@ -283,18 +306,8 @@ TEST(a_client, emits_expected_speech_text_when_a_command_is_entered_in_game)
 
     drain(io_context);
     channel->written_.clear();
-
-    channel->receive(bytes("account\tpassword\t\t\r\n"));
-    drain(io_context);
-
-    channel->receive(bytes("\x1B[B\t\t\r\n"));
-    drain(io_context);
-
-    context.direct_messages.clear();
-    context.room_messages.clear();
-
-    channel->receive(bytes("hello\r\n"));
-    drain(io_context);
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "hello");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());
@@ -313,18 +326,9 @@ TEST(a_client, treats_say_prefixed_input_as_a_command_and_not_literal_speech)
 
     drain(io_context);
     channel->written_.clear();
-
-    channel->receive(bytes("account\tpassword\t\t\r\n"));
-    drain(io_context);
-
-    channel->receive(bytes("\x1B[B\t\t\r\n"));
-    drain(io_context);
-
-    context.direct_messages.clear();
-    context.room_messages.clear();
-
-    channel->receive(bytes("say hello\r\n"));
-    drain(io_context);
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context, context, channel, "say hello");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());

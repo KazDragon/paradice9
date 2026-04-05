@@ -37,6 +37,7 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <sqlite3.h>
 
+#include <algorithm>
 #include <vector>
 
 
@@ -447,6 +448,29 @@ struct context_impl::impl
         shutdown_();
     }
 
+    void register_online_character(paradice::model::character &character)
+    {
+        online_characters_.push_back(&character);
+    }
+
+    void unregister_online_character(paradice::model::character &character)
+    {
+        auto const it = std::remove(
+            online_characters_.begin(), online_characters_.end(), &character);
+        online_characters_.erase(it, online_characters_.end());
+    }
+
+    paradice::model::character *find_online_character_by_name(
+        std::string const &name)
+    {
+        auto const it = std::find_if(
+            online_characters_.begin(),
+            online_characters_.end(),
+            [&name](auto const *character) { return character->name == name; });
+
+        return it == online_characters_.end() ? nullptr : *it;
+    }
+
     // ======================================================================
     // GET_MAIN_ROOM
     // ======================================================================
@@ -505,6 +529,7 @@ private:
     SQLite::Database database_;
     std::function<void()> shutdown_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
+    std::vector<paradice::model::character *> online_characters_;
     paradice::model::room main_room_;
 };
 
@@ -645,6 +670,23 @@ paradice::model::character context_impl::load_character(
 void context_impl::shutdown()
 {
     pimpl_->shutdown();
+}
+
+void context_impl::register_online_character(paradice::model::character &character)
+{
+    pimpl_->register_online_character(character);
+}
+
+void context_impl::unregister_online_character(
+    paradice::model::character &character)
+{
+    pimpl_->unregister_online_character(character);
+}
+
+paradice::model::character *context_impl::find_online_character_by_name(
+    std::string const &name)
+{
+    return pimpl_->find_online_character_by_name(name);
 }
 
 // ==========================================================================

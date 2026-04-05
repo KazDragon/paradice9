@@ -42,6 +42,16 @@ struct fake_context : paradice::context
 
     void shutdown() override {}
 
+    void register_online_character(paradice::model::character &) override {}
+
+    void unregister_online_character(paradice::model::character &) override {}
+
+    paradice::model::character *find_online_character_by_name(
+        std::string const &) override
+    {
+        return nullptr;
+    }
+
     void send_message(
         paradice::model::character &, terminalpp::string const &) override
     {

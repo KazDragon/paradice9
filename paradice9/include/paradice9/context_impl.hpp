@@ -144,6 +144,22 @@ public:
     void shutdown() override;
 
     //* =====================================================================
+    /// \brief Registers a character as online.
+    //* =====================================================================
+    void register_online_character(paradice::model::character &character) override;
+
+    //* =====================================================================
+    /// \brief Unregisters a character from online lookup.
+    //* =====================================================================
+    void unregister_online_character(paradice::model::character &character) override;
+
+    //* =====================================================================
+    /// \brief Finds an online character by name.
+    //* =====================================================================
+    paradice::model::character *find_online_character_by_name(
+        std::string const &name) override;
+
+    //* =====================================================================
     /// \brief Gets the currently active encounter
     //* =====================================================================
     // std::shared_ptr<paradice::active_encounter> get_active_encounter()

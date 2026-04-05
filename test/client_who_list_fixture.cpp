@@ -10,6 +10,7 @@
 
 #include <boost/asio/io_context.hpp>
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <string>
@@ -99,6 +100,30 @@ struct fake_context : paradice::context
 
     void shutdown() override {}
 
+    void register_online_character(paradice::model::character &character) override
+    {
+        online_characters.push_back(&character);
+    }
+
+    void unregister_online_character(
+        paradice::model::character &character) override
+    {
+        auto const it = std::remove(
+            online_characters.begin(), online_characters.end(), &character);
+        online_characters.erase(it, online_characters.end());
+    }
+
+    paradice::model::character *find_online_character_by_name(
+        std::string const &name) override
+    {
+        auto const it = std::find_if(
+            online_characters.begin(),
+            online_characters.end(),
+            [&name](auto *character) { return character->name == name; });
+
+        return it == online_characters.end() ? nullptr : *it;
+    }
+
     void send_message(
         paradice::model::character &character,
         terminalpp::string const &message) override
@@ -131,6 +156,7 @@ struct fake_context : paradice::context
     paradice::model::room main_room;
     std::vector<terminalpp::string> direct_messages;
     std::vector<terminalpp::string> room_messages;
+    std::vector<paradice::model::character *> online_characters;
 };
 
 void drain(boost::asio::io_context &io_context)
@@ -356,13 +382,15 @@ TEST(a_client, routes_slash_tell_prefixed_input_as_private_messaging)
     channel->written_.clear();
     enter_game(io_context, channel);
 
+    paradice::model::room side_room;
     paradice::model::character peggy{
         .name = "Peggy",
         .prefix = "",
         .suffix = "",
         .send_message = {},
-        .in_room = &context.main_room};
-    context.main_room.characters.push_back(&peggy);
+        .in_room = &side_room};
+    side_room.characters.push_back(&peggy);
+    context.register_online_character(peggy);
 
     enter_command_and_capture_messages(
         io_context, context, channel, "/tell Peggy hello");
@@ -371,6 +399,29 @@ TEST(a_client, routes_slash_tell_prefixed_input_as_private_messaging)
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ("you tell Peggy, \"hello\""_ts, context.direct_messages[0]);
     ASSERT_EQ("Mallory tells you, \"hello\""_ts, context.direct_messages[1]);
+}
+
+TEST(a_client, reports_a_missing_player_when_slash_tell_target_cannot_be_found)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/tell Peggy hello");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "A player with name Peggy could not be found."_ts,
+        context.direct_messages[0]);
 }
 
 TEST(a_client, treats_non_slash_tell_text_as_public_speech)

@@ -147,6 +147,7 @@ public:
                 self_.send_message(message);
             };
             character_ = chr;
+            context_.register_online_character(*character_);
 
             paradice::model::room &main_room = context_.get_main_room();
             character_->in_room = &main_room;
@@ -362,25 +363,6 @@ public:
     }
 
 private:
-    model::character *find_current_room_occupant_by_name(
-        std::string const &name) const
-    {
-        if (!character_ || character_->in_room == nullptr)
-        {
-            return nullptr;
-        }
-
-        for (auto *occupant : character_->in_room->characters)
-        {
-            if (occupant->name == name)
-            {
-                return occupant;
-            }
-        }
-
-        return nullptr;
-    }
-
     void emit_tell_messages(
         model::character &recipient, std::string const &message)
     {
@@ -423,6 +405,7 @@ private:
     {
         if (character_)
         {
+            context_.unregister_online_character(*character_);
             paradice::disconnect_character(context_, *character_);
         }
     }
@@ -549,12 +532,19 @@ private:
                 auto const recipient_name = tell_arguments.substr(0, split);
                 auto const message = tell_arguments.substr(split + 1);
                 auto *recipient =
-                    find_current_room_occupant_by_name(recipient_name);
+                    context_.find_online_character_by_name(recipient_name);
                 if (recipient != nullptr)
                 {
                     emit_tell_messages(*recipient, message);
                     return;
                 }
+
+                context_.send_message(
+                    *character_,
+                    std::format(
+                        "A player with name {} could not be found.",
+                        recipient_name));
+                return;
             }
         }
 

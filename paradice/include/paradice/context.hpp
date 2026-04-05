@@ -156,6 +156,22 @@ public:
     virtual void shutdown() = 0;
 
     //* =====================================================================
+    /// \brief Registers a character as currently online and reachable.
+    //* =====================================================================
+    virtual void register_online_character(model::character &character) = 0;
+
+    //* =====================================================================
+    /// \brief Unregisters a previously online character.
+    //* =====================================================================
+    virtual void unregister_online_character(model::character &character) = 0;
+
+    //* =====================================================================
+    /// \brief Finds an online character by name.
+    //* =====================================================================
+    virtual model::character *find_online_character_by_name(
+        std::string const &name) = 0;
+
+    //* =====================================================================
     /// \brief Gets the currently active encounter
     //* =====================================================================
     // virtual std::shared_ptr<paradice::active_encounter>

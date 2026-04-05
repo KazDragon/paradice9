@@ -5,8 +5,6 @@ export EXTERNAL_BUILD_ROOT=$HOME/external_build
 
 mkdir "$EXTERNAL_BUILD_ROOT" || true
 
-# Note: libfmt is installed from apt in build.yml.
-
 # Install nlohmann_json dependency
 if [ ! -f "$EXTERNAL_ROOT/include/nlohmann/json.hpp" ]; then
     cd "$EXTERNAL_BUILD_ROOT";

@@ -374,6 +374,46 @@ private:
             std::format("{} tells you, \"{}\"", character_->name, message));
     }
 
+    void emit_tell_target_not_found(std::string const &recipient_name)
+    {
+        context_.send_message(
+            *character_,
+            std::format(
+                "A player with name {} could not be found.",
+                recipient_name));
+    }
+
+    bool try_handle_tell_command(std::string const &input)
+    {
+        if (input.rfind("/tell ", 0) != 0)
+        {
+            return false;
+        }
+
+        auto const tell_arguments = input.substr(6);
+        auto const split = tell_arguments.find(' ');
+
+        if (split == std::string::npos)
+        {
+            return true;
+        }
+
+        auto const recipient_name = tell_arguments.substr(0, split);
+        auto const message = tell_arguments.substr(split + 1);
+        auto *recipient = context_.find_online_character_by_name(recipient_name);
+
+        if (recipient != nullptr)
+        {
+            emit_tell_messages(*recipient, message);
+        }
+        else
+        {
+            emit_tell_target_not_found(recipient_name);
+        }
+
+        return true;
+    }
+
     void emit_say_messages(std::string const &spoken_text)
     {
         context_.send_message(
@@ -522,30 +562,9 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
-        if (input.rfind("/tell ", 0) == 0)
+        if (try_handle_tell_command(input))
         {
-            auto const tell_arguments = input.substr(6);
-            auto const split = tell_arguments.find(' ');
-
-            if (split != std::string::npos)
-            {
-                auto const recipient_name = tell_arguments.substr(0, split);
-                auto const message = tell_arguments.substr(split + 1);
-                auto *recipient =
-                    context_.find_online_character_by_name(recipient_name);
-                if (recipient != nullptr)
-                {
-                    emit_tell_messages(*recipient, message);
-                    return;
-                }
-
-                context_.send_message(
-                    *character_,
-                    std::format(
-                        "A player with name {} could not be found.",
-                        recipient_name));
-                return;
-            }
+            return;
         }
 
         if (input.rfind("/", 0) == 0)

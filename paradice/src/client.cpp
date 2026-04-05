@@ -499,12 +499,19 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
+        std::string spoken_text = input;
+
+        if (input.rfind("say ", 0) == 0)
+        {
+            spoken_text = input.substr(4);
+        }
+
         context_.send_message(
-            *character_, std::format("you say, \"{}\"", input));
+            *character_, std::format("you say, \"{}\"", spoken_text));
         context_.send_message(
             context_.get_main_room(),
             *character_,
-            std::format("{} says, \"{}\"", character_->name, input));
+            std::format("{} says, \"{}\"", character_->name, spoken_text));
     }
 
     client &self_;

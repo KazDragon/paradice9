@@ -301,3 +301,33 @@ TEST(a_client, emits_expected_speech_text_when_a_command_is_entered_in_game)
     ASSERT_EQ("you say, \"hello\""_ts, context.direct_messages[0]);
     ASSERT_EQ("Mallory says, \"hello\""_ts, context.room_messages[0]);
 }
+
+TEST(a_client, treats_say_prefixed_input_as_a_command_and_not_literal_speech)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+
+    channel->receive(bytes("account\tpassword\t\t\r\n"));
+    drain(io_context);
+
+    channel->receive(bytes("\x1B[B\t\t\r\n"));
+    drain(io_context);
+
+    context.direct_messages.clear();
+    context.room_messages.clear();
+
+    channel->receive(bytes("say hello\r\n"));
+    drain(io_context);
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(1u, context.room_messages.size());
+    ASSERT_EQ("you say, \"hello\""_ts, context.direct_messages[0]);
+    ASSERT_EQ("Mallory says, \"hello\""_ts, context.room_messages[0]);
+}

@@ -567,6 +567,12 @@ private:
             return;
         }
 
+        if (input.rfind("/say ", 0) == 0)
+        {
+            emit_say_messages(input.substr(5));
+            return;
+        }
+
         if (input.rfind("/", 0) == 0)
         {
             context_.send_message(
@@ -574,14 +580,7 @@ private:
             return;
         }
 
-        std::string spoken_text = input;
-
-        if (input.rfind("say ", 0) == 0)
-        {
-            spoken_text = input.substr(4);
-        }
-
-        emit_say_messages(spoken_text);
+        emit_say_messages(input);
     }
 
     client &self_;

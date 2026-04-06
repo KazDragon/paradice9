@@ -364,9 +364,27 @@ TEST(a_client, treats_say_prefixed_input_as_a_command_and_not_literal_speech)
     channel->written_.clear();
     enter_game(io_context, channel);
     enter_command_and_capture_messages(
-        io_context, context, channel, "say hello");
+        io_context, context, channel, "/say hello");
 
     assert_public_speech_messages(context, "Mallory", "hello");
+}
+
+TEST(a_client, treats_non_slash_say_text_as_literal_public_speech)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context, context, channel, "say hello");
+
+    assert_public_speech_messages(context, "Mallory", "say hello");
 }
 
 TEST(a_client, routes_slash_tell_prefixed_input_as_private_messaging)

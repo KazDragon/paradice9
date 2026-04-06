@@ -226,7 +226,7 @@ public:
             buffer_top_ += amount;
             data = data.subspan(amount);
 
-            if (buffer_top_ == data.size())
+            if (buffer_top_ == buffer_.size())
             {
                 flush_immediately();
             }

@@ -152,7 +152,7 @@ public:
             paradice::model::room &main_room = context_.get_main_room();
             character_->in_room = &main_room;
             main_room.characters.push_back(&chr);
-            update_who_list_from_current_room();
+            update_roster_from_current_room();
 
             context_.send_message(chr, "You have entered Paradice!");
             context_.send_message(
@@ -357,7 +357,7 @@ public:
     void send_message(terminalpp::string const &message)
     {
         run_on_ui_strand([this, message] {
-            update_who_list_from_current_room();
+            update_roster_from_current_room();
             user_interface_->event(ui::message{message});
         });
     }
@@ -424,7 +424,7 @@ private:
             std::format("{} says, \"{}\"", character_->name, spoken_text));
     }
 
-    void update_who_list_from_current_room()
+    void update_roster_from_current_room()
     {
         if (!character_ || character_->in_room == nullptr)
         {

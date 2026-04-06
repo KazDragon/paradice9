@@ -39,7 +39,7 @@ set (PARADICE_SOURCE_FILES
 #    src/who.cpp
 
     src/ui/components/password_edit.cpp
-    src/ui/components/who_list.cpp
+    src/ui/components/roster.cpp
     src/ui/pages/account_creation_page.cpp
     src/ui/pages/character_creation_page.cpp
     src/ui/pages/character_selection_page.cpp
@@ -79,7 +79,7 @@ set (PARADICE_INCLUDE_FILES
     include/paradice/model/room_membership.hpp
     
     include/paradice/ui/components/password_edit.hpp
-    include/paradice/ui/components/who_list.hpp
+    include/paradice/ui/components/roster.hpp
     include/paradice/ui/pages/account_creation_page.hpp
     include/paradice/ui/pages/character_creation_page.hpp
     include/paradice/ui/pages/character_selection_page.hpp

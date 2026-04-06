@@ -227,7 +227,7 @@ void assert_public_speech_messages(
 
 }  // namespace
 
-TEST(a_client, displays_existing_room_members_in_the_who_list_when_entering_the_game)
+TEST(a_client, displays_existing_room_members_in_the_roster_when_entering_the_game)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -256,7 +256,7 @@ TEST(a_client, displays_existing_room_members_in_the_who_list_when_entering_the_
     ASSERT_NE(std::string::npos, to_string(channel->written_).find("Peggy"));
 }
 
-TEST(a_client, refreshes_the_who_list_when_a_later_room_member_is_observed_after_entry)
+TEST(a_client, refreshes_the_roster_when_a_later_room_member_is_observed_after_entry)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -292,7 +292,7 @@ TEST(a_client, refreshes_the_who_list_when_a_later_room_member_is_observed_after
     ASSERT_NE(std::string::npos, to_string(channel->written_).find("Peggy"));
 }
 
-TEST(a_client, refreshes_the_who_list_when_a_later_room_member_leaves_after_entry)
+TEST(a_client, refreshes_the_roster_when_a_later_room_member_leaves_after_entry)
 {
     boost::asio::io_context io_context;
     fake_context context;

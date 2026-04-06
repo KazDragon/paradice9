@@ -2,7 +2,7 @@
 
 #include <munin/background_animator.hpp>
 #include <munin/render_surface.hpp>
-#include <paradice/ui/components/who_list.hpp>
+#include <paradice/ui/components/roster.hpp>
 #include <paradice/ui/pages/main_page.hpp>
 #include <paradice/ui/shell/user_interface.hpp>
 #include <terminalpp/canvas.hpp>
@@ -142,12 +142,12 @@ std::vector<terminalpp::string> seven_player_roster()
     return roster;
 }
 
-std::shared_ptr<paradice::ui::who_list> make_who_list_with_players(
+std::shared_ptr<paradice::ui::roster> make_roster_with_players(
     std::vector<terminalpp::string> names)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(std::move(names));
-    return who_list;
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters(std::move(names));
+    return roster;
 }
 
 class a_user_interface_fixture : public ::testing::Test
@@ -192,92 +192,92 @@ protected:
     paradice::ui::user_interface user_interface;
 };
 
-class a_paginated_who_list_fixture : public ::testing::Test
+class a_paginated_roster_fixture : public ::testing::Test
 {
 protected:
-    a_paginated_who_list_fixture()
-      : who_list(paradice::ui::make_who_list())
+    a_paginated_roster_fixture()
+      : roster(paradice::ui::make_roster())
     {
-        who_list->set_player_characters(seven_player_roster());
-        who_list->set_focus();
+        roster->set_player_characters(seven_player_roster());
+        roster->set_focus();
     }
 
-    std::shared_ptr<paradice::ui::who_list> who_list;
+    std::shared_ptr<paradice::ui::roster> roster;
 };
 
 }  // namespace
 
-TEST(a_who_list, prefers_a_height_of_four)
+TEST(a_roster, prefers_a_height_of_four)
 {
-    auto who_list = paradice::ui::make_who_list();
+    auto roster = paradice::ui::make_roster();
 
-    ASSERT_EQ(terminalpp::extent(0, 4), who_list->get_preferred_size());
+    ASSERT_EQ(terminalpp::extent(0, 4), roster->get_preferred_size());
 }
 
-TEST(a_who_list, prefers_a_width_that_fits_a_single_left_column_name_without_truncation)
+TEST(a_roster, prefers_a_width_that_fits_a_single_left_column_name_without_truncation)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts});
 
-    ASSERT_EQ(terminalpp::extent(5, 4), who_list->get_preferred_size());
+    ASSERT_EQ(terminalpp::extent(5, 4), roster->get_preferred_size());
 }
 
-TEST(a_who_list, prefers_a_width_that_fits_both_visible_columns_without_truncation)
+TEST(a_roster, prefers_a_width_that_fits_both_visible_columns_without_truncation)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts, "Bob"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts, "Bob"_ts});
 
-    ASSERT_EQ(terminalpp::extent(9, 4), who_list->get_preferred_size());
+    ASSERT_EQ(terminalpp::extent(9, 4), roster->get_preferred_size());
 }
 
-TEST(a_who_list, prefers_a_width_that_fits_the_widest_left_column_name_without_truncation)
+TEST(a_roster, prefers_a_width_that_fits_the_widest_left_column_name_without_truncation)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts, "Bob"_ts, "Mallory"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts, "Bob"_ts, "Mallory"_ts});
 
-    ASSERT_EQ(terminalpp::extent(13, 4), who_list->get_preferred_size());
+    ASSERT_EQ(terminalpp::extent(13, 4), roster->get_preferred_size());
 }
 
-TEST(a_who_list, prefers_a_width_that_fits_the_widest_right_column_name_without_truncation)
+TEST(a_roster, prefers_a_width_that_fits_the_widest_right_column_name_without_truncation)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters(
         {"You"_ts, "Bob"_ts, "Alice"_ts, "Mallory"_ts});
 
-    ASSERT_EQ(terminalpp::extent(15, 4), who_list->get_preferred_size());
+    ASSERT_EQ(terminalpp::extent(15, 4), roster->get_preferred_size());
 }
 
-TEST(a_who_list, prefers_a_width_that_fits_page_information_without_truncation)
+TEST(a_roster, prefers_a_width_that_fits_page_information_without_truncation)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters(
         {"A"_ts, "B"_ts, "C"_ts, "D"_ts, "E"_ts, "F"_ts, "G"_ts});
 
-    ASSERT_EQ(terminalpp::extent(7, 4), who_list->get_preferred_size());
+    ASSERT_EQ(terminalpp::extent(7, 4), roster->get_preferred_size());
 }
 
-TEST(a_who_list, announces_a_preferred_size_change_when_player_characters_change_its_width)
+TEST(a_roster, announces_a_preferred_size_change_when_player_characters_change_its_width)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts});
 
     std::optional<terminalpp::extent> preferred_size;
-    who_list->on_preferred_size_changed.connect([&preferred_size, &who_list]() {
-        preferred_size = who_list->get_preferred_size();
+    roster->on_preferred_size_changed.connect([&preferred_size, &roster]() {
+        preferred_size = roster->get_preferred_size();
     });
 
-    who_list->set_player_characters({"You"_ts, "Mallory"_ts});
+    roster->set_player_characters({"You"_ts, "Mallory"_ts});
 
     ASSERT_TRUE(preferred_size.has_value());
     ASSERT_EQ(terminalpp::extent(13, 4), *preferred_size);
 }
 
-TEST(a_who_list, draws_the_first_player_character_on_the_left_with_a_margin)
+TEST(a_roster, draws_the_first_player_character_on_the_left_with_a_margin)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -288,12 +288,12 @@ TEST(a_who_list, draws_the_first_player_character_on_the_left_with_a_margin)
         lines);
 }
 
-TEST(a_who_list, blanks_every_unoccupied_cell_when_drawing_the_first_name)
+TEST(a_roster, blanks_every_unoccupied_cell_when_drawing_the_first_name)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts});
 
-    auto const lines = render_lines_on_prefilled_canvas(*who_list, {20, 4}, 'x');
+    auto const lines = render_lines_on_prefilled_canvas(*roster, {20, 4}, 'x');
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -304,12 +304,12 @@ TEST(a_who_list, blanks_every_unoccupied_cell_when_drawing_the_first_name)
         lines);
 }
 
-TEST(a_who_list, draws_the_second_player_character_in_the_right_column)
+TEST(a_roster, draws_the_second_player_character_in_the_right_column)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts, "Bob"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts, "Bob"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -320,12 +320,12 @@ TEST(a_who_list, draws_the_second_player_character_in_the_right_column)
         lines);
 }
 
-TEST(a_who_list, draws_the_third_player_character_on_the_left_of_the_second_row)
+TEST(a_roster, draws_the_third_player_character_on_the_left_of_the_second_row)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts, "Bob"_ts, "Alice"_ts});
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters({"You"_ts, "Bob"_ts, "Alice"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -336,13 +336,13 @@ TEST(a_who_list, draws_the_third_player_character_on_the_left_of_the_second_row)
         lines);
 }
 
-TEST(a_who_list, draws_the_fourth_player_character_in_the_right_column_of_the_second_row)
+TEST(a_roster, draws_the_fourth_player_character_in_the_right_column_of_the_second_row)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters(
         {"You"_ts, "Bob"_ts, "Alice"_ts, "Eve"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -353,13 +353,13 @@ TEST(a_who_list, draws_the_fourth_player_character_in_the_right_column_of_the_se
         lines);
 }
 
-TEST(a_who_list, draws_the_fifth_player_character_on_the_left_of_the_third_row)
+TEST(a_roster, draws_the_fifth_player_character_on_the_left_of_the_third_row)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
+    auto roster = paradice::ui::make_roster();
+    roster->set_player_characters(
         {"You"_ts, "Bob"_ts, "Alice"_ts, "Eve"_ts, "Mallory"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -370,11 +370,11 @@ TEST(a_who_list, draws_the_fifth_player_character_on_the_left_of_the_third_row)
         lines);
 }
 
-TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
+TEST(a_roster, does_not_draw_page_information_when_six_player_characters_fit)
 {
-    auto who_list = make_who_list_with_players(six_player_roster());
+    auto roster = make_roster_with_players(six_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -385,11 +385,11 @@ TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
         lines);
 }
 
-TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
+TEST(a_roster, draws_page_information_when_a_seventh_player_character_exists)
 {
-    auto who_list = make_who_list_with_players(seven_player_roster());
+    auto roster = make_roster_with_players(seven_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -400,11 +400,11 @@ TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
         lines);
 }
 
-TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
+TEST(a_roster, clips_away_the_footer_row_when_drawn_at_height_three)
 {
-    auto who_list = make_who_list_with_players(seven_player_roster());
+    auto roster = make_roster_with_players(seven_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 3});
+    auto const lines = render_lines(*roster, {20, 3});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -414,11 +414,11 @@ TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
         lines);
 }
 
-TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
+TEST(a_roster, clips_away_the_third_name_row_when_drawn_at_height_two)
 {
-    auto who_list = make_who_list_with_players(seven_player_roster());
+    auto roster = make_roster_with_players(seven_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 2});
+    auto const lines = render_lines(*roster, {20, 2});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -427,42 +427,42 @@ TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
         lines);
 }
 
-TEST(a_who_list, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
+TEST(a_roster, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
 {
-    auto who_list = make_who_list_with_players(seven_player_roster());
+    auto roster = make_roster_with_players(seven_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 1});
+    auto const lines = render_lines(*roster, {20, 1});
 
     ASSERT_EQ(std::vector<std::string>({" You       Bob      "}), lines);
 }
 
-TEST(a_who_list, draws_nothing_when_drawn_at_height_zero)
+TEST(a_roster, draws_nothing_when_drawn_at_height_zero)
 {
-    auto who_list = make_who_list_with_players(seven_player_roster());
+    auto roster = make_roster_with_players(seven_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 0});
+    auto const lines = render_lines(*roster, {20, 0});
 
     ASSERT_TRUE(lines.empty());
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     draws_the_current_page_indicator_for_an_overflowing_second_page)
 {
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ("             2 / 2  ", lines[3]);
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     displays_second_page_entries_when_the_current_page_advances)
 {
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -474,14 +474,14 @@ TEST_F(
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     returns_to_the_first_page_when_player_characters_shrink_below_the_current_page)
 {
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    who_list->set_player_characters(six_player_roster());
+    roster->set_player_characters(six_player_roster());
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -492,11 +492,11 @@ TEST_F(
         lines);
 }
 
-TEST(a_who_list, truncates_an_overlong_left_column_name_with_an_ellipsis)
+TEST(a_roster, truncates_an_overlong_left_column_name_with_an_ellipsis)
 {
-    auto who_list = make_who_list_with_players({"Alexandria"_ts});
+    auto roster = make_roster_with_players({"Alexandria"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -507,12 +507,12 @@ TEST(a_who_list, truncates_an_overlong_left_column_name_with_an_ellipsis)
         lines);
 }
 
-TEST(a_who_list, truncates_an_overlong_right_column_name_with_an_ellipsis)
+TEST(a_roster, truncates_an_overlong_right_column_name_with_an_ellipsis)
 {
-    auto who_list =
-        make_who_list_with_players({"You"_ts, "Alexandria"_ts});
+    auto roster =
+        make_roster_with_players({"You"_ts, "Alexandria"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -523,12 +523,12 @@ TEST(a_who_list, truncates_an_overlong_right_column_name_with_an_ellipsis)
         lines);
 }
 
-TEST(a_who_list, preserves_a_blank_middle_column_between_left_and_right_entries)
+TEST(a_roster, preserves_a_blank_middle_column_between_left_and_right_entries)
 {
-    auto who_list =
-        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
+    auto roster =
+        make_roster_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -539,12 +539,12 @@ TEST(a_who_list, preserves_a_blank_middle_column_between_left_and_right_entries)
         lines);
 }
 
-TEST(a_who_list, preserves_two_truncated_columns_when_drawn_at_width_nine)
+TEST(a_roster, preserves_two_truncated_columns_when_drawn_at_width_nine)
 {
-    auto who_list =
-        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
+    auto roster =
+        make_roster_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
-    auto const lines = render_lines(*who_list, {9, 4});
+    auto const lines = render_lines(*roster, {9, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -555,12 +555,12 @@ TEST(a_who_list, preserves_two_truncated_columns_when_drawn_at_width_nine)
         lines);
 }
 
-TEST(a_who_list, shrinks_two_truncated_columns_to_single_dots_when_drawn_at_width_five)
+TEST(a_roster, shrinks_two_truncated_columns_to_single_dots_when_drawn_at_width_five)
 {
-    auto who_list =
-        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
+    auto roster =
+        make_roster_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
-    auto const lines = render_lines(*who_list, {5, 4});
+    auto const lines = render_lines(*roster, {5, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -571,12 +571,12 @@ TEST(a_who_list, shrinks_two_truncated_columns_to_single_dots_when_drawn_at_widt
         lines);
 }
 
-TEST(a_who_list, draws_blank_space_when_drawn_narrower_than_the_two_dot_skeleton)
+TEST(a_roster, draws_blank_space_when_drawn_narrower_than_the_two_dot_skeleton)
 {
-    auto who_list =
-        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
+    auto roster =
+        make_roster_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
-    auto const lines = render_lines(*who_list, {4, 4});
+    auto const lines = render_lines(*roster, {4, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -587,19 +587,19 @@ TEST(a_who_list, draws_blank_space_when_drawn_narrower_than_the_two_dot_skeleton
         lines);
 }
 
-TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
+TEST(a_roster, requests_a_redraw_when_the_displayed_player_characters_change)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_size({20, 4});
+    auto roster = paradice::ui::make_roster();
+    roster->set_size({20, 4});
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
+    roster->on_redraw.connect(
         [&redraw_regions](auto const &regions) {
             redraw_regions.insert(
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_player_characters({"You"_ts});
+    roster->set_player_characters({"You"_ts});
 
     ASSERT_EQ(
         std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, {20, 4}}}),
@@ -607,39 +607,39 @@ TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     requests_a_redraw_when_the_current_page_changes)
 {
-    who_list->set_size({20, 4});
+    roster->set_size({20, 4});
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
+    roster->on_redraw.connect(
         [&redraw_regions](auto const &regions) {
             redraw_regions.insert(
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_focus();
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    roster->set_focus();
+    send_key(*roster, terminalpp::vk::cursor_right);
 
     ASSERT_EQ(
         std::vector<terminalpp::rectangle>({terminalpp::rectangle{{0, 0}, {20, 4}}}),
         redraw_regions);
 }
 
-TEST_F(a_paginated_who_list_fixture, page_change_redraw_covers_the_changed_roster_rows)
+TEST_F(a_paginated_roster_fixture, page_change_redraw_covers_the_changed_roster_rows)
 {
-    who_list->set_size({20, 4});
+    roster->set_size({20, 4});
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
+    roster->on_redraw.connect(
         [&redraw_regions](auto const &regions) {
             redraw_regions.insert(
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_focus();
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    roster->set_focus();
+    send_key(*roster, terminalpp::vk::cursor_right);
 
     ASSERT_TRUE(contains(redraw_regions, {0, 0}));
     ASSERT_TRUE(contains(redraw_regions, {19, 0}));
@@ -647,39 +647,39 @@ TEST_F(a_paginated_who_list_fixture, page_change_redraw_covers_the_changed_roste
     ASSERT_TRUE(contains(redraw_regions, {19, 2}));
 }
 
-TEST(a_who_list, player_character_change_redraw_covers_the_page_information_row)
+TEST(a_roster, player_character_change_redraw_covers_the_page_information_row)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_size({20, 4});
-    who_list->set_player_characters(six_player_roster());
+    auto roster = paradice::ui::make_roster();
+    roster->set_size({20, 4});
+    roster->set_player_characters(six_player_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
-    who_list->on_redraw.connect(
+    roster->on_redraw.connect(
         [&redraw_regions](auto const &regions) {
             redraw_regions.insert(
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_player_characters(seven_player_roster());
+    roster->set_player_characters(seven_player_roster());
 
     ASSERT_TRUE(contains(redraw_regions, {0, 3}));
     ASSERT_TRUE(contains(redraw_regions, {19, 3}));
 }
 
-TEST(a_who_list, can_receive_focus)
+TEST(a_roster, can_receive_focus)
 {
-    auto who_list = paradice::ui::make_who_list();
+    auto roster = paradice::ui::make_roster();
 
-    who_list->set_focus();
+    roster->set_focus();
 
-    ASSERT_TRUE(who_list->has_focus());
+    ASSERT_TRUE(roster->has_focus());
 }
 
-TEST_F(a_paginated_who_list_fixture, advances_to_the_next_page_on_right_arrow_input_when_focused)
+TEST_F(a_paginated_roster_fixture, advances_to_the_next_page_on_right_arrow_input_when_focused)
 {
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -691,14 +691,14 @@ TEST_F(a_paginated_who_list_fixture, advances_to_the_next_page_on_right_arrow_in
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     cycles_from_the_last_page_to_the_first_on_right_arrow_input_when_focused)
 {
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -710,12 +710,12 @@ TEST_F(
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     cycles_from_the_first_page_to_the_last_on_left_arrow_input_when_focused)
 {
-    send_key(*who_list, terminalpp::vk::cursor_left);
+    send_key(*roster, terminalpp::vk::cursor_left);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -727,14 +727,14 @@ TEST_F(
 }
 
 TEST_F(
-    a_paginated_who_list_fixture,
+    a_paginated_roster_fixture,
     returns_to_the_previous_page_on_left_arrow_input_when_focused)
 {
-    send_key(*who_list, terminalpp::vk::cursor_right);
+    send_key(*roster, terminalpp::vk::cursor_right);
 
-    send_key(*who_list, terminalpp::vk::cursor_left);
+    send_key(*roster, terminalpp::vk::cursor_left);
 
-    auto const lines = render_lines(*who_list, {20, 4});
+    auto const lines = render_lines(*roster, {20, 4});
 
     ASSERT_EQ(
         std::vector<std::string>(
@@ -745,7 +745,7 @@ TEST_F(
         lines);
 }
 
-TEST(a_main_page, does_not_render_the_old_you_placeholder_in_the_who_list_area)
+TEST(a_main_page, does_not_render_the_old_you_placeholder_in_the_roster_area)
 {
     paradice::ui::main_page page;
 
@@ -757,7 +757,7 @@ TEST(a_main_page, does_not_render_the_old_you_placeholder_in_the_who_list_area)
         [](std::string const &line) { return line.find("You") != std::string::npos; }));
 }
 
-TEST(a_main_page, displays_player_character_names_in_the_hosted_who_list)
+TEST(a_main_page, displays_player_character_names_in_the_hosted_roster)
 {
     paradice::ui::main_page page;
     page.set_player_characters({"Mallory"_ts, "Peggy"_ts});
@@ -780,7 +780,7 @@ TEST(a_main_page, displays_player_character_names_in_the_hosted_who_list)
 
 TEST_F(
     a_user_interface_fixture,
-    displays_the_entered_character_in_the_active_main_page_who_list)
+    displays_the_entered_character_in_the_active_main_page_roster)
 {
     enter_game();
 
@@ -796,7 +796,7 @@ TEST_F(
 
 TEST_F(
     a_user_interface_fixture,
-    updates_the_active_main_page_who_list_from_explicit_player_character_input)
+    updates_the_active_main_page_roster_from_explicit_player_character_input)
 {
     enter_game();
 

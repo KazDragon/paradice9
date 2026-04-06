@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Who List
+// Paradice Roster
 //
 // Copyright (C) 2026 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/components/who_list.hpp"
+#include "paradice/ui/components/roster.hpp"
 
 #include <algorithm>
 #include <sstream>
@@ -58,7 +58,7 @@ constexpr auto two_column_padding_width =
 
 }  // namespace
 
-void who_list::set_player_characters(std::vector<terminalpp::string> names)
+void roster::set_player_characters(std::vector<terminalpp::string> names)
 {
     auto const old_preferred_size = get_preferred_size();
 
@@ -85,7 +85,7 @@ void who_list::set_player_characters(std::vector<terminalpp::string> names)
     on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
 }
 
-void who_list::set_current_page(std::size_t page)
+void roster::set_current_page(std::size_t page)
 {
     auto const total_pages =
         names_.empty() ? std::size_t{0}
@@ -103,12 +103,12 @@ void who_list::set_current_page(std::size_t page)
     on_redraw({terminalpp::rectangle{{0, 0}, get_size()}});
 }
 
-bool who_list::do_can_receive_focus() const
+bool roster::do_can_receive_focus() const
 {
     return true;
 }
 
-terminalpp::extent who_list::do_get_preferred_size() const
+terminalpp::extent roster::do_get_preferred_size() const
 {
     auto left_column_width = std::size_t{0};
     auto right_column_width = std::size_t{0};
@@ -143,7 +143,7 @@ terminalpp::extent who_list::do_get_preferred_size() const
     return {preferred_width, 4};
 }
 
-void who_list::do_event(std::any const &event)
+void roster::do_event(std::any const &event)
 {
     if (auto const *key = std::any_cast<terminalpp::virtual_key>(&event);
         key != nullptr && has_focus())
@@ -173,7 +173,7 @@ void who_list::do_event(std::any const &event)
     basic_component::do_event(event);
 }
 
-void who_list::do_draw(
+void roster::do_draw(
     munin::render_surface &surface, terminalpp::rectangle const &) const
 {
     for (auto row = terminalpp::coordinate_type{0}; row < get_size().height_;
@@ -288,9 +288,9 @@ void who_list::do_draw(
     }
 }
 
-std::shared_ptr<who_list> make_who_list()
+std::shared_ptr<roster> make_roster()
 {
-    return std::make_shared<who_list>();
+    return std::make_shared<roster>();
 }
 
 }  // namespace paradice::ui

@@ -1,5 +1,5 @@
 // ==========================================================================
-// Paradice Who List
+// Paradice Roster
 //
 // Copyright (C) 2026 Matthew Chaplain, All Rights Reserved.
 //
@@ -24,8 +24,8 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef PARADICE_UI_WHO_LIST_HPP_
-#define PARADICE_UI_WHO_LIST_HPP_
+#ifndef PARADICE_UI_ROSTER_HPP_
+#define PARADICE_UI_ROSTER_HPP_
 
 #include <paradice/export.hpp>
 
@@ -37,7 +37,7 @@
 
 namespace paradice::ui {
 
-class PARADICE_EXPORT who_list final : public munin::basic_component
+class PARADICE_EXPORT roster final : public munin::basic_component
 {
 public:
     void set_player_characters(std::vector<terminalpp::string> names);
@@ -57,7 +57,7 @@ private:
     std::vector<terminalpp::string> names_;
 };
 
-std::shared_ptr<who_list> make_who_list();
+std::shared_ptr<roster> make_roster();
 
 }  // namespace paradice::ui
 

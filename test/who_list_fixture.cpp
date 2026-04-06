@@ -184,6 +184,19 @@ protected:
     paradice::ui::user_interface user_interface;
 };
 
+class a_paginated_who_list_fixture : public ::testing::Test
+{
+protected:
+    a_paginated_who_list_fixture()
+      : who_list(paradice::ui::make_who_list())
+    {
+        who_list->set_player_characters(seven_player_roster());
+        who_list->set_focus();
+    }
+
+    std::shared_ptr<paradice::ui::who_list> who_list;
+};
+
 }  // namespace
 
 TEST(a_who_list, prefers_a_height_of_four)
@@ -430,11 +443,10 @@ TEST(a_who_list, draws_nothing_when_drawn_at_height_zero)
     ASSERT_TRUE(lines.empty());
 }
 
-TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page)
+TEST_F(
+    a_paginated_who_list_fixture,
+    draws_the_current_page_indicator_for_an_overflowing_second_page)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
@@ -442,11 +454,10 @@ TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page
     ASSERT_EQ("             2 / 2  ", lines[3]);
 }
 
-TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
+TEST_F(
+    a_paginated_who_list_fixture,
+    displays_second_page_entries_when_the_current_page_advances)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
@@ -460,11 +471,10 @@ TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
         lines);
 }
 
-TEST(a_who_list, returns_to_the_first_page_when_player_characters_shrink_below_the_current_page)
+TEST_F(
+    a_paginated_who_list_fixture,
+    returns_to_the_first_page_when_player_characters_shrink_below_the_current_page)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
     who_list->set_player_characters(six_player_roster());
@@ -595,11 +605,11 @@ TEST(a_who_list, requests_a_redraw_when_the_displayed_player_characters_change)
         redraw_regions);
 }
 
-TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
+TEST_F(
+    a_paginated_who_list_fixture,
+    requests_a_redraw_when_the_current_page_changes)
 {
-    auto who_list = paradice::ui::make_who_list();
     who_list->set_size({20, 4});
-    who_list->set_player_characters(seven_player_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
     who_list->on_redraw.connect(
@@ -616,11 +626,9 @@ TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
         redraw_regions);
 }
 
-TEST(a_who_list, page_change_redraw_covers_the_changed_roster_rows)
+TEST_F(a_paginated_who_list_fixture, page_change_redraw_covers_the_changed_roster_rows)
 {
-    auto who_list = paradice::ui::make_who_list();
     who_list->set_size({20, 4});
-    who_list->set_player_characters(seven_player_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
     who_list->on_redraw.connect(
@@ -666,12 +674,8 @@ TEST(a_who_list, can_receive_focus)
     ASSERT_TRUE(who_list->has_focus());
 }
 
-TEST(a_who_list, advances_to_the_next_page_on_right_arrow_input_when_focused)
+TEST_F(a_paginated_who_list_fixture, advances_to_the_next_page_on_right_arrow_input_when_focused)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
-
     send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
@@ -685,11 +689,10 @@ TEST(a_who_list, advances_to_the_next_page_on_right_arrow_input_when_focused)
         lines);
 }
 
-TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_when_focused)
+TEST_F(
+    a_paginated_who_list_fixture,
+    cycles_from_the_last_page_to_the_first_on_right_arrow_input_when_focused)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
     send_key(*who_list, terminalpp::vk::cursor_right);
@@ -705,12 +708,10 @@ TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_whe
         lines);
 }
 
-TEST(a_who_list, cycles_from_the_first_page_to_the_last_on_left_arrow_input_when_focused)
+TEST_F(
+    a_paginated_who_list_fixture,
+    cycles_from_the_first_page_to_the_last_on_left_arrow_input_when_focused)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
-
     send_key(*who_list, terminalpp::vk::cursor_left);
 
     auto const lines = render_lines(*who_list, {20, 4});
@@ -724,11 +725,10 @@ TEST(a_who_list, cycles_from_the_first_page_to_the_last_on_left_arrow_input_when
         lines);
 }
 
-TEST(a_who_list, returns_to_the_previous_page_on_left_arrow_input_when_focused)
+TEST_F(
+    a_paginated_who_list_fixture,
+    returns_to_the_previous_page_on_left_arrow_input_when_focused)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
-    who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
     send_key(*who_list, terminalpp::vk::cursor_left);

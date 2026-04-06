@@ -124,6 +124,48 @@ void type_text(munin::component &component, std::string const &text)
     }
 }
 
+class a_user_interface_fixture : public ::testing::Test
+{
+protected:
+    a_user_interface_fixture()
+      : strand(io_context), animator(strand), user_interface(animator)
+    {
+        user_interface.on_login.connect([](auto const &, auto const &) {
+            return paradice::model::account{
+                .name = "account",
+                .character_names = {"Mallory"}};
+        });
+        user_interface.on_character_selected.connect([](auto &, int) {
+            return paradice::model::character{
+                .name = "Mallory",
+                .prefix = "",
+                .suffix = "",
+                .send_message = {},
+                .in_room = nullptr};
+        });
+    }
+
+    void enter_game()
+    {
+        type_text(user_interface, "account");
+        send_key(user_interface, terminalpp::vk::ht);
+        type_text(user_interface, "password");
+        send_key(user_interface, terminalpp::vk::ht);
+        send_key(user_interface, terminalpp::vk::ht);
+        send_key(user_interface, terminalpp::vk::enter);
+
+        send_key(user_interface, terminalpp::vk::cursor_down);
+        send_key(user_interface, terminalpp::vk::ht);
+        send_key(user_interface, terminalpp::vk::ht);
+        send_key(user_interface, terminalpp::vk::enter);
+    }
+
+    boost::asio::io_context io_context;
+    boost::asio::io_context::strand strand;
+    munin::background_animator animator;
+    paradice::ui::user_interface user_interface;
+};
+
 }  // namespace
 
 TEST(a_who_list, prefers_a_height_of_four)
@@ -840,38 +882,11 @@ TEST(a_main_page, displays_player_character_names_in_the_hosted_who_list)
         }));
 }
 
-TEST(a_user_interface, displays_the_entered_character_in_the_active_main_page_who_list)
+TEST_F(
+    a_user_interface_fixture,
+    displays_the_entered_character_in_the_active_main_page_who_list)
 {
-    boost::asio::io_context io_context;
-    boost::asio::io_context::strand strand(io_context);
-    munin::background_animator animator(strand);
-
-    paradice::ui::user_interface user_interface(animator);
-    user_interface.on_login.connect([](auto const &, auto const &) {
-        return paradice::model::account{
-            .name = "account",
-            .character_names = {"Mallory"}};
-    });
-    user_interface.on_character_selected.connect([](auto &, int) {
-        return paradice::model::character{
-            .name = "Mallory",
-            .prefix = "",
-            .suffix = "",
-            .send_message = {},
-            .in_room = nullptr};
-    });
-
-    type_text(user_interface, "account");
-    send_key(user_interface, terminalpp::vk::ht);
-    type_text(user_interface, "password");
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::enter);
-
-    send_key(user_interface, terminalpp::vk::cursor_down);
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::enter);
+    enter_game();
 
     auto const lines = render_lines(user_interface, {80, 24});
 
@@ -883,38 +898,11 @@ TEST(a_user_interface, displays_the_entered_character_in_the_active_main_page_wh
         }));
 }
 
-TEST(a_user_interface, updates_the_active_main_page_who_list_from_explicit_player_character_input)
+TEST_F(
+    a_user_interface_fixture,
+    updates_the_active_main_page_who_list_from_explicit_player_character_input)
 {
-    boost::asio::io_context io_context;
-    boost::asio::io_context::strand strand(io_context);
-    munin::background_animator animator(strand);
-
-    paradice::ui::user_interface user_interface(animator);
-    user_interface.on_login.connect([](auto const &, auto const &) {
-        return paradice::model::account{
-            .name = "account",
-            .character_names = {"Mallory"}};
-    });
-    user_interface.on_character_selected.connect([](auto &, int) {
-        return paradice::model::character{
-            .name = "Mallory",
-            .prefix = "",
-            .suffix = "",
-            .send_message = {},
-            .in_room = nullptr};
-    });
-
-    type_text(user_interface, "account");
-    send_key(user_interface, terminalpp::vk::ht);
-    type_text(user_interface, "password");
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::enter);
-
-    send_key(user_interface, terminalpp::vk::cursor_down);
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::ht);
-    send_key(user_interface, terminalpp::vk::enter);
+    enter_game();
 
     user_interface.set_player_characters({"Mallory"_ts, "Peggy"_ts});
 

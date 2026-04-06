@@ -142,6 +142,14 @@ std::vector<terminalpp::string> seven_player_roster()
     return roster;
 }
 
+std::shared_ptr<paradice::ui::who_list> make_who_list_with_players(
+    std::vector<terminalpp::string> names)
+{
+    auto who_list = paradice::ui::make_who_list();
+    who_list->set_player_characters(std::move(names));
+    return who_list;
+}
+
 class a_user_interface_fixture : public ::testing::Test
 {
 protected:
@@ -364,8 +372,7 @@ TEST(a_who_list, draws_the_fifth_player_character_on_the_left_of_the_third_row)
 
 TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(six_player_roster());
+    auto who_list = make_who_list_with_players(six_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -380,8 +387,7 @@ TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
 
 TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
+    auto who_list = make_who_list_with_players(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -396,8 +402,7 @@ TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
 
 TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
+    auto who_list = make_who_list_with_players(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 3});
 
@@ -411,8 +416,7 @@ TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
 
 TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
+    auto who_list = make_who_list_with_players(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 2});
 
@@ -425,8 +429,7 @@ TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
 
 TEST(a_who_list, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
+    auto who_list = make_who_list_with_players(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 1});
 
@@ -435,8 +438,7 @@ TEST(a_who_list, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
 
 TEST(a_who_list, draws_nothing_when_drawn_at_height_zero)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(seven_player_roster());
+    auto who_list = make_who_list_with_players(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 0});
 
@@ -492,8 +494,7 @@ TEST_F(
 
 TEST(a_who_list, truncates_an_overlong_left_column_name_with_an_ellipsis)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"Alexandria"_ts});
+    auto who_list = make_who_list_with_players({"Alexandria"_ts});
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -508,8 +509,8 @@ TEST(a_who_list, truncates_an_overlong_left_column_name_with_an_ellipsis)
 
 TEST(a_who_list, truncates_an_overlong_right_column_name_with_an_ellipsis)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"You"_ts, "Alexandria"_ts});
+    auto who_list =
+        make_who_list_with_players({"You"_ts, "Alexandria"_ts});
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -524,8 +525,8 @@ TEST(a_who_list, truncates_an_overlong_right_column_name_with_an_ellipsis)
 
 TEST(a_who_list, preserves_a_blank_middle_column_between_left_and_right_entries)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"Alexandria"_ts, "Benedicta"_ts});
+    auto who_list =
+        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -540,8 +541,8 @@ TEST(a_who_list, preserves_a_blank_middle_column_between_left_and_right_entries)
 
 TEST(a_who_list, preserves_two_truncated_columns_when_drawn_at_width_nine)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"Alexandria"_ts, "Benedicta"_ts});
+    auto who_list =
+        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
     auto const lines = render_lines(*who_list, {9, 4});
 
@@ -556,8 +557,8 @@ TEST(a_who_list, preserves_two_truncated_columns_when_drawn_at_width_nine)
 
 TEST(a_who_list, shrinks_two_truncated_columns_to_single_dots_when_drawn_at_width_five)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"Alexandria"_ts, "Benedicta"_ts});
+    auto who_list =
+        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
     auto const lines = render_lines(*who_list, {5, 4});
 
@@ -572,8 +573,8 @@ TEST(a_who_list, shrinks_two_truncated_columns_to_single_dots_when_drawn_at_widt
 
 TEST(a_who_list, draws_blank_space_when_drawn_narrower_than_the_two_dot_skeleton)
 {
-    auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters({"Alexandria"_ts, "Benedicta"_ts});
+    auto who_list =
+        make_who_list_with_players({"Alexandria"_ts, "Benedicta"_ts});
 
     auto const lines = render_lines(*who_list, {4, 4});
 

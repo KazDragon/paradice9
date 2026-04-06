@@ -124,6 +124,24 @@ void type_text(munin::component &component, std::string const &text)
     }
 }
 
+std::vector<terminalpp::string> six_player_roster()
+{
+    return {
+        "You"_ts,
+        "Bob"_ts,
+        "Alice"_ts,
+        "Eve"_ts,
+        "Mallory"_ts,
+        "Trent"_ts};
+}
+
+std::vector<terminalpp::string> seven_player_roster()
+{
+    auto roster = six_player_roster();
+    roster.push_back("Peggy"_ts);
+    return roster;
+}
+
 class a_user_interface_fixture : public ::testing::Test
 {
 protected:
@@ -334,13 +352,7 @@ TEST(a_who_list, draws_the_fifth_player_character_on_the_left_of_the_third_row)
 TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts});
+    who_list->set_player_characters(six_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -356,14 +368,7 @@ TEST(a_who_list, does_not_draw_page_information_when_six_player_characters_fit)
 TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -379,14 +384,7 @@ TEST(a_who_list, draws_page_information_when_a_seventh_player_character_exists)
 TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 3});
 
@@ -401,14 +399,7 @@ TEST(a_who_list, clips_away_the_footer_row_when_drawn_at_height_three)
 TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 2});
 
@@ -422,14 +413,7 @@ TEST(a_who_list, clips_away_the_third_name_row_when_drawn_at_height_two)
 TEST(a_who_list, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 1});
 
@@ -439,14 +423,7 @@ TEST(a_who_list, clips_away_all_but_the_first_name_row_when_drawn_at_height_one)
 TEST(a_who_list, draws_nothing_when_drawn_at_height_zero)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 0});
 
@@ -456,14 +433,7 @@ TEST(a_who_list, draws_nothing_when_drawn_at_height_zero)
 TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
@@ -475,14 +445,7 @@ TEST(a_who_list, draws_the_current_page_indicator_for_an_overflowing_second_page
 TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
@@ -500,24 +463,11 @@ TEST(a_who_list, displays_second_page_entries_when_the_current_page_advances)
 TEST(a_who_list, returns_to_the_first_page_when_player_characters_shrink_below_the_current_page)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts});
+    who_list->set_player_characters(six_player_roster());
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -649,14 +599,7 @@ TEST(a_who_list, requests_a_redraw_when_the_current_page_changes)
 {
     auto who_list = paradice::ui::make_who_list();
     who_list->set_size({20, 4});
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
     who_list->on_redraw.connect(
@@ -677,14 +620,7 @@ TEST(a_who_list, page_change_redraw_covers_the_changed_roster_rows)
 {
     auto who_list = paradice::ui::make_who_list();
     who_list->set_size({20, 4});
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
     who_list->on_redraw.connect(
@@ -706,13 +642,7 @@ TEST(a_who_list, player_character_change_redraw_covers_the_page_information_row)
 {
     auto who_list = paradice::ui::make_who_list();
     who_list->set_size({20, 4});
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts});
+    who_list->set_player_characters(six_player_roster());
 
     std::vector<terminalpp::rectangle> redraw_regions;
     who_list->on_redraw.connect(
@@ -721,14 +651,7 @@ TEST(a_who_list, player_character_change_redraw_covers_the_page_information_row)
                 redraw_regions.end(), regions.begin(), regions.end());
         });
 
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
 
     ASSERT_TRUE(contains(redraw_regions, {0, 3}));
     ASSERT_TRUE(contains(redraw_regions, {19, 3}));
@@ -746,14 +669,7 @@ TEST(a_who_list, can_receive_focus)
 TEST(a_who_list, advances_to_the_next_page_on_right_arrow_input_when_focused)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_right});
@@ -772,14 +688,7 @@ TEST(a_who_list, advances_to_the_next_page_on_right_arrow_input_when_focused)
 TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_when_focused)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
@@ -799,14 +708,7 @@ TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_whe
 TEST(a_who_list, cycles_from_the_first_page_to_the_last_on_left_arrow_input_when_focused)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
 
     who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_left});
@@ -825,14 +727,7 @@ TEST(a_who_list, cycles_from_the_first_page_to_the_last_on_left_arrow_input_when
 TEST(a_who_list, returns_to_the_previous_page_on_left_arrow_input_when_focused)
 {
     auto who_list = paradice::ui::make_who_list();
-    who_list->set_player_characters(
-        {"You"_ts,
-         "Bob"_ts,
-         "Alice"_ts,
-         "Eve"_ts,
-         "Mallory"_ts,
-         "Trent"_ts,
-         "Peggy"_ts});
+    who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 

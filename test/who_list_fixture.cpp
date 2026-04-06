@@ -672,7 +672,7 @@ TEST(a_who_list, advances_to_the_next_page_on_right_arrow_input_when_focused)
     who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
 
-    who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_right});
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -692,7 +692,7 @@ TEST(a_who_list, cycles_from_the_last_page_to_the_first_on_right_arrow_input_whe
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
-    who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_right});
+    send_key(*who_list, terminalpp::vk::cursor_right);
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -711,7 +711,7 @@ TEST(a_who_list, cycles_from_the_first_page_to_the_last_on_left_arrow_input_when
     who_list->set_player_characters(seven_player_roster());
     who_list->set_focus();
 
-    who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_left});
+    send_key(*who_list, terminalpp::vk::cursor_left);
 
     auto const lines = render_lines(*who_list, {20, 4});
 
@@ -731,7 +731,7 @@ TEST(a_who_list, returns_to_the_previous_page_on_left_arrow_input_when_focused)
     who_list->set_focus();
     send_key(*who_list, terminalpp::vk::cursor_right);
 
-    who_list->event(terminalpp::virtual_key{terminalpp::vk::cursor_left});
+    send_key(*who_list, terminalpp::vk::cursor_left);
 
     auto const lines = render_lines(*who_list, {20, 4});
 

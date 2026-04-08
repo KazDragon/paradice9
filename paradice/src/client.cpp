@@ -71,6 +71,8 @@ constexpr auto admin_usage_message =
     "set_password <account> <password>|"
     "set_permission <account> <permission>|"
     "clear_permission <account> <permission>";
+constexpr auto help_commands_message =
+    "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
 
 }  // namespace
 
@@ -655,6 +657,17 @@ private:
         return true;
     }
 
+    bool try_handle_help_command(std::string const &input)
+    {
+        if (input != "/help")
+        {
+            return false;
+        }
+
+        context_.send_message(*character_, help_commands_message);
+        return true;
+    }
+
     std::int32_t roll_die(std::uint32_t sides)
     {
         if (roller_)
@@ -810,6 +823,11 @@ private:
     void on_command(std::string const &input)
     {
         if (try_handle_admin_command(input))
+        {
+            return;
+        }
+
+        if (try_handle_help_command(input))
         {
             return;
         }

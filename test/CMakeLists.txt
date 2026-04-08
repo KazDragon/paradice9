@@ -20,7 +20,7 @@ target_include_directories(paradice_ui_tester
 target_link_libraries(paradice_ui_tester
     PRIVATE
         paradice
-        munin
+        KazDragon::munin
         GTest::gtest
         GTest::gtest_main
         Threads::Threads
@@ -45,7 +45,7 @@ target_include_directories(paradice9_system_tester
 target_link_libraries(paradice9_system_tester
     PRIVATE
         paradice
-        munin
+        KazDragon::munin
         SQLiteCpp
         cryptopp::cryptopp
         Boost::filesystem

@@ -336,9 +336,20 @@ struct context_impl::impl
     }
 
     bool has_permission(
-        paradice::model::account const &, std::string const &)
+        paradice::model::account const &account, std::string const &permission)
     {
-        return false;
+        SQLite::Statement permission_query(
+            database_,
+            "SELECT 1"
+            "    FROM account_permissions"
+            "    WHERE account_id=?"
+            "      AND permission=?"
+            "    LIMIT 1;");
+
+        permission_query.bind(1, load_account_id(account));
+        permission_query.bind(2, permission);
+
+        return permission_query.executeStep();
     }
 
     // ======================================================================
@@ -521,6 +532,20 @@ private:
             ");");
     }
 
+    void ensure_account_permissions_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS account_permissions ("
+            "    account_id INTEGER,"
+            "    permission TEXT,"
+            "    PRIMARY KEY (account_id, permission),"
+            "    FOREIGN KEY (account_id)"
+            "        REFERENCES accounts (id)"
+            "            ON DELETE CASCADE"
+            "            ON UPDATE NO ACTION"
+            ");");
+    }
+
     // ======================================================================
     // ENSURE_SCHEMA_CREATED
     // ======================================================================
@@ -528,6 +553,7 @@ private:
     {
         database_.exec("PRAGMA foreign_keys=ON;");
         ensure_accounts_table_created();
+        ensure_account_permissions_table_created();
         ensure_characters_table_created();
     }
 

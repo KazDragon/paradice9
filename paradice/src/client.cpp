@@ -277,15 +277,8 @@ public:
             std::visit(
                 overloaded{
                     [this](terminalpp::virtual_key const &vk) {
-                        if (vk.key == terminalpp::vk::uppercase_q)
-                        {
-                            context_.shutdown();
-                        }
-                        else
-                        {
-                            this->run_on_ui_strand(
-                                [this, vk] { window_.event(vk); });
-                        }
+                        this->run_on_ui_strand(
+                            [this, vk] { window_.event(vk); });
                     },
                     [this](terminalpp::mouse::event const &ev) {
                         this->run_on_ui_strand(

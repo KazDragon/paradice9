@@ -759,3 +759,20 @@ TEST(a_client, shuts_down_for_admin_shutdown_with_permission)
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ(1u, context.shutdown_calls);
 }
+
+TEST(a_client, does_not_shut_down_when_uppercase_q_is_typed)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    channel->receive(bytes("Q"));
+    drain(io_context);
+
+    ASSERT_EQ(0u, context.shutdown_calls);
+}

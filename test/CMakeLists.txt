@@ -2,6 +2,7 @@ find_package(GTest CONFIG REQUIRED)
 
 add_executable(paradice_ui_tester
     client_roster_fixture.cpp
+    dice_fixture.cpp
     dice_roll_parser_fixture.cpp
     room_membership_fixture.cpp
     roster_fixture.cpp

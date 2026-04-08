@@ -28,6 +28,7 @@ set (PARADICE_SOURCE_FILES
 #    src/communication.cpp
 #    src/configuration.cpp
     src/connection.cpp
+    src/dice.cpp
     src/dice_roll_parser.cpp
 #    src/encounter.cpp
 #    src/gm.cpp

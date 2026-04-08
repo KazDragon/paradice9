@@ -58,6 +58,21 @@ TEST(a_dice_roll_parser, parses_a_roll_with_a_positive_bonus)
     ASSERT_EQ(3, roll->bonus_);
 }
 
+TEST(a_dice_roll_parser, parses_a_basic_roll_with_a_positive_bonus)
+{
+    auto const text = std::string("2d6+3");
+    auto begin = text.begin();
+    auto end = text.end();
+
+    auto roll = paradice::parse_dice_roll(begin, end);
+
+    ASSERT_TRUE(roll.is_initialized());
+    ASSERT_EQ(1u, roll->repetitions_);
+    ASSERT_EQ(2u, roll->amount_);
+    ASSERT_EQ(6u, roll->sides_);
+    ASSERT_EQ(3, roll->bonus_);
+}
+
 TEST(a_dice_roll_parser, preserves_trailing_text_after_the_parsed_roll)
 {
     auto const text = std::string("10d20+30-35FOO");

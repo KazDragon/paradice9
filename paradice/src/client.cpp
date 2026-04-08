@@ -49,8 +49,9 @@
 
 #include <array>
 #include <format>
-#include <string>
 #include <cstdio>
+#include <random>
+#include <string>
 
 using namespace terminalpp::literals;  // NOLINT
 
@@ -442,17 +443,30 @@ private:
         auto begin = roll_text.cbegin();
         auto const end = roll_text.cend();
 
-        if (!parse_dice_roll(begin, end))
+        auto const parsed_roll = parse_dice_roll(begin, end);
+
+        if (!parsed_roll)
         {
             context_.send_message(*character_, roll_usage_message);
             return true;
         }
 
-        context_.send_message(*character_, std::format("you roll {}", roll_text));
+        auto random_source = std::random_device{};
+        auto generator = std::mt19937{random_source()};
+        auto const faces = roll_faces(*parsed_roll, [&](std::uint32_t sides) {
+            auto distribution =
+                std::uniform_int_distribution<std::int32_t>(1, sides);
+            return distribution(generator);
+        });
+        auto const result_text = describe_roll_result(*parsed_roll, faces);
+
+        context_.send_message(
+            *character_,
+            std::format("you roll {} and score {}", roll_text, result_text));
         context_.send_message(
             context_.get_main_room(),
             *character_,
-            std::format("{} rolls {}", character_->name, roll_text));
+            std::format("{} rolls {} and scores {}", character_->name, roll_text, result_text));
         return true;
     }
 

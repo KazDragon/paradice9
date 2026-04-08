@@ -521,3 +521,27 @@ TEST(a_client, reports_invalid_roll_usage_to_the_sender_without_room_broadcast)
         "\n"_ts,
         context.direct_messages[0]);
 }
+
+TEST(a_client, includes_the_bonus_in_the_reported_roll_total)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/roll 2d6+3");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(1u, context.room_messages.size());
+    ASSERT_NE(
+        std::string::npos,
+        terminalpp::to_string(context.direct_messages[0]).find("and score"));
+    ASSERT_NE(
+        std::string::npos,
+        terminalpp::to_string(context.room_messages[0]).find("and scores"));
+}

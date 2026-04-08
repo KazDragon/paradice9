@@ -115,6 +115,9 @@ public:
         paradice::model::account const &account,
         std::string const &permission) override;
 
+    std::vector<std::string> list_characters(
+        std::string const &account_name) override;
+
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.

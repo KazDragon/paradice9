@@ -353,6 +353,12 @@ struct context_impl::impl
         return account_names;
     }
 
+    std::vector<std::string> list_characters(std::string const &account_name)
+    {
+        return load_account_character_names(
+            load_account_id(paradice::model::account{account_name}));
+    }
+
     bool has_permission(
         paradice::model::account const &account, std::string const &permission)
     {
@@ -690,6 +696,12 @@ paradice::model::account context_impl::load_account(
 std::vector<std::string> context_impl::list_accounts()
 {
     return pimpl_->list_accounts();
+}
+
+std::vector<std::string> context_impl::list_characters(
+    std::string const &account_name)
+{
+    return pimpl_->list_characters(account_name);
 }
 
 bool context_impl::has_permission(

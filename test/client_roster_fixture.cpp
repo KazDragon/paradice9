@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -68,6 +69,8 @@ struct fake_context : paradice::context
         .name = "account",
         .character_names = {"Mallory"}};
     std::vector<std::string> account_names{"account"};
+    std::map<std::string, std::vector<std::string>> character_names_by_account{
+        {"account", {"Mallory"}}};
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::size_t shutdown_calls{0};
 
@@ -117,6 +120,19 @@ struct fake_context : paradice::context
     std::vector<std::string> list_accounts() override
     {
         return account_names;
+    }
+
+    std::vector<std::string> list_characters(
+        std::string const &account_name) override
+    {
+        auto const it = character_names_by_account.find(account_name);
+
+        if (it == character_names_by_account.end())
+        {
+            return {};
+        }
+
+        return it->second;
     }
 
     void shutdown() override { ++shutdown_calls; }
@@ -803,5 +819,29 @@ TEST(a_client, lists_account_names_for_admin_list_accounts_with_admin_access)
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ(
         "Accounts:\naccount\noperator\nguest"_ts,
+        context.direct_messages[0]);
+}
+
+TEST(a_client, lists_character_names_for_admin_list_characters_with_admin_access)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.character_names_by_account["operator"] = {"Mallory", "Trinity"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/admin list_characters operator");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "Characters:\nMallory\nTrinity"_ts,
         context.direct_messages[0]);
 }

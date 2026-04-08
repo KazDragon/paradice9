@@ -534,8 +534,31 @@ private:
             return true;
         }
 
+        if (input.rfind("/admin list_characters", 0) == 0)
+        {
+            auto account_name =
+                input.substr(std::string{"/admin list_characters"}.size());
+
+            if (!account_name.empty() && account_name.front() == ' ')
+            {
+                account_name.erase(0, 1);
+            }
+
+            auto character_names = context_.list_characters(account_name);
+            auto message = std::string{"Characters:"};
+
+            for (auto const &character_name : character_names)
+            {
+                message += std::format("\n{}", character_name);
+            }
+
+            context_.send_message(*character_, message);
+            return true;
+        }
+
         context_.send_message(
-            *character_, "USAGE: /admin shutdown|list_accounts");
+            *character_,
+            "USAGE: /admin shutdown|list_accounts|list_characters <account>");
         return true;
     }
 

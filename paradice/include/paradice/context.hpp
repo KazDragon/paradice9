@@ -141,6 +141,12 @@ public:
         model::account const &account, std::string const &permission) = 0;
 
     //* =====================================================================
+    /// \brief Lists character names owned by the named account.
+    //* =====================================================================
+    virtual std::vector<std::string> list_characters(
+        std::string const &account_name) = 0;
+
+    //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.
     /// \throw unexpected_error if any error occurs.

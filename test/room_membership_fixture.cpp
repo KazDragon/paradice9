@@ -33,6 +33,11 @@ struct fake_context : paradice::context
         return {};
     }
 
+    std::vector<std::string> list_characters(std::string const &) override
+    {
+        return {};
+    }
+
     bool has_permission(
         paradice::model::account const &, std::string const &) override
     {

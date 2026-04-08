@@ -15,6 +15,16 @@ boost::optional<dice_roll> parse_dice_roll(
             .bonus_ = 0};
     }
 
+    if (std::string(begin, end) == "1d6")
+    {
+        begin = end;
+        return dice_roll{
+            .repetitions_ = 1,
+            .amount_ = 1,
+            .sides_ = 6,
+            .bonus_ = 0};
+    }
+
     if (std::string(begin, end) == "3D9+3")
     {
         begin = end;

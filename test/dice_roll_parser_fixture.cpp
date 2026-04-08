@@ -28,6 +28,21 @@ TEST(a_dice_roll_parser, parses_a_basic_roll_without_bonus)
     ASSERT_EQ(0, roll->bonus_);
 }
 
+TEST(a_dice_roll_parser, parses_a_single_die_roll_without_bonus)
+{
+    auto const text = std::string("1d6");
+    auto begin = text.begin();
+    auto end = text.end();
+
+    auto roll = paradice::parse_dice_roll(begin, end);
+
+    ASSERT_TRUE(roll.is_initialized());
+    ASSERT_EQ(1u, roll->repetitions_);
+    ASSERT_EQ(1u, roll->amount_);
+    ASSERT_EQ(6u, roll->sides_);
+    ASSERT_EQ(0, roll->bonus_);
+}
+
 TEST(a_dice_roll_parser, parses_a_roll_with_a_positive_bonus)
 {
     auto const text = std::string("3D9+3");

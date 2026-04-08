@@ -28,6 +28,7 @@
 
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
+#include "paradice/dice_roll_parser.hpp"
 #include "paradice/room_lifecycle.hpp"
 #include "paradice/ui/message.hpp"
 #include "paradice/ui/shell/user_interface.hpp"
@@ -424,6 +425,30 @@ private:
             std::format("{} says, \"{}\"", character_->name, spoken_text));
     }
 
+    bool try_handle_roll_command(std::string const &input)
+    {
+        if (input.rfind("/roll ", 0) != 0)
+        {
+            return false;
+        }
+
+        auto const roll_text = input.substr(6);
+        auto begin = roll_text.cbegin();
+        auto const end = roll_text.cend();
+
+        if (!parse_dice_roll(begin, end))
+        {
+            return true;
+        }
+
+        context_.send_message(*character_, std::format("you roll {}", roll_text));
+        context_.send_message(
+            context_.get_main_room(),
+            *character_,
+            std::format("{} rolls {}", character_->name, roll_text));
+        return true;
+    }
+
     void update_roster_from_current_room()
     {
         if (!character_ || character_->in_room == nullptr)
@@ -563,6 +588,11 @@ private:
     void on_command(std::string const &input)
     {
         if (try_handle_tell_command(input))
+        {
+            return;
+        }
+
+        if (try_handle_roll_command(input))
         {
             return;
         }

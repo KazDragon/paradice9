@@ -41,6 +41,18 @@ jobs:
           vcpkgDirectory: "${{ github.workspace }}/.vcpkg"
           vcpkgGitCommitId: "58950f88544e4637524dbd6a01d0317cf4cb77fc"
 
+      - name: Install transitive dependency build requirements
+        shell: bash
+        run: >
+          $VCPKG_ROOT/vcpkg install
+          boost-algorithm
+          boost-asio
+          boost-container-hash
+          boost-exception
+          boost-range
+          boost-scope-exit
+          boost-signals2
+
       - name: Install KazDragon dependencies
         shell: bash
         run: |

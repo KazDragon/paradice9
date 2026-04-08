@@ -49,9 +49,9 @@
 
 #include <array>
 #include <format>
-#include <cstdio>
 #include <random>
 #include <string>
+#include <cstdio>
 
 using namespace terminalpp::literals;  // NOLINT
 
@@ -66,14 +66,11 @@ constexpr auto roll_usage_message =
     "\n Example: roll 20*2d6"
     "\n Example: roll 1d10+4 initiative"
     "\n";
-
-template <typename... Ts>
-struct overloaded : Ts...
-{
-    using Ts::operator()...;
-};
-template <typename... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+constexpr auto admin_usage_message =
+    "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+    "set_password <account> <password>|"
+    "set_permission <account> <permission>|"
+    "clear_permission <account> <permission>";
 
 }  // namespace
 
@@ -273,27 +270,14 @@ public:
     // ======================================================================
     void on_tokens_read(terminalpp::tokens const &tokens)
     {
-        auto const &apply_token = [this](terminalpp::token const &token) {
-            std::visit(
-                overloaded{
-                    [this](terminalpp::virtual_key const &vk) {
-                        this->run_on_ui_strand(
-                            [this, vk] { window_.event(vk); });
-                    },
-                    [this](terminalpp::mouse::event const &ev) {
-                        this->run_on_ui_strand(
-                            [this, ev] { window_.event(ev); });
-                    },
-                    [this](terminalpp::control_sequence const &cs) {
-                        this->run_on_ui_strand(
-                            [this, cs] { window_.event(cs); });
-                    }},
-                token);
-        };
-
         for (auto const &token : tokens)
         {
-            apply_token(token);
+            std::visit(
+                [this](auto const &event) {
+                    this->run_on_ui_strand(
+                        [this, event] { window_.event(event); });
+                },
+                token);
         }
     }
 
@@ -366,6 +350,33 @@ public:
     }
 
 private:
+    [[nodiscard]] static auto as_titled_list(
+        std::string const &title, std::vector<std::string> const &items)
+    {
+        auto message = title + ":";
+
+        for (auto const &item : items)
+        {
+            message += std::format("\n{}", item);
+        }
+
+        return message;
+    }
+
+    [[nodiscard]] static auto split_two_arguments(std::string const &arguments)
+        -> std::optional<std::pair<std::string, std::string>>
+    {
+        auto const split = arguments.find(' ');
+
+        if (split == std::string::npos)
+        {
+            return std::nullopt;
+        }
+
+        return std::pair{
+            arguments.substr(0, split), arguments.substr(split + 1)};
+    }
+
     void emit_tell_messages(
         model::character &recipient, std::string const &message)
     {
@@ -382,13 +393,12 @@ private:
         context_.send_message(
             *character_,
             std::format(
-                "A player with name {} could not be found.",
-                recipient_name));
+                "A player with name {} could not be found.", recipient_name));
     }
 
     bool try_handle_tell_command(std::string const &input)
     {
-        if (input.rfind("/tell ", 0) != 0)
+        if (!input.starts_with("/tell "))
         {
             return false;
         }
@@ -403,7 +413,8 @@ private:
 
         auto const recipient_name = tell_arguments.substr(0, split);
         auto const message = tell_arguments.substr(split + 1);
-        auto *recipient = context_.find_online_character_by_name(recipient_name);
+        auto *recipient =
+            context_.find_online_character_by_name(recipient_name);
 
         if (recipient != nullptr)
         {
@@ -431,10 +442,8 @@ private:
     {
         auto const shared_roll_prefix = std::string{"/roll "};
         auto const private_roll_prefix = std::string{"/rollprivate "};
-        auto const is_shared_roll =
-            input.rfind(shared_roll_prefix, 0) == 0;
-        auto const is_private_roll =
-            input.rfind(private_roll_prefix, 0) == 0;
+        auto const is_shared_roll = input.starts_with(shared_roll_prefix);
+        auto const is_private_roll = input.starts_with(private_roll_prefix);
 
         if (!is_shared_roll && !is_private_roll)
         {
@@ -442,8 +451,8 @@ private:
         }
 
         auto const roll_text = is_shared_roll
-                                   ? input.substr(shared_roll_prefix.size())
-                                   : input.substr(private_roll_prefix.size());
+                                 ? input.substr(shared_roll_prefix.size())
+                                 : input.substr(private_roll_prefix.size());
         auto begin = roll_text.cbegin();
         auto const end = roll_text.cend();
 
@@ -459,7 +468,8 @@ private:
         {
             context_.send_message(
                 *character_,
-                "You fumble your roll and spill all your zero-sided dice on the floor.\n");
+                "You fumble your roll and spill all your zero-sided dice on "
+                "the floor.\n");
 
             if (is_shared_roll)
             {
@@ -467,17 +477,17 @@ private:
                     context_.get_main_room(),
                     *character_,
                     std::format(
-                        "{} fumbles their roll and spills a pile of zero-sided dice on the floor.\n",
+                        "{} fumbles their roll and spills a pile of zero-sided "
+                        "dice on the floor.\n",
                         character_->name));
             }
 
             return true;
         }
 
-        auto const faces =
-            roll_faces(*parsed_roll, [this](std::uint32_t sides) {
-                return roll_die(sides);
-            });
+        auto const faces = roll_faces(
+            *parsed_roll,
+            [this](std::uint32_t sides) { return roll_die(sides); });
         auto const result_text = describe_roll_result(*parsed_roll, faces);
 
         context_.send_message(
@@ -500,8 +510,8 @@ private:
 
     bool try_handle_admin_command(std::string const &input)
     {
-        if (input.rfind("/admin", 0) != 0 || !active_account_ ||
-            !context_.has_permission(*active_account_, "admin_access"))
+        if (!input.starts_with("/admin") || !active_account_
+            || !context_.has_permission(*active_account_, "admin_access"))
         {
             return false;
         }
@@ -522,19 +532,13 @@ private:
 
         if (input == "/admin list_accounts")
         {
-            auto account_names = context_.list_accounts();
-            auto message = std::string{"Accounts:"};
-
-            for (auto const &account_name : account_names)
-            {
-                message += std::format("\n{}", account_name);
-            }
-
-            context_.send_message(*character_, message);
+            context_.send_message(
+                *character_,
+                as_titled_list("Accounts", context_.list_accounts()));
             return true;
         }
 
-        if (input.rfind("/admin list_characters", 0) == 0)
+        if (input.starts_with("/admin list_characters"))
         {
             auto account_name =
                 input.substr(std::string{"/admin list_characters"}.size());
@@ -544,19 +548,14 @@ private:
                 account_name.erase(0, 1);
             }
 
-            auto character_names = context_.list_characters(account_name);
-            auto message = std::string{"Characters:"};
-
-            for (auto const &character_name : character_names)
-            {
-                message += std::format("\n{}", character_name);
-            }
-
-            context_.send_message(*character_, message);
+            context_.send_message(
+                *character_,
+                as_titled_list(
+                    "Characters", context_.list_characters(account_name)));
             return true;
         }
 
-        if (input.rfind("/admin set_password ", 0) == 0)
+        if (input.starts_with("/admin set_password "))
         {
             if (!context_.has_permission(
                     *active_account_, "admin_set_password"))
@@ -569,26 +568,22 @@ private:
 
             auto arguments =
                 input.substr(std::string{"/admin set_password "}.size());
-            auto const account_name_end = arguments.find(' ');
+            auto const split = split_two_arguments(arguments);
 
-            if (account_name_end == std::string::npos)
+            if (!split)
             {
-                context_.send_message(
-                    *character_,
-                    "USAGE: /admin shutdown|list_accounts|list_characters "
-                    "<account>|set_password <account> <password>");
+                context_.send_message(*character_, admin_usage_message);
                 return true;
             }
 
-            auto const account_name = arguments.substr(0, account_name_end);
-            auto const password = arguments.substr(account_name_end + 1);
+            auto const &[account_name, password] = *split;
 
             context_.set_password(account_name, password);
             context_.send_message(*character_, "Password changed.");
             return true;
         }
 
-        if (input.rfind("/admin set_permission ", 0) == 0)
+        if (input.starts_with("/admin set_permission "))
         {
             if (!context_.has_permission(
                     *active_account_, "admin_set_permission"))
@@ -601,66 +596,62 @@ private:
 
             auto arguments =
                 input.substr(std::string{"/admin set_permission "}.size());
-            auto const account_name_end = arguments.find(' ');
+            auto const split = split_two_arguments(arguments);
 
-            if (account_name_end == std::string::npos)
+            if (!split)
             {
-                context_.send_message(
-                    *character_,
-                    "USAGE: /admin shutdown|list_accounts|list_characters "
-                    "<account>|set_password <account> <password>|"
-                    "set_permission <account> <permission>");
+                context_.send_message(*character_, admin_usage_message);
                 return true;
             }
 
-            auto const account_name = arguments.substr(0, account_name_end);
-            auto const permission = arguments.substr(account_name_end + 1);
+            auto const &[account_name, permission] = *split;
 
             context_.set_permission(account_name, permission);
             context_.send_message(*character_, "Permission granted.");
             return true;
         }
 
-        if (input.rfind("/admin clear_permission ", 0) == 0)
+        if (input.starts_with("/admin clear_permission "))
         {
             if (!context_.has_permission(
                     *active_account_, "admin_set_permission"))
             {
                 context_.send_message(
                     *character_,
-                    "You do not have permission to use /admin clear_permission");
+                    "You do not have permission to use /admin "
+                    "clear_permission");
                 return true;
             }
 
             auto arguments =
                 input.substr(std::string{"/admin clear_permission "}.size());
-            auto const account_name_end = arguments.find(' ');
+            auto const split = split_two_arguments(arguments);
 
-            if (account_name_end == std::string::npos)
+            if (!split)
             {
-                context_.send_message(
-                    *character_,
-                    "USAGE: /admin shutdown|list_accounts|list_characters "
-                    "<account>|set_password <account> <password>|"
-                    "set_permission <account> <permission>|"
-                    "clear_permission <account> <permission>");
+                context_.send_message(*character_, admin_usage_message);
                 return true;
             }
 
-            auto const account_name = arguments.substr(0, account_name_end);
-            auto const permission = arguments.substr(account_name_end + 1);
+            auto const &[account_name, permission] = *split;
+            auto const target_account = model::account{.name = account_name};
+
+            if (context_.has_permission(
+                    target_account, "admin_set_permission"))
+            {
+                context_.send_message(
+                    *character_,
+                    "You cannot clear permissions from accounts with /admin "
+                    "set_permission.");
+                return true;
+            }
 
             context_.clear_permission(account_name, permission);
             context_.send_message(*character_, "Permission cleared.");
             return true;
         }
 
-        context_.send_message(
-            *character_,
-            "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
-            "set_password <account> <password>|"
-            "set_permission <account> <permission>|"
-            "clear_permission <account> <permission>");
+        context_.send_message(*character_, admin_usage_message);
         return true;
     }
 
@@ -833,13 +824,13 @@ private:
             return;
         }
 
-        if (input.rfind("/say ", 0) == 0)
+        if (input.starts_with("/say "))
         {
             emit_say_messages(input.substr(5));
             return;
         }
 
-        if (input.rfind("/", 0) == 0)
+        if (input.starts_with('/'))
         {
             context_.send_message(
                 *character_, std::format("Unknown command: {}", input));
@@ -886,8 +877,9 @@ client::client(
     connection &&cnx,
     terminalpp::behaviour beh,
     std::function<std::int32_t(std::uint32_t)> roller)
-  : pimpl_(std::make_shared<impl>(
-        *this, io_context, ctx, std::move(cnx), beh, std::move(roller)))
+  : pimpl_(
+        std::make_shared<impl>(
+            *this, io_context, ctx, std::move(cnx), beh, std::move(roller)))
 {
 }
 

@@ -413,6 +413,11 @@ struct context_impl::impl
             paradice::model::account{.name = account_name};
         auto const account_id = load_account_id(account);
 
+        if (has_permission(account, "admin_set_permission"))
+        {
+            return;
+        }
+
         SQLite::Statement stmt(
             database_,
             "DELETE FROM account_permissions"

@@ -84,3 +84,16 @@ TEST_F(
     ASSERT_FALSE(context.has_permission(account, "admin_shutdown"));
     ASSERT_TRUE(context.has_permission(account, "admin_access"));
 }
+
+TEST_F(
+    a_context_impl_fixture,
+    does_not_clear_permissions_from_accounts_with_admin_set_permission)
+{
+    auto account = context.new_account("account", "password");
+    context.set_permission("account", "admin_set_permission");
+    context.set_permission("account", "admin_shutdown");
+
+    context.clear_permission("account", "admin_shutdown");
+
+    ASSERT_TRUE(context.has_permission(account, "admin_shutdown"));
+}

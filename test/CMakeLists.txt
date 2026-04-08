@@ -28,22 +28,24 @@ target_link_libraries(paradice_ui_tester
 
 add_test(NAME paradice_ui_test COMMAND paradice_ui_tester)
 
-add_executable(paradice9_context_tester
+add_executable(paradice9_system_tester
     context_impl_fixture.cpp
+    system_fixture.cpp
     ../paradice9/src/context_impl.cpp
     ../paradice9/src/cryptography.cpp
 )
 
-target_include_directories(paradice9_context_tester
+target_include_directories(paradice9_system_tester
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/../paradice/include
         ${CMAKE_CURRENT_SOURCE_DIR}/../paradice9/include
 )
 
-target_link_libraries(paradice9_context_tester
+target_link_libraries(paradice9_system_tester
     PRIVATE
         paradice
+        munin
         SQLiteCpp
         cryptopp::cryptopp
         Boost::filesystem
@@ -53,4 +55,4 @@ target_link_libraries(paradice9_context_tester
         Threads::Threads
 )
 
-add_test(NAME paradice9_context_test COMMAND paradice9_context_tester)
+add_test(NAME paradice9_system_test COMMAND paradice9_system_tester)

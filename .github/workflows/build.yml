@@ -14,38 +14,100 @@ jobs:
       matrix:
         include:
           - build_type: Debug
+          - build_type: Release
 
     env:
-      EXTERNAL_ROOT: /home/runner/3party
+      EXTERNAL_ROOT: ${{ github.workspace }}/.ext
       BUILD_TYPE: ${{ matrix.build_type }}
+      SERVERPP_REF: master
+      SERVERPP_VERSION: "0.2.0"
+      TELNETPP_REF: master
+      TELNETPP_VERSION: "3.0.0"
+      TERMINALPP_REF: master
+      TERMINALPP_VERSION: "3.0.2"
+      MUNIN_REF: master
+      MUNIN_VERSION: "0.7.1"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get latest cmake
-        shell: bash
-        run: pip install --upgrade cmake
+      - name: Setup vcpkg (with binary caching)
+        uses: lukka/run-vcpkg@v11
+        with:
+          runVcpkgInstall: true
+          vcpkgJsonGlob: "${{ github.workspace }}/vcpkg.json"
+          vcpkgDirectory: "${{ github.workspace }}/.vcpkg"
+          vcpkgGitCommitId: "58950f88544e4637524dbd6a01d0317cf4cb77fc"
 
-      - name: Install latest Boost
+      - name: Install KazDragon dependencies
         shell: bash
         run: |
-          apt search boost
-          sudo apt install libboost-all-dev
+          install_dependency() {
+            local repo="$1"
+            local ref="$2"
+            local build_dir="$3"
+            shift 3
 
-      - name: Install dependencies from source
-        run: .ci/fetch_system_dependencies.sh
+            wget "https://codeload.github.com/KazDragon/${repo}/tar.gz/refs/heads/${ref}" -O "${repo}.tar.gz"
+            tar -xzf "${repo}.tar.gz"
+            cmake -S "${repo}-${ref}" -B "${build_dir}" \
+              -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+              -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" \
+              -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" \
+              -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+              "$@"
+            cmake --build "${build_dir}" --config "$BUILD_TYPE"
+            cmake --install "${build_dir}" --config "$BUILD_TYPE"
+          }
+
+          mkdir -p "$EXTERNAL_ROOT"
+          cd "${{ runner.workspace }}"
+
+          install_dependency \
+            serverpp \
+            "$SERVERPP_REF" \
+            serverpp-build \
+            -DSERVERPP_WITH_TESTS=False \
+            -DSERVERPP_VERSION="$SERVERPP_VERSION"
+
+          install_dependency \
+            telnetpp \
+            "$TELNETPP_REF" \
+            telnetpp-build \
+            -DTELNETPP_WITH_TESTS=False \
+            -DTELNETPP_WITH_ZLIB=ON \
+            -DTELNETPP_VERSION="$TELNETPP_VERSION"
+
+          install_dependency \
+            terminalpp \
+            "$TERMINALPP_REF" \
+            terminalpp-build \
+            -DTERMINALPP_WITH_TESTS=False \
+            -DTERMINALPP_VERSION="$TERMINALPP_VERSION"
+
+          install_dependency \
+            munin \
+            "$MUNIN_REF" \
+            munin-build \
+            -DMUNIN_WITH_TESTS=False \
+            -DMUNIN_VERSION="$MUNIN_VERSION"
 
       - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/munin/build
+        run: cmake -E make_directory ${{runner.workspace}}/paradice9/build
 
       - name: Configure CMake
         shell: bash
-        working-directory: ${{runner.workspace}}/munin/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$EXTERNAL_ROOT
+        working-directory: ${{runner.workspace}}/paradice9/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=$EXTERNAL_ROOT
 
       - name: Build
         shell: bash
-        working-directory: ${{runner.workspace}}/munin/build
+        working-directory: ${{runner.workspace}}/paradice9/build
         run: cmake --build . --config $BUILD_TYPE
+
+      - name: Test
+        shell: bash
+        working-directory: ${{runner.workspace}}/paradice9/build
+        run: ctest -C $BUILD_TYPE --output-on-failure

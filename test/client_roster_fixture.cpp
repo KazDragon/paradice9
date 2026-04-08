@@ -1109,3 +1109,26 @@ TEST(a_client, lists_first_tier_commands_without_admin_for_help)
         "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell"_ts,
         context.direct_messages[0]);
 }
+
+TEST(a_client, includes_admin_in_help_for_a_caller_with_admin_access)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    context.granted_permissions.emplace_back("account", "admin_access");
+
+    enter_command_and_capture_messages(io_context, context, channel, "/help");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell"_ts,
+        context.direct_messages[0]);
+}

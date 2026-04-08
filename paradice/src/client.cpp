@@ -71,6 +71,8 @@ constexpr auto admin_usage_message =
     "set_password <account> <password>|"
     "set_permission <account> <permission>|"
     "clear_permission <account> <permission>";
+constexpr auto admin_help_commands_message =
+    "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
 constexpr auto help_commands_message =
     "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
 
@@ -664,7 +666,11 @@ private:
             return false;
         }
 
-        context_.send_message(*character_, help_commands_message);
+        context_.send_message(
+            *character_,
+            context_.has_permission(*active_account_, "admin_access")
+                ? admin_help_commands_message
+                : help_commands_message);
         return true;
     }
 

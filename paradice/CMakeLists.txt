@@ -28,7 +28,7 @@ set (PARADICE_SOURCE_FILES
 #    src/communication.cpp
 #    src/configuration.cpp
     src/connection.cpp
-#    src/dice_roll_parser.cpp
+    src/dice_roll_parser.cpp
 #    src/encounter.cpp
 #    src/gm.cpp
 #    src/help.cpp
@@ -61,9 +61,9 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/configuration.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
+    include/paradice/dice.hpp
+    include/paradice/dice_roll_parser.hpp
     include/paradice/room_lifecycle.hpp
-#    include/paradice/dice.hpp
-#    include/paradice/dice_roll_parser.hpp
 #    include/paradice/encounter.hpp
     include/paradice/export.hpp
 #    include/paradice/gm.hpp

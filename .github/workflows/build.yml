@@ -57,6 +57,7 @@ jobs:
               -DCMAKE_INSTALL_PREFIX="$EXTERNAL_ROOT" \
               -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" \
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+              -DCMAKE_POLICY_DEFAULT_CMP0167=OLD \
               "$@"
             cmake --build "${build_dir}" --config "$BUILD_TYPE"
             cmake --install "${build_dir}" --config "$BUILD_TYPE"
@@ -100,7 +101,7 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{runner.workspace}}/paradice9/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=$EXTERNAL_ROOT
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=$EXTERNAL_ROOT -DCMAKE_POLICY_DEFAULT_CMP0167=OLD
 
       - name: Build
         shell: bash

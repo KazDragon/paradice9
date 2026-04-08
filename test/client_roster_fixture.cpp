@@ -682,3 +682,22 @@ TEST(a_client, reports_zero_sided_dice_fumble_publicly)
         "Mallory fumbles their roll and spills a pile of zero-sided dice on the floor.\n"_ts,
         context.room_messages[0]);
 }
+
+TEST(a_client, reports_admin_shutdown_as_unknown_without_admin_access)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/admin shutdown");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("Unknown command: /admin shutdown"_ts, context.direct_messages[0]);
+}

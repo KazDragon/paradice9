@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Main Page
+// Paradice Roster
 //
-// Copyright (C) 2021 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2026 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,36 +24,40 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef PARADICE_UI_MAIN_PAGE_HPP_
-#define PARADICE_UI_MAIN_PAGE_HPP_
+#ifndef PARADICE_UI_ROSTER_HPP_
+#define PARADICE_UI_ROSTER_HPP_
 
-#include <munin/composite_component.hpp>
+#include <paradice/export.hpp>
+
+#include <munin/basic_component.hpp>
+#include <terminalpp/string.hpp>
+
+#include <memory>
+#include <vector>
 
 namespace paradice::ui {
 
-class main_page final : public munin::composite_component
+class PARADICE_EXPORT roster final : public munin::basic_component
 {
 public:
-    main_page();
-    ~main_page() override;
-
-    //* =====================================================================
-    /// \brief Callback for when the player enters a line into the command
-    /// prompt.
-    //* =====================================================================
-    boost::signals2::signal<void(std::string const &)> on_command;
+    void set_player_characters(std::vector<terminalpp::string> names);
 
 protected:
-    //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this
-    /// function in order to handle events in a custom manner.
-    //* =====================================================================
-    void do_event(boost::any const &event) override;
+    [[nodiscard]] bool do_can_receive_focus() const override;
+    [[nodiscard]] terminalpp::extent do_get_preferred_size() const override;
+    void do_event(std::any const &event) override;
+    void do_draw(
+        munin::render_surface &surface,
+        terminalpp::rectangle const &region) const override;
 
 private:
-    struct impl;
-    std::unique_ptr<impl> pimpl_;
+    void set_current_page(std::size_t page);
+
+    std::size_t current_page_ = 0;
+    std::vector<terminalpp::string> names_;
 };
+
+std::shared_ptr<roster> make_roster();
 
 }  // namespace paradice::ui
 

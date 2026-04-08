@@ -24,9 +24,9 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/title_page.hpp"
+#include "paradice/ui/pages/title_page.hpp"
 
-#include "paradice/ui/detail/password_edit.hpp"
+#include "paradice/ui/components/password_edit.hpp"
 
 #include <munin/aligned_layout.hpp>
 #include <munin/brush.hpp>
@@ -76,10 +76,10 @@ title_page::title_page()
     login_button_(munin::make_button(" Login "))
 {
     auto const name_edit = munin::make_edit();
-    auto const password_edit = detail::make_password_edit();
+    auto const password_edit = make_password_edit();
 
     new_button_->on_click.connect(on_new_account);
-    login_button_->on_click.connect([=] {
+    login_button_->on_click.connect([=, this] {
         auto const &account_name = terminalpp::to_string(name_edit->get_text());
         auto const &password = terminalpp::to_string(password_edit->get_text());
 
@@ -129,12 +129,13 @@ title_page::title_page()
         munin::compass_layout::heading::south);
 
     set_layout(munin::make_grid_layout({1, 1}));
-    add_component(munin::view(
-        munin::make_compass_layout(),
-        munin::make_image(main_image),
-        munin::compass_layout::heading::centre,
-        lower_section,
-        munin::compass_layout::heading::south));
+    add_component(
+        munin::view(
+            munin::make_compass_layout(),
+            munin::make_image(main_image),
+            munin::compass_layout::heading::centre,
+            lower_section,
+            munin::compass_layout::heading::south));
 
     name_edit->set_focus();
 }

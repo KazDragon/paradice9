@@ -24,7 +24,7 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/detail/password_edit.hpp"
+#include "paradice/ui/components/password_edit.hpp"
 
 #include <munin/edit.hpp>
 #include <munin/grid_layout.hpp>
@@ -32,7 +32,7 @@
 #include <terminalpp/algorithm/for_each_in_region.hpp>
 #include <boost/make_unique.hpp>
 
-namespace paradice::ui::detail {
+namespace paradice::ui {
 
 // ==========================================================================
 // PASSWORD_EDIT::IMPLEMENTATION_STRUCTURE
@@ -95,4 +95,4 @@ std::shared_ptr<password_edit> make_password_edit()
     return std::make_shared<password_edit>();
 }
 
-}  // namespace paradice::ui::detail
+}  // namespace paradice::ui

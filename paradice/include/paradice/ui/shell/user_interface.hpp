@@ -33,8 +33,11 @@
 
 #include <munin/animator.hpp>
 #include <munin/composite_component.hpp>
+#include <terminalpp/string.hpp>
 
+#include <any>
 #include <memory>
+#include <vector>
 
 namespace paradice::ui {
 
@@ -93,12 +96,14 @@ public:
     //* =====================================================================
     boost::signals2::signal<void(std::string const &)> on_command;
 
+    void set_player_characters(std::vector<terminalpp::string> names);
+
 protected:
     //* =====================================================================
     /// \brief Called by event().  Derived classes must override this
     /// function in order to handle events in a custom manner.
     //* =====================================================================
-    void do_event(boost::any const &event) override;
+    void do_event(std::any const &event) override;
 
 private:
     struct impl;

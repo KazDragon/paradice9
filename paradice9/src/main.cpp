@@ -27,10 +27,10 @@
 #include "paradice9/context_impl.hpp"
 #include "paradice9/server.hpp"
 
-#include <boost/format.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/program_options.hpp>
 
+#include <format>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -113,17 +113,18 @@ int main(int argc, char *argv[])
     {
         if (strlen(err.what()) == 0)
         {
-            std::cout << boost::format("USAGE: %s <port number>|<options>\n")
-                             % argv[0]
+            std::cout << std::format(
+                "USAGE: {} <port number>|<options>\n", argv[0])
                       << description << std::endl;
 
             return EXIT_SUCCESS;
         }
         else
         {
-            std::cerr << boost::format(
-                             "ERROR: %s\n\nUSAGE: %s <port number>|<options>\n")
-                             % err.what() % argv[0]
+            std::cerr << std::format(
+                "ERROR: {}\n\nUSAGE: {} <port number>|<options>\n",
+                err.what(),
+                argv[0])
                       << description << std::endl;
         }
 

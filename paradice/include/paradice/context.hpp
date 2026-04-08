@@ -34,6 +34,7 @@
 #include <terminalpp/string.hpp>
 
 #include <memory>
+#include <string>
 
 namespace paradice {
 
@@ -129,6 +130,41 @@ public:
         std::string const &name, std::string const &password) = 0;
 
     //* =====================================================================
+    /// \brief Lists account names known to the system.
+    //* =====================================================================
+    virtual std::vector<std::string> list_accounts() = 0;
+
+    //* =====================================================================
+    /// \brief Checks whether an account has a named permission.
+    //* =====================================================================
+    virtual bool has_permission(
+        model::account const &account, std::string const &permission) = 0;
+
+    //* =====================================================================
+    /// \brief Lists character names owned by the named account.
+    //* =====================================================================
+    virtual std::vector<std::string> list_characters(
+        std::string const &account_name) = 0;
+
+    //* =====================================================================
+    /// \brief Updates the password for the named account.
+    //* =====================================================================
+    virtual void set_password(
+        std::string const &account_name, std::string const &password) = 0;
+
+    //* =====================================================================
+    /// \brief Grants the named permission to the named account.
+    //* =====================================================================
+    virtual void set_permission(
+        std::string const &account_name, std::string const &permission) = 0;
+
+    //* =====================================================================
+    /// \brief Clears the named permission from the named account.
+    //* =====================================================================
+    virtual void clear_permission(
+        std::string const &account_name, std::string const &permission) = 0;
+
+    //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.
     /// \throw unexpected_error if any error occurs.
@@ -154,6 +190,22 @@ public:
     /// \brief Enacts a server shutdown.
     //* =====================================================================
     virtual void shutdown() = 0;
+
+    //* =====================================================================
+    /// \brief Registers a character as currently online and reachable.
+    //* =====================================================================
+    virtual void register_online_character(model::character &character) = 0;
+
+    //* =====================================================================
+    /// \brief Unregisters a previously online character.
+    //* =====================================================================
+    virtual void unregister_online_character(model::character &character) = 0;
+
+    //* =====================================================================
+    /// \brief Finds an online character by name.
+    //* =====================================================================
+    virtual model::character *find_online_character_by_name(
+        std::string const &name) = 0;
 
     //* =====================================================================
     /// \brief Gets the currently active encounter

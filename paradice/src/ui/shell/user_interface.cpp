@@ -24,14 +24,14 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice/ui/user_interface.hpp"
+#include "paradice/ui/shell/user_interface.hpp"
 
 #include "paradice/context.hpp"
-#include "paradice/ui/account_creation_page.hpp"
-#include "paradice/ui/character_creation_page.hpp"
-#include "paradice/ui/character_selection_page.hpp"
-#include "paradice/ui/main_page.hpp"
-#include "paradice/ui/title_page.hpp"
+#include "paradice/ui/pages/account_creation_page.hpp"
+#include "paradice/ui/pages/character_creation_page.hpp"
+#include "paradice/ui/pages/character_selection_page.hpp"
+#include "paradice/ui/pages/main_page.hpp"
+#include "paradice/ui/pages/title_page.hpp"
 
 #include <munin/brush.hpp>
 #include <munin/compass_layout.hpp>
@@ -199,6 +199,14 @@ struct user_interface::impl
     {
         auto new_page = std::make_shared<main_page>();
         new_page->on_command.connect(self_.on_command);
+        main_page_ = new_page;
+
+        if (player_characters_.empty())
+        {
+            player_characters_ = {terminalpp::string{active_character_->name}};
+        }
+
+        new_page->set_player_characters(player_characters_);
 
         go_to_page(new_page);
         self_.on_entered_game(*active_character_);
@@ -268,6 +276,8 @@ struct user_interface::impl
     std::shared_ptr<munin::status_bar> status_bar_{
         munin::make_status_bar(animator_)};
     std::shared_ptr<munin::component> last_content_;
+    std::shared_ptr<main_page> main_page_;
+    std::vector<terminalpp::string> player_characters_;
 
     boost::optional<model::account> active_account_;
     boost::optional<model::character> active_character_;
@@ -294,21 +304,31 @@ user_interface::user_interface(munin::animator &anim)
 // ==========================================================================
 user_interface::~user_interface() = default;
 
+void user_interface::set_player_characters(std::vector<terminalpp::string> names)
+{
+    pimpl_->player_characters_ = std::move(names);
+
+    if (pimpl_->main_page_)
+    {
+        pimpl_->main_page_->set_player_characters(pimpl_->player_characters_);
+    }
+}
+
 // ==========================================================================
 // EVENT
 // ==========================================================================
-void user_interface::do_event(boost::any const &event)
+void user_interface::do_event(std::any const &event)
 {
     bool handled = false;
 
-    if (auto const *vk_event = boost::any_cast<terminalpp::virtual_key>(&event);
+    if (auto const *vk_event = std::any_cast<terminalpp::virtual_key>(&event);
         vk_event)
     {
         handled = pimpl_->handle_virtual_key_event(*vk_event);
     }
 
     if (auto const *mouse_event =
-            boost::any_cast<terminalpp::mouse::event>(&event);
+            std::any_cast<terminalpp::mouse::event>(&event);
         mouse_event)
     {
         handled = pimpl_->handle_mouse_event(*mouse_event);

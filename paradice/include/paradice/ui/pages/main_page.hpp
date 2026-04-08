@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Password Edit
+// Paradice Main Page
 //
-// Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2021 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,55 +24,42 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef PARADICE_UI_DETAIL_PASSWORD_EDIT
-#define PARADICE_UI_DETAIL_PASSWORD_EDIT
+#ifndef PARADICE_UI_MAIN_PAGE_HPP_
+#define PARADICE_UI_MAIN_PAGE_HPP_
 
 #include <munin/composite_component.hpp>
 #include <terminalpp/string.hpp>
 
-namespace paradice::ui::detail {
+#include <any>
+#include <vector>
 
-class password_edit : public munin::composite_component  // NOLINT
+namespace paradice::ui {
+
+class main_page final : public munin::composite_component
 {
 public:
-    //* =====================================================================
-    /// \brief Constructor
-    //* =====================================================================
-    password_edit();
+    main_page();
+    ~main_page() override;
+    void set_player_characters(std::vector<terminalpp::string> names);
 
     //* =====================================================================
-    /// \brief Destructor
+    /// \brief Callback for when the player enters a line into the command
+    /// prompt.
     //* =====================================================================
-    ~password_edit() override;
+    boost::signals2::signal<void(std::string const &)> on_command;
 
+protected:
     //* =====================================================================
-    /// \brief Retrieves the underlying text
+    /// \brief Called by event().  Derived classes must override this
+    /// function in order to handle events in a custom manner.
     //* =====================================================================
-    [[nodiscard]] terminalpp::string get_text() const;
+    void do_event(std::any const &event) override;
 
 private:
-    //* =====================================================================
-    /// \brief Called by draw().  Derived classes must override this function
-    /// in order to draw onto the passed canvas.  A component must only draw
-    /// the part of itself specified by the region.
-    ///
-    /// \param surface the surface on which the component should draw itself.
-    /// \param region the region relative to this component's origin that
-    /// should be drawn.
-    //* =====================================================================
-    void do_draw(
-        munin::render_surface &surface,
-        terminalpp::rectangle const &region) const override;
-
     struct impl;
     std::unique_ptr<impl> pimpl_;
 };
 
-//* =========================================================================
-/// \brief Creates a new password edit
-//* =========================================================================
-std::shared_ptr<password_edit> make_password_edit();
-
-}  // namespace paradice::ui::detail
+}  // namespace paradice::ui
 
 #endif

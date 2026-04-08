@@ -109,6 +109,27 @@ public:
     paradice::model::account load_account(
         std::string const &name, std::string const &password) override;
 
+    std::vector<std::string> list_accounts() override;
+
+    bool has_permission(
+        paradice::model::account const &account,
+        std::string const &permission) override;
+
+    std::vector<std::string> list_characters(
+        std::string const &account_name) override;
+
+    void set_password(
+        std::string const &account_name,
+        std::string const &password) override;
+
+    void set_permission(
+        std::string const &account_name,
+        std::string const &permission) override;
+
+    void clear_permission(
+        std::string const &account_name,
+        std::string const &permission) override;
+
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.
@@ -142,6 +163,22 @@ public:
     /// \brief Enacts a server shutdown.
     //* =====================================================================
     void shutdown() override;
+
+    //* =====================================================================
+    /// \brief Registers a character as online.
+    //* =====================================================================
+    void register_online_character(paradice::model::character &character) override;
+
+    //* =====================================================================
+    /// \brief Unregisters a character from online lookup.
+    //* =====================================================================
+    void unregister_online_character(paradice::model::character &character) override;
+
+    //* =====================================================================
+    /// \brief Finds an online character by name.
+    //* =====================================================================
+    paradice::model::character *find_online_character_by_name(
+        std::string const &name) override;
 
     //* =====================================================================
     /// \brief Gets the currently active encounter

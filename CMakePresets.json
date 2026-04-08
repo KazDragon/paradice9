@@ -23,12 +23,33 @@
             }
         },
         {
+            "name": "ci-default",
+            "hidden": true,
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/.ext",
+                "CMAKE_PREFIX_PATH": "${sourceDir}/.ext",
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            }
+        },
+        {
             "name": "Release",
             "inherits": "default"
         },
         {
             "name": "Debug",
             "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "CI-Release",
+            "inherits": "ci-default"
+        },
+        {
+            "name": "CI-Debug",
+            "inherits": "ci-default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }

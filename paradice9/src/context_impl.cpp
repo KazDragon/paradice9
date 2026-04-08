@@ -30,12 +30,14 @@
 
 #include <paradice/client.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <boost/asio/post.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/make_unique.hpp>
 #include <boost/optional.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <sqlite3.h>
 
+#include <algorithm>
 #include <vector>
 
 
@@ -138,7 +140,7 @@ struct context_impl::impl
     // ======================================================================
     void add_client(std::shared_ptr<paradice::client> const &cli)
     {
-        strand_.dispatch([this, cli] { clients_.push_back(cli); });
+        boost::asio::post(strand_, [this, cli] { clients_.push_back(cli); });
     }
 
     // ======================================================================
@@ -146,7 +148,8 @@ struct context_impl::impl
     // ======================================================================
     void remove_client(std::shared_ptr<paradice::client> const &cli)
     {
-        strand_.dispatch([this, cli] { boost::remove_erase(clients_, cli); });
+        boost::asio::post(
+            strand_, [this, cli] { boost::remove_erase(clients_, cli); });
     }
 
     // ======================================================================
@@ -332,6 +335,118 @@ struct context_impl::impl
         return account;
     }
 
+    std::vector<std::string> list_accounts()
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT name"
+            "    FROM accounts"
+            "    ORDER BY name"
+            ";");
+
+        auto account_names = std::vector<std::string>{};
+        while (account_query.executeStep())
+        {
+            account_names.emplace_back(account_query.getColumn(0));
+        }
+
+        return account_names;
+    }
+
+    std::vector<std::string> list_characters(std::string const &account_name)
+    {
+        return load_account_character_names(
+            load_account_id(paradice::model::account{account_name}));
+    }
+
+    void set_password(
+        std::string const &account_name, std::string const &password)
+    {
+        SQLite::Statement stmt(
+            database_,
+            "UPDATE accounts"
+            "    SET password=?"
+            "    WHERE name=?"
+            ";");
+
+        stmt.bind(1, encrypt(password).text);
+        stmt.bind(2, account_name);
+
+        if (stmt.exec() == 0)
+        {
+            throw paradice::no_such_account_error{};
+        }
+    }
+
+    void set_permission(
+        std::string const &account_name, std::string const &permission)
+    {
+        auto const account =
+            paradice::model::account{.name = account_name};
+        auto const account_id = load_account_id(account);
+
+        auto insert_permission = [&](std::string const &permission_name) {
+            SQLite::Statement stmt(
+                database_,
+                "INSERT OR IGNORE INTO account_permissions "
+                "    VALUES (?, ?)"
+                ";");
+
+            stmt.bind(1, account_id);
+            stmt.bind(2, permission_name);
+            stmt.exec();
+        };
+
+        insert_permission(permission);
+        insert_permission("admin_access");
+    }
+
+    void clear_permission(
+        std::string const &account_name, std::string const &permission)
+    {
+        if (permission == "admin_access")
+        {
+            return;
+        }
+
+        auto const account =
+            paradice::model::account{.name = account_name};
+        auto const account_id = load_account_id(account);
+
+        if (has_permission(account, "admin_set_permission"))
+        {
+            return;
+        }
+
+        SQLite::Statement stmt(
+            database_,
+            "DELETE FROM account_permissions"
+            "    WHERE account_id=?"
+            "    AND permission=?"
+            ";");
+
+        stmt.bind(1, account_id);
+        stmt.bind(2, permission);
+        stmt.exec();
+    }
+
+    bool has_permission(
+        paradice::model::account const &account, std::string const &permission)
+    {
+        SQLite::Statement permission_query(
+            database_,
+            "SELECT 1"
+            "    FROM account_permissions"
+            "    WHERE account_id=?"
+            "      AND permission=?"
+            "    LIMIT 1;");
+
+        permission_query.bind(1, load_account_id(account));
+        permission_query.bind(2, permission);
+
+        return permission_query.executeStep();
+    }
+
     // ======================================================================
     // NEW_CHARACTER
     // ======================================================================
@@ -445,6 +560,29 @@ struct context_impl::impl
         shutdown_();
     }
 
+    void register_online_character(paradice::model::character &character)
+    {
+        online_characters_.push_back(&character);
+    }
+
+    void unregister_online_character(paradice::model::character &character)
+    {
+        auto const it = std::remove(
+            online_characters_.begin(), online_characters_.end(), &character);
+        online_characters_.erase(it, online_characters_.end());
+    }
+
+    paradice::model::character *find_online_character_by_name(
+        std::string const &name)
+    {
+        auto const it = std::find_if(
+            online_characters_.begin(),
+            online_characters_.end(),
+            [&name](auto const *character) { return character->name == name; });
+
+        return it == online_characters_.end() ? nullptr : *it;
+    }
+
     // ======================================================================
     // GET_MAIN_ROOM
     // ======================================================================
@@ -489,6 +627,20 @@ private:
             ");");
     }
 
+    void ensure_account_permissions_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS account_permissions ("
+            "    account_id INTEGER,"
+            "    permission TEXT,"
+            "    PRIMARY KEY (account_id, permission),"
+            "    FOREIGN KEY (account_id)"
+            "        REFERENCES accounts (id)"
+            "            ON DELETE CASCADE"
+            "            ON UPDATE NO ACTION"
+            ");");
+    }
+
     // ======================================================================
     // ENSURE_SCHEMA_CREATED
     // ======================================================================
@@ -496,6 +648,7 @@ private:
     {
         database_.exec("PRAGMA foreign_keys=ON;");
         ensure_accounts_table_created();
+        ensure_account_permissions_table_created();
         ensure_characters_table_created();
     }
 
@@ -503,6 +656,7 @@ private:
     SQLite::Database database_;
     std::function<void()> shutdown_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
+    std::vector<paradice::model::character *> online_characters_;
     paradice::model::room main_room_;
 };
 
@@ -610,6 +764,41 @@ paradice::model::account context_impl::load_account(
     return pimpl_->load_account(name, password);
 }
 
+std::vector<std::string> context_impl::list_accounts()
+{
+    return pimpl_->list_accounts();
+}
+
+std::vector<std::string> context_impl::list_characters(
+    std::string const &account_name)
+{
+    return pimpl_->list_characters(account_name);
+}
+
+void context_impl::set_password(
+    std::string const &account_name, std::string const &password)
+{
+    pimpl_->set_password(account_name, password);
+}
+
+void context_impl::set_permission(
+    std::string const &account_name, std::string const &permission)
+{
+    pimpl_->set_permission(account_name, permission);
+}
+
+void context_impl::clear_permission(
+    std::string const &account_name, std::string const &permission)
+{
+    pimpl_->clear_permission(account_name, permission);
+}
+
+bool context_impl::has_permission(
+    paradice::model::account const &account, std::string const &permission)
+{
+    return pimpl_->has_permission(account, permission);
+}
+
 // ==========================================================================
 // NEW_CHARACTER
 // ==========================================================================
@@ -643,6 +832,23 @@ paradice::model::character context_impl::load_character(
 void context_impl::shutdown()
 {
     pimpl_->shutdown();
+}
+
+void context_impl::register_online_character(paradice::model::character &character)
+{
+    pimpl_->register_online_character(character);
+}
+
+void context_impl::unregister_online_character(
+    paradice::model::character &character)
+{
+    pimpl_->unregister_online_character(character);
+}
+
+paradice::model::character *context_impl::find_online_character_by_name(
+    std::string const &name)
+{
+    return pimpl_->find_online_character_by_name(name);
 }
 
 // ==========================================================================

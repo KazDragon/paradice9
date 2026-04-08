@@ -1,11 +1,20 @@
-find_package(terminalpp 3.0.2 REQUIRED)
-find_package(munin 0.7.1 REQUIRED)
-find_package(telnetpp 3.0.0 REQUIRED)
-find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+if (NOT TARGET KazDragon::terminalpp)
+    find_package(terminalpp 4.0.2 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::munin)
+    find_package(munin 0.8.1 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::telnetpp)
+    find_package(telnetpp 4.0.0 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::consolepp)
+    find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+endif()
 find_package(Boost COMPONENTS program_options container REQUIRED)
-find_package(gsl-lite 0.38 REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(fmt REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -19,7 +28,8 @@ set (PARADICE_SOURCE_FILES
 #    src/communication.cpp
 #    src/configuration.cpp
     src/connection.cpp
-#    src/dice_roll_parser.cpp
+    src/dice.cpp
+    src/dice_roll_parser.cpp
 #    src/encounter.cpp
 #    src/gm.cpp
 #    src/help.cpp
@@ -29,14 +39,15 @@ set (PARADICE_SOURCE_FILES
 #    src/utility.cpp
 #    src/who.cpp
 
-    src/ui/detail/password_edit.cpp
-    src/ui/account_creation_page.cpp
-    src/ui/character_creation_page.cpp
-    src/ui/character_selection_page.cpp
-    src/ui/command_prompt.cpp
-    src/ui/main_page.cpp
-    src/ui/title_page.cpp
-    src/ui/user_interface.cpp
+    src/ui/components/password_edit.cpp
+    src/ui/components/roster.cpp
+    src/ui/pages/account_creation_page.cpp
+    src/ui/pages/character_creation_page.cpp
+    src/ui/pages/character_selection_page.cpp
+    src/ui/components/command_prompt.cpp
+    src/ui/pages/main_page.cpp
+    src/ui/pages/title_page.cpp
+    src/ui/shell/user_interface.cpp
 )
 
 set (PARADICE_INCLUDE_FILES
@@ -51,8 +62,9 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/configuration.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
-#    include/paradice/dice.hpp
-#    include/paradice/dice_roll_parser.hpp
+    include/paradice/dice.hpp
+    include/paradice/dice_roll_parser.hpp
+    include/paradice/room_lifecycle.hpp
 #    include/paradice/encounter.hpp
     include/paradice/export.hpp
 #    include/paradice/gm.hpp
@@ -65,15 +77,17 @@ set (PARADICE_INCLUDE_FILES
 
     include/paradice/model/account.hpp
     include/paradice/model/character.hpp
+    include/paradice/model/room_membership.hpp
     
-    include/paradice/ui/detail/password_edit.hpp
-    include/paradice/ui/account_creation_page.hpp
-    include/paradice/ui/character_creation_page.hpp
-    include/paradice/ui/character_selection_page.hpp
-    include/paradice/ui/command_prompt.hpp
-    include/paradice/ui/main_page.hpp
-    include/paradice/ui/title_page.hpp
-    include/paradice/ui/user_interface.hpp
+    include/paradice/ui/components/password_edit.hpp
+    include/paradice/ui/components/roster.hpp
+    include/paradice/ui/pages/account_creation_page.hpp
+    include/paradice/ui/pages/character_creation_page.hpp
+    include/paradice/ui/pages/character_selection_page.hpp
+    include/paradice/ui/components/command_prompt.hpp
+    include/paradice/ui/pages/main_page.hpp
+    include/paradice/ui/pages/title_page.hpp
+    include/paradice/ui/shell/user_interface.hpp
 )
 
 add_library(paradice
@@ -99,7 +113,6 @@ target_link_libraries(paradice
     PRIVATE
         KazDragon::munin
         KazDragon::telnetpp
-        fmt::fmt
         ZLIB::ZLIB
 )
 
@@ -107,4 +120,3 @@ target_link_libraries(paradice
 generate_export_header(paradice
     EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/paradice/export.hpp"
 )
-

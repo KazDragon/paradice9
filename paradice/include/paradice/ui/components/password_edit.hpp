@@ -1,7 +1,7 @@
 // ==========================================================================
-// Paradice Command Prompt
+// Paradice Password Edit
 //
-// Copyright (C) 2022 Matthew Chaplain, All Rights Reserved.
+// Copyright (C) 2020 Matthew Chaplain, All Rights Reserved.
 //
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
@@ -24,46 +24,54 @@
 //             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#ifndef PARADICE_UI_COMMAND_PROMPT_HPP_
-#define PARADICE_UI_COMMAND_PROMPT_HPP_
+#ifndef PARADICE_UI_PASSWORD_EDIT
+#define PARADICE_UI_PASSWORD_EDIT
 
 #include <munin/composite_component.hpp>
-
-#include <memory>
+#include <terminalpp/string.hpp>
 
 namespace paradice::ui {
 
-class command_prompt final : public munin::composite_component
+class password_edit : public munin::composite_component  // NOLINT
 {
 public:
     //* =====================================================================
     /// \brief Constructor
     //* =====================================================================
-    command_prompt();
+    password_edit();
 
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    ~command_prompt() override;
+    ~password_edit() override;
 
-    boost::signals2::signal<void(std::string const &)> on_command;
-
-protected:
     //* =====================================================================
-    /// \brief Called by event().  Derived classes must override this
-    /// function in order to handle events in a custom manner.
+    /// \brief Retrieves the underlying text
     //* =====================================================================
-    void do_event(boost::any const &event) override;
+    [[nodiscard]] terminalpp::string get_text() const;
 
 private:
+    //* =====================================================================
+    /// \brief Called by draw().  Derived classes must override this function
+    /// in order to draw onto the passed canvas.  A component must only draw
+    /// the part of itself specified by the region.
+    ///
+    /// \param surface the surface on which the component should draw itself.
+    /// \param region the region relative to this component's origin that
+    /// should be drawn.
+    //* =====================================================================
+    void do_draw(
+        munin::render_surface &surface,
+        terminalpp::rectangle const &region) const override;
+
     struct impl;
     std::unique_ptr<impl> pimpl_;
 };
 
 //* =========================================================================
-/// \brief Makes a new command prompt
+/// \brief Creates a new password edit
 //* =========================================================================
-std::shared_ptr<command_prompt> make_command_prompt();
+std::shared_ptr<password_edit> make_password_edit();
 
 }  // namespace paradice::ui
 

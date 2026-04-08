@@ -32,6 +32,7 @@
 #include <terminalpp/behaviour.hpp>
 #include <terminalpp/string.hpp>
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
@@ -61,7 +62,8 @@ public:
         boost::asio::io_context &io_context,
         context &ctx,
         connection &&cnx,
-        terminalpp::behaviour beh);
+        terminalpp::behaviour beh,
+        std::function<std::int32_t(std::uint32_t)> roller = {});
 
     //* =====================================================================
     /// \brief Destructor

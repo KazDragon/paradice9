@@ -64,6 +64,12 @@ struct fake_channel
 
 struct fake_context : paradice::context
 {
+    paradice::model::account loaded_account{
+        .name = "account",
+        .character_names = {"Mallory"}};
+    std::vector<std::pair<std::string, std::string>> granted_permissions;
+    std::size_t shutdown_calls{0};
+
     void add_client(std::shared_ptr<paradice::client> const &) override {}
     void remove_client(std::shared_ptr<paradice::client> const &) override {}
 
@@ -76,9 +82,7 @@ struct fake_context : paradice::context
     paradice::model::account load_account(
         std::string const &, std::string const &) override
     {
-        return {
-            .name = "account",
-            .character_names = {"Mallory"}};
+        return loaded_account;
     }
 
     paradice::model::character load_character(
@@ -98,7 +102,18 @@ struct fake_context : paradice::context
         return {};
     }
 
-    void shutdown() override {}
+    bool has_permission(
+        paradice::model::account const &account,
+        std::string const &permission) override
+    {
+        return std::find(
+                   granted_permissions.begin(),
+                   granted_permissions.end(),
+                   std::pair{account.name, permission}) !=
+               granted_permissions.end();
+    }
+
+    void shutdown() override { ++shutdown_calls; }
 
     void register_online_character(paradice::model::character &character) override
     {
@@ -700,4 +715,26 @@ TEST(a_client, reports_admin_shutdown_as_unknown_without_admin_access)
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ("Unknown command: /admin shutdown"_ts, context.direct_messages[0]);
+}
+
+TEST(a_client, reports_missing_permission_for_admin_shutdown_without_permission)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.granted_permissions.emplace_back("account", "admin_access");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/admin shutdown");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "You do not have permission to use /admin shutdown"_ts,
+        context.direct_messages[0]);
 }

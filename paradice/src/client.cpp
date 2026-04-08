@@ -505,6 +505,32 @@ private:
         return true;
     }
 
+    bool try_handle_admin_command(std::string const &input)
+    {
+        if (input.rfind("/admin", 0) != 0 || !active_account_ ||
+            !context_.has_permission(*active_account_, "admin_access"))
+        {
+            return false;
+        }
+
+        if (input == "/admin shutdown")
+        {
+            if (!context_.has_permission(*active_account_, "admin_shutdown"))
+            {
+                context_.send_message(
+                    *character_,
+                    "You do not have permission to use /admin shutdown");
+                return true;
+            }
+
+            context_.shutdown();
+            return true;
+        }
+
+        context_.send_message(*character_, "USAGE: /admin shutdown");
+        return true;
+    }
+
     std::int32_t roll_die(std::uint32_t sides)
     {
         if (roller_)
@@ -623,7 +649,8 @@ private:
     model::account on_login(
         std::string const &username, std::string const &password)
     {
-        return context_.load_account(username, password);
+        active_account_ = context_.load_account(username, password);
+        return *active_account_;
     }
 
     // ======================================================================
@@ -632,7 +659,8 @@ private:
     model::account on_new_account(
         std::string const &name, std::string const &password)
     {
-        return context_.new_account(name, password);
+        active_account_ = context_.new_account(name, password);
+        return *active_account_;
     }
 
     // ======================================================================
@@ -657,6 +685,11 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
+        if (try_handle_admin_command(input))
+        {
+            return;
+        }
+
         if (try_handle_tell_command(input))
         {
             return;
@@ -689,6 +722,7 @@ private:
     context &context_;
     connection connection_;
     std::function<std::int32_t(std::uint32_t)> roller_;
+    boost::optional<model::account> active_account_;
 
     std::array<terminalpp::byte, 4096> buffer_;
     std::array<terminalpp::byte, 4096>::size_type buffer_top_{0};

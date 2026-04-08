@@ -109,6 +109,10 @@ public:
     paradice::model::account load_account(
         std::string const &name, std::string const &password) override;
 
+    bool has_permission(
+        paradice::model::account const &account,
+        std::string const &permission) override;
+
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.

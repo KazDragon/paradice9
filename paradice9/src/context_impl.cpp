@@ -335,6 +335,12 @@ struct context_impl::impl
         return account;
     }
 
+    bool has_permission(
+        paradice::model::account const &, std::string const &)
+    {
+        return false;
+    }
+
     // ======================================================================
     // NEW_CHARACTER
     // ======================================================================
@@ -635,6 +641,12 @@ paradice::model::account context_impl::load_account(
     std::string const &name, std::string const &password)
 {
     return pimpl_->load_account(name, password);
+}
+
+bool context_impl::has_permission(
+    paradice::model::account const &account, std::string const &permission)
+{
+    return pimpl_->has_permission(account, permission);
 }
 
 // ==========================================================================

@@ -28,6 +28,12 @@ struct fake_context : paradice::context
         return {};
     }
 
+    bool has_permission(
+        paradice::model::account const &, std::string const &) override
+    {
+        return false;
+    }
+
     paradice::model::character load_character(
         paradice::model::account &, int) override
     {

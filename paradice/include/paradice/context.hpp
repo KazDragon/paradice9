@@ -34,6 +34,7 @@
 #include <terminalpp/string.hpp>
 
 #include <memory>
+#include <string>
 
 namespace paradice {
 
@@ -127,6 +128,12 @@ public:
     //* =====================================================================
     virtual model::account load_account(
         std::string const &name, std::string const &password) = 0;
+
+    //* =====================================================================
+    /// \brief Checks whether an account has a named permission.
+    //* =====================================================================
+    virtual bool has_permission(
+        model::account const &account, std::string const &permission) = 0;
 
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and

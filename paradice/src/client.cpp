@@ -76,6 +76,10 @@ constexpr auto admin_help_commands_message =
 constexpr auto admin_shutdown_help_message =
     "Admin commands:\n/admin shutdown\n/admin list_accounts\n"
     "/admin list_characters <account>";
+constexpr auto admin_set_password_help_message =
+    "Admin commands:\n/admin list_accounts\n"
+    "/admin list_characters <account>\n"
+    "/admin set_password <account> <password>";
 constexpr auto admin_access_help_message =
     "Admin commands:\n/admin list_accounts\n/admin list_characters <account>";
 constexpr auto help_commands_message =
@@ -677,6 +681,8 @@ private:
                 *character_,
                 context_.has_permission(*active_account_, "admin_shutdown")
                     ? admin_shutdown_help_message
+                : context_.has_permission(*active_account_, "admin_set_password")
+                    ? admin_set_password_help_message
                     : admin_access_help_message);
             return true;
         }

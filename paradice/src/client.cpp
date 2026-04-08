@@ -59,6 +59,12 @@ namespace paradice {
 namespace {
 
 constexpr terminalpp::extent default_window_size{80, 24};
+constexpr auto roll_usage_message =
+    "\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
+    "\n Example: roll 2d6+3-20"
+    "\n Example: roll 20*2d6"
+    "\n Example: roll 1d10+4 initiative"
+    "\n";
 
 template <typename... Ts>
 struct overloaded : Ts...
@@ -438,6 +444,7 @@ private:
 
         if (!parse_dice_roll(begin, end))
         {
+            context_.send_message(*character_, roll_usage_message);
             return true;
         }
 

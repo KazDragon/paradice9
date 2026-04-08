@@ -496,3 +496,28 @@ TEST(a_client, routes_slash_roll_prefixed_input_as_shared_dice_rolling)
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());
 }
+
+TEST(a_client, reports_invalid_roll_usage_to_the_sender_without_room_broadcast)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/roll nope");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "\n Usage:   roll [n*]<dice>d<sides>[<bonuses...>] [<category>]"
+        "\n Example: roll 2d6+3-20"
+        "\n Example: roll 20*2d6"
+        "\n Example: roll 1d10+4 initiative"
+        "\n"_ts,
+        context.direct_messages[0]);
+}

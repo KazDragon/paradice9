@@ -59,3 +59,28 @@ TEST_F(
 
     ASSERT_NO_THROW(context.load_account("account", "secret"));
 }
+
+TEST_F(
+    a_context_impl_fixture,
+    grants_a_named_permission_and_admin_access_after_set_permission)
+{
+    auto account = context.new_account("account", "password");
+
+    context.set_permission("account", "admin_shutdown");
+
+    ASSERT_TRUE(context.has_permission(account, "admin_shutdown"));
+    ASSERT_TRUE(context.has_permission(account, "admin_access"));
+}
+
+TEST_F(
+    a_context_impl_fixture,
+    clears_a_named_permission_but_retains_admin_access_after_clear_permission)
+{
+    auto account = context.new_account("account", "password");
+    context.set_permission("account", "admin_shutdown");
+
+    context.clear_permission("account", "admin_shutdown");
+
+    ASSERT_FALSE(context.has_permission(account, "admin_shutdown"));
+    ASSERT_TRUE(context.has_permission(account, "admin_access"));
+}

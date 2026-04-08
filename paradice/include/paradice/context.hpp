@@ -153,6 +153,18 @@ public:
         std::string const &account_name, std::string const &password) = 0;
 
     //* =====================================================================
+    /// \brief Grants the named permission to the named account.
+    //* =====================================================================
+    virtual void set_permission(
+        std::string const &account_name, std::string const &permission) = 0;
+
+    //* =====================================================================
+    /// \brief Clears the named permission from the named account.
+    //* =====================================================================
+    virtual void clear_permission(
+        std::string const &account_name, std::string const &permission) = 0;
+
+    //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.
     /// \throw unexpected_error if any error occurs.

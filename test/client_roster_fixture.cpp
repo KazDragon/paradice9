@@ -73,6 +73,8 @@ struct fake_context : paradice::context
         {"account", {"Mallory"}}};
     std::vector<std::pair<std::string, std::string>> updated_passwords;
     std::vector<std::pair<std::string, std::string>> granted_permissions;
+    std::vector<std::pair<std::string, std::string>> assigned_permissions;
+    std::vector<std::pair<std::string, std::string>> cleared_permissions;
     std::size_t shutdown_calls{0};
 
     void add_client(std::shared_ptr<paradice::client> const &) override {}
@@ -141,6 +143,37 @@ struct fake_context : paradice::context
         std::string const &password) override
     {
         updated_passwords.emplace_back(account_name, password);
+    }
+
+    void set_permission(
+        std::string const &account_name,
+        std::string const &permission) override
+    {
+        assigned_permissions.emplace_back(account_name, permission);
+        granted_permissions.emplace_back(account_name, permission);
+
+        if (permission != "admin_access" &&
+            std::find(
+                granted_permissions.begin(),
+                granted_permissions.end(),
+                std::pair{account_name, std::string{"admin_access"}}) ==
+                granted_permissions.end())
+        {
+            granted_permissions.emplace_back(account_name, "admin_access");
+        }
+    }
+
+    void clear_permission(
+        std::string const &account_name,
+        std::string const &permission) override
+    {
+        cleared_permissions.emplace_back(account_name, permission);
+
+        auto const remove_it = std::remove(
+            granted_permissions.begin(),
+            granted_permissions.end(),
+            std::pair{account_name, permission});
+        granted_permissions.erase(remove_it, granted_permissions.end());
     }
 
     void shutdown() override { ++shutdown_calls; }
@@ -926,5 +959,132 @@ TEST(a_client, reports_missing_permission_for_admin_set_permission_without_permi
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ(
         "You do not have permission to use /admin set_permission"_ts,
+        context.direct_messages[0]);
+}
+
+TEST(a_client, assigns_a_named_permission_for_admin_set_permission)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context,
+        context,
+        channel,
+        "/admin set_permission operator admin_shutdown");
+
+    auto const expected_assigned_permissions =
+        std::vector<std::pair<std::string, std::string>>{
+            {"operator", "admin_shutdown"}};
+    ASSERT_EQ(expected_assigned_permissions, context.assigned_permissions);
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_shutdown"));
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_access"));
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("Permission granted."_ts, context.direct_messages[0]);
+}
+
+TEST(a_client, reports_missing_permission_for_admin_clear_permission_without_permission)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.granted_permissions.emplace_back("account", "admin_access");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context,
+        context,
+        channel,
+        "/admin clear_permission operator admin_shutdown");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "You do not have permission to use /admin clear_permission"_ts,
+        context.direct_messages[0]);
+}
+
+TEST(a_client, clears_a_named_permission_for_admin_clear_permission)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+    context.granted_permissions.emplace_back("operator", "admin_access");
+    context.granted_permissions.emplace_back("operator", "admin_shutdown");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context,
+        context,
+        channel,
+        "/admin clear_permission operator admin_shutdown");
+
+    auto const expected_cleared_permissions =
+        std::vector<std::pair<std::string, std::string>>{
+            {"operator", "admin_shutdown"}};
+    ASSERT_EQ(expected_cleared_permissions, context.cleared_permissions);
+    ASSERT_FALSE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_shutdown"));
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_access"));
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("Permission cleared."_ts, context.direct_messages[0]);
+}
+
+TEST(a_client, does_not_clear_permissions_from_accounts_with_admin_set_permission)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+    context.granted_permissions.emplace_back("operator", "admin_access");
+    context.granted_permissions.emplace_back("operator", "admin_set_permission");
+    context.granted_permissions.emplace_back("operator", "admin_shutdown");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context,
+        context,
+        channel,
+        "/admin clear_permission operator admin_shutdown");
+
+    ASSERT_TRUE(context.cleared_permissions.empty());
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_shutdown"));
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "You cannot clear permissions from accounts with /admin set_permission."_ts,
         context.direct_messages[0]);
 }

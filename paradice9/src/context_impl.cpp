@@ -378,6 +378,53 @@ struct context_impl::impl
         }
     }
 
+    void set_permission(
+        std::string const &account_name, std::string const &permission)
+    {
+        auto const account =
+            paradice::model::account{.name = account_name};
+        auto const account_id = load_account_id(account);
+
+        auto insert_permission = [&](std::string const &permission_name) {
+            SQLite::Statement stmt(
+                database_,
+                "INSERT OR IGNORE INTO account_permissions "
+                "    VALUES (?, ?)"
+                ";");
+
+            stmt.bind(1, account_id);
+            stmt.bind(2, permission_name);
+            stmt.exec();
+        };
+
+        insert_permission(permission);
+        insert_permission("admin_access");
+    }
+
+    void clear_permission(
+        std::string const &account_name, std::string const &permission)
+    {
+        if (permission == "admin_access")
+        {
+            return;
+        }
+
+        auto const account =
+            paradice::model::account{.name = account_name};
+        auto const account_id = load_account_id(account);
+
+        SQLite::Statement stmt(
+            database_,
+            "DELETE FROM account_permissions"
+            "    WHERE account_id=?"
+            "    AND permission=?"
+            ";");
+
+        stmt.bind(1, account_id);
+        stmt.bind(2, permission);
+        stmt.exec();
+    }
+
     bool has_permission(
         paradice::model::account const &account, std::string const &permission)
     {
@@ -727,6 +774,18 @@ void context_impl::set_password(
     std::string const &account_name, std::string const &password)
 {
     pimpl_->set_password(account_name, password);
+}
+
+void context_impl::set_permission(
+    std::string const &account_name, std::string const &permission)
+{
+    pimpl_->set_permission(account_name, permission);
+}
+
+void context_impl::clear_permission(
+    std::string const &account_name, std::string const &permission)
+{
+    pimpl_->clear_permission(account_name, permission);
 }
 
 bool context_impl::has_permission(

@@ -598,13 +598,69 @@ private:
                     "You do not have permission to use /admin set_permission");
                 return true;
             }
+
+            auto arguments =
+                input.substr(std::string{"/admin set_permission "}.size());
+            auto const account_name_end = arguments.find(' ');
+
+            if (account_name_end == std::string::npos)
+            {
+                context_.send_message(
+                    *character_,
+                    "USAGE: /admin shutdown|list_accounts|list_characters "
+                    "<account>|set_password <account> <password>|"
+                    "set_permission <account> <permission>");
+                return true;
+            }
+
+            auto const account_name = arguments.substr(0, account_name_end);
+            auto const permission = arguments.substr(account_name_end + 1);
+
+            context_.set_permission(account_name, permission);
+            context_.send_message(*character_, "Permission granted.");
+            return true;
+        }
+
+        if (input.rfind("/admin clear_permission ", 0) == 0)
+        {
+            if (!context_.has_permission(
+                    *active_account_, "admin_set_permission"))
+            {
+                context_.send_message(
+                    *character_,
+                    "You do not have permission to use /admin clear_permission");
+                return true;
+            }
+
+            auto arguments =
+                input.substr(std::string{"/admin clear_permission "}.size());
+            auto const account_name_end = arguments.find(' ');
+
+            if (account_name_end == std::string::npos)
+            {
+                context_.send_message(
+                    *character_,
+                    "USAGE: /admin shutdown|list_accounts|list_characters "
+                    "<account>|set_password <account> <password>|"
+                    "set_permission <account> <permission>|"
+                    "clear_permission <account> <permission>");
+                return true;
+            }
+
+            auto const account_name = arguments.substr(0, account_name_end);
+            auto const permission = arguments.substr(account_name_end + 1);
+
+            context_.clear_permission(account_name, permission);
+            context_.send_message(*character_, "Permission cleared.");
+            return true;
         }
 
         context_.send_message(
             *character_,
             "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
             "set_password <account> <password>|"
-            "set_permission <account> <permission>");
+            "set_permission <account> <permission>|"
+            "clear_permission <account> <permission>");
         return true;
     }
 

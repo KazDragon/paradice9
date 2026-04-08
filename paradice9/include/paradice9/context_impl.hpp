@@ -122,6 +122,14 @@ public:
         std::string const &account_name,
         std::string const &password) override;
 
+    void set_permission(
+        std::string const &account_name,
+        std::string const &permission) override;
+
+    void clear_permission(
+        std::string const &account_name,
+        std::string const &permission) override;
+
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.

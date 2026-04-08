@@ -96,12 +96,14 @@ public:
         boost::asio::io_context &io_context,
         context &ctx,
         connection &&cnx,
-        terminalpp::behaviour beh)
+        terminalpp::behaviour beh,
+        std::function<std::int32_t(std::uint32_t)> roller)
       : self_{self},
         strand_{io_context},
         context_{ctx},
         canvas_{default_window_size},
         connection_{std::move(cnx)},
+        roller_{std::move(roller)},
         terminal_{connection_, beh},
         animator_(strand_),
         user_interface_{std::make_shared<ui::user_interface>(animator_)},
@@ -451,13 +453,10 @@ private:
             return true;
         }
 
-        auto random_source = std::random_device{};
-        auto generator = std::mt19937{random_source()};
-        auto const faces = roll_faces(*parsed_roll, [&](std::uint32_t sides) {
-            auto distribution =
-                std::uniform_int_distribution<std::int32_t>(1, sides);
-            return distribution(generator);
-        });
+        auto const faces =
+            roll_faces(*parsed_roll, [this](std::uint32_t sides) {
+                return roll_die(sides);
+            });
         auto const result_text = describe_roll_result(*parsed_roll, faces);
 
         context_.send_message(
@@ -468,6 +467,20 @@ private:
             *character_,
             std::format("{} rolls {} and scores {}", character_->name, roll_text, result_text));
         return true;
+    }
+
+    std::int32_t roll_die(std::uint32_t sides)
+    {
+        if (roller_)
+        {
+            return roller_(sides);
+        }
+
+        auto random_source = std::random_device{};
+        auto generator = std::mt19937{random_source()};
+        auto distribution =
+            std::uniform_int_distribution<std::int32_t>(1, sides);
+        return distribution(generator);
     }
 
     void update_roster_from_current_room()
@@ -639,6 +652,7 @@ private:
 
     context &context_;
     connection connection_;
+    std::function<std::int32_t(std::uint32_t)> roller_;
 
     std::array<terminalpp::byte, 4096> buffer_;
     std::array<terminalpp::byte, 4096>::size_type buffer_top_{0};
@@ -667,8 +681,10 @@ client::client(
     boost::asio::io_context &io_context,
     context &ctx,
     connection &&cnx,
-    terminalpp::behaviour beh)
-  : pimpl_(std::make_shared<impl>(*this, io_context, ctx, std::move(cnx), beh))
+    terminalpp::behaviour beh,
+    std::function<std::int32_t(std::uint32_t)> roller)
+  : pimpl_(std::make_shared<impl>(
+        *this, io_context, ctx, std::move(cnx), beh, std::move(roller)))
 {
 }
 

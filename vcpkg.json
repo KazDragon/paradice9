@@ -5,6 +5,7 @@
     "dependencies": [
         "boost-algorithm",
         "boost-asio",
+        "boost-circular-buffer",
         "boost-container",
         "boost-container-hash",
         "boost-exception",

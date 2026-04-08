@@ -335,6 +335,24 @@ struct context_impl::impl
         return account;
     }
 
+    std::vector<std::string> list_accounts()
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT name"
+            "    FROM accounts"
+            "    ORDER BY name"
+            ";");
+
+        auto account_names = std::vector<std::string>{};
+        while (account_query.executeStep())
+        {
+            account_names.emplace_back(account_query.getColumn(0));
+        }
+
+        return account_names;
+    }
+
     bool has_permission(
         paradice::model::account const &account, std::string const &permission)
     {
@@ -667,6 +685,11 @@ paradice::model::account context_impl::load_account(
     std::string const &name, std::string const &password)
 {
     return pimpl_->load_account(name, password);
+}
+
+std::vector<std::string> context_impl::list_accounts()
+{
+    return pimpl_->list_accounts();
 }
 
 bool context_impl::has_permission(

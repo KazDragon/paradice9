@@ -130,6 +130,11 @@ public:
         std::string const &name, std::string const &password) = 0;
 
     //* =====================================================================
+    /// \brief Lists account names known to the system.
+    //* =====================================================================
+    virtual std::vector<std::string> list_accounts() = 0;
+
+    //* =====================================================================
     /// \brief Checks whether an account has a named permission.
     //* =====================================================================
     virtual bool has_permission(

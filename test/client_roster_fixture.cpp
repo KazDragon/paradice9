@@ -67,6 +67,7 @@ struct fake_context : paradice::context
     paradice::model::account loaded_account{
         .name = "account",
         .character_names = {"Mallory"}};
+    std::vector<std::string> account_names{"account"};
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::size_t shutdown_calls{0};
 
@@ -111,6 +112,11 @@ struct fake_context : paradice::context
                    granted_permissions.end(),
                    std::pair{account.name, permission}) !=
                granted_permissions.end();
+    }
+
+    std::vector<std::string> list_accounts() override
+    {
+        return account_names;
     }
 
     void shutdown() override { ++shutdown_calls; }
@@ -775,4 +781,27 @@ TEST(a_client, does_not_shut_down_when_uppercase_q_is_typed)
     drain(io_context);
 
     ASSERT_EQ(0u, context.shutdown_calls);
+}
+
+TEST(a_client, lists_account_names_for_admin_list_accounts_with_admin_access)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.account_names = {"account", "operator", "guest"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/admin list_accounts");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "Accounts:\naccount\noperator\nguest"_ts,
+        context.direct_messages[0]);
 }

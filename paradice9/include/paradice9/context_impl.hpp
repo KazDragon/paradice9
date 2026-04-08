@@ -109,6 +109,8 @@ public:
     paradice::model::account load_account(
         std::string const &name, std::string const &password) override;
 
+    std::vector<std::string> list_accounts() override;
+
     bool has_permission(
         paradice::model::account const &account,
         std::string const &permission) override;

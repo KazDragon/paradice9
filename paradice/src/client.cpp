@@ -520,7 +520,22 @@ private:
             return true;
         }
 
-        context_.send_message(*character_, "USAGE: /admin shutdown");
+        if (input == "/admin list_accounts")
+        {
+            auto account_names = context_.list_accounts();
+            auto message = std::string{"Accounts:"};
+
+            for (auto const &account_name : account_names)
+            {
+                message += std::format("\n{}", account_name);
+            }
+
+            context_.send_message(*character_, message);
+            return true;
+        }
+
+        context_.send_message(
+            *character_, "USAGE: /admin shutdown|list_accounts");
         return true;
     }
 

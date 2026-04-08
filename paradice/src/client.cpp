@@ -556,9 +556,22 @@ private:
             return true;
         }
 
+        if (input.rfind("/admin set_password ", 0) == 0)
+        {
+            if (!context_.has_permission(
+                    *active_account_, "admin_set_password"))
+            {
+                context_.send_message(
+                    *character_,
+                    "You do not have permission to use /admin set_password");
+                return true;
+            }
+        }
+
         context_.send_message(
             *character_,
-            "USAGE: /admin shutdown|list_accounts|list_characters <account>");
+            "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+            "set_password <account> <password>");
         return true;
     }
 

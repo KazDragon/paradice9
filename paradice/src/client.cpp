@@ -51,6 +51,7 @@
 #include <format>
 #include <random>
 #include <string>
+#include <string_view>
 #include <cstdio>
 
 using namespace terminalpp::literals;  // NOLINT
@@ -73,17 +74,28 @@ constexpr auto admin_usage_message =
     "clear_permission <account> <permission>";
 constexpr auto admin_help_commands_message =
     "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
-constexpr auto admin_shutdown_help_message =
-    "Admin commands:\n/admin shutdown\n/admin list_accounts\n"
-    "/admin list_characters <account>";
-constexpr auto admin_set_password_help_message =
-    "Admin commands:\n/admin list_accounts\n"
-    "/admin list_characters <account>\n"
-    "/admin set_password <account> <password>";
-constexpr auto admin_access_help_message =
-    "Admin commands:\n/admin list_accounts\n/admin list_characters <account>";
 constexpr auto help_commands_message =
     "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
+
+struct admin_help_command
+{
+    std::string_view permission;
+    std::string_view command;
+};
+
+constexpr auto admin_help_commands = std::array{
+    admin_help_command{"admin_shutdown", "/admin shutdown"},
+    admin_help_command{"", "/admin list_accounts"},
+    admin_help_command{"", "/admin list_characters <account>"},
+    admin_help_command{
+        "admin_set_password",
+        "/admin set_password <account> <password>"},
+    admin_help_command{
+        "admin_set_permission",
+        "/admin set_permission <account> <permission>"},
+    admin_help_command{
+        "admin_set_permission",
+        "/admin clear_permission <account> <permission>"}};
 
 }  // namespace
 
@@ -390,6 +402,23 @@ private:
             arguments.substr(0, split), arguments.substr(split + 1)};
     }
 
+    [[nodiscard]] auto admin_help_message() const
+    {
+        auto commands = std::vector<std::string>{};
+
+        for (auto const &entry : admin_help_commands)
+        {
+            if (entry.permission.empty()
+                || context_.has_permission(
+                    *active_account_, std::string{entry.permission}))
+            {
+                commands.emplace_back(entry.command);
+            }
+        }
+
+        return as_titled_list("Admin commands", commands);
+    }
+
     void emit_tell_messages(
         model::character &recipient, std::string const &message)
     {
@@ -677,13 +706,7 @@ private:
                 return false;
             }
 
-            context_.send_message(
-                *character_,
-                context_.has_permission(*active_account_, "admin_shutdown")
-                    ? admin_shutdown_help_message
-                : context_.has_permission(*active_account_, "admin_set_password")
-                    ? admin_set_password_help_message
-                    : admin_access_help_message);
+            context_.send_message(*character_, admin_help_message());
             return true;
         }
 

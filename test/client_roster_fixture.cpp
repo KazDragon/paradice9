@@ -1156,3 +1156,28 @@ TEST(a_client, lists_admin_access_commands_for_help_admin)
         "Admin commands:\n/admin list_accounts\n/admin list_characters <account>"_ts,
         context.direct_messages[0]);
 }
+
+TEST(a_client, includes_shutdown_in_help_admin_for_a_caller_with_admin_shutdown)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_shutdown");
+
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/help admin");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ(
+        "Admin commands:\n/admin shutdown\n/admin list_accounts\n/admin list_characters <account>"_ts,
+        context.direct_messages[0]);
+}

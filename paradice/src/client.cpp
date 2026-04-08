@@ -73,6 +73,9 @@ constexpr auto admin_usage_message =
     "clear_permission <account> <permission>";
 constexpr auto admin_help_commands_message =
     "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
+constexpr auto admin_shutdown_help_message =
+    "Admin commands:\n/admin shutdown\n/admin list_accounts\n"
+    "/admin list_characters <account>";
 constexpr auto admin_access_help_message =
     "Admin commands:\n/admin list_accounts\n/admin list_characters <account>";
 constexpr auto help_commands_message =
@@ -670,7 +673,11 @@ private:
                 return false;
             }
 
-            context_.send_message(*character_, admin_access_help_message);
+            context_.send_message(
+                *character_,
+                context_.has_permission(*active_account_, "admin_shutdown")
+                    ? admin_shutdown_help_message
+                    : admin_access_help_message);
             return true;
         }
 

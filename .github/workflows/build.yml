@@ -58,6 +58,9 @@ jobs:
               -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" \
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
               -DCMAKE_POLICY_DEFAULT_CMP0167=OLD \
+              -DVCPKG_MANIFEST_MODE=ON \
+              -DVCPKG_MANIFEST_DIR="${{ github.workspace }}" \
+              -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed" \
               "$@"
             cmake --build "${build_dir}" --config "$BUILD_TYPE"
             cmake --install "${build_dir}" --config "$BUILD_TYPE"

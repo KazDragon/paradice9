@@ -462,6 +462,25 @@ private:
             return true;
         }
 
+        if (parsed_roll->sides_ == 0)
+        {
+            context_.send_message(
+                *character_,
+                "You fumble your roll and spill all your zero-sided dice on the floor.\n");
+
+            if (is_shared_roll)
+            {
+                context_.send_message(
+                    context_.get_main_room(),
+                    *character_,
+                    std::format(
+                        "{} fumbles their roll and spills a pile of zero-sided dice on the floor.\n",
+                        character_->name));
+            }
+
+            return true;
+        }
+
         auto const faces =
             roll_faces(*parsed_roll, [this](std::uint32_t sides) {
                 return roll_die(sides);

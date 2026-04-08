@@ -658,3 +658,27 @@ TEST(a_client, reports_invalid_private_roll_usage_only_to_the_sender)
         "\n"_ts,
         context.direct_messages[0]);
 }
+
+TEST(a_client, reports_zero_sided_dice_fumble_publicly)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/roll 1d0");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(1u, context.room_messages.size());
+    ASSERT_EQ(
+        "You fumble your roll and spill all your zero-sided dice on the floor.\n"_ts,
+        context.direct_messages[0]);
+    ASSERT_EQ(
+        "Mallory fumbles their roll and spills a pile of zero-sided dice on the floor.\n"_ts,
+        context.room_messages[0]);
+}

@@ -38,6 +38,8 @@ struct fake_context : paradice::context
         return {};
     }
 
+    void set_password(std::string const &, std::string const &) override {}
+
     bool has_permission(
         paradice::model::account const &, std::string const &) override
     {

@@ -71,6 +71,7 @@ struct fake_context : paradice::context
     std::vector<std::string> account_names{"account"};
     std::map<std::string, std::vector<std::string>> character_names_by_account{
         {"account", {"Mallory"}}};
+    std::vector<std::pair<std::string, std::string>> updated_passwords;
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::size_t shutdown_calls{0};
 
@@ -133,6 +134,13 @@ struct fake_context : paradice::context
         }
 
         return it->second;
+    }
+
+    void set_password(
+        std::string const &account_name,
+        std::string const &password) override
+    {
+        updated_passwords.emplace_back(account_name, password);
     }
 
     void shutdown() override { ++shutdown_calls; }
@@ -867,4 +875,30 @@ TEST(a_client, reports_missing_permission_for_admin_set_password_without_permiss
     ASSERT_EQ(
         "You do not have permission to use /admin set_password"_ts,
         context.direct_messages[0]);
+}
+
+TEST(a_client, updates_a_named_account_password_for_admin_set_password)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_password");
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context, context, paradice::connection(*channel), {});
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/admin set_password operator secret");
+
+    auto const expected_password_updates =
+        std::vector<std::pair<std::string, std::string>>{
+            {"operator", "secret"}};
+    ASSERT_EQ(expected_password_updates, context.updated_passwords);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("Password changed."_ts, context.direct_messages[0]);
 }

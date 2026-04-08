@@ -359,6 +359,25 @@ struct context_impl::impl
             load_account_id(paradice::model::account{account_name}));
     }
 
+    void set_password(
+        std::string const &account_name, std::string const &password)
+    {
+        SQLite::Statement stmt(
+            database_,
+            "UPDATE accounts"
+            "    SET password=?"
+            "    WHERE name=?"
+            ";");
+
+        stmt.bind(1, encrypt(password).text);
+        stmt.bind(2, account_name);
+
+        if (stmt.exec() == 0)
+        {
+            throw paradice::no_such_account_error{};
+        }
+    }
+
     bool has_permission(
         paradice::model::account const &account, std::string const &permission)
     {
@@ -702,6 +721,12 @@ std::vector<std::string> context_impl::list_characters(
     std::string const &account_name)
 {
     return pimpl_->list_characters(account_name);
+}
+
+void context_impl::set_password(
+    std::string const &account_name, std::string const &password)
+{
+    pimpl_->set_password(account_name, password);
 }
 
 bool context_impl::has_permission(

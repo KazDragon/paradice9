@@ -566,6 +566,26 @@ private:
                     "You do not have permission to use /admin set_password");
                 return true;
             }
+
+            auto arguments =
+                input.substr(std::string{"/admin set_password "}.size());
+            auto const account_name_end = arguments.find(' ');
+
+            if (account_name_end == std::string::npos)
+            {
+                context_.send_message(
+                    *character_,
+                    "USAGE: /admin shutdown|list_accounts|list_characters "
+                    "<account>|set_password <account> <password>");
+                return true;
+            }
+
+            auto const account_name = arguments.substr(0, account_name_end);
+            auto const password = arguments.substr(account_name_end + 1);
+
+            context_.set_password(account_name, password);
+            context_.send_message(*character_, "Password changed.");
+            return true;
         }
 
         context_.send_message(

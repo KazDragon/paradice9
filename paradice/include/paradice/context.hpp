@@ -147,6 +147,12 @@ public:
         std::string const &account_name) = 0;
 
     //* =====================================================================
+    /// \brief Updates the password for the named account.
+    //* =====================================================================
+    virtual void set_password(
+        std::string const &account_name, std::string const &password) = 0;
+
+    //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.
     /// \throw unexpected_error if any error occurs.

@@ -48,3 +48,14 @@ TEST_F(
 
     ASSERT_TRUE(context.has_permission(account, "admin_access"));
 }
+
+TEST_F(
+    a_context_impl_fixture,
+    loads_an_account_with_its_updated_password_after_set_password)
+{
+    context.new_account("account", "password");
+
+    context.set_password("account", "secret");
+
+    ASSERT_NO_THROW(context.load_account("account", "secret"));
+}

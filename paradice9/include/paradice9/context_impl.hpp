@@ -118,6 +118,10 @@ public:
     std::vector<std::string> list_characters(
         std::string const &account_name) override;
 
+    void set_password(
+        std::string const &account_name,
+        std::string const &password) override;
+
     //* =====================================================================
     /// \brief Loads a character that is identified by the passed account and
     /// index and returns it.

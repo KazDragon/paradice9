@@ -3,6 +3,10 @@ find_package(SQLiteCpp REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
 find_package(cryptopp REQUIRED)
 
+if (NOT TARGET KazDragon::munin)
+    find_package(munin 0.7.1 CONFIG REQUIRED)
+endif()
+
 add_executable(paradice_ui_tester
     client_roster_fixture.cpp
     dice_fixture.cpp

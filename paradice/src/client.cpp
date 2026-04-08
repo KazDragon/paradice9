@@ -436,12 +436,21 @@ private:
 
     bool try_handle_roll_command(std::string const &input)
     {
-        if (input.rfind("/roll ", 0) != 0)
+        auto const shared_roll_prefix = std::string{"/roll "};
+        auto const private_roll_prefix = std::string{"/rollprivate "};
+        auto const is_shared_roll =
+            input.rfind(shared_roll_prefix, 0) == 0;
+        auto const is_private_roll =
+            input.rfind(private_roll_prefix, 0) == 0;
+
+        if (!is_shared_roll && !is_private_roll)
         {
             return false;
         }
 
-        auto const roll_text = input.substr(6);
+        auto const roll_text = is_shared_roll
+                                   ? input.substr(shared_roll_prefix.size())
+                                   : input.substr(private_roll_prefix.size());
         auto begin = roll_text.cbegin();
         auto const end = roll_text.cend();
 
@@ -462,10 +471,18 @@ private:
         context_.send_message(
             *character_,
             std::format("you roll {} and score {}", roll_text, result_text));
-        context_.send_message(
-            context_.get_main_room(),
-            *character_,
-            std::format("{} rolls {} and scores {}", character_->name, roll_text, result_text));
+
+        if (is_shared_roll)
+        {
+            context_.send_message(
+                context_.get_main_room(),
+                *character_,
+                std::format(
+                    "{} rolls {} and scores {}",
+                    character_->name,
+                    roll_text,
+                    result_text));
+        }
         return true;
     }
 

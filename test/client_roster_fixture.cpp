@@ -592,3 +592,26 @@ TEST(a_client, reports_a_deterministic_shared_roll_with_multiple_dice_and_bonus_
         "you roll 3d9+3-2 initiative and score 7 [1, 2, 3]"_ts,
         "Mallory rolls 3d9+3-2 initiative and scores 7 [1, 2, 3]"_ts);
 }
+
+TEST(a_client, reports_a_deterministic_private_roll_only_to_the_sender)
+{
+    boost::asio::io_context io_context;
+    fake_context context;
+    auto channel = std::make_shared<fake_channel>();
+
+    paradice::client client(
+        io_context,
+        context,
+        paradice::connection(*channel),
+        {},
+        [&](std::uint32_t) { return 4; });
+
+    drain(io_context);
+    channel->written_.clear();
+    enter_game(io_context, channel);
+    enter_command_and_capture_messages(io_context, context, channel, "/rollprivate 1d6");
+
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(0u, context.room_messages.size());
+    ASSERT_EQ("you roll 1d6 and score 4 [4]"_ts, context.direct_messages[0]);
+}

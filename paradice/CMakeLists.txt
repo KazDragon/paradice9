@@ -1,13 +1,13 @@
 if (NOT TARGET KazDragon::terminalpp)
-    find_package(terminalpp 3.0.2 CONFIG REQUIRED)
+    find_package(terminalpp 4.0.2 CONFIG REQUIRED)
 endif()
 
 if (NOT TARGET KazDragon::munin)
-    find_package(munin 0.7.1 CONFIG REQUIRED)
+    find_package(munin 0.8.1 CONFIG REQUIRED)
 endif()
 
 if (NOT TARGET KazDragon::telnetpp)
-    find_package(telnetpp 3.0.0 CONFIG REQUIRED)
+    find_package(telnetpp 4.0.0 CONFIG REQUIRED)
 endif()
 
 if (NOT TARGET KazDragon::consolepp)

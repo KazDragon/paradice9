@@ -22,11 +22,11 @@ jobs:
       SERVERPP_REF: master
       SERVERPP_VERSION: "0.2.0"
       TELNETPP_REF: master
-      TELNETPP_VERSION: "3.0.0"
+      TELNETPP_VERSION: "4.0.0"
       TERMINALPP_REF: master
-      TERMINALPP_VERSION: "3.0.2"
+      TERMINALPP_VERSION: "4.0.2"
       MUNIN_REF: master
-      MUNIN_VERSION: "0.7.1"
+      MUNIN_VERSION: "0.8.1"
 
     steps:
       - uses: actions/checkout@v4

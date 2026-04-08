@@ -73,6 +73,8 @@ constexpr auto admin_usage_message =
     "clear_permission <account> <permission>";
 constexpr auto admin_help_commands_message =
     "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
+constexpr auto admin_access_help_message =
+    "Admin commands:\n/admin list_accounts\n/admin list_characters <account>";
 constexpr auto help_commands_message =
     "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
 
@@ -661,6 +663,17 @@ private:
 
     bool try_handle_help_command(std::string const &input)
     {
+        if (input == "/help admin")
+        {
+            if (!context_.has_permission(*active_account_, "admin_access"))
+            {
+                return false;
+            }
+
+            context_.send_message(*character_, admin_access_help_message);
+            return true;
+        }
+
         if (input != "/help")
         {
             return false;

@@ -401,6 +401,13 @@ private:
         return granted_permissions;
     }
 
+    [[nodiscard]] auto has_active_account_permission(
+        std::string_view permission) const -> bool
+    {
+        return active_account_
+               && context_.has_permission(*active_account_, std::string{permission});
+    }
+
     [[nodiscard]] auto admin_help_message() const
     {
         return as_titled_list(
@@ -412,9 +419,8 @@ private:
     {
         return as_titled_list(
             "Commands",
-            visible_top_level_commands(context_.has_permission(
-                *active_account_,
-                permissions::admin_access.data())));
+            visible_top_level_commands(
+                has_active_account_permission(permissions::admin_access)));
     }
 
     void emit_tell_messages(
@@ -551,14 +557,14 @@ private:
     bool try_handle_admin_command(std::string const &input)
     {
         if (!input.starts_with("/admin") || !active_account_
-            || !context_.has_permission(*active_account_, "admin_access"))
+            || !has_active_account_permission(permissions::admin_access))
         {
             return false;
         }
 
         if (input == "/admin shutdown")
         {
-            if (!context_.has_permission(*active_account_, "admin_shutdown"))
+            if (!has_active_account_permission(permissions::admin_shutdown))
             {
                 context_.send_message(
                     *character_,
@@ -597,8 +603,7 @@ private:
 
         if (input.starts_with("/admin set_password "))
         {
-            if (!context_.has_permission(
-                    *active_account_, "admin_set_password"))
+            if (!has_active_account_permission(permissions::admin_set_password))
             {
                 context_.send_message(
                     *character_,
@@ -625,8 +630,8 @@ private:
 
         if (input.starts_with("/admin set_permission "))
         {
-            if (!context_.has_permission(
-                    *active_account_, "admin_set_permission"))
+            if (!has_active_account_permission(
+                    permissions::admin_set_permission))
             {
                 context_.send_message(
                     *character_,
@@ -653,8 +658,8 @@ private:
 
         if (input.starts_with("/admin clear_permission "))
         {
-            if (!context_.has_permission(
-                    *active_account_, "admin_set_permission"))
+            if (!has_active_account_permission(
+                    permissions::admin_set_permission))
             {
                 context_.send_message(
                     *character_,
@@ -677,7 +682,8 @@ private:
             auto const target_account = model::account{.name = account_name};
 
             if (context_.has_permission(
-                    target_account, "admin_set_permission"))
+                    target_account,
+                    std::string{permissions::admin_set_permission}))
             {
                 context_.send_message(
                     *character_,
@@ -699,7 +705,7 @@ private:
     {
         if (input == "/help admin")
         {
-            if (!context_.has_permission(*active_account_, permissions::admin_access.data()))
+            if (!has_active_account_permission(permissions::admin_access))
             {
                 return false;
             }

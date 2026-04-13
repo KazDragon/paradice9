@@ -62,6 +62,15 @@ auto try_handle_admin_command(
         return true;
     }
 
+    if (input == "/admin shutdown"
+        && context.has_permission(
+            active_account,
+            std::string{permissions::admin_shutdown}))
+    {
+        context.shutdown();
+        return true;
+    }
+
     if (input.starts_with("/admin list_characters"))
     {
         auto account_name =

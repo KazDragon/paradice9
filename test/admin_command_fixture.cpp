@@ -20,6 +20,7 @@ struct fake_context : paradice::context
     std::vector<std::string> account_names{"operator", "observer"};
     std::vector<std::string> character_names{"Mallory", "Eve"};
     std::vector<terminalpp::string> direct_messages;
+    std::size_t shutdown_calls{0};
     paradice::model::room main_room;
 
     void add_client(std::shared_ptr<paradice::client> const &) override {}
@@ -103,7 +104,7 @@ struct fake_context : paradice::context
         return {};
     }
 
-    void shutdown() override {}
+    void shutdown() override { ++shutdown_calls; }
 
     void register_online_character(paradice::model::character &) override {}
     void unregister_online_character(paradice::model::character &) override {}
@@ -276,4 +277,20 @@ TEST(admin_commands, does_not_clear_permissions_from_accounts_with_admin_set_per
     ASSERT_EQ(
         "You cannot clear permissions from accounts with /admin set_permission."_ts,
         context.direct_messages[0]);
+}
+
+TEST(admin_commands, shuts_down_for_shutdown_with_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_shutdown");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin shutdown");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(0u, context.direct_messages.size());
+    ASSERT_EQ(1u, context.shutdown_calls);
 }

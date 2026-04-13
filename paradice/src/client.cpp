@@ -74,10 +74,6 @@ constexpr auto admin_usage_message =
     "set_password <account> <password>|"
     "set_permission <account> <permission>|"
     "clear_permission <account> <permission>";
-constexpr auto admin_help_commands_message =
-    "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
-constexpr auto help_commands_message =
-    "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
 
 }  // namespace
 
@@ -412,6 +408,15 @@ private:
             visible_admin_commands(granted_admin_permissions()));
     }
 
+    [[nodiscard]] auto help_message() const
+    {
+        return as_titled_list(
+            "Commands",
+            visible_top_level_commands(context_.has_permission(
+                *active_account_,
+                permissions::admin_access.data())));
+    }
+
     void emit_tell_messages(
         model::character &recipient, std::string const &message)
     {
@@ -708,11 +713,7 @@ private:
             return false;
         }
 
-        context_.send_message(
-            *character_,
-            context_.has_permission(*active_account_, "admin_access")
-                ? admin_help_commands_message
-                : help_commands_message);
+        context_.send_message(*character_, help_message());
         return true;
     }
 

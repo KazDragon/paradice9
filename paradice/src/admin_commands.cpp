@@ -118,6 +118,38 @@ auto try_handle_admin_command(
         return true;
     }
 
+    if (input.starts_with("/admin clear_permission ")
+        && context.has_permission(
+            active_account,
+            std::string{permissions::admin_set_permission}))
+    {
+        auto const arguments =
+            input.substr(std::string{"/admin clear_permission "}.size());
+        auto const split = split_two_arguments(arguments);
+
+        if (!split)
+        {
+            return false;
+        }
+
+        auto const &[account_name, permission] = *split;
+
+        if (context.has_permission(
+                model::account{.name = account_name},
+                std::string{permissions::admin_set_permission}))
+        {
+            context.send_message(
+                character,
+                "You cannot clear permissions from accounts with /admin "
+                "set_permission.");
+            return true;
+        }
+
+        context.clear_permission(account_name, permission);
+        context.send_message(character, "Permission cleared.");
+        return true;
+    }
+
     return false;
 }
 

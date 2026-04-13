@@ -16,6 +16,7 @@ struct fake_context : paradice::context
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::vector<std::pair<std::string, std::string>> updated_passwords;
     std::vector<std::pair<std::string, std::string>> assigned_permissions;
+    std::vector<std::pair<std::string, std::string>> cleared_permissions;
     std::vector<std::string> account_names{"operator", "observer"};
     std::vector<std::string> character_names{"Mallory", "Eve"};
     std::vector<terminalpp::string> direct_messages;
@@ -79,8 +80,15 @@ struct fake_context : paradice::context
     }
 
     void clear_permission(
-        std::string const &, std::string const &) override
+        std::string const &account_name, std::string const &permission) override
     {
+        cleared_permissions.emplace_back(account_name, permission);
+
+        auto const remove_it = std::remove(
+            granted_permissions.begin(),
+            granted_permissions.end(),
+            std::pair{account_name, permission});
+        granted_permissions.erase(remove_it, granted_permissions.end());
     }
 
     paradice::model::character load_character(
@@ -212,4 +220,60 @@ TEST(admin_commands, assigns_permission_for_set_permission_with_permission)
         paradice::model::account{.name = "operator"}, "admin_access"));
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ("Permission granted."_ts, context.direct_messages[0]);
+}
+
+TEST(admin_commands, clears_permission_for_clear_permission_with_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+    context.granted_permissions.emplace_back("operator", "admin_access");
+    context.granted_permissions.emplace_back("operator", "admin_shutdown");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context,
+        active_account,
+        character,
+        "/admin clear_permission operator admin_shutdown");
+
+    ASSERT_TRUE(handled);
+    auto const expected_cleared_permissions =
+        std::vector<std::pair<std::string, std::string>>{
+            {"operator", "admin_shutdown"}};
+    ASSERT_EQ(expected_cleared_permissions, context.cleared_permissions);
+    ASSERT_FALSE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_shutdown"));
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_access"));
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ("Permission cleared."_ts, context.direct_messages[0]);
+}
+
+TEST(admin_commands, does_not_clear_permissions_from_accounts_with_admin_set_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+    context.granted_permissions.emplace_back("operator", "admin_access");
+    context.granted_permissions.emplace_back("operator", "admin_set_permission");
+    context.granted_permissions.emplace_back("operator", "admin_shutdown");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context,
+        active_account,
+        character,
+        "/admin clear_permission operator admin_shutdown");
+
+    ASSERT_TRUE(handled);
+    ASSERT_TRUE(context.cleared_permissions.empty());
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_shutdown"));
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "You cannot clear permissions from accounts with /admin set_permission."_ts,
+        context.direct_messages[0]);
 }

@@ -22,6 +22,7 @@ set (PARADICE_SOURCE_FILES
 #    src/account.cpp
 #    src/active_encounter.cpp
 #    src/admin.cpp
+    src/admin_commands.cpp
 #    src/beast.cpp
 #    src/character.cpp
     src/client.cpp
@@ -55,6 +56,7 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/account.hpp
 #    include/paradice/active_encounter.hpp
 #    include/paradice/admin.hpp
+    include/paradice/admin_commands.hpp
 #    include/paradice/beast.hpp
 #    include/paradice/character.hpp
     include/paradice/client.hpp

@@ -294,3 +294,21 @@ TEST(admin_commands, shuts_down_for_shutdown_with_permission)
     ASSERT_EQ(0u, context.direct_messages.size());
     ASSERT_EQ(1u, context.shutdown_calls);
 }
+
+TEST(admin_commands, reports_missing_permission_for_shutdown_without_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin shutdown");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "You do not have permission to use /admin shutdown"_ts,
+        context.direct_messages[0]);
+    ASSERT_EQ(0u, context.shutdown_calls);
+}

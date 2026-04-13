@@ -62,11 +62,18 @@ auto try_handle_admin_command(
         return true;
     }
 
-    if (input == "/admin shutdown"
-        && context.has_permission(
-            active_account,
-            std::string{permissions::admin_shutdown}))
+    if (input == "/admin shutdown")
     {
+        if (!context.has_permission(
+                active_account,
+                std::string{permissions::admin_shutdown}))
+        {
+            context.send_message(
+                character,
+                "You do not have permission to use /admin shutdown");
+            return true;
+        }
+
         context.shutdown();
         return true;
     }

@@ -583,23 +583,6 @@ private:
             return true;
         }
 
-        if (input.starts_with("/admin list_characters"))
-        {
-            auto account_name =
-                input.substr(std::string{"/admin list_characters"}.size());
-
-            if (!account_name.empty() && account_name.front() == ' ')
-            {
-                account_name.erase(0, 1);
-            }
-
-            context_.send_message(
-                *character_,
-                as_titled_list(
-                    "Characters", context_.list_characters(account_name)));
-            return true;
-        }
-
         if (input.starts_with("/admin set_password "))
         {
             if (!has_active_account_permission(permissions::admin_set_password))

@@ -26,9 +26,11 @@
 // ==========================================================================
 #include "paradice/client.hpp"
 
+#include "paradice/command_catalog.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
 #include "paradice/dice_roll_parser.hpp"
+#include "paradice/permissions.hpp"
 #include "paradice/room_lifecycle.hpp"
 #include "paradice/ui/message.hpp"
 #include "paradice/ui/shell/user_interface.hpp"
@@ -76,26 +78,6 @@ constexpr auto admin_help_commands_message =
     "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
 constexpr auto help_commands_message =
     "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
-
-struct admin_help_command
-{
-    std::string_view permission;
-    std::string_view command;
-};
-
-constexpr auto admin_help_commands = std::array{
-    admin_help_command{"admin_shutdown", "/admin shutdown"},
-    admin_help_command{"", "/admin list_accounts"},
-    admin_help_command{"", "/admin list_characters <account>"},
-    admin_help_command{
-        "admin_set_password",
-        "/admin set_password <account> <password>"},
-    admin_help_command{
-        "admin_set_permission",
-        "/admin set_permission <account> <permission>"},
-    admin_help_command{
-        "admin_set_permission",
-        "/admin clear_permission <account> <permission>"}};
 
 }  // namespace
 
@@ -402,21 +384,32 @@ private:
             arguments.substr(0, split), arguments.substr(split + 1)};
     }
 
-    [[nodiscard]] auto admin_help_message() const
+    [[nodiscard]] auto granted_admin_permissions() const
+        -> std::vector<std::string_view>
     {
-        auto commands = std::vector<std::string>{};
+        constexpr auto optional_admin_permissions = std::array{
+            permissions::admin_shutdown,
+            permissions::admin_set_password,
+            permissions::admin_set_permission};
 
-        for (auto const &entry : admin_help_commands)
+        auto granted_permissions = std::vector<std::string_view>{};
+
+        for (auto const permission : optional_admin_permissions)
         {
-            if (entry.permission.empty()
-                || context_.has_permission(
-                    *active_account_, std::string{entry.permission}))
+            if (context_.has_permission(*active_account_, std::string{permission}))
             {
-                commands.emplace_back(entry.command);
+                granted_permissions.push_back(permission);
             }
         }
 
-        return as_titled_list("Admin commands", commands);
+        return granted_permissions;
+    }
+
+    [[nodiscard]] auto admin_help_message() const
+    {
+        return as_titled_list(
+            "Admin commands",
+            visible_admin_commands(granted_admin_permissions()));
     }
 
     void emit_tell_messages(
@@ -701,7 +694,7 @@ private:
     {
         if (input == "/help admin")
         {
-            if (!context_.has_permission(*active_account_, "admin_access"))
+            if (!context_.has_permission(*active_account_, permissions::admin_access.data()))
             {
                 return false;
             }

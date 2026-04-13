@@ -16,11 +16,11 @@ struct admin_command_definition
 };
 
 constexpr auto admin_commands = std::array{
-    admin_command_definition{"", "/admin list_accounts"},
-    admin_command_definition{"", "/admin list_characters <account>"},
     admin_command_definition{
         permissions::admin_shutdown,
         "/admin shutdown"},
+    admin_command_definition{"", "/admin list_accounts"},
+    admin_command_definition{"", "/admin list_characters <account>"},
     admin_command_definition{
         permissions::admin_set_password,
         "/admin set_password <account> <password>"},

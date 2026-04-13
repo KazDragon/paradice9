@@ -15,6 +15,7 @@ struct fake_context : paradice::context
 {
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::vector<std::string> account_names{"operator", "observer"};
+    std::vector<std::string> character_names{"Mallory", "Eve"};
     std::vector<terminalpp::string> direct_messages;
     paradice::model::room main_room;
 
@@ -50,7 +51,7 @@ struct fake_context : paradice::context
 
     std::vector<std::string> list_characters(std::string const &) override
     {
-        return {};
+        return character_names;
     }
 
     void set_password(
@@ -133,5 +134,22 @@ TEST(admin_commands, lists_accounts_for_list_accounts_with_admin_access)
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(
         "Accounts:\noperator\nobserver"_ts,
+        context.direct_messages[0]);
+}
+
+TEST(admin_commands, lists_characters_for_list_characters_with_admin_access)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin list_characters operator");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "Characters:\nMallory\nEve"_ts,
         context.direct_messages[0]);
 }

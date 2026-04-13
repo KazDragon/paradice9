@@ -46,6 +46,22 @@ auto try_handle_admin_command(
         return true;
     }
 
+    if (input.starts_with("/admin list_characters"))
+    {
+        auto account_name =
+            input.substr(std::string{"/admin list_characters"}.size());
+
+        if (!account_name.empty() && account_name.front() == ' ')
+        {
+            account_name.erase(0, 1);
+        }
+
+        context.send_message(
+            character,
+            as_titled_list("Characters", context.list_characters(account_name)));
+        return true;
+    }
+
     return false;
 }
 

@@ -16,3 +16,13 @@ TEST(admin_command_catalog, lists_base_admin_commands_without_optional_permissio
 
     ASSERT_EQ(expected, result);
 }
+
+TEST(command_catalog, lists_first_tier_commands_without_admin_access)
+{
+    auto const result = paradice::visible_top_level_commands(false);
+
+    auto const expected = std::vector<std::string>{
+        "/help", "/roll", "/rollprivate", "/say", "/tell"};
+
+    ASSERT_EQ(expected, result);
+}

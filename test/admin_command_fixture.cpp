@@ -14,6 +14,7 @@ namespace {
 struct fake_context : paradice::context
 {
     std::vector<std::pair<std::string, std::string>> granted_permissions;
+    std::vector<std::pair<std::string, std::string>> updated_passwords;
     std::vector<std::string> account_names{"operator", "observer"};
     std::vector<std::string> character_names{"Mallory", "Eve"};
     std::vector<terminalpp::string> direct_messages;
@@ -55,8 +56,9 @@ struct fake_context : paradice::context
     }
 
     void set_password(
-        std::string const &, std::string const &) override
+        std::string const &account_name, std::string const &password) override
     {
+        updated_passwords.emplace_back(account_name, password);
     }
 
     void set_permission(
@@ -152,4 +154,23 @@ TEST(admin_commands, lists_characters_for_list_characters_with_admin_access)
     ASSERT_EQ(
         "Characters:\nMallory\nEve"_ts,
         context.direct_messages[0]);
+}
+
+TEST(admin_commands, updates_password_for_set_password_with_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_password");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin set_password operator secret");
+
+    ASSERT_TRUE(handled);
+    auto const expected_password_updates =
+        std::vector<std::pair<std::string, std::string>>{{"operator", "secret"}};
+    ASSERT_EQ(expected_password_updates, context.updated_passwords);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ("Password changed."_ts, context.direct_messages[0]);
 }

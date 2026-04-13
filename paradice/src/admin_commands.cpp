@@ -4,6 +4,8 @@
 #include "paradice/permissions.hpp"
 
 #include <format>
+#include <optional>
+#include <utility>
 #include <vector>
 
 namespace paradice {
@@ -21,6 +23,20 @@ namespace {
     }
 
     return message;
+}
+
+[[nodiscard]] auto split_two_arguments(std::string const &arguments)
+    -> std::optional<std::pair<std::string, std::string>>
+{
+    auto const split = arguments.find(' ');
+
+    if (split == std::string::npos)
+    {
+        return std::nullopt;
+    }
+
+    return std::pair{
+        arguments.substr(0, split), arguments.substr(split + 1)};
 }
 
 }  // namespace
@@ -59,6 +75,26 @@ auto try_handle_admin_command(
         context.send_message(
             character,
             as_titled_list("Characters", context.list_characters(account_name)));
+        return true;
+    }
+
+    if (input.starts_with("/admin set_password ")
+        && context.has_permission(
+            active_account,
+            std::string{permissions::admin_set_password}))
+    {
+        auto const arguments =
+            input.substr(std::string{"/admin set_password "}.size());
+        auto const split = split_two_arguments(arguments);
+
+        if (!split)
+        {
+            return false;
+        }
+
+        auto const &[account_name, password] = *split;
+        context.set_password(account_name, password);
+        context.send_message(character, "Password changed.");
         return true;
     }
 

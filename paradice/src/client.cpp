@@ -26,6 +26,7 @@
 // ==========================================================================
 #include "paradice/client.hpp"
 
+#include "paradice/admin_commands.hpp"
 #include "paradice/command_catalog.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
@@ -562,6 +563,12 @@ private:
             return false;
         }
 
+        if (paradice::try_handle_admin_command(
+                context_, *active_account_, *character_, input))
+        {
+            return true;
+        }
+
         if (input == "/admin shutdown")
         {
             if (!has_active_account_permission(permissions::admin_shutdown))
@@ -573,14 +580,6 @@ private:
             }
 
             context_.shutdown();
-            return true;
-        }
-
-        if (input == "/admin list_accounts")
-        {
-            context_.send_message(
-                *character_,
-                as_titled_list("Accounts", context_.list_accounts()));
             return true;
         }
 

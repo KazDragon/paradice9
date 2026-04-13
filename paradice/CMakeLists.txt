@@ -25,6 +25,7 @@ set (PARADICE_SOURCE_FILES
 #    src/beast.cpp
 #    src/character.cpp
     src/client.cpp
+    src/command_catalog.cpp
 #    src/communication.cpp
 #    src/configuration.cpp
     src/connection.cpp
@@ -58,12 +59,15 @@ set (PARADICE_INCLUDE_FILES
 #    include/paradice/character.hpp
     include/paradice/client.hpp
 #    include/paradice/command.hpp
+    include/paradice/command_catalog.hpp
+#    include/paradice/command.hpp
 #    include/paradice/communication.hpp
 #    include/paradice/configuration.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
     include/paradice/dice.hpp
     include/paradice/dice_roll_parser.hpp
+    include/paradice/permissions.hpp
     include/paradice/room_lifecycle.hpp
 #    include/paradice/encounter.hpp
     include/paradice/export.hpp

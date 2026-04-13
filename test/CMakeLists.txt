@@ -8,6 +8,7 @@ if (NOT TARGET KazDragon::munin)
 endif()
 
 add_executable(paradice_ui_tester
+    command_catalog_fixture.cpp
     client_roster_fixture.cpp
     dice_fixture.cpp
     dice_roll_parser_fixture.cpp

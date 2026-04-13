@@ -592,31 +592,12 @@ private:
             return true;
         }
 
-        if (input.starts_with("/admin set_permission "))
+        if (input.starts_with("/admin set_permission ")
+            && !has_active_account_permission(permissions::admin_set_permission))
         {
-            if (!has_active_account_permission(
-                    permissions::admin_set_permission))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin set_permission");
-                return true;
-            }
-
-            auto arguments =
-                input.substr(std::string{"/admin set_permission "}.size());
-            auto const split = split_two_arguments(arguments);
-
-            if (!split)
-            {
-                context_.send_message(*character_, admin_usage_message);
-                return true;
-            }
-
-            auto const &[account_name, permission] = *split;
-
-            context_.set_permission(account_name, permission);
-            context_.send_message(*character_, "Permission granted.");
+            context_.send_message(
+                *character_,
+                "You do not have permission to use /admin set_permission");
             return true;
         }
 

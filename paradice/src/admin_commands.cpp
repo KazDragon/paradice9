@@ -98,6 +98,26 @@ auto try_handle_admin_command(
         return true;
     }
 
+    if (input.starts_with("/admin set_permission ")
+        && context.has_permission(
+            active_account,
+            std::string{permissions::admin_set_permission}))
+    {
+        auto const arguments =
+            input.substr(std::string{"/admin set_permission "}.size());
+        auto const split = split_two_arguments(arguments);
+
+        if (!split)
+        {
+            return false;
+        }
+
+        auto const &[account_name, permission] = *split;
+        context.set_permission(account_name, permission);
+        context.send_message(character, "Permission granted.");
+        return true;
+    }
+
     return false;
 }
 

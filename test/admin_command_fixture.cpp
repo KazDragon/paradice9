@@ -15,6 +15,7 @@ struct fake_context : paradice::context
 {
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::vector<std::pair<std::string, std::string>> updated_passwords;
+    std::vector<std::pair<std::string, std::string>> assigned_permissions;
     std::vector<std::string> account_names{"operator", "observer"};
     std::vector<std::string> character_names{"Mallory", "Eve"};
     std::vector<terminalpp::string> direct_messages;
@@ -62,8 +63,19 @@ struct fake_context : paradice::context
     }
 
     void set_permission(
-        std::string const &, std::string const &) override
+        std::string const &account_name, std::string const &permission) override
     {
+        assigned_permissions.emplace_back(account_name, permission);
+        granted_permissions.emplace_back(account_name, permission);
+
+        if (permission != "admin_access"
+            && std::ranges::find(
+                   granted_permissions,
+                   std::pair{account_name, std::string{"admin_access"}})
+                   == granted_permissions.end())
+        {
+            granted_permissions.emplace_back(account_name, "admin_access");
+        }
     }
 
     void clear_permission(
@@ -173,4 +185,31 @@ TEST(admin_commands, updates_password_for_set_password_with_permission)
     ASSERT_EQ(expected_password_updates, context.updated_passwords);
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ("Password changed."_ts, context.direct_messages[0]);
+}
+
+TEST(admin_commands, assigns_permission_for_set_permission_with_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context,
+        active_account,
+        character,
+        "/admin set_permission operator admin_shutdown");
+
+    ASSERT_TRUE(handled);
+    auto const expected_assigned_permissions =
+        std::vector<std::pair<std::string, std::string>>{
+            {"operator", "admin_shutdown"}};
+    ASSERT_EQ(expected_assigned_permissions, context.assigned_permissions);
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_shutdown"));
+    ASSERT_TRUE(context.has_permission(
+        paradice::model::account{.name = "operator"}, "admin_access"));
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ("Permission granted."_ts, context.direct_messages[0]);
 }

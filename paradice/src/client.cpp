@@ -569,17 +569,12 @@ private:
             return true;
         }
 
-        if (input == "/admin shutdown")
+        if (input == "/admin shutdown"
+            && !has_active_account_permission(permissions::admin_shutdown))
         {
-            if (!has_active_account_permission(permissions::admin_shutdown))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin shutdown");
-                return true;
-            }
-
-            context_.shutdown();
+            context_.send_message(
+                *character_,
+                "You do not have permission to use /admin shutdown");
             return true;
         }
 

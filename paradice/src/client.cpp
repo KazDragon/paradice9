@@ -569,37 +569,6 @@ private:
             return true;
         }
 
-        if (input.starts_with("/admin set_password ")
-            && !has_active_account_permission(permissions::admin_set_password))
-        {
-            context_.send_message(
-                *character_,
-                "You do not have permission to use /admin set_password");
-            return true;
-        }
-
-        if (input.starts_with("/admin set_permission ")
-            && !has_active_account_permission(permissions::admin_set_permission))
-        {
-            context_.send_message(
-                *character_,
-                "You do not have permission to use /admin set_permission");
-            return true;
-        }
-
-        if (input.starts_with("/admin clear_permission "))
-        {
-            if (!has_active_account_permission(
-                    permissions::admin_set_permission))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin "
-                    "clear_permission");
-                return true;
-            }
-        }
-
         context_.send_message(*character_, admin_usage_message);
         return true;
     }

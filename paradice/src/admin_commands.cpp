@@ -94,11 +94,18 @@ auto try_handle_admin_command(
         return true;
     }
 
-    if (input.starts_with("/admin set_password ")
-        && context.has_permission(
-            active_account,
-            std::string{permissions::admin_set_password}))
+    if (input.starts_with("/admin set_password "))
     {
+        if (!context.has_permission(
+                active_account,
+                std::string{permissions::admin_set_password}))
+        {
+            context.send_message(
+                character,
+                "You do not have permission to use /admin set_password");
+            return true;
+        }
+
         auto const arguments =
             input.substr(std::string{"/admin set_password "}.size());
         auto const split = split_two_arguments(arguments);
@@ -114,11 +121,18 @@ auto try_handle_admin_command(
         return true;
     }
 
-    if (input.starts_with("/admin set_permission ")
-        && context.has_permission(
-            active_account,
-            std::string{permissions::admin_set_permission}))
+    if (input.starts_with("/admin set_permission "))
     {
+        if (!context.has_permission(
+                active_account,
+                std::string{permissions::admin_set_permission}))
+        {
+            context.send_message(
+                character,
+                "You do not have permission to use /admin set_permission");
+            return true;
+        }
+
         auto const arguments =
             input.substr(std::string{"/admin set_permission "}.size());
         auto const split = split_two_arguments(arguments);
@@ -134,11 +148,18 @@ auto try_handle_admin_command(
         return true;
     }
 
-    if (input.starts_with("/admin clear_permission ")
-        && context.has_permission(
-            active_account,
-            std::string{permissions::admin_set_permission}))
+    if (input.starts_with("/admin clear_permission "))
     {
+        if (!context.has_permission(
+                active_account,
+                std::string{permissions::admin_set_permission}))
+        {
+            context.send_message(
+                character,
+                "You do not have permission to use /admin clear_permission");
+            return true;
+        }
+
         auto const arguments =
             input.substr(std::string{"/admin clear_permission "}.size());
         auto const split = split_two_arguments(arguments);

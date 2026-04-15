@@ -5,6 +5,7 @@
 
 #include <format>
 #include <optional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -45,6 +46,75 @@ constexpr auto admin_usage_message =
         arguments.substr(0, split), arguments.substr(split + 1)};
 }
 
+[[nodiscard]] auto has_permission(
+    context &context,
+    model::account const &active_account,
+    std::string_view permission) -> bool
+{
+    return context.has_permission(active_account, std::string{permission});
+}
+
+void send_usage(context &context, model::character &character)
+{
+    context.send_message(character, admin_usage_message);
+}
+
+auto require_permission(
+    context &context,
+    model::account const &active_account,
+    model::character &character,
+    std::string_view permission,
+    std::string_view denial_message) -> bool
+{
+    if (has_permission(context, active_account, permission))
+    {
+        return true;
+    }
+
+    context.send_message(character, std::string{denial_message});
+    return false;
+}
+
+template <typename Action>
+auto handle_two_argument_command(
+    context &context,
+    model::account const &active_account,
+    model::character &character,
+    std::string const &input,
+    std::string_view prefix,
+    std::string_view permission,
+    std::string_view denial_message,
+    Action action) -> bool
+{
+    if (!input.starts_with(prefix))
+    {
+        return false;
+    }
+
+    if (!require_permission(
+            context,
+            active_account,
+            character,
+            permission,
+            denial_message))
+    {
+        return true;
+    }
+
+    auto const split =
+        split_two_arguments(input.substr(std::string{prefix}.size()));
+
+    if (!split)
+    {
+        send_usage(context, character);
+        return true;
+    }
+
+    auto const &[first, second] = *split;
+    action(first, second);
+    return true;
+}
+
 }  // namespace
 
 auto try_handle_admin_command(
@@ -54,9 +124,7 @@ auto try_handle_admin_command(
     std::string const &input) -> bool
 {
     if (!input.starts_with("/admin")
-        || !context.has_permission(
-            active_account,
-            std::string{permissions::admin_access}))
+        || !has_permission(context, active_account, permissions::admin_access))
     {
         return false;
     }
@@ -70,13 +138,13 @@ auto try_handle_admin_command(
 
     if (input == "/admin shutdown")
     {
-        if (!context.has_permission(
+        if (!require_permission(
+                context,
                 active_account,
-                std::string{permissions::admin_shutdown}))
-        {
-            context.send_message(
                 character,
-                "You do not have permission to use /admin shutdown");
+                permissions::admin_shutdown,
+                "You do not have permission to use /admin shutdown"))
+        {
             return true;
         }
 
@@ -100,103 +168,66 @@ auto try_handle_admin_command(
         return true;
     }
 
-    if (input.starts_with("/admin set_password "))
+    if (handle_two_argument_command(
+            context,
+            active_account,
+            character,
+            input,
+            "/admin set_password ",
+            permissions::admin_set_password,
+            "You do not have permission to use /admin set_password",
+            [&](auto const &account_name, auto const &password) {
+                context.set_password(account_name, password);
+                context.send_message(character, "Password changed.");
+            }))
     {
-        if (!context.has_permission(
-                active_account,
-                std::string{permissions::admin_set_password}))
-        {
-            context.send_message(
-                character,
-                "You do not have permission to use /admin set_password");
-            return true;
-        }
-
-        auto const arguments =
-            input.substr(std::string{"/admin set_password "}.size());
-        auto const split = split_two_arguments(arguments);
-
-        if (!split)
-        {
-            context.send_message(character, admin_usage_message);
-            return true;
-        }
-
-        auto const &[account_name, password] = *split;
-        context.set_password(account_name, password);
-        context.send_message(character, "Password changed.");
         return true;
     }
 
-    if (input.starts_with("/admin set_permission "))
+    if (handle_two_argument_command(
+            context,
+            active_account,
+            character,
+            input,
+            "/admin set_permission ",
+            permissions::admin_set_permission,
+            "You do not have permission to use /admin set_permission",
+            [&](auto const &account_name, auto const &permission) {
+                context.set_permission(account_name, permission);
+                context.send_message(character, "Permission granted.");
+            }))
     {
-        if (!context.has_permission(
-                active_account,
-                std::string{permissions::admin_set_permission}))
-        {
-            context.send_message(
-                character,
-                "You do not have permission to use /admin set_permission");
-            return true;
-        }
-
-        auto const arguments =
-            input.substr(std::string{"/admin set_permission "}.size());
-        auto const split = split_two_arguments(arguments);
-
-        if (!split)
-        {
-            context.send_message(character, admin_usage_message);
-            return true;
-        }
-
-        auto const &[account_name, permission] = *split;
-        context.set_permission(account_name, permission);
-        context.send_message(character, "Permission granted.");
         return true;
     }
 
-    if (input.starts_with("/admin clear_permission "))
+    if (handle_two_argument_command(
+            context,
+            active_account,
+            character,
+            input,
+            "/admin clear_permission ",
+            permissions::admin_set_permission,
+            "You do not have permission to use /admin clear_permission",
+            [&](auto const &account_name, auto const &permission) {
+                if (context.has_permission(
+                        model::account{.name = account_name},
+                        std::string{permissions::admin_set_permission}))
+                {
+                    context.send_message(
+                        character,
+                        "You cannot clear permissions from accounts with "
+                        "/admin set_permission.");
+                    return;
+                }
+
+                context.clear_permission(account_name, permission);
+                context.send_message(character, "Permission cleared.");
+            }))
     {
-        if (!context.has_permission(
-                active_account,
-                std::string{permissions::admin_set_permission}))
-        {
-            context.send_message(
-                character,
-                "You do not have permission to use /admin clear_permission");
-            return true;
-        }
-
-        auto const arguments =
-            input.substr(std::string{"/admin clear_permission "}.size());
-        auto const split = split_two_arguments(arguments);
-
-        if (!split)
-        {
-            context.send_message(character, admin_usage_message);
-            return true;
-        }
-
-        auto const &[account_name, permission] = *split;
-
-        if (context.has_permission(
-                model::account{.name = account_name},
-                std::string{permissions::admin_set_permission}))
-        {
-            context.send_message(
-                character,
-                "You cannot clear permissions from accounts with /admin "
-                "set_permission.");
-            return true;
-        }
-
-        context.clear_permission(account_name, permission);
-        context.send_message(character, "Permission cleared.");
         return true;
     }
 
-    context.send_message(character, admin_usage_message);
+    send_usage(context, character);
     return true;
 }
 

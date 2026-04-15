@@ -70,12 +70,6 @@ constexpr auto roll_usage_message =
     "\n Example: roll 20*2d6"
     "\n Example: roll 1d10+4 initiative"
     "\n";
-constexpr auto admin_usage_message =
-    "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
-    "set_password <account> <password>|"
-    "set_permission <account> <permission>|"
-    "clear_permission <account> <permission>";
-
 }  // namespace
 
 // ==========================================================================
@@ -568,9 +562,7 @@ private:
         {
             return true;
         }
-
-        context_.send_message(*character_, admin_usage_message);
-        return true;
+        return false;
     }
 
     bool try_handle_help_command(std::string const &input)

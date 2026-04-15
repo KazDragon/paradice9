@@ -214,6 +214,27 @@ TEST(admin_commands, reports_missing_permission_for_set_password_without_permiss
         context.direct_messages[0]);
 }
 
+TEST(admin_commands, reports_usage_for_malformed_set_password)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_password");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin set_password operator");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+        "set_password <account> <password>|"
+        "set_permission <account> <permission>|"
+        "clear_permission <account> <permission>"_ts,
+        context.direct_messages[0]);
+}
+
 TEST(admin_commands, assigns_permission_for_set_permission_with_permission)
 {
     auto context = fake_context{};
@@ -259,6 +280,27 @@ TEST(admin_commands, reports_missing_permission_for_set_permission_without_permi
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(
         "You do not have permission to use /admin set_permission"_ts,
+        context.direct_messages[0]);
+}
+
+TEST(admin_commands, reports_usage_for_malformed_set_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin set_permission operator");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+        "set_password <account> <password>|"
+        "set_permission <account> <permission>|"
+        "clear_permission <account> <permission>"_ts,
         context.direct_messages[0]);
 }
 
@@ -311,6 +353,27 @@ TEST(admin_commands, reports_missing_permission_for_clear_permission_without_per
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(
         "You do not have permission to use /admin clear_permission"_ts,
+        context.direct_messages[0]);
+}
+
+TEST(admin_commands, reports_usage_for_malformed_clear_permission)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+    context.granted_permissions.emplace_back("account", "admin_set_permission");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin clear_permission operator");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+        "set_password <account> <password>|"
+        "set_permission <account> <permission>|"
+        "clear_permission <account> <permission>"_ts,
         context.direct_messages[0]);
 }
 
@@ -373,4 +436,24 @@ TEST(admin_commands, reports_missing_permission_for_shutdown_without_permission)
         "You do not have permission to use /admin shutdown"_ts,
         context.direct_messages[0]);
     ASSERT_EQ(0u, context.shutdown_calls);
+}
+
+TEST(admin_commands, reports_usage_for_unknown_admin_command)
+{
+    auto context = fake_context{};
+    auto active_account = paradice::model::account{.name = "account"};
+    auto character = paradice::model::character{.name = "Mallory"};
+    context.granted_permissions.emplace_back("account", "admin_access");
+
+    auto const handled = paradice::try_handle_admin_command(
+        context, active_account, character, "/admin nope");
+
+    ASSERT_TRUE(handled);
+    ASSERT_EQ(1u, context.direct_messages.size());
+    ASSERT_EQ(
+        "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+        "set_password <account> <password>|"
+        "set_permission <account> <permission>|"
+        "clear_permission <account> <permission>"_ts,
+        context.direct_messages[0]);
 }

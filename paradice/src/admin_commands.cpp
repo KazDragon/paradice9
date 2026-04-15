@@ -12,6 +12,12 @@ namespace paradice {
 
 namespace {
 
+constexpr auto admin_usage_message =
+    "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
+    "set_password <account> <password>|"
+    "set_permission <account> <permission>|"
+    "clear_permission <account> <permission>";
+
 [[nodiscard]] auto as_titled_list(
     std::string const &title, std::vector<std::string> const &items)
 {
@@ -112,7 +118,8 @@ auto try_handle_admin_command(
 
         if (!split)
         {
-            return false;
+            context.send_message(character, admin_usage_message);
+            return true;
         }
 
         auto const &[account_name, password] = *split;
@@ -139,7 +146,8 @@ auto try_handle_admin_command(
 
         if (!split)
         {
-            return false;
+            context.send_message(character, admin_usage_message);
+            return true;
         }
 
         auto const &[account_name, permission] = *split;
@@ -166,7 +174,8 @@ auto try_handle_admin_command(
 
         if (!split)
         {
-            return false;
+            context.send_message(character, admin_usage_message);
+            return true;
         }
 
         auto const &[account_name, permission] = *split;
@@ -187,7 +196,8 @@ auto try_handle_admin_command(
         return true;
     }
 
-    return false;
+    context.send_message(character, admin_usage_message);
+    return true;
 }
 
 }  // namespace paradice

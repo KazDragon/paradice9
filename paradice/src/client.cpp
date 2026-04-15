@@ -587,6 +587,28 @@ private:
         return true;
     }
 
+    bool try_handle_say_command(std::string const &input)
+    {
+        if (!input.starts_with("/say "))
+        {
+            return false;
+        }
+
+        emit_say_messages(input.substr(5));
+        return true;
+    }
+
+    bool try_handle_unknown_slash_command(std::string const &input)
+    {
+        if (!input.starts_with('/'))
+        {
+            return false;
+        }
+
+        context_.send_message(*character_, std::format("Unknown command: {}", input));
+        return true;
+    }
+
     std::int32_t roll_die(std::uint32_t sides)
     {
         if (roller_)
@@ -741,37 +763,23 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
-        if (try_handle_admin_command(input))
-        {
-            return;
-        }
+        using command_handler = bool (impl::*)(std::string const &);
 
-        if (try_handle_help_command(input))
-        {
-            return;
-        }
+        constexpr auto command_handlers = std::array<command_handler, 6>{
+            &impl::try_handle_admin_command,
+            &impl::try_handle_help_command,
+            &impl::try_handle_tell_command,
+            &impl::try_handle_roll_command,
+            &impl::try_handle_say_command,
+            &impl::try_handle_unknown_slash_command,
+        };
 
-        if (try_handle_tell_command(input))
+        for (auto const handler : command_handlers)
         {
-            return;
-        }
-
-        if (try_handle_roll_command(input))
-        {
-            return;
-        }
-
-        if (input.starts_with("/say "))
-        {
-            emit_say_messages(input.substr(5));
-            return;
-        }
-
-        if (input.starts_with('/'))
-        {
-            context_.send_message(
-                *character_, std::format("Unknown command: {}", input));
-            return;
+            if ((this->*handler)(input))
+            {
+                return;
+            }
         }
 
         emit_say_messages(input);

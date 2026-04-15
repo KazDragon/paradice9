@@ -765,21 +765,40 @@ private:
     {
         using command_handler = bool (impl::*)(std::string const &);
 
-        constexpr auto command_handlers = std::array<command_handler, 6>{
-            &impl::try_handle_admin_command,
-            &impl::try_handle_help_command,
-            &impl::try_handle_tell_command,
-            &impl::try_handle_roll_command,
-            &impl::try_handle_say_command,
-            &impl::try_handle_unknown_slash_command,
+        auto const handler_for = [](top_level_command_id command) -> command_handler {
+            switch (command)
+            {
+            case top_level_command_id::admin:
+                return &impl::try_handle_admin_command;
+            case top_level_command_id::help:
+                return &impl::try_handle_help_command;
+            case top_level_command_id::roll:
+            case top_level_command_id::rollprivate:
+                return &impl::try_handle_roll_command;
+            case top_level_command_id::say:
+                return &impl::try_handle_say_command;
+            case top_level_command_id::tell:
+                return &impl::try_handle_tell_command;
+            }
+
+            return &impl::try_handle_unknown_slash_command;
         };
 
-        for (auto const handler : command_handlers)
+        auto const dispatchable_commands =
+            dispatchable_top_level_commands(
+                has_active_account_permission(permissions::admin_access));
+
+        for (auto const command : dispatchable_commands)
         {
-            if ((this->*handler)(input))
+            if ((this->*handler_for(command))(input))
             {
                 return;
             }
+        }
+
+        if (try_handle_unknown_slash_command(input))
+        {
+            return;
         }
 
         emit_say_messages(input);

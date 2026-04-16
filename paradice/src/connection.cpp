@@ -26,6 +26,8 @@
 // ==========================================================================
 #include "paradice/connection.hpp"
 
+#include <telnetpp/options/binary/server.hpp>
+#include <telnetpp/options/charset/server.hpp>
 #include <telnetpp/options/echo/server.hpp>
 #include <telnetpp/options/mccp/codec.hpp>
 #include <telnetpp/options/mccp/server.hpp>
@@ -34,6 +36,9 @@
 #include <telnetpp/options/suppress_ga/server.hpp>
 #include <telnetpp/options/terminal_type/client.hpp>
 #include <telnetpp/telnetpp.hpp>
+
+#include <format>
+#include <iostream>
 
 namespace paradice {
 
@@ -48,6 +53,38 @@ struct connection::impl
     explicit impl(std::unique_ptr<connection::channel_concept> &&channel)
       : channel_(std::move(channel))
     {
+        telnet_binary_server_.on_state_changed.connect([this]() {
+            std::cout << std::format(
+                "Binary option is now {}\n",
+                telnet_binary_server_.active() ? "active" : "inactive");
+
+            if (telnet_binary_server_.active())
+            {
+                telnet_charset_server_.activate();
+            }
+        });
+
+        telnet_charset_server_.on_state_changed.connect([this]() {
+            std::cout << std::format(
+                "Charset option is now {}\n",
+                telnet_charset_server_.active() ? "active" : "inactive");
+
+            if (telnet_charset_server_.active())
+            {
+                telnet_charset_server_.request_charsets();
+            }
+        });
+
+        telnet_charset_server_.on_charsets_advertised.connect(
+            [this](std::vector<telnetpp::byte_storage> const &charsets) {
+                std::cout << "Remote end advertised the following charsets:\n";
+
+                for (auto const &charset : charsets)
+                {
+                    std::cout << "  " << charset.data() << '\n';
+                }
+            });
+
         telnet_naws_client_.on_window_size_changed.connect(
             [this](auto &&width, auto &&height) {
                 this->on_window_size_changed(width, height);
@@ -60,6 +97,10 @@ struct connection::impl
             });
 
         telnet_terminal_type_client_.on_state_changed.connect([this]() {
+            std::cout << std::format(
+                "Terminal type option is now {}\n",
+                telnet_terminal_type_client_.active() ? "active" : "inactive");
+
             if (telnet_terminal_type_client_.active())
             {
                 telnet_terminal_type_client_.request_terminal_type();
@@ -67,6 +108,10 @@ struct connection::impl
         });
 
         telnet_mccp_server_.on_state_changed.connect([this]() {
+            std::cout << std::format(
+                "MCCP option is now {}\n",
+                telnet_mccp_server_.active() ? "active" : "inactive");
+
             channel_.mccp_active_ = telnet_mccp_server_.active();
 
             if (channel_.mccp_active_)
@@ -75,6 +120,8 @@ struct connection::impl
             }
         });
 
+        telnet_session_.install(telnet_binary_server_);
+        telnet_session_.install(telnet_charset_server_);
         telnet_session_.install(telnet_echo_server_);
         telnet_session_.install(telnet_suppress_ga_server_);
         telnet_session_.install(telnet_naws_client_);
@@ -82,6 +129,7 @@ struct connection::impl
         telnet_session_.install(telnet_mccp_server_);
 
         // Send the required activations.
+        telnet_binary_server_.activate();
         telnet_echo_server_.activate();
         telnet_suppress_ga_server_.activate();
         telnet_naws_client_.activate();
@@ -216,6 +264,8 @@ struct connection::impl
     mccp_channel channel_;
 
     telnetpp::session telnet_session_{channel_};
+    telnetpp::options::binary::server telnet_binary_server_{telnet_session_};
+    telnetpp::options::charset::server telnet_charset_server_{telnet_session_};
     telnetpp::options::echo::server telnet_echo_server_{telnet_session_};
     telnetpp::options::suppress_ga::server telnet_suppress_ga_server_{
         telnet_session_};

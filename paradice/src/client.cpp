@@ -387,7 +387,8 @@ private:
 
         for (auto const permission : optional_admin_permissions)
         {
-            if (context_.has_permission(*active_account_, std::string{permission}))
+            if (context_.has_permission(
+                    *active_account_, std::string{permission}))
             {
                 granted_permissions.push_back(permission);
             }
@@ -400,7 +401,8 @@ private:
         std::string_view permission) const -> bool
     {
         return active_account_
-               && context_.has_permission(*active_account_, std::string{permission});
+            && context_.has_permission(
+                *active_account_, std::string{permission});
     }
 
     [[nodiscard]] auto admin_help_message() const
@@ -471,8 +473,8 @@ private:
 
     void emit_say_messages(std::string const &spoken_text)
     {
-        context_.send_message(
-            *character_, std::format("you say, \"{}\"", spoken_text));
+        auto const encoded = terminalpp::encode(spoken_text);
+        context_.send_message(*character_, "You say, \"" + encoded + "\"");
         context_.send_message(
             context_.get_main_room(),
             *character_,
@@ -605,7 +607,8 @@ private:
             return false;
         }
 
-        context_.send_message(*character_, std::format("Unknown command: {}", input));
+        context_.send_message(
+            *character_, std::format("Unknown command: {}", input));
         return true;
     }
 
@@ -765,28 +768,28 @@ private:
     {
         using command_handler = bool (impl::*)(std::string const &);
 
-        auto const handler_for = [](top_level_command_id command) -> command_handler {
+        auto const handler_for =
+            [](top_level_command_id command) -> command_handler {
             switch (command)
             {
-            case top_level_command_id::admin:
-                return &impl::try_handle_admin_command;
-            case top_level_command_id::help:
-                return &impl::try_handle_help_command;
-            case top_level_command_id::roll:
-            case top_level_command_id::rollprivate:
-                return &impl::try_handle_roll_command;
-            case top_level_command_id::say:
-                return &impl::try_handle_say_command;
-            case top_level_command_id::tell:
-                return &impl::try_handle_tell_command;
+                case top_level_command_id::admin:
+                    return &impl::try_handle_admin_command;
+                case top_level_command_id::help:
+                    return &impl::try_handle_help_command;
+                case top_level_command_id::roll:
+                case top_level_command_id::rollprivate:
+                    return &impl::try_handle_roll_command;
+                case top_level_command_id::say:
+                    return &impl::try_handle_say_command;
+                case top_level_command_id::tell:
+                    return &impl::try_handle_tell_command;
             }
 
             return &impl::try_handle_unknown_slash_command;
         };
 
-        auto const dispatchable_commands =
-            dispatchable_top_level_commands(
-                has_active_account_permission(permissions::admin_access));
+        auto const dispatchable_commands = dispatchable_top_level_commands(
+            has_active_account_permission(permissions::admin_access));
 
         for (auto const command : dispatchable_commands)
         {

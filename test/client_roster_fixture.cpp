@@ -1,5 +1,3 @@
-#include <gtest/gtest.h>
-
 #include <paradice/client.hpp>
 #include <paradice/connection.hpp>
 #include <paradice/context.hpp>
@@ -7,8 +5,8 @@
 #include <paradice/model/character.hpp>
 #include <paradice/model/room.hpp>
 #include <paradice/model/room_membership.hpp>
-
 #include <boost/asio/io_context.hpp>
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <functional>
@@ -66,19 +64,23 @@ struct fake_channel
 struct fake_context : paradice::context
 {
     paradice::model::account loaded_account{
-        .name = "account",
-        .character_names = {"Mallory"}};
+        .name = "account", .character_names = {"Mallory"}};
     std::vector<std::string> account_names{"account"};
     std::map<std::string, std::vector<std::string>> character_names_by_account{
-        {"account", {"Mallory"}}};
+        {"account", {"Mallory"}}
+    };
     std::vector<std::pair<std::string, std::string>> updated_passwords;
     std::vector<std::pair<std::string, std::string>> granted_permissions;
     std::vector<std::pair<std::string, std::string>> assigned_permissions;
     std::vector<std::pair<std::string, std::string>> cleared_permissions;
     std::size_t shutdown_calls{0};
 
-    void add_client(std::shared_ptr<paradice::client> const &) override {}
-    void remove_client(std::shared_ptr<paradice::client> const &) override {}
+    void add_client(std::shared_ptr<paradice::client> const &) override
+    {
+    }
+    void remove_client(std::shared_ptr<paradice::client> const &) override
+    {
+    }
 
     paradice::model::account new_account(
         std::string const &, std::string const &) override
@@ -116,8 +118,8 @@ struct fake_context : paradice::context
         return std::find(
                    granted_permissions.begin(),
                    granted_permissions.end(),
-                   std::pair{account.name, permission}) !=
-               granted_permissions.end();
+                   std::pair{account.name, permission})
+            != granted_permissions.end();
     }
 
     std::vector<std::string> list_accounts() override
@@ -139,33 +141,30 @@ struct fake_context : paradice::context
     }
 
     void set_password(
-        std::string const &account_name,
-        std::string const &password) override
+        std::string const &account_name, std::string const &password) override
     {
         updated_passwords.emplace_back(account_name, password);
     }
 
     void set_permission(
-        std::string const &account_name,
-        std::string const &permission) override
+        std::string const &account_name, std::string const &permission) override
     {
         assigned_permissions.emplace_back(account_name, permission);
         granted_permissions.emplace_back(account_name, permission);
 
-        if (permission != "admin_access" &&
-            std::find(
-                granted_permissions.begin(),
-                granted_permissions.end(),
-                std::pair{account_name, std::string{"admin_access"}}) ==
-                granted_permissions.end())
+        if (permission != "admin_access"
+            && std::find(
+                   granted_permissions.begin(),
+                   granted_permissions.end(),
+                   std::pair{account_name, std::string{"admin_access"}})
+                   == granted_permissions.end())
         {
             granted_permissions.emplace_back(account_name, "admin_access");
         }
     }
 
     void clear_permission(
-        std::string const &account_name,
-        std::string const &permission) override
+        std::string const &account_name, std::string const &permission) override
     {
         cleared_permissions.emplace_back(account_name, permission);
 
@@ -176,9 +175,13 @@ struct fake_context : paradice::context
         granted_permissions.erase(remove_it, granted_permissions.end());
     }
 
-    void shutdown() override { ++shutdown_calls; }
+    void shutdown() override
+    {
+        ++shutdown_calls;
+    }
 
-    void register_online_character(paradice::model::character &character) override
+    void register_online_character(
+        paradice::model::character &character) override
     {
         online_characters.push_back(&character);
     }
@@ -291,12 +294,14 @@ void enter_command_and_capture_messages(
 }
 
 void assert_public_speech_messages(
-    fake_context const &context, std::string const &speaker, std::string const &message)
+    fake_context const &context,
+    std::string const &speaker,
+    std::string const &message)
 {
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());
     ASSERT_EQ(
-        "you say, \"" + message + "\"",
+        "You say, \"" + message + "\"",
         terminalpp::to_string(context.direct_messages[0]));
     ASSERT_EQ(
         speaker + " says, \"" + message + "\"",
@@ -361,7 +366,9 @@ void assert_deterministic_private_roll_message(
 
 }  // namespace
 
-TEST(a_client, displays_existing_room_members_in_the_roster_when_entering_the_game)
+TEST(
+    a_client,
+    displays_existing_room_members_in_the_roster_when_entering_the_game)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -390,7 +397,9 @@ TEST(a_client, displays_existing_room_members_in_the_roster_when_entering_the_ga
     ASSERT_NE(std::string::npos, to_string(channel->written_).find("Peggy"));
 }
 
-TEST(a_client, refreshes_the_roster_when_a_later_room_member_is_observed_after_entry)
+TEST(
+    a_client,
+    refreshes_the_roster_when_a_later_room_member_is_observed_after_entry)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -594,7 +603,9 @@ TEST(a_client, treats_non_slash_tell_text_as_public_speech)
     assert_public_speech_messages(context, "Mallory", "tell Peggy hello");
 }
 
-TEST(a_client, reports_unknown_slash_commands_to_the_sender_without_room_broadcast)
+TEST(
+    a_client,
+    reports_unknown_slash_commands_to_the_sender_without_room_broadcast)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -625,7 +636,8 @@ TEST(a_client, routes_slash_roll_prefixed_input_as_shared_dice_rolling)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/roll 1d6");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/roll 1d6");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());
@@ -643,7 +655,8 @@ TEST(a_client, reports_invalid_roll_usage_to_the_sender_without_room_broadcast)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/roll nope");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/roll nope");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
@@ -668,7 +681,8 @@ TEST(a_client, includes_the_bonus_in_the_reported_roll_total)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/roll 2d6+3");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/roll 2d6+3");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());
@@ -680,7 +694,8 @@ TEST(a_client, includes_the_bonus_in_the_reported_roll_total)
         terminalpp::to_string(context.room_messages[0]).find("and scores"));
 }
 
-TEST(a_client, reports_a_deterministic_shared_roll_with_category_faces_and_total)
+TEST(
+    a_client, reports_a_deterministic_shared_roll_with_category_faces_and_total)
 {
     assert_deterministic_roll_messages(
         "/roll 2d6+3 initiative",
@@ -689,7 +704,9 @@ TEST(a_client, reports_a_deterministic_shared_roll_with_category_faces_and_total
         "Mallory rolls 2d6+3 initiative and scores 9 [2, 4]"_ts);
 }
 
-TEST(a_client, reports_a_deterministic_shared_roll_with_multiple_dice_and_bonus_chain)
+TEST(
+    a_client,
+    reports_a_deterministic_shared_roll_with_multiple_dice_and_bonus_chain)
 {
     assert_deterministic_roll_messages(
         "/roll 3d9+3-2 initiative",
@@ -704,7 +721,9 @@ TEST(a_client, reports_a_deterministic_private_roll_only_to_the_sender)
         "/rollprivate 1d6", {4}, "you roll 1d6 and score 4 [4]"_ts);
 }
 
-TEST(a_client, reports_a_deterministic_private_roll_with_category_faces_and_total)
+TEST(
+    a_client,
+    reports_a_deterministic_private_roll_with_category_faces_and_total)
 {
     assert_deterministic_private_roll_message(
         "/rollprivate 2d6+3 initiative",
@@ -724,7 +743,8 @@ TEST(a_client, reports_invalid_private_roll_usage_only_to_the_sender)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/rollprivate nope");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/rollprivate nope");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
@@ -749,7 +769,8 @@ TEST(a_client, reports_zero_sided_dice_fumble_publicly)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/roll 1d0");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/roll 1d0");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(1u, context.room_messages.size());
@@ -773,11 +794,13 @@ TEST(a_client, reports_admin_shutdown_as_unknown_without_admin_access)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/admin shutdown");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/admin shutdown");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
-    ASSERT_EQ("Unknown command: /admin shutdown"_ts, context.direct_messages[0]);
+    ASSERT_EQ(
+        "Unknown command: /admin shutdown"_ts, context.direct_messages[0]);
 }
 
 TEST(a_client, reports_missing_permission_for_admin_shutdown_without_permission)
@@ -793,7 +816,8 @@ TEST(a_client, reports_missing_permission_for_admin_shutdown_without_permission)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/admin shutdown");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/admin shutdown");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
@@ -816,7 +840,8 @@ TEST(a_client, shuts_down_for_admin_shutdown_with_permission)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/admin shutdown");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/admin shutdown");
 
     ASSERT_EQ(0u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
@@ -854,16 +879,17 @@ TEST(a_client, lists_account_names_for_admin_list_accounts_with_admin_access)
     drain(io_context);
     channel->written_.clear();
     enter_game(io_context, channel);
-    enter_command_and_capture_messages(io_context, context, channel, "/admin list_accounts");
+    enter_command_and_capture_messages(
+        io_context, context, channel, "/admin list_accounts");
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ(
-        "Accounts:\naccount\noperator\nguest"_ts,
-        context.direct_messages[0]);
+        "Accounts:\naccount\noperator\nguest"_ts, context.direct_messages[0]);
 }
 
-TEST(a_client, lists_character_names_for_admin_list_characters_with_admin_access)
+TEST(
+    a_client, lists_character_names_for_admin_list_characters_with_admin_access)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -882,12 +908,12 @@ TEST(a_client, lists_character_names_for_admin_list_characters_with_admin_access
 
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
-    ASSERT_EQ(
-        "Characters:\nMallory\nTrinity"_ts,
-        context.direct_messages[0]);
+    ASSERT_EQ("Characters:\nMallory\nTrinity"_ts, context.direct_messages[0]);
 }
 
-TEST(a_client, reports_missing_permission_for_admin_set_password_without_permission)
+TEST(
+    a_client,
+    reports_missing_permission_for_admin_set_password_without_permission)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -929,14 +955,17 @@ TEST(a_client, updates_a_named_account_password_for_admin_set_password)
 
     auto const expected_password_updates =
         std::vector<std::pair<std::string, std::string>>{
-            {"operator", "secret"}};
+            {"operator", "secret"}
+    };
     ASSERT_EQ(expected_password_updates, context.updated_passwords);
     ASSERT_EQ(1u, context.direct_messages.size());
     ASSERT_EQ(0u, context.room_messages.size());
     ASSERT_EQ("Password changed."_ts, context.direct_messages[0]);
 }
 
-TEST(a_client, reports_missing_permission_for_admin_set_permission_without_permission)
+TEST(
+    a_client,
+    reports_missing_permission_for_admin_set_permission_without_permission)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -984,7 +1013,8 @@ TEST(a_client, assigns_a_named_permission_for_admin_set_permission)
 
     auto const expected_assigned_permissions =
         std::vector<std::pair<std::string, std::string>>{
-            {"operator", "admin_shutdown"}};
+            {"operator", "admin_shutdown"}
+    };
     ASSERT_EQ(expected_assigned_permissions, context.assigned_permissions);
     ASSERT_TRUE(context.has_permission(
         paradice::model::account{.name = "operator"}, "admin_shutdown"));
@@ -995,7 +1025,9 @@ TEST(a_client, assigns_a_named_permission_for_admin_set_permission)
     ASSERT_EQ("Permission granted."_ts, context.direct_messages[0]);
 }
 
-TEST(a_client, reports_missing_permission_for_admin_clear_permission_without_permission)
+TEST(
+    a_client,
+    reports_missing_permission_for_admin_clear_permission_without_permission)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -1045,7 +1077,8 @@ TEST(a_client, clears_a_named_permission_for_admin_clear_permission)
 
     auto const expected_cleared_permissions =
         std::vector<std::pair<std::string, std::string>>{
-            {"operator", "admin_shutdown"}};
+            {"operator", "admin_shutdown"}
+    };
     ASSERT_EQ(expected_cleared_permissions, context.cleared_permissions);
     ASSERT_FALSE(context.has_permission(
         paradice::model::account{.name = "operator"}, "admin_shutdown"));
@@ -1056,14 +1089,17 @@ TEST(a_client, clears_a_named_permission_for_admin_clear_permission)
     ASSERT_EQ("Permission cleared."_ts, context.direct_messages[0]);
 }
 
-TEST(a_client, does_not_clear_permissions_from_accounts_with_admin_set_permission)
+TEST(
+    a_client,
+    does_not_clear_permissions_from_accounts_with_admin_set_permission)
 {
     boost::asio::io_context io_context;
     fake_context context;
     context.granted_permissions.emplace_back("account", "admin_access");
     context.granted_permissions.emplace_back("account", "admin_set_permission");
     context.granted_permissions.emplace_back("operator", "admin_access");
-    context.granted_permissions.emplace_back("operator", "admin_set_permission");
+    context.granted_permissions.emplace_back(
+        "operator", "admin_set_permission");
     context.granted_permissions.emplace_back("operator", "admin_shutdown");
     auto channel = std::make_shared<fake_channel>();
 
@@ -1182,7 +1218,9 @@ TEST(a_client, includes_shutdown_in_help_admin_for_a_caller_with_admin_shutdown)
         context.direct_messages[0]);
 }
 
-TEST(a_client, includes_set_password_in_help_admin_for_a_caller_with_admin_set_password)
+TEST(
+    a_client,
+    includes_set_password_in_help_admin_for_a_caller_with_admin_set_password)
 {
     boost::asio::io_context io_context;
     fake_context context;
@@ -1207,7 +1245,9 @@ TEST(a_client, includes_set_password_in_help_admin_for_a_caller_with_admin_set_p
         context.direct_messages[0]);
 }
 
-TEST(a_client, includes_permission_management_in_help_admin_for_a_caller_with_admin_set_permission)
+TEST(
+    a_client,
+    includes_permission_management_in_help_admin_for_a_caller_with_admin_set_permission)
 {
     boost::asio::io_context io_context;
     fake_context context;

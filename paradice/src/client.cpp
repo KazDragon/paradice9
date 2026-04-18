@@ -26,9 +26,12 @@
 // ==========================================================================
 #include "paradice/client.hpp"
 
+#include "paradice/admin_commands.hpp"
+#include "paradice/command_catalog.hpp"
 #include "paradice/connection.hpp"
 #include "paradice/context.hpp"
 #include "paradice/dice_roll_parser.hpp"
+#include "paradice/permissions.hpp"
 #include "paradice/room_lifecycle.hpp"
 #include "paradice/ui/message.hpp"
 #include "paradice/ui/shell/user_interface.hpp"
@@ -67,36 +70,6 @@ constexpr auto roll_usage_message =
     "\n Example: roll 20*2d6"
     "\n Example: roll 1d10+4 initiative"
     "\n";
-constexpr auto admin_usage_message =
-    "USAGE: /admin shutdown|list_accounts|list_characters <account>|"
-    "set_password <account> <password>|"
-    "set_permission <account> <permission>|"
-    "clear_permission <account> <permission>";
-constexpr auto admin_help_commands_message =
-    "Commands:\n/admin\n/help\n/roll\n/rollprivate\n/say\n/tell";
-constexpr auto help_commands_message =
-    "Commands:\n/help\n/roll\n/rollprivate\n/say\n/tell";
-
-struct admin_help_command
-{
-    std::string_view permission;
-    std::string_view command;
-};
-
-constexpr auto admin_help_commands = std::array{
-    admin_help_command{"admin_shutdown", "/admin shutdown"},
-    admin_help_command{"", "/admin list_accounts"},
-    admin_help_command{"", "/admin list_characters <account>"},
-    admin_help_command{
-        "admin_set_password",
-        "/admin set_password <account> <password>"},
-    admin_help_command{
-        "admin_set_permission",
-        "/admin set_permission <account> <permission>"},
-    admin_help_command{
-        "admin_set_permission",
-        "/admin clear_permission <account> <permission>"}};
-
 }  // namespace
 
 // ==========================================================================
@@ -402,21 +375,49 @@ private:
             arguments.substr(0, split), arguments.substr(split + 1)};
     }
 
-    [[nodiscard]] auto admin_help_message() const
+    [[nodiscard]] auto granted_admin_permissions() const
+        -> std::vector<std::string_view>
     {
-        auto commands = std::vector<std::string>{};
+        constexpr auto optional_admin_permissions = std::array{
+            permissions::admin_shutdown,
+            permissions::admin_set_password,
+            permissions::admin_set_permission};
 
-        for (auto const &entry : admin_help_commands)
+        auto granted_permissions = std::vector<std::string_view>{};
+
+        for (auto const permission : optional_admin_permissions)
         {
-            if (entry.permission.empty()
-                || context_.has_permission(
-                    *active_account_, std::string{entry.permission}))
+            if (context_.has_permission(
+                    *active_account_, std::string{permission}))
             {
-                commands.emplace_back(entry.command);
+                granted_permissions.push_back(permission);
             }
         }
 
-        return as_titled_list("Admin commands", commands);
+        return granted_permissions;
+    }
+
+    [[nodiscard]] auto has_active_account_permission(
+        std::string_view permission) const -> bool
+    {
+        return active_account_
+            && context_.has_permission(
+                *active_account_, std::string{permission});
+    }
+
+    [[nodiscard]] auto admin_help_message() const
+    {
+        return as_titled_list(
+            "Admin commands",
+            visible_admin_commands(granted_admin_permissions()));
+    }
+
+    [[nodiscard]] auto help_message() const
+    {
+        return as_titled_list(
+            "Commands",
+            visible_top_level_commands(
+                has_active_account_permission(permissions::admin_access)));
     }
 
     void emit_tell_messages(
@@ -472,8 +473,8 @@ private:
 
     void emit_say_messages(std::string const &spoken_text)
     {
-        context_.send_message(
-            *character_, std::format("you say, \"{}\"", spoken_text));
+        auto const encoded = terminalpp::encode(spoken_text);
+        context_.send_message(*character_, "You say, \"" + encoded + "\"");
         context_.send_message(
             context_.get_main_room(),
             *character_,
@@ -553,155 +554,24 @@ private:
     bool try_handle_admin_command(std::string const &input)
     {
         if (!input.starts_with("/admin") || !active_account_
-            || !context_.has_permission(*active_account_, "admin_access"))
+            || !has_active_account_permission(permissions::admin_access))
         {
             return false;
         }
 
-        if (input == "/admin shutdown")
+        if (paradice::try_handle_admin_command(
+                context_, *active_account_, *character_, input))
         {
-            if (!context_.has_permission(*active_account_, "admin_shutdown"))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin shutdown");
-                return true;
-            }
-
-            context_.shutdown();
             return true;
         }
-
-        if (input == "/admin list_accounts")
-        {
-            context_.send_message(
-                *character_,
-                as_titled_list("Accounts", context_.list_accounts()));
-            return true;
-        }
-
-        if (input.starts_with("/admin list_characters"))
-        {
-            auto account_name =
-                input.substr(std::string{"/admin list_characters"}.size());
-
-            if (!account_name.empty() && account_name.front() == ' ')
-            {
-                account_name.erase(0, 1);
-            }
-
-            context_.send_message(
-                *character_,
-                as_titled_list(
-                    "Characters", context_.list_characters(account_name)));
-            return true;
-        }
-
-        if (input.starts_with("/admin set_password "))
-        {
-            if (!context_.has_permission(
-                    *active_account_, "admin_set_password"))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin set_password");
-                return true;
-            }
-
-            auto arguments =
-                input.substr(std::string{"/admin set_password "}.size());
-            auto const split = split_two_arguments(arguments);
-
-            if (!split)
-            {
-                context_.send_message(*character_, admin_usage_message);
-                return true;
-            }
-
-            auto const &[account_name, password] = *split;
-
-            context_.set_password(account_name, password);
-            context_.send_message(*character_, "Password changed.");
-            return true;
-        }
-
-        if (input.starts_with("/admin set_permission "))
-        {
-            if (!context_.has_permission(
-                    *active_account_, "admin_set_permission"))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin set_permission");
-                return true;
-            }
-
-            auto arguments =
-                input.substr(std::string{"/admin set_permission "}.size());
-            auto const split = split_two_arguments(arguments);
-
-            if (!split)
-            {
-                context_.send_message(*character_, admin_usage_message);
-                return true;
-            }
-
-            auto const &[account_name, permission] = *split;
-
-            context_.set_permission(account_name, permission);
-            context_.send_message(*character_, "Permission granted.");
-            return true;
-        }
-
-        if (input.starts_with("/admin clear_permission "))
-        {
-            if (!context_.has_permission(
-                    *active_account_, "admin_set_permission"))
-            {
-                context_.send_message(
-                    *character_,
-                    "You do not have permission to use /admin "
-                    "clear_permission");
-                return true;
-            }
-
-            auto arguments =
-                input.substr(std::string{"/admin clear_permission "}.size());
-            auto const split = split_two_arguments(arguments);
-
-            if (!split)
-            {
-                context_.send_message(*character_, admin_usage_message);
-                return true;
-            }
-
-            auto const &[account_name, permission] = *split;
-            auto const target_account = model::account{.name = account_name};
-
-            if (context_.has_permission(
-                    target_account, "admin_set_permission"))
-            {
-                context_.send_message(
-                    *character_,
-                    "You cannot clear permissions from accounts with /admin "
-                    "set_permission.");
-                return true;
-            }
-
-            context_.clear_permission(account_name, permission);
-            context_.send_message(*character_, "Permission cleared.");
-            return true;
-        }
-
-        context_.send_message(*character_, admin_usage_message);
-        return true;
+        return false;
     }
 
     bool try_handle_help_command(std::string const &input)
     {
         if (input == "/help admin")
         {
-            if (!context_.has_permission(*active_account_, "admin_access"))
+            if (!has_active_account_permission(permissions::admin_access))
             {
                 return false;
             }
@@ -715,11 +585,30 @@ private:
             return false;
         }
 
+        context_.send_message(*character_, help_message());
+        return true;
+    }
+
+    bool try_handle_say_command(std::string const &input)
+    {
+        if (!input.starts_with("/say "))
+        {
+            return false;
+        }
+
+        emit_say_messages(input.substr(5));
+        return true;
+    }
+
+    bool try_handle_unknown_slash_command(std::string const &input)
+    {
+        if (!input.starts_with('/'))
+        {
+            return false;
+        }
+
         context_.send_message(
-            *character_,
-            context_.has_permission(*active_account_, "admin_access")
-                ? admin_help_commands_message
-                : help_commands_message);
+            *character_, std::format("Unknown command: {}", input));
         return true;
     }
 
@@ -877,36 +766,41 @@ private:
     // ======================================================================
     void on_command(std::string const &input)
     {
-        if (try_handle_admin_command(input))
+        using command_handler = bool (impl::*)(std::string const &);
+
+        auto const handler_for =
+            [](top_level_command_id command) -> command_handler {
+            switch (command)
+            {
+                case top_level_command_id::admin:
+                    return &impl::try_handle_admin_command;
+                case top_level_command_id::help:
+                    return &impl::try_handle_help_command;
+                case top_level_command_id::roll:
+                case top_level_command_id::rollprivate:
+                    return &impl::try_handle_roll_command;
+                case top_level_command_id::say:
+                    return &impl::try_handle_say_command;
+                case top_level_command_id::tell:
+                    return &impl::try_handle_tell_command;
+            }
+
+            return &impl::try_handle_unknown_slash_command;
+        };
+
+        auto const dispatchable_commands = dispatchable_top_level_commands(
+            has_active_account_permission(permissions::admin_access));
+
+        for (auto const command : dispatchable_commands)
         {
-            return;
+            if ((this->*handler_for(command))(input))
+            {
+                return;
+            }
         }
 
-        if (try_handle_help_command(input))
+        if (try_handle_unknown_slash_command(input))
         {
-            return;
-        }
-
-        if (try_handle_tell_command(input))
-        {
-            return;
-        }
-
-        if (try_handle_roll_command(input))
-        {
-            return;
-        }
-
-        if (input.starts_with("/say "))
-        {
-            emit_say_messages(input.substr(5));
-            return;
-        }
-
-        if (input.starts_with('/'))
-        {
-            context_.send_message(
-                *character_, std::format("Unknown command: {}", input));
             return;
         }
 

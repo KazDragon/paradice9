@@ -76,11 +76,6 @@ public:
     virtual ~context() = default;
 
     //* =====================================================================
-    /// \brief Retrieves a list of clients currently connected to Paradice.
-    //* =====================================================================
-    // virtual std::vector<std::shared_ptr<client>> get_clients() = 0;
-
-    //* =====================================================================
     /// \brief Adds a client to the list of clients currently connected
     /// to Paradice.
     //* =====================================================================
@@ -93,18 +88,6 @@ public:
     virtual void remove_client(std::shared_ptr<client> const &cli) = 0;
 
     //* =====================================================================
-    /// \brief For all clients, updates their lists of names.
-    //* =====================================================================
-    // virtual void update_names() = 0;
-
-    //* =====================================================================
-    /// \brief Returns how a character appears to others, including prefix
-    /// and suffix.
-    //* =====================================================================
-    // virtual std::string get_moniker(std::shared_ptr<character> const &ch) =
-    // 0;
-
-    //* =====================================================================
     /// \brief Creates a new account
     /// \throw duplicate_account_error if an account with that name already
     ///        exists.
@@ -112,11 +95,6 @@ public:
     //* =====================================================================
     virtual model::account new_account(
         std::string const &name, std::string const &password) = 0;
-
-    //* =====================================================================
-    /// \brief Saves an account.
-    //* =====================================================================
-    // virtual void save_account(model::account const &acct) = 0;
 
     //* =====================================================================
     /// \brief Loads an account
@@ -182,11 +160,6 @@ public:
         model::account &acct, std::string const &character_name) = 0;
 
     //* =====================================================================
-    /// \brief Saves a character.
-    //* =====================================================================
-    // virtual void save_character(std::shared_ptr<character> const &ch) = 0;
-
-    //* =====================================================================
     /// \brief Enacts a server shutdown.
     //* =====================================================================
     virtual void shutdown() = 0;
@@ -206,34 +179,6 @@ public:
     //* =====================================================================
     virtual model::character *find_online_character_by_name(
         std::string const &name) = 0;
-
-    //* =====================================================================
-    /// \brief Gets the currently active encounter
-    //* =====================================================================
-    // virtual std::shared_ptr<paradice::active_encounter>
-    // get_active_encounter() = 0;
-
-    //* =====================================================================
-    /// \brief Sets the currently active encounter
-    //* =====================================================================
-    // virtual void set_active_encounter(
-    //     std::shared_ptr<paradice::active_encounter> const &enc) = 0;
-
-    //* =====================================================================
-    /// \brief Gets the visibility of the encounter.
-    //* =====================================================================
-    // virtual bool is_active_encounter_visible() const = 0;
-
-    //* =====================================================================
-    /// \brief Sets the visibility of the encounter for all players.
-    //* =====================================================================
-    // virtual void set_active_encounter_visible(bool visibility) = 0;
-
-    //* =====================================================================
-    /// \brief Informs the context that changes have been made to the
-    /// active encounter and that any related views should be updated.
-    //* =====================================================================
-    // virtual void update_active_encounter() = 0;
 
     //* =====================================================================
     /// \brief Sends a message to a character

@@ -27,33 +27,53 @@
 #ifndef PARADICE_CONTEXT_HPP_
 #define PARADICE_CONTEXT_HPP_
 
+#include "paradice/model/account.hpp"
+#include "paradice/model/character.hpp"
+#include "paradice/model/room.hpp"
+
+#include <terminalpp/string.hpp>
+
 #include <memory>
-#include <vector>
+#include <string>
 
 namespace paradice {
 
-class account;
-class character;
 class client;
 
 struct active_encounter;
+
+struct unexpected_error
+{
+};
+
+struct duplicate_account_error
+{
+};
+struct no_such_account_error
+{
+};
+
+struct duplicate_character_error
+{
+};
+struct invalid_character_name_error
+{
+};
+struct no_such_character_error
+{
+};
 
 //* =========================================================================
 /// \brief Describes the interface for a context in which a Paradice server
 /// can run.
 //* =========================================================================
-class context
+class context  // NOLINT
 {
-public :
+public:
     //* =====================================================================
     /// \brief Destructor
     //* =====================================================================
-    virtual ~context() {}
-
-    //* =====================================================================
-    /// \brief Retrieves a list of clients currently connected to Paradice.
-    //* =====================================================================
-    virtual std::vector<std::shared_ptr<client>> get_clients() = 0;
+    virtual ~context() = default;
 
     //* =====================================================================
     /// \brief Adds a client to the list of clients currently connected
@@ -68,41 +88,76 @@ public :
     virtual void remove_client(std::shared_ptr<client> const &cli) = 0;
 
     //* =====================================================================
-    /// \brief For all clients, updates their lists of names.
+    /// \brief Creates a new account
+    /// \throw duplicate_account_error if an account with that name already
+    ///        exists.
+    /// \throw unexpected_error if any other error occurred.
     //* =====================================================================
-    virtual void update_names() = 0;
+    virtual model::account new_account(
+        std::string const &name, std::string const &password) = 0;
 
     //* =====================================================================
-    /// \brief Returns how a character appears to others, including prefix
-    /// and suffix.
+    /// \brief Loads an account
+    /// \throw no_such_account_error if no account with that name exists,
+    ///        or if the password was invalid.
+    /// \note  There is deliberately no distinction between an incorrect
+    ///        name or password so that a user cannot use the message to
+    ///        determine whether an account name exists.
     //* =====================================================================
-    virtual std::string get_moniker(std::shared_ptr<character> const &ch) = 0;
+    virtual model::account load_account(
+        std::string const &name, std::string const &password) = 0;
 
     //* =====================================================================
-    /// \brief Loads an account from a specific account name and returns it.
-    /// Returns an empty shared_ptr<> if there was no account with that name
-    /// found.
+    /// \brief Lists account names known to the system.
     //* =====================================================================
-    virtual std::shared_ptr<account> load_account(
-        std::string const &name) = 0;
+    virtual std::vector<std::string> list_accounts() = 0;
 
     //* =====================================================================
-    /// \brief Saves an account.
+    /// \brief Checks whether an account has a named permission.
     //* =====================================================================
-    virtual void save_account(std::shared_ptr<account> const &acct) = 0;
+    virtual bool has_permission(
+        model::account const &account, std::string const &permission) = 0;
 
     //* =====================================================================
-    /// \brief Loads a character that is identified by the passed name and
-    /// returns it.  Returns an empty shared_ptr<> if there was no character
-    /// with that name found.
+    /// \brief Lists character names owned by the named account.
     //* =====================================================================
-    virtual std::shared_ptr<character> load_character(
-        std::string const &name) = 0;
+    virtual std::vector<std::string> list_characters(
+        std::string const &account_name) = 0;
 
     //* =====================================================================
-    /// \brief Saves a character.
+    /// \brief Updates the password for the named account.
     //* =====================================================================
-    virtual void save_character(std::shared_ptr<character> const &ch) = 0;
+    virtual void set_password(
+        std::string const &account_name, std::string const &password) = 0;
+
+    //* =====================================================================
+    /// \brief Grants the named permission to the named account.
+    //* =====================================================================
+    virtual void set_permission(
+        std::string const &account_name, std::string const &permission) = 0;
+
+    //* =====================================================================
+    /// \brief Clears the named permission from the named account.
+    //* =====================================================================
+    virtual void clear_permission(
+        std::string const &account_name, std::string const &permission) = 0;
+
+    //* =====================================================================
+    /// \brief Loads a character that is identified by the passed account and
+    /// index and returns it.
+    /// \throw unexpected_error if any error occurs.
+    //* =====================================================================
+    virtual model::character load_character(
+        model::account &acct, int index) = 0;
+
+    //* =====================================================================
+    /// \brief Creates a character
+    /// \throw duplicate_character_error if an character with that name
+    ///        already exists.
+    /// \throw unexpected_error if any other error occurred.
+    //* =====================================================================
+    virtual model::character new_character(
+        model::account &acct, std::string const &character_name) = 0;
 
     //* =====================================================================
     /// \brief Enacts a server shutdown.
@@ -110,33 +165,48 @@ public :
     virtual void shutdown() = 0;
 
     //* =====================================================================
-    /// \brief Gets the currently active encounter
+    /// \brief Registers a character as currently online and reachable.
     //* =====================================================================
-    virtual std::shared_ptr<paradice::active_encounter> get_active_encounter() = 0;
+    virtual void register_online_character(model::character &character) = 0;
 
     //* =====================================================================
-    /// \brief Sets the currently active encounter
+    /// \brief Unregisters a previously online character.
     //* =====================================================================
-    virtual void set_active_encounter(
-        std::shared_ptr<paradice::active_encounter> const &enc) = 0;
+    virtual void unregister_online_character(model::character &character) = 0;
 
     //* =====================================================================
-    /// \brief Gets the visibility of the encounter.
+    /// \brief Finds an online character by name.
     //* =====================================================================
-    virtual bool is_active_encounter_visible() const = 0;
+    virtual model::character *find_online_character_by_name(
+        std::string const &name) = 0;
 
     //* =====================================================================
-    /// \brief Sets the visibility of the encounter for all players.
+    /// \brief Sends a message to a character
     //* =====================================================================
-    virtual void set_active_encounter_visible(bool visibility) = 0;
+    virtual void send_message(
+        model::character &character, terminalpp::string const &message) = 0;
 
     //* =====================================================================
-    /// \brief Informs the context that changes have been made to the
-    /// active encounter and that any related views should be updated.
+    /// \brief Sends a message to all characters in a room.
     //* =====================================================================
-    virtual void update_active_encounter() = 0;
+    virtual void send_message(
+        model::room &room, terminalpp::string const &message) = 0;
+
+    //* =====================================================================
+    /// \brief Sends a message to all characters in a room except for the
+    /// specified character.
+    //* =====================================================================
+    virtual void send_message(
+        model::room &room,
+        model::character &character,
+        terminalpp::string const &message) = 0;
+
+    //* =====================================================================
+    /// \brief Gets the main room of Paradice
+    //* =====================================================================
+    virtual model::room &get_main_room() = 0;
 };
 
-}
+}  // namespace paradice
 
 #endif

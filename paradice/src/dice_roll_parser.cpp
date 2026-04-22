@@ -1,121 +1,124 @@
-// ==========================================================================
-// Paradice Dice Roll Parser
-//
-// Copyright (C) 2009 Matthew Chaplain, All Rights Reserved.
-// This file is covered by the MIT Licence:
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ==========================================================================
 #include "paradice/dice_roll_parser.hpp"
-#include <boost/optional.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/home/support/char_encoding/ascii.hpp>
-#include <numeric>
-#include <vector>
 
-BOOST_FUSION_ADAPT_STRUCT(
-    paradice::dice_roll,
-    (odin::u32, repetitions_)
-    (odin::u32, amount_)
-    (odin::u32, sides_)
-    (odin::s32, bonus_)
-)
+#include <charconv>
+#include <cctype>
+#include <optional>
+#include <string_view>
 
 namespace paradice {
+namespace {
 
-//* =========================================================================
-/// \brief A grammar that matches dice-rolling expressions.  For example,
-/// 2d6+12.
-//* =========================================================================
-template <class Iterator>
-struct dice_roll_grammar
-    : boost::spirit::qi::grammar
-      <
-          Iterator
-        , dice_roll()
-      >
+void skip_spaces(std::string::const_iterator &it, std::string::const_iterator end)
 {
-    dice_roll_grammar()
-        : dice_roll_grammar::base_type(dice_roll_)
+    while (it != end && std::isspace(static_cast<unsigned char>(*it)) != 0)
     {
-        using namespace boost::spirit;
-        using namespace boost::spirit::qi;
+        ++it;
+    }
+}
 
-        repetitions_
-            = (uint_[_val = _1] >> lit("*"))
-            | eps[_val = 1]
-            ;
+std::optional<std::uint32_t> parse_unsigned(
+    std::string::const_iterator &it, std::string::const_iterator end)
+{
+    skip_spaces(it, end);
 
-        bonuses_
-            = eps[_val = 0]
-           >> *( ( lit("+") >> int_[_val += _1] )
-               | ( lit("-") >> int_[_val -= _1] )
-               )
-            ;
-
-        dice_roll_
-            = repetitions_
-           >> uint_
-           >> boost::spirit::ascii::no_case['d']
-           >> uint_
-           >> bonuses_
-            ;
+    if (it == end || std::isdigit(static_cast<unsigned char>(*it)) == 0)
+    {
+        return std::nullopt;
     }
 
-    boost::spirit::qi::rule<Iterator, odin::u32()> repetitions_;
-    boost::spirit::qi::rule<Iterator, odin::s32()> bonuses_;
-    boost::spirit::qi::rule<Iterator, dice_roll()> dice_roll_;
-};
+    auto scan = it;
+    while (scan != end && std::isdigit(static_cast<unsigned char>(*scan)) != 0)
+    {
+        ++scan;
+    }
 
-//* =========================================================================
-/// \brief Parses a string into a dice_roll.
-///
-/// Takes a string and, if it conforms to the format
-/// "[<repetitions>*]<amount>d<sides>[<bonuses...>]", and converts it to a
-/// dice_roll structure.
-/// For example, "2d6+3-4" will convert to a dice_roll of { 1, 2, 6, -1 };
-/// "3*2d20" will convert to a dice_roll of { 3, 2, 20, 0 };
-//* =========================================================================
+    auto value = std::uint32_t{};
+    auto const text = std::string_view(&*it, static_cast<std::size_t>(scan - it));
+    auto const result =
+        std::from_chars(text.data(), text.data() + text.size(), value);
+    if (result.ec != std::errc{})
+    {
+        return std::nullopt;
+    }
+
+    it = scan;
+    return value;
+}
+
+}  // namespace
+
 boost::optional<dice_roll> parse_dice_roll(
-    std::string::const_iterator &begin
-  , std::string::const_iterator  end)
+    std::string::const_iterator &begin, std::string::const_iterator end)
 {
-    dice_roll_grammar<std::string::const_iterator>  roll_grammar;
-    dice_roll                                       result;
-    dice_roll                                      &ref_result = result;
+    auto it = begin;
 
-    if (phrase_parse(
-        begin
-      , end
-      , roll_grammar
-      , boost::spirit::ascii::space
-      , ref_result))
+    auto const first_number = parse_unsigned(it, end);
+    if (!first_number)
     {
-        return boost::optional<dice_roll>(result);
+        return {};
     }
-    else
+
+    auto repetitions = std::uint32_t{1};
+    auto amount = *first_number;
+
+    skip_spaces(it, end);
+    if (it != end && *it == '*')
     {
-        return boost::optional<dice_roll>();
+        repetitions = amount;
+        ++it;
+
+        auto const parsed_amount = parse_unsigned(it, end);
+        if (!parsed_amount)
+        {
+            return {};
+        }
+
+        amount = *parsed_amount;
+        skip_spaces(it, end);
     }
+
+    if (it == end || std::tolower(static_cast<unsigned char>(*it)) != 'd')
+    {
+        return {};
+    }
+    ++it;
+
+    auto const sides = parse_unsigned(it, end);
+    if (!sides)
+    {
+        return {};
+    }
+
+    auto bonus = std::int32_t{0};
+    while (true)
+    {
+        auto op = it;
+        skip_spaces(op, end);
+        if (op == end || (*op != '+' && *op != '-'))
+        {
+            break;
+        }
+
+        auto const sign = *op;
+        ++op;
+
+        auto const term = parse_unsigned(op, end);
+        if (!term)
+        {
+            return {};
+        }
+
+        bonus += (sign == '+') ? static_cast<std::int32_t>(*term)
+                               : -static_cast<std::int32_t>(*term);
+        it = op;
+    }
+
+    begin = it;
+    return dice_roll{
+        .repetitions_ = repetitions,
+        .amount_ = amount,
+        .sides_ = *sides,
+        .bonus_ = bonus};
 }
 
-}
+}  // namespace paradice

@@ -1,0 +1,23 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "paradice9",
+    "version-string": "0.0.0",
+    "dependencies": [
+        "boost-algorithm",
+        "boost-asio",
+        "boost-circular-buffer",
+        "boost-container",
+        "boost-container-hash",
+        "boost-exception",
+        "boost-filesystem",
+        "boost-program-options",
+        "boost-range",
+        "boost-scope-exit",
+        "boost-signals2",
+        "cryptopp",
+        "gtest",
+        "nlohmann-json",
+        "sqlitecpp",
+        "zlib"
+    ]
+}

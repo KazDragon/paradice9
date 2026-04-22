@@ -1,47 +1,67 @@
+if (NOT TARGET KazDragon::terminalpp)
+    find_package(terminalpp 4.0.2 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::munin)
+    find_package(munin 0.8.1 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::telnetpp)
+    find_package(telnetpp 4.0.0 CONFIG REQUIRED)
+endif()
+
+if (NOT TARGET KazDragon::consolepp)
+    find_package(consolepp 0.1.1 QUIET) # Used if munin is built with MUNIN_WITH_CONSOLEPP=ON.
+endif()
+find_package(Boost COMPONENTS program_options container REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
+
 set (PARADICE_SOURCE_FILES
-    src/account.cpp
-    src/active_encounter.cpp
-    src/admin.cpp
-    src/beast.cpp
-    src/character.cpp
+    src/admin_commands.cpp
     src/client.cpp
-    src/communication.cpp
-    src/configuration.cpp
+    src/command_catalog.cpp
     src/connection.cpp
-    src/cryptography.cpp
+    src/dice.cpp
     src/dice_roll_parser.cpp
-    src/encounter.cpp
-    src/gm.cpp
-    src/help.cpp
-    src/random.cpp
-    src/rules.cpp
-    src/utility.cpp
-    src/who.cpp
+
+    src/ui/components/password_edit.cpp
+    src/ui/components/roster.cpp
+    src/ui/pages/account_creation_page.cpp
+    src/ui/pages/character_creation_page.cpp
+    src/ui/pages/character_selection_page.cpp
+    src/ui/components/command_prompt.cpp
+    src/ui/pages/main_page.cpp
+    src/ui/pages/title_page.cpp
+    src/ui/shell/user_interface.cpp
 )
 
 set (PARADICE_INCLUDE_FILES
-    include/paradice/account.hpp
-    include/paradice/active_encounter.hpp
-    include/paradice/admin.hpp
-    include/paradice/beast.hpp
-    include/paradice/character.hpp
+    include/paradice/admin_commands.hpp
     include/paradice/client.hpp
-    include/paradice/command.hpp
-    include/paradice/communication.hpp
-    include/paradice/configuration.hpp
+    include/paradice/command_catalog.hpp
     include/paradice/connection.hpp
     include/paradice/context.hpp
-    include/paradice/cryptography.hpp
     include/paradice/dice.hpp
     include/paradice/dice_roll_parser.hpp
-    include/paradice/encounter.hpp
+    include/paradice/permissions.hpp
+    include/paradice/room_lifecycle.hpp
     include/paradice/export.hpp
-    include/paradice/gm.hpp
-    include/paradice/help.hpp
-    include/paradice/random.hpp
-    include/paradice/rules.hpp
-    include/paradice/utility.hpp
-    include/paradice/who.hpp
+
+    include/paradice/model/account.hpp
+    include/paradice/model/character.hpp
+    include/paradice/model/room_membership.hpp
+    
+    include/paradice/ui/components/password_edit.hpp
+    include/paradice/ui/components/roster.hpp
+    include/paradice/ui/pages/account_creation_page.hpp
+    include/paradice/ui/pages/character_creation_page.hpp
+    include/paradice/ui/pages/character_selection_page.hpp
+    include/paradice/ui/components/command_prompt.hpp
+    include/paradice/ui/pages/main_page.hpp
+    include/paradice/ui/pages/title_page.hpp
+    include/paradice/ui/shell/user_interface.hpp
 )
 
 add_library(paradice
@@ -59,47 +79,18 @@ target_include_directories(paradice
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Select the best cryptography available.
-if (CRYPTO++_FOUND)
-    target_compile_definitions(paradice
-        PRIVATE
-            PARADICE_USE_CRYPTOPP)
-            
-    target_link_libraries(paradice
-        PRIVATE 
-            cryptopp)
-else()
-    target_compile_definitions(paradice
-        PRIVATE
-            PARADICE_NOCRYPT)
-endif()
-
-target_compile_definitions(paradice
-    PRIVATE
-        BOOST_SIGNALS_NO_DEPRECATION_WARNING
-)
-
-target_compile_features(paradice
-    PRIVATE
-        cxx_right_angle_brackets
-        cxx_generic_lambdas
-)
-
 target_link_libraries(paradice
     PUBLIC
-        odin
-        terminalpp
-        ${Boost_SERIALIZATION_LIBRARY}
+        KazDragon::terminalpp
+        Boost::boost
+        Boost::program_options
     PRIVATE
-        munin
-        hugin
-        telnetpp
-        ${Boost_RANDOM_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
+        KazDragon::munin
+        KazDragon::telnetpp
+        ZLIB::ZLIB
 )
 
 
 generate_export_header(paradice
     EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/paradice/export.hpp"
 )
-

@@ -6,124 +6,141 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
 #include "paradice9/context_impl.hpp"
-#include "paradice/account.hpp"
-#include "paradice/character.hpp"
-#include "paradice/client.hpp"
-#include "hugin/user_interface.hpp"
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/filesystem.hpp>
+
+#include "paradice9/cryptography.hpp"
+
+#include <paradice/client.hpp>
+#include <SQLiteCpp/SQLiteCpp.h>
+#include <boost/asio/post.hpp>
+#include <boost/asio/io_context_strand.hpp>
+#include <boost/make_unique.hpp>
+#include <boost/optional.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
+#include <sqlite3.h>
+
 #include <algorithm>
-#include <fstream>
-#include <string>
 #include <vector>
 
-namespace fs = boost::filesystem;
 
-namespace {
-    static std::shared_ptr<paradice::active_encounter> gm_encounter;
-    static bool gm_encounter_visible = false;
-}
+// #include "paradice/account.hpp"
+// #include "paradice/character.hpp"
+// #include <boost/archive/xml_iarchive.hpp>
+// #include <boost/archive/xml_oarchive.hpp>
+// #include <algorithm>
+// #include <fstream>
+// #include <string>
+
+// namespace fs = boost::filesystem;
+
+namespace paradice9 {
+
+// namespace {
+//     static std::shared_ptr<paradice::active_encounter> gm_encounter;
+//     static bool gm_encounter_visible = false;
+// }
 
 // ==========================================================================
 // GET_ACCOUNTS_PATH
 // ==========================================================================
-static fs::path get_accounts_path()
-{
-    auto cwd = fs::current_path();
-    auto accounts_path = cwd / "accounts";
-    
-    if (!fs::exists(accounts_path))
-    {
-        fs::create_directory(accounts_path);
-    }
-    
-    return accounts_path;
-}
+// static fs::path get_accounts_path()
+// {
+//     auto cwd = fs::current_path();
+//     auto accounts_path = cwd / "accounts";
+
+//     if (!fs::exists(accounts_path))
+//     {
+//         fs::create_directory(accounts_path);
+//     }
+
+//     return accounts_path;
+// }
 
 // ==========================================================================
 // GET_CHARACTERS_PATH
 // ==========================================================================
-static fs::path get_characters_path()
-{
-    auto cwd = fs::current_path();
-    auto characters_path = cwd / "characters";
-    
-    if (!fs::exists(characters_path))
-    {
-        fs::create_directory(characters_path);
-    }
-    
-    return characters_path;
-}
+// static fs::path get_characters_path()
+// {
+//     auto cwd = fs::current_path();
+//     auto characters_path = cwd / "characters";
+
+//     if (!fs::exists(characters_path))
+//     {
+//         fs::create_directory(characters_path);
+//     }
+
+//     return characters_path;
+// }
 
 // ==========================================================================
 // GET_CHARACTER_ADDRESS
 // ==========================================================================
-static std::string get_character_address(
-    std::shared_ptr<paradice::character> const &ch)
-{
-    auto prefix = ch->get_prefix();
-    auto name   = ch->get_name();
-    auto title  = ch->get_suffix();
-    
-    std::string address;
-    
-    if (!prefix.empty())
-    {
-        address += prefix + " ";
-    }
-    
-    address += name;
-    
-    if (!title.empty())
-    {
-        address += " " + title;
-    }
-    
-    return address;
-}
-    
+// static std::string get_character_address(
+//     std::shared_ptr<paradice::character> const &ch)
+// {
+//     auto prefix = ch->get_prefix();
+//     auto name   = ch->get_name();
+//     auto title  = ch->get_suffix();
+
+//     std::string address;
+
+//     if (!prefix.empty())
+//     {
+//         address += prefix + " ";
+//     }
+
+//     address += name;
+
+//     if (!title.empty())
+//     {
+//         address += " " + title;
+//     }
+
+//     return address;
+// }
+
 // ==========================================================================
 // CONTEXT_IMPL IMPLEMENTATION STRUCTURE
 // ==========================================================================
 struct context_impl::impl
 {
     impl(
-        boost::asio::io_service                       &io_service
-      , std::shared_ptr<odin::net::server>             server
-      , std::shared_ptr<boost::asio::io_service::work> work)
-      : strand_(io_service)
-      , server_(server)
-      , work_(work)
+        boost::asio::io_context &io_context,
+        boost::filesystem::path const &database_path,
+        std::function<void()> shutdown)
+      : strand_(io_context),
+        database_(
+            database_path.string(),
+            SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE),
+        shutdown_(std::move(shutdown))
     {
+        ensure_schema_created();
     }
-    
+
     // ======================================================================
     // ADD_CLIENT
     // ======================================================================
     void add_client(std::shared_ptr<paradice::client> const &cli)
     {
-        clients_.push_back(cli);
+        boost::asio::post(strand_, [this, cli] { clients_.push_back(cli); });
     }
 
     // ======================================================================
@@ -131,12 +148,8 @@ struct context_impl::impl
     // ======================================================================
     void remove_client(std::shared_ptr<paradice::client> const &cli)
     {
-        clients_.erase(
-            std::remove(
-                clients_.begin()
-              , clients_.end()
-              , cli)
-          , clients_.end());
+        boost::asio::post(
+            strand_, [this, cli] { boost::remove_erase(clients_, cli); });
     }
 
     // ======================================================================
@@ -144,133 +157,540 @@ struct context_impl::impl
     // ======================================================================
     void update_names()
     {
-        std::vector<std::string> names;
-        
+        // std::vector<std::string> names;
+
+        // for (auto &cur_client : clients_)
+        // {
+        //     auto character = cur_client->get_character();
+
+        //     if (character != NULL)
+        //     {
+        //         auto name = get_character_address(character);
+
+        //         if (!name.empty())
+        //         {
+        //             names.push_back(name);
+        //         }
+        //     }
+        // }
+
         for (auto &cur_client : clients_)
         {
-            auto character = cur_client->get_character();
-            
-            if (character != NULL)
-            {
-                auto name = get_character_address(character);
-                
-                if (!name.empty())
-                {
-                    names.push_back(name);
-                }
-            }
-        }
-        
-        for (auto &cur_client : clients_)
-        {
-            auto user_interface = cur_client->get_user_interface();
-            
-            if (user_interface != NULL)
-            {
-                user_interface->update_wholist(names);
-            }
+            // auto user_interface = cur_client->get_user_interface();
+
+            // if (user_interface != NULL)
+            // {
+            //     user_interface->update_wholist(names);
+            // }
         }
     }
 
     // ======================================================================
-    // LOAD_ACCOUNT
+    // NEW_ACCOUNT
     // ======================================================================
-    void load_account(
-        std::string const &name, std::shared_ptr<paradice::account> &acct)
+    paradice::model::account new_account(
+        std::string const &name, std::string const &password)
+    try
     {
-        auto account_path = get_accounts_path() / name;
-        
-        if (fs::exists(account_path))
+        SQLite::Statement stmt(
+            database_,
+            "INSERT INTO accounts "
+            "    VALUES ("
+            "        NULL,"  // id is auto generated
+            "        ?,"     // name
+            "        ?,"     // password
+            "        ?,"     // admin level
+            "        ?)"     // command mode
+            ";");
+
+        stmt.bind(1, name);
+        stmt.bind(2, encrypt(password).text);
+        stmt.bind(3, 0);
+        stmt.bind(4, 0);
+
+        stmt.exec();
+
+        return paradice::model::account{name};
+    }
+    catch (SQLite::Exception const &ex)
+    {
+        switch (ex.getExtendedErrorCode())
         {
-            std::ifstream in(account_path.string().c_str());
-            boost::archive::xml_iarchive ia(in);
-            
-            acct = std::make_shared<paradice::account>();
-            ia >> boost::serialization::make_nvp("account", *acct);
+            case SQLITE_CONSTRAINT_UNIQUE:
+                throw paradice::duplicate_account_error{};
+
+            default:
+                throw paradice::unexpected_error{};
         }
     }
 
     // ======================================================================
     // SAVE_ACCOUNT
     // ======================================================================
-    void save_account(std::shared_ptr<paradice::account> const &acct)
+    /*
+    void save_account(paradice::model::account const &acct)
     {
-        auto account_path = get_accounts_path() / acct->get_name();
-        
-        std::ofstream out(account_path.string().c_str());
-        boost::archive::xml_oarchive oa(out);
-        oa << boost::serialization::make_nvp("account", *acct);
+        SQLite::Statement stmt(
+            database_,
+            "UPDATE accounts"
+            "    SET"
+            "        password=?,"
+            "        admin_level=?,"
+            "        command_mode=?"
+            "    WHERE"
+            "        name=?"
+            ";");
+
+        stmt.bind(1, acct.password.text);
+        stmt.bind(2, 0);
+        stmt.bind(3, 0);
+        stmt.bind(4, acct.name);
+
+        stmt.exec();
+    }
+    */
+
+    // ======================================================================
+    // LOAD_ACCOUNT_ID_PASSWORD
+    // ======================================================================
+    int load_account_id_password(
+        paradice::model::account const &account, std::string const &password)
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT id"
+            "    FROM accounts"
+            "    WHERE name=?"
+            "      AND password=?"
+            ";");
+
+        account_query.bind(1, account.name);
+        account_query.bind(2, encrypt(password).text);
+
+        if (!account_query.executeStep())
+        {
+            throw paradice::no_such_account_error{};
+        }
+
+        return account_query.getColumn(0);
+    }
+
+    // ======================================================================
+    // LOAD_ACCOUNT_ID
+    // ======================================================================
+    int load_account_id(paradice::model::account const &account)
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT id"
+            "    FROM accounts"
+            "    WHERE name=?"
+            ";");
+
+        account_query.bind(1, account.name);
+
+        if (!account_query.executeStep())
+        {
+            throw paradice::no_such_account_error{};
+        }
+
+        return account_query.getColumn(0);
+    }
+
+    // ======================================================================
+    // LOAD_ACCOUNT_CHARACTERS
+    // ======================================================================
+    std::vector<std::string> load_account_character_names(int account_id)
+    {
+        SQLite::Statement character_query(
+            database_,
+            "SELECT name"
+            "    FROM characters"
+            "    WHERE account_id=?"
+            ";");
+
+        character_query.bind(1, account_id);
+
+        std::vector<std::string> character_names;
+        while (character_query.executeStep())
+        {
+            std::string character_name = character_query.getColumn(0);
+            character_names.push_back(character_name);
+        }
+
+        return character_names;
+    }
+
+    // ======================================================================
+    // LOAD_ACCOUNT
+    // ======================================================================
+    paradice::model::account load_account(
+        std::string const &name, std::string const &password)
+    {
+        paradice::model::account account;
+        account.name = name;
+        account.character_names = load_account_character_names(
+            load_account_id_password(account, password));
+
+        return account;
+    }
+
+    std::vector<std::string> list_accounts()
+    {
+        SQLite::Statement account_query(
+            database_,
+            "SELECT name"
+            "    FROM accounts"
+            "    ORDER BY name"
+            ";");
+
+        auto account_names = std::vector<std::string>{};
+        while (account_query.executeStep())
+        {
+            account_names.emplace_back(account_query.getColumn(0));
+        }
+
+        return account_names;
+    }
+
+    std::vector<std::string> list_characters(std::string const &account_name)
+    {
+        return load_account_character_names(
+            load_account_id(paradice::model::account{account_name}));
+    }
+
+    void set_password(
+        std::string const &account_name, std::string const &password)
+    {
+        SQLite::Statement stmt(
+            database_,
+            "UPDATE accounts"
+            "    SET password=?"
+            "    WHERE name=?"
+            ";");
+
+        stmt.bind(1, encrypt(password).text);
+        stmt.bind(2, account_name);
+
+        if (stmt.exec() == 0)
+        {
+            throw paradice::no_such_account_error{};
+        }
+    }
+
+    void set_permission(
+        std::string const &account_name, std::string const &permission)
+    {
+        auto const account =
+            paradice::model::account{.name = account_name};
+        auto const account_id = load_account_id(account);
+
+        auto insert_permission = [&](std::string const &permission_name) {
+            SQLite::Statement stmt(
+                database_,
+                "INSERT OR IGNORE INTO account_permissions "
+                "    VALUES (?, ?)"
+                ";");
+
+            stmt.bind(1, account_id);
+            stmt.bind(2, permission_name);
+            stmt.exec();
+        };
+
+        insert_permission(permission);
+        insert_permission("admin_access");
+    }
+
+    void clear_permission(
+        std::string const &account_name, std::string const &permission)
+    {
+        if (permission == "admin_access")
+        {
+            return;
+        }
+
+        auto const account =
+            paradice::model::account{.name = account_name};
+        auto const account_id = load_account_id(account);
+
+        if (has_permission(account, "admin_set_permission"))
+        {
+            return;
+        }
+
+        SQLite::Statement stmt(
+            database_,
+            "DELETE FROM account_permissions"
+            "    WHERE account_id=?"
+            "    AND permission=?"
+            ";");
+
+        stmt.bind(1, account_id);
+        stmt.bind(2, permission);
+        stmt.exec();
+    }
+
+    bool has_permission(
+        paradice::model::account const &account, std::string const &permission)
+    {
+        SQLite::Statement permission_query(
+            database_,
+            "SELECT 1"
+            "    FROM account_permissions"
+            "    WHERE account_id=?"
+            "      AND permission=?"
+            "    LIMIT 1;");
+
+        permission_query.bind(1, load_account_id(account));
+        permission_query.bind(2, permission);
+
+        return permission_query.executeStep();
+    }
+
+    // ======================================================================
+    // NEW_CHARACTER
+    // ======================================================================
+    paradice::model::character new_character(
+        paradice::model::account &acct, std::string const &character_name)
+    try
+    {
+        SQLite::Statement stmt(
+            database_,
+            "INSERT INTO characters "
+            "    VALUES ("
+            "        NULL,"  // id is auto generated
+            "        ?,"     // name
+            "        ?,"     // account id
+            "        ?,"     // prefix
+            "        ?,"     // suffix
+            "        ?)"     // gm_level
+            ";");
+
+        stmt.bind(1, character_name);
+        stmt.bind(2, load_account_id(acct));
+        stmt.bind(3, std::string{});
+        stmt.bind(4, std::string{});
+        stmt.bind(5, 0);
+
+        stmt.exec();
+
+        return paradice::model::character{character_name, "", ""};
+    }
+    catch (SQLite::Exception const &ex)
+    {
+        switch (ex.getExtendedErrorCode())
+        {
+            case SQLITE_CONSTRAINT_UNIQUE:
+                throw paradice::duplicate_character_error{};
+
+            default:
+                throw paradice::unexpected_error{};
+        }
     }
 
     // ======================================================================
     // LOAD_CHARACTER
     // ======================================================================
-    void load_character(
-        std::string const                    &name,
-        std::shared_ptr<paradice::character> &ch)
+    paradice::model::character load_character(
+        paradice::model::account const &acct, int index)
+    try
     {
-        auto character_path = get_characters_path() / name;
-        
-        if (fs::exists(character_path))
+        assert(index < acct.character_names.size());
+
+        SQLite::Statement character_query(
+            database_,
+            "SELECT prefix, suffix"
+            "    FROM characters"
+            "    WHERE account_id=?"
+            "      AND name=?"
+            ";");
+
+        character_query.bind(1, load_account_id(acct));
+        character_query.bind(2, acct.character_names[index]);
+
+        boost::optional<paradice::model::character> character;
+
+        while (character_query.executeStep())
         {
-            std::ifstream in(character_path.string().c_str());
-            boost::archive::xml_iarchive ia(in);
-            
-            ch = std::make_shared<paradice::character>();
-            ia >> boost::serialization::make_nvp("character", *ch);
+            if (character != boost::none)
+            {
+                throw paradice::unexpected_error{};
+            }
+
+            character = paradice::model::character{};
+            character->name = acct.character_names[index];
+            character->prefix = std::string{character_query.getColumn(0)};
+            character->suffix = std::string{character_query.getColumn(1)};
         }
+
+        if (character == boost::none)
+        {
+            throw paradice::unexpected_error{};
+        }
+
+        return *character;
+    }
+    catch (SQLite::Exception const &ex)
+    {
+        throw paradice::unexpected_error{};
     }
 
     // ======================================================================
     // SAVE_CHARACTER
     // ======================================================================
-    void save_character(std::shared_ptr<paradice::character> const &ch)
+    // void save_character(std::shared_ptr<paradice::character> const &ch)
+    // {
+    //     auto character_path = get_characters_path() / ch->get_name();
+
+    //     std::ofstream out(character_path.string().c_str());
+    //     boost::archive::xml_oarchive oa(out);
+    //     oa << boost::serialization::make_nvp("character", *ch);
+    // }
+
+    // ======================================================================
+    // SHUTDOWN
+    // ======================================================================
+    void shutdown()
     {
-        auto character_path = get_characters_path() / ch->get_name();
-        
-        std::ofstream out(character_path.string().c_str());
-        boost::archive::xml_oarchive oa(out);
-        oa << boost::serialization::make_nvp("character", *ch);
+        for (auto &client : clients_)
+        {
+            client->disconnect();
+        }
+
+        shutdown_();
     }
 
-    boost::asio::strand                            strand_;
-    std::shared_ptr<odin::net::server>             server_;
-    std::shared_ptr<boost::asio::io_service::work> work_;
+    void register_online_character(paradice::model::character &character)
+    {
+        online_characters_.push_back(&character);
+    }
+
+    void unregister_online_character(paradice::model::character &character)
+    {
+        auto const it = std::remove(
+            online_characters_.begin(), online_characters_.end(), &character);
+        online_characters_.erase(it, online_characters_.end());
+    }
+
+    paradice::model::character *find_online_character_by_name(
+        std::string const &name)
+    {
+        auto const it = std::find_if(
+            online_characters_.begin(),
+            online_characters_.end(),
+            [&name](auto const *character) { return character->name == name; });
+
+        return it == online_characters_.end() ? nullptr : *it;
+    }
+
+    // ======================================================================
+    // GET_MAIN_ROOM
+    // ======================================================================
+    paradice::model::room &get_main_room()
+    {
+        return main_room_;
+    }
+
+private:
+    // ======================================================================
+    // ENSURE_ACCOUNT_TABLE_CREATED
+    // ======================================================================
+    void ensure_accounts_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS accounts ("
+            "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "    name TEXT UNIQUE,"
+            "    password TEXT,"
+            "    admin_level INTEGER,"
+            "    command_mode INTEGER"
+            ");");
+    }
+
+    // ======================================================================
+    // ENSURE_CHARACTER_TABLE_CREATED
+    // ======================================================================
+    void ensure_characters_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS characters ("
+            "    id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "    name TEXT UNIQUE,"
+            "    account_id INTEGER,"
+            "    prefix TEXT,"
+            "    suffix TEXT,"
+            "    gm_level INTEGER,"
+            "    FOREIGN KEY (account_id)"
+            "        REFERENCES accounts (id)"
+            "            ON DELETE CASCADE"
+            "            ON UPDATE NO ACTION"
+            ");");
+    }
+
+    void ensure_account_permissions_table_created()
+    {
+        database_.exec(
+            "CREATE TABLE IF NOT EXISTS account_permissions ("
+            "    account_id INTEGER,"
+            "    permission TEXT,"
+            "    PRIMARY KEY (account_id, permission),"
+            "    FOREIGN KEY (account_id)"
+            "        REFERENCES accounts (id)"
+            "            ON DELETE CASCADE"
+            "            ON UPDATE NO ACTION"
+            ");");
+    }
+
+    // ======================================================================
+    // ENSURE_SCHEMA_CREATED
+    // ======================================================================
+    void ensure_schema_created()
+    {
+        database_.exec("PRAGMA foreign_keys=ON;");
+        ensure_accounts_table_created();
+        ensure_account_permissions_table_created();
+        ensure_characters_table_created();
+    }
+
+    boost::asio::io_context::strand strand_;
+    SQLite::Database database_;
+    std::function<void()> shutdown_;
     std::vector<std::shared_ptr<paradice::client>> clients_;
+    std::vector<paradice::model::character *> online_characters_;
+    paradice::model::room main_room_;
 };
 
 // ==========================================================================
 // CONSTRUCTOR
 // ==========================================================================
 context_impl::context_impl(
-    boost::asio::io_service                        &io_service
-  , std::shared_ptr<odin::net::server>              server
-  , std::shared_ptr<boost::asio::io_service::work>  work)
-    : pimpl_(new impl(io_service, server, work))
+    boost::asio::io_context &io_context,
+    boost::filesystem::path const &database_path,
+    std::function<void()> shutdown)
+  : pimpl_(
+        std::make_unique<impl>(io_context, database_path, std::move(shutdown)))
 {
 }
-    
+
 // ==========================================================================
 // DESTRUCTOR
 // ==========================================================================
-context_impl::~context_impl()
-{
-}
-    
+context_impl::~context_impl() = default;
+
 // ==========================================================================
 // GET_CLIENTS
 // ==========================================================================
-std::vector<std::shared_ptr<paradice::client>> context_impl::get_clients()
-{
-    return pimpl_->clients_;
-}
+// std::vector<std::shared_ptr<paradice::client>> context_impl::get_clients()
+// {
+//     return pimpl_->clients_;
+// }
 
 // ==========================================================================
 // ADD_CLIENT
 // ==========================================================================
 void context_impl::add_client(std::shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->strand_.dispatch([this, cli]{pimpl_->add_client(cli);});
+    pimpl_->add_client(cli);
 }
 
 // ==========================================================================
@@ -278,158 +698,270 @@ void context_impl::add_client(std::shared_ptr<paradice::client> const &cli)
 // ==========================================================================
 void context_impl::remove_client(std::shared_ptr<paradice::client> const &cli)
 {
-    pimpl_->strand_.dispatch([this, cli]{pimpl_->remove_client(cli);});
+    pimpl_->remove_client(cli);
 }
 
 // ==========================================================================
 // UPDATE_NAMES
 // ==========================================================================
-void context_impl::update_names()
-{
-    pimpl_->strand_.dispatch([this]{pimpl_->update_names();});
-}
+// void context_impl::update_names()
+// {
+//     pimpl_->strand_.dispatch([this]{pimpl_->update_names();});
+// }
 
 // ==========================================================================
 // GET_MONIKER
 // ==========================================================================
-std::string context_impl::get_moniker(std::shared_ptr<paradice::character> const &ch)
-{
-    std::string prefix = ch->get_prefix();
-    std::string name   = ch->get_name();
-    std::string title  = ch->get_suffix();
-    
-    std::string address;
-    
-    if (!prefix.empty())
-    {
-        address += prefix + " ";
-    }
-    
-    address += name;
-    
-    if (!title.empty())
-    {
-        address += " " + title;
-    }
-    
-    return address;
-}
- 
-// ==========================================================================
-// LOAD_ACCOUNT
-// ==========================================================================
-std::shared_ptr<paradice::account> context_impl::load_account(std::string const &name)
-{
-    std::shared_ptr<paradice::account> acct;
+// std::string context_impl::get_moniker(std::shared_ptr<paradice::character>
+// const &ch)
+// {
+//     std::string prefix = ch->get_prefix();
+//     std::string name   = ch->get_name();
+//     std::string title  = ch->get_suffix();
 
-    pimpl_->strand_.dispatch([this, &name, &acct]{
-        pimpl_->load_account(name, acct);
-    });
+//     std::string address;
 
-    return acct;
+//     if (!prefix.empty())
+//     {
+//         address += prefix + " ";
+//     }
+
+//     address += name;
+
+//     if (!title.empty())
+//     {
+//         address += " " + title;
+//     }
+
+//     return address;
+// }
+
+// ==========================================================================
+// NEW_ACCOUNT
+// ==========================================================================
+paradice::model::account context_impl::new_account(
+    std::string const &name, std::string const &password)
+{
+    return pimpl_->new_account(name, password);
 }
 
 // ==========================================================================
 // SAVE_ACCOUNT
 // ==========================================================================
-void context_impl::save_account(std::shared_ptr<paradice::account> const &acct)
+/*
+void context_impl::save_account(paradice::model::account const &acct)
 {
-    pimpl_->strand_.dispatch([this, acct]{pimpl_->save_account(acct);});
+    pimpl_->save_account(acct);
+}
+*/
+
+// ==========================================================================
+// LOAD_ACCOUNT
+// ==========================================================================
+paradice::model::account context_impl::load_account(
+    std::string const &name, std::string const &password)
+{
+    return pimpl_->load_account(name, password);
+}
+
+std::vector<std::string> context_impl::list_accounts()
+{
+    return pimpl_->list_accounts();
+}
+
+std::vector<std::string> context_impl::list_characters(
+    std::string const &account_name)
+{
+    return pimpl_->list_characters(account_name);
+}
+
+void context_impl::set_password(
+    std::string const &account_name, std::string const &password)
+{
+    pimpl_->set_password(account_name, password);
+}
+
+void context_impl::set_permission(
+    std::string const &account_name, std::string const &permission)
+{
+    pimpl_->set_permission(account_name, permission);
+}
+
+void context_impl::clear_permission(
+    std::string const &account_name, std::string const &permission)
+{
+    pimpl_->clear_permission(account_name, permission);
+}
+
+bool context_impl::has_permission(
+    paradice::model::account const &account, std::string const &permission)
+{
+    return pimpl_->has_permission(account, permission);
+}
+
+// ==========================================================================
+// NEW_CHARACTER
+// ==========================================================================
+paradice::model::character context_impl::new_character(
+    paradice::model::account &acct, std::string const &character_name)
+{
+    return pimpl_->new_character(acct, character_name);
 }
 
 // ==========================================================================
 // LOAD_CHARACTER
 // ==========================================================================
-std::shared_ptr<paradice::character> context_impl::load_character(
-    std::string const &name)
+paradice::model::character context_impl::load_character(
+    paradice::model::account &acct, int index)
 {
-    std::shared_ptr<paradice::character> ch;
-    pimpl_->strand_.dispatch([this, &name, &ch]{
-        pimpl_->load_character(name, ch);
-    });
-    
-    return ch;
+    return pimpl_->load_character(acct, index);
 }
 
 // ==========================================================================
 // SAVE_CHARACTER
 // ==========================================================================
-void context_impl::save_character(std::shared_ptr<paradice::character> const &ch)
-{
-    pimpl_->strand_.dispatch([this, ch]{pimpl_->save_character(ch);});
-}
+// void context_impl::save_character(std::shared_ptr<paradice::character> const
+// &ch)
+// {
+//     pimpl_->strand_.dispatch([this, ch]{pimpl_->save_character(ch);});
+// }
 
 // ==========================================================================
 // SHUTDOWN
 // ==========================================================================
 void context_impl::shutdown()
 {
-    pimpl_->work_.reset();
-    pimpl_->server_->shutdown();
+    pimpl_->shutdown();
+}
+
+void context_impl::register_online_character(paradice::model::character &character)
+{
+    pimpl_->register_online_character(character);
+}
+
+void context_impl::unregister_online_character(
+    paradice::model::character &character)
+{
+    pimpl_->unregister_online_character(character);
+}
+
+paradice::model::character *context_impl::find_online_character_by_name(
+    std::string const &name)
+{
+    return pimpl_->find_online_character_by_name(name);
 }
 
 // ==========================================================================
 // GET_ACTIVE_ENCOUNTER
 // ==========================================================================
-std::shared_ptr<paradice::active_encounter> context_impl::get_active_encounter()
-{
-    if (!gm_encounter) {
-        gm_encounter = std::make_shared<paradice::active_encounter>();
-    }
+// std::shared_ptr<paradice::active_encounter>
+// context_impl::get_active_encounter()
+// {
+//     if (!gm_encounter) {
+//         // gm_encounter = std::make_shared<paradice::active_encounter>();
+//     }
 
-    return gm_encounter;
-}
+//     return gm_encounter;
+// }
 
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER
 // ==========================================================================
-void context_impl::set_active_encounter(
-    std::shared_ptr<paradice::active_encounter> const &enc)
-{
-    gm_encounter = enc;
-}
+// void context_impl::set_active_encounter(
+//     std::shared_ptr<paradice::active_encounter> const &enc)
+// {
+//     gm_encounter = enc;
+// }
 
 // ==========================================================================
 // IS_ACTIVE_ENCOUNTER_VISIBLE
 // ==========================================================================
-bool context_impl::is_active_encounter_visible() const
-{
-    return gm_encounter_visible;
-}
+// bool context_impl::is_active_encounter_visible() const
+// {
+//     return gm_encounter_visible;
+// }
 
 // ==========================================================================
 // SET_ACTIVE_ENCOUNTER_VISIBLE
 // ==========================================================================
-void context_impl::set_active_encounter_visible(bool visibility)
-{
-    gm_encounter_visible = visibility;
+// void context_impl::set_active_encounter_visible(bool visibility)
+// {
+//     gm_encounter_visible = visibility;
 
-    for (auto &cli : pimpl_->clients_)
-    {
-        if (cli)
-        {
-            if (gm_encounter_visible)
-            {
-                cli->get_user_interface()->show_active_encounter_window();
-            }
-            else
-            {
-                cli->get_user_interface()->hide_active_encounter_window();
-            }
-        }
-    }
-}
+//     for (auto &cli : pimpl_->clients_)
+//     {
+//         if (cli)
+//         {
+//             if (gm_encounter_visible)
+//             {
+//                 // cli->get_user_interface()->show_active_encounter_window();
+//             }
+//             else
+//             {
+//                 // cli->get_user_interface()->hide_active_encounter_window();
+//             }
+//         }
+//     }
+// }
 
 // ==========================================================================
 // UPDATE_ACTIVE_ENCOUNTER
 // ==========================================================================
-void context_impl::update_active_encounter()
+// void context_impl::update_active_encounter()
+// {
+//     for (auto &cli : pimpl_->clients_)
+//     {
+//         if (cli)
+//         {
+//             // cli->get_user_interface()->set_active_encounter(gm_encounter);
+//         }
+//     }
+// }
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void context_impl::send_message(
+    paradice::model::character &character, terminalpp::string const &message)
 {
-    for (auto &cli : pimpl_->clients_)
+    character.send_message(message);
+}
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void context_impl::send_message(
+    paradice::model::room &room, terminalpp::string const &message)
+{
+    for (auto *character : room.characters)
     {
-        if (cli)
+        character->send_message(message);
+    }
+}
+
+// ==========================================================================
+// SEND_MESSAGE
+// ==========================================================================
+void context_impl::send_message(
+    paradice::model::room &room,
+    paradice::model::character &character,
+    terminalpp::string const &message)
+{
+    for (auto *character_in_room : room.characters)
+    {
+        if (character_in_room != &character)
         {
-            cli->get_user_interface()->set_active_encounter(gm_encounter);
+            character_in_room->send_message(message);
         }
     }
 }
+
+// ==========================================================================
+// GET_MAIN_ROOM
+// ==========================================================================
+paradice::model::room &context_impl::get_main_room()
+{
+    return pimpl_->get_main_room();
+}
+
+}  // namespace paradice9

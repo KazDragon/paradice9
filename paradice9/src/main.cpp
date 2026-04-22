@@ -6,28 +6,31 @@
 // Permission to reproduce, distribute, perform, display, and to prepare
 // derivitive works from this file under the following conditions:
 //
-// 1. Any copy, reproduction or derivitive work of any part of this file 
+// 1. Any copy, reproduction or derivitive work of any part of this file
 //    contains this copyright notice and licence in its entirety.
 //
 // 2. The rights granted to you under this license automatically terminate
-//    should you attempt to assert any patent claims against the licensor 
-//    or contributors, which in any way restrict the ability of any party 
+//    should you attempt to assert any patent claims against the licensor
+//    or contributors, which in any way restrict the ability of any party
 //    from using this software or portions thereof in any form under the
 //    terms of this license.
 //
 // Disclaimer: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
-//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR 
+//             KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+//             WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+//             PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+//             OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 //             OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+//             OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//             SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ==========================================================================
-#include "paradice9/paradice9.hpp"
-#include <boost/asio/io_service.hpp>
-#include <boost/format.hpp>
+#include "paradice9/context_impl.hpp"
+#include "paradice9/server.hpp"
+
+#include <boost/make_unique.hpp>
 #include <boost/program_options.hpp>
+
+#include <format>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -35,27 +38,26 @@
 
 namespace po = boost::program_options;
 
-static void run_io_service(boost::asio::io_service &io_service)
-{
-    io_service.run();
-}
-
 int main(int argc, char *argv[])
 {
-    unsigned int port        = 4000;
-    std::string  threads     = "";
+    serverpp::port_identifier port = 4000;
+    std::string threads;
+    std::string database_path = "paradice.db3";
     unsigned int concurrency = 0;
-    
+
     po::options_description description("Available options");
-    description.add_options()
-        ( "help,h",                                       "show this help message"                            )
-        ( "port,p",    po::value<unsigned int>(&port),    "port number"                                       )
-        ( "threads,t", po::value<std::string>(&threads),  "number of threads of execution (0 for autodetect)" )
-        ;
+    description.add_options()("help,h", "show this help message")(
+        "port,p", po::value<serverpp::port_identifier>(&port), "port number")(
+        "threads,t",
+        po::value<std::string>(&threads),
+        "number of threads of execution (0 for autodetect)")(
+        "database,d",
+        po::value<std::string>(&database_path),
+        "path to the database");
 
     po::positional_options_description pos_description;
     pos_description.add("port", -1);
-    
+
     try
     {
         po::variables_map vm;
@@ -63,11 +65,11 @@ int main(int argc, char *argv[])
             po::command_line_parser(argc, argv)
                 .options(description)
                 .positional(pos_description)
-                .run()
-          , vm);
-        
+                .run(),
+            vm);
+
         po::notify(vm);
-        
+
         if (vm.count("help") != 0)
         {
             throw po::error("");
@@ -87,71 +89,66 @@ int main(int argc, char *argv[])
             {
                 concurrency = boost::lexical_cast<unsigned int>(threads);
             }
-            catch(...)
+            catch (...)
             {
                 // Failure is to be expected here, since it might be an empty
                 // string.  In this case, concurrency will be a detectable 0.
             }
-            
+
             if (concurrency == 0)
             {
                 concurrency = std::thread::hardware_concurrency();
             }
 
-            // According to the Boost docs, "thread::hardware_concurrency()" 
-            // may return 0 on platforms that don't have information available
-            // about cores/hyperthreading units, etc.  In this case, we will
-            // default to one thread.
+            // "thread::hardware_concurrency()" may return 0 on platforms that
+            // don't have information available about cores/hyper-threading
+            // units, etc.  In this case, we will default to one thread.
             if (concurrency == 0)
             {
                 concurrency = 1;
             }
         }
     }
-    catch(po::error &err)
+    catch (po::error &err)
     {
         if (strlen(err.what()) == 0)
         {
-            std::cout << boost::format("USAGE: %s <port number>|<options>\n")
-                        % argv[0]
-                 << description
-                 << std::endl;
-                 
+            std::cout << std::format(
+                "USAGE: {} <port number>|<options>\n", argv[0])
+                      << description << std::endl;
+
             return EXIT_SUCCESS;
         }
         else
         {
-            std::cerr << boost::format("ERROR: %s\n\nUSAGE: %s <port number>|<options>\n")
-                        % err.what()
-                        % argv[0]
-                 << description
-                 << std::endl;
+            std::cerr << std::format(
+                "ERROR: {}\n\nUSAGE: {} <port number>|<options>\n",
+                err.what(),
+                argv[0])
+                      << description << std::endl;
         }
-        
+
         return EXIT_FAILURE;
     }
 
-    boost::asio::io_service io_service;
-    
-    paradice9 application(
-        io_service
-      , std::make_shared<boost::asio::io_service::work>(std::ref(io_service))
-      , port);
- 
-    std::vector<std::thread> threadpool;
+    std::unique_ptr<paradice9::server> server;
+
+    boost::asio::io_context io_context;
+    paradice9::context_impl context{
+        io_context, database_path, [&] { server->shutdown(); }};
+    server = boost::make_unique<paradice9::server>(io_context, port, context);
+
+    std::vector<std::thread> thread_pool;
 
     for (unsigned int thr = 0; thr < concurrency; ++thr)
     {
-        threadpool.emplace_back(&run_io_service, std::ref(io_service));
+        thread_pool.emplace_back([&io_context] { io_context.run(); });
     }
-    
-    for (auto &pthread : threadpool)
+
+    for (auto &pthread : thread_pool)
     {
         pthread.join();
     }
-    
-    io_service.stop();
 
     return EXIT_SUCCESS;
 }
-

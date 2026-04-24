@@ -18,6 +18,7 @@ jobs:
 
     env:
       EXTERNAL_ROOT: ${{ github.workspace }}/.ext
+      VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg_installed
       BUILD_TYPE: ${{ matrix.build_type }}
       SERVERPP_REF: master
       SERVERPP_VERSION: "0.2.0"
@@ -60,7 +61,7 @@ jobs:
               -DCMAKE_POLICY_DEFAULT_CMP0167=OLD \
               -DVCPKG_MANIFEST_MODE=ON \
               -DVCPKG_MANIFEST_DIR="${{ github.workspace }}" \
-              -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed" \
+              -DVCPKG_INSTALLED_DIR="$VCPKG_INSTALLED_DIR" \
               "$@"
             cmake --build "${build_dir}" --config "$BUILD_TYPE"
             cmake --install "${build_dir}" --config "$BUILD_TYPE"
@@ -104,7 +105,15 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{runner.workspace}}/paradice9/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DCMAKE_PREFIX_PATH=$EXTERNAL_ROOT -DCMAKE_POLICY_DEFAULT_CMP0167=OLD
+        run: |
+          cmake "$GITHUB_WORKSPACE" \
+            -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DCMAKE_PREFIX_PATH="$EXTERNAL_ROOT" \
+            -DCMAKE_POLICY_DEFAULT_CMP0167=OLD \
+            -DVCPKG_MANIFEST_MODE=ON \
+            -DVCPKG_MANIFEST_DIR="${{ github.workspace }}" \
+            -DVCPKG_INSTALLED_DIR="$VCPKG_INSTALLED_DIR"
 
       - name: Build
         shell: bash
